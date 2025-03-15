@@ -1,0 +1,122 @@
+[
+	{
+		"bangkok": 3250,
+		"samutPrakan": 1780,
+		"chonBuri": 1650,
+		"rayong": 1320,
+		"chachoengsao": 1130,
+		"nakhonSawan": 580,
+		"chiangMai": 720,
+		"month": "Jan"
+	},
+	{
+		"bangkok": 3420,
+		"samutPrakan": 1810,
+		"chonBuri": 1680,
+		"rayong": 1340,
+		"chachoengsao": 1150,
+		"nakhonSawan": 550,
+		"chiangMai": 690,
+		"month": "Feb"
+	},
+	{
+		"bangkok": 3650,
+		"samutPrakan": 1870,
+		"chonBuri": 1720,
+		"rayong": 1390,
+		"chachoengsao": 1180,
+		"nakhonSawan": 510,
+		"chiangMai": 660,
+		"month": "Mar"
+	},
+	{
+		"bangkok": 3580,
+		"samutPrakan": 1830,
+		"chonBuri": 1690,
+		"rayong": 1360,
+		"chachoengsao": 1160,
+		"nakhonSawan": 530,
+		"chiangMai": 680,
+		"month": "Apr"
+	},
+	{
+		"bangkok": 3290,
+		"samutPrakan": 1790,
+		"chonBuri": 1660,
+		"rayong": 1330,
+		"chachoengsao": 1140,
+		"nakhonSawan": 560,
+		"chiangMai": 710,
+		"month": "May"
+	},
+	{
+		"bangkok": 3080,
+		"samutPrakan": 1740,
+		"chonBuri": 1620,
+		"rayong": 1290,
+		"chachoengsao": 1110,
+		"nakhonSawan": 610,
+		"chiangMai": 750,
+		"month": "June"
+	},
+	{
+		"bangkok": 2950,
+		"samutPrakan": 1680,
+		"chonBuri": 1570,
+		"rayong": 1250,
+		"chachoengsao": 1080,
+		"nakhonSawan": 640,
+		"chiangMai": 770,
+		"month": "July"
+	},
+	{
+		"bangkok": 2880,
+		"samutPrakan": 1640,
+		"chonBuri": 1540,
+		"rayong": 1220,
+		"chachoengsao": 1050,
+		"nakhonSawan": 660,
+		"chiangMai": 790,
+		"month": "Aug"
+	},
+	{
+		"bangkok": 3120,
+		"samutPrakan": 1710,
+		"chonBuri": 1590,
+		"rayong": 1270,
+		"chachoengsao": 1090,
+		"nakhonSawan": 620,
+		"chiangMai": 760,
+		"month": "Sept"
+	},
+	{
+		"bangkok": 3280,
+		"samutPrakan": 1790,
+		"chonBuri": 1650,
+		"rayong": 1320,
+		"chachoengsao": 1130,
+		"nakhonSawan": 580,
+		"chiangMai": 720,
+		"month": "Oct"
+	},
+	{
+		"bangkok": 3480,
+		"samutPrakan": 1840,
+		"chonBuri": 1690,
+		"rayong": 1360,
+		"chachoengsao": 1160,
+		"nakhonSawan": 540,
+		"chiangMai": 680,
+		"month": "Nov"
+	},
+	{
+		"bangkok": 3620,
+		"samutPrakan": 1920,
+		"chonBuri": 1760,
+		"rayong": 1410,
+		"chachoengsao": 1210,
+		"nakhonSawan": 490,
+		"chiangMai": 640,
+		"month": "Dec"
+	}
+]
