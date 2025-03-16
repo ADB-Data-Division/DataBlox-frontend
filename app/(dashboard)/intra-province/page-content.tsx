@@ -94,8 +94,8 @@ const chartSetting = {
   };
 
   return (
-    <Box>
-		<Box>
+    <Box sx={{ width: '100%' }}>
+		<Box sx={{ width: '100%' }}>
         <VisualizationToolbar 
           onVisualize={handleVisualize}
           onFileUpload={handleFileUpload}

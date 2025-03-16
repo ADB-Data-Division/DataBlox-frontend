@@ -14,6 +14,8 @@ interface TooltipData {
   sourceToDestPercent?: number;
   destToSourceValue?: number;
   destToSourcePercent?: number;
+  sourceColor?: string;
+  destColor?: string;
   x: number;
   y: number;
 }
@@ -32,6 +34,8 @@ const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({
   sourceToDestPercent,
   destToSourceValue,
   destToSourcePercent,
+  sourceColor,
+  destColor,
   x, 
   y, 
   darkMode 
@@ -69,11 +73,13 @@ const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({
               width: '100%', 
               justifyContent: 'space-between' 
             }}>
-              <Typography variant="body2">{source}</Typography>
+              <Typography variant="body2" sx={{ color: sourceColor }}>
+                {source}
+              </Typography>
               <Box sx={{ 
                 flex: 1, 
                 height: '2px', 
-                backgroundColor: darkMode ? '#fff' : '#000',
+                backgroundColor: sourceColor || (darkMode ? '#fff' : '#000'),
                 mx: 1,
                 position: 'relative',
                 '&::after': {
@@ -85,10 +91,12 @@ const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({
                   height: 0,
                   borderTop: '5px solid transparent',
                   borderBottom: '5px solid transparent',
-                  borderLeft: darkMode ? '8px solid #fff' : '8px solid #000',
+                  borderLeft: `8px solid ${sourceColor || (darkMode ? '#fff' : '#000')}`,
                 }
               }} />
-              <Typography variant="body2">{destination}</Typography>
+              <Typography variant="body2" sx={{ color: destColor }}>
+                {destination}
+              </Typography>
             </Box>
           </Box>
         )}
@@ -105,11 +113,13 @@ const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({
               width: '100%', 
               justifyContent: 'space-between' 
             }}>
-              <Typography variant="body2">{destination}</Typography>
+              <Typography variant="body2" sx={{ color: destColor }}>
+                {destination}
+              </Typography>
               <Box sx={{ 
                 flex: 1, 
                 height: '2px', 
-                backgroundColor: darkMode ? '#fff' : '#000',
+                backgroundColor: destColor || (darkMode ? '#fff' : '#000'),
                 mx: 1,
                 position: 'relative',
                 '&::after': {
@@ -121,10 +131,12 @@ const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({
                   height: 0,
                   borderTop: '5px solid transparent',
                   borderBottom: '5px solid transparent',
-                  borderRight: darkMode ? '8px solid #fff' : '8px solid #000',
+                  borderRight: `8px solid ${destColor || (darkMode ? '#fff' : '#000')}`,
                 }
               }} />
-              <Typography variant="body2">{source}</Typography>
+              <Typography variant="body2" sx={{ color: sourceColor }}>
+                {source}
+              </Typography>
             </Box>
           </Box>
         )}
@@ -149,6 +161,8 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
     sourceToDestPercent: undefined,
     destToSourceValue: undefined,
     destToSourcePercent: undefined,
+    sourceColor: undefined,
+    destColor: undefined,
     x: 0,
     y: 0
   });
@@ -186,7 +200,7 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
     }
 
     const width = 480;
-    const height = 480;
+    const height = 320;
     const outerRadius = Math.min(width, height) * 0.5 - 60;
     const innerRadius = outerRadius - 10;
     const tickStep = d3.tickStep(0, d3.sum(data.flat()), 100);
@@ -219,7 +233,7 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
 
     // Helper function to show tooltip
     const showTooltip = (event: MouseEvent, d: any) => {
-      const offset = 10; // Offset from cursor
+      const offset = 10;
       
       // Calculate percentages
       const sourceToDestPercent = Math.round(d.source.value / totalValue * 100);
@@ -234,6 +248,8 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
         sourceToDestPercent: sourceToDestPercent,
         destToSourceValue: d.source.index !== d.target.index ? d.target.value : undefined,
         destToSourcePercent: destToSourcePercent,
+        sourceColor: color(names[d.source.index]) as string,
+        destColor: color(names[d.target.index]) as string,
         x: event.pageX + 10,
         y: event.pageY + 10
       });
@@ -298,6 +314,8 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
           destination: "All sectors",
           sourceToDestValue: d.value,
           sourceToDestPercent: Math.round(d.value / totalValue * 100),
+          sourceColor: color(names[d.index]) as string,
+          destColor: "#888888",
           x: event.pageX + 10,
           y: event.pageY + 10
         });
@@ -352,13 +370,12 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
 
   return (
     <Box sx={{ 
-      minHeight: '100vh',
       bgcolor: darkMode ? 'background.paper' : 'transparent',
       color: darkMode ? 'text.primary' : 'inherit',
-      position: 'relative' // For tooltip positioning
+      position: 'relative', // For tooltip positioning
+      width: '100%'
     }}>
       <VisualizationToolbar onVisualize={() => {}} />
-      <Typography variant="h4" sx={{ textAlign: 'center', mb: 2 }}>Explanation</Typography>
       <Container sx={{ px: 2, py: 2 }}>
         <Box sx={{ display: 'grid', gap: 4 }}>
           <div ref={chartRef} id="chart"></div>

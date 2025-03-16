@@ -112,15 +112,15 @@ export default function InterProvincePageContent() {
   };
 
   return (
-    <Box>
-      <Box>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%' }}>
         <VisualizationToolbar 
           onVisualize={handleVisualize}
           onFileUpload={handleFileUpload}
           darkMode={true}
         />
       </Box>
-      <Box>
+      <Box sx={{ width: '100%' }}>
         <Typography variant="h4" sx={{ marginBottom: 2 }}>
           {dataType === 'moveIn' ? 'Move In' : 
            dataType === 'moveOut' ? 'Move Out' : 'Net Migration'}
