@@ -44,6 +44,8 @@ export default function DatasetSelector({
   
   const [file, setFile] = useState<File | null>(null);
   const [isCustomUpload, setIsCustomUpload] = useState(datasetId === 'custom');
+
+  const ALLOW_UPLOAD = false;
   
   const handleDatasetChange = (event: SelectChangeEvent<string>) => {
     const newDatasetId = event.target.value;
@@ -124,7 +126,11 @@ export default function DatasetSelector({
             }
           }}
         >
-          <MenuItem disabled>
+          <MenuItem disabled sx={{
+            backgroundColor: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+            color: darkMode ? 'rgba(255,255,255,0.7)' : undefined,
+            padding: '8px 16px'
+          }}>
             <Typography variant="caption" fontWeight="bold">
               Included in Your Subscription
             </Typography>
@@ -171,11 +177,11 @@ export default function DatasetSelector({
               )}
             </MenuItem>
           ))}
-          
-          {/* Custom Upload Option */}
-          <MenuItem value="custom" sx={{ color: darkMode ? 'rgba(255,255,255,0.7)' : undefined }}>
-            Custom Upload
-          </MenuItem>
+          {ALLOW_UPLOAD && (
+            <MenuItem disabled value="custom" sx={{ color: darkMode ? 'rgba(255,255,255,0.7)' : undefined }}>
+              Custom Upload 🔒
+            </MenuItem>
+          )}
         </Select>
       </FormControl>
       
