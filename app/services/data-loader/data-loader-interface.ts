@@ -5,7 +5,7 @@ export type Filter = {
 
 export type ProvinceFilter = Filter & {
 	type: 'province';
-	province_id: string;
+	province_ids: string[];
 }
 
 export type IndustryFilter = Filter & {
@@ -57,7 +57,7 @@ export type GeoJSONDataResult = {
 	data: any; // GeoJSON data
 }
 
-export interface DataInterface {
+export interface DataLoaderInterface {
 	getData(query: DataQuery): Promise<any>;
 	
 	// New method for fetching GeoJSON data

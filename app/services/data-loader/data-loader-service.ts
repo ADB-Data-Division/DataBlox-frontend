@@ -1,12 +1,12 @@
 // app/services/data/data-service.ts
 import { 
-    DataInterface, 
+    DataLoaderInterface, 
     DataQuery, 
     GeoJSONLevel, 
     GeoJSONDataResult 
-} from './data-interface';
+} from './data-loader-interface';
 
-export class DataService implements DataInterface {
+export class DataLoaderService implements DataLoaderInterface {
     private geoJSONCache: Map<GeoJSONLevel, any> = new Map();
     
     constructor() {
@@ -73,4 +73,4 @@ export class DataService implements DataInterface {
 }
 
 // Create a singleton instance
-export const dataService = new DataService();
+export const dataService = new DataLoaderService();

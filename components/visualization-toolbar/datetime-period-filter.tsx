@@ -9,10 +9,10 @@ import { setTimePeriod, setDate } from "@/app/store/features/datasetSlice";
 
 // Define time periods
 const TIME_PERIODS = [
-	{ id: 'lastYear', name: 'Last Year' },
-	{ id: 'last6Months', name: 'Last 6 Months' },
-	{ id: 'last3Months', name: 'Last 3 Months' },
-	{ id: 'custom', name: 'Custom Range' }
+	{ id: 'lastYear', name: 'Last Year', isEnabled: true },
+	{ id: 'last6Months', name: 'Last 6 Months', isEnabled: true },
+	{ id: 'last3Months', name: 'Last 3 Months', isEnabled: true },
+	{ id: 'custom', name: 'Custom Range', isEnabled: false }
 ];
 
 export type DateTimePeriodFilterProps = {
@@ -109,7 +109,7 @@ export default function DateTimePeriodFilter({
             sx={{ color: darkMode ? '#fff' : undefined, height: '100%' }}
           >
             {TIME_PERIODS.map((period) => (
-              <MenuItem key={period.id} value={period.id}>
+              <MenuItem key={period.id} value={period.id} disabled={!period.isEnabled}>
                 {period.name}
               </MenuItem>
             ))}

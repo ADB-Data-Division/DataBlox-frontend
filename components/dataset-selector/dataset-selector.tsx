@@ -19,7 +19,9 @@ import { setDatasetId } from '@/app/store/features/datasetSlice';
 // Define available datasets
 const DATASETS = [
   { id: 'default', name: 'Default Dataset', subscription: 'free' },
-  { id: 'migration', name: 'Migration Dataset', subscription: 'free' },
+  { id: 'migration-2019', name: 'Province Migration Dataset 2019', subscription: 'free' },
+  { id: 'migration-2020', name: 'Province Migration Dataset 2020', subscription: 'free' },
+  { id: 'migration-2021', name: 'Province Migration Dataset 2021', subscription: 'free' },
   { id: 'industry', name: 'Industry Dataset', subscription: 'free' },
   { id: 'premium-1', name: 'Premium Dataset 1', subscription: 'premium' },
   { id: 'premium-2', name: 'Premium Dataset 2', subscription: 'premium' },

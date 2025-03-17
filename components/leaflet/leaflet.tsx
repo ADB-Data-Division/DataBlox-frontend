@@ -5,8 +5,8 @@ import { Box, Typography, CircularProgress, useTheme, Tooltip } from '@mui/mater
 import 'leaflet/dist/leaflet.css';
 import { MapPin } from '@phosphor-icons/react/dist/ssr';
 import dynamic from 'next/dynamic';
-import { dataService } from '@/app/services/data/data-service';
-import { GeoJSONLevel } from '@/app/services/data/data-interface';
+import { dataService } from '@/app/services/data-loader/data-loader-service';
+import { GeoJSONLevel } from '@/app/services/data-loader/data-loader-interface';
 import { Feature, GeoJsonObject } from 'geojson';
 import { GEOJsonProperty } from '@/models/geojson';
 import { Language, LanguageOutlined } from '@mui/icons-material';
@@ -18,7 +18,6 @@ interface ThailandMapProps {
   height?: string | number;
   width?: string | number;
   title?: string;
-  loading?: boolean;
   onProvinceClick?: (province: ProvinceData) => void;
   adminLevel?: GeoJSONLevel;
 }
@@ -51,7 +50,6 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
   height = '100%',
   width = '100%',
   title = 'Thailand Visitor Distribution',
-  loading = false,
   onProvinceClick,
   adminLevel = GeoJSONLevel.PROVINCE,
 }) => {
@@ -60,6 +58,7 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
   const geoJsonLayerRef = useRef<any>(null);
   const theme = useTheme();
   const [mapReady, setMapReady] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [boundaryData, setBoundaryData] = useState<any>(null);
   const [L, setL] = useState<any>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -111,7 +110,7 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
   // Initialize the map
   useEffect(() => {
     console.log("Map initialization check:", { L, mapRef: mapRef.current, leafletMapRef: leafletMapRef.current });
-    
+    setLoading(true);
     if (!L || leafletMapRef.current || !mapRef.current) {
       console.log("Skipping map initialization because:", {
         noLeaflet: !L,
@@ -122,6 +121,7 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
     }
     
     console.log("Initializing map...");
+    
     
     // Define Thailand's approximate bounds
     const thailandBounds = L.latLngBounds(
@@ -166,7 +166,6 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
     // Store map reference
     leafletMapRef.current = map;
     setMapReady(true);
-    
     // Cleanup on unmount
     return () => {
       if (leafletMapRef.current) {
@@ -283,6 +282,8 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
     
     // Store reference to GeoJSON layer
     geoJsonLayerRef.current = geoJsonLayer;
+
+    setLoading(false);
     
   }, [boundaryData, mapReady, provinceData, onProvinceClick, formatNumber, theme, L, languageMode]);
 

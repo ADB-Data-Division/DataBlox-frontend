@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { 
   Box, 
   Button, 
@@ -22,11 +22,15 @@ import VisualizationSelector from './visualization-selector';
 import { useAppDispatch, useAppSelector, usePersistStore } from '@/app/store/hooks';
 import { resetDataset } from '@/app/store/features/datasetSlice';
 import { Province } from '@/models/province-district-subdistrict';
+import { ProvinceFilter as ProvinceFilterType } from '@/app/store/features/datasetSlice';
+import { DataLoaderService } from '@/app/services/data-loader/data-loader-service';
+import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
 
 interface VisualizationToolbarProps {
   onVisualize: (filters: VisualizationFilters) => void;
   onFileUpload?: (file: File) => void;
   onDatasetSelect?: (datasetId: string) => void;
+  onDataLoaded?: (data: any) => void;
   darkMode?: boolean;
   userSubscription?: 'free' | 'premium';  // New prop
 }
@@ -45,17 +49,23 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
   onVisualize,
   onFileUpload,
   onDatasetSelect,
+  onDataLoaded,
   darkMode = true,
   userSubscription = 'free'  // Default to free
 }) => {
-  const theme = useTheme();
+  
   const dispatch = useAppDispatch();
   const { clearPersistedData } = usePersistStore();
-  const { datasetId, timePeriod, dateRange, provinces } = useAppSelector(state => state.dataset);
+  const { datasetId, timePeriod, dateRange, filters: reduxFilters } = useAppSelector(state => state.dataset);
   const { startDate, endDate } = dateRange;
+  const reduxProvinceFilters = useMemo(() => (reduxFilters.find(filter => filter.type === 'province') as ProvinceFilterType|undefined)?.province_ids.map(id => ({
+    id: id,
+    name: id,
+    category: 'province'
+  } as Province)) ?? [], [reduxFilters]);
   
   const [filters, setFilters] = useState<VisualizationFilters>({
-    provinces: provinces,
+    provinces: reduxProvinceFilters,
     timePeriod: timePeriod,
     startDate: startDate,
     endDate: endDate,
@@ -69,13 +79,13 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
   useEffect(() => {
     setFilters(prev => ({
       ...prev,
-      provinces,
+      provinces: reduxProvinceFilters,
       timePeriod,
       startDate,
       endDate,
       datasetId
     }));
-  }, [provinces, timePeriod, startDate, endDate, datasetId]);
+  }, [reduxProvinceFilters, timePeriod, startDate, endDate, datasetId]);
   
   // Handle visualization type change
   const handleVisualizationTypeChange = (type: string) => {
@@ -96,11 +106,12 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
   };
   
   // Handle visualization request
-  const handleVisualize = () => {
+  const handleVisualize = async () => {
+
     // Get the latest values from Redux for time-related fields
     const updatedFilters = {
       ...filters,
-      provinces,
+      provinces: reduxProvinceFilters,
       timePeriod,
       startDate,
       endDate,
@@ -158,6 +169,17 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
 
   // Handle province change
   const handleProvinceChange = (selectedProvinces: string[]) => {
+    setFilters({
+      provinces: selectedProvinces.map(province => ({
+        id: province.toLowerCase(),
+        name: province,
+        category: 'province'
+      })),
+      timePeriod: 'lastYear',
+      visualizationType: 'barChart',
+      dataType: 'moveIn',
+      datasetId: 'default'
+    });
     setIsDirty(true);
   };
 

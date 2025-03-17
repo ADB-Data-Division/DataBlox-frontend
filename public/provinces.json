@@ -5,12 +5,12 @@
 		"category": "industrial"
 	},
 	{
-		"id": "samutPrakan",
+		"id": "samutprakan",
 		"name": "Samut Prakan",
 		"category": "industrial"
 	},
 	{
-		"id": "chonBuri",
+		"id": "chonburi",
 		"name": "Chon Buri",
 		"category": "industrial"
 	},
@@ -25,12 +25,12 @@
 		"category": "industrial"
 	},
 	{
-		"id": "nakhonSawan",
+		"id": "nakhonsawan",
 		"name": "Nakhon Sawan",
 		"category": "agricultural"
 	},
 	{
-		"id": "chiangMai",
+		"id": "chiangmai",
 		"name": "Chiang Mai",
 		"category": "agricultural"
 	}
