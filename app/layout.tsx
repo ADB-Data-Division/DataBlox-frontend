@@ -3,8 +3,9 @@ import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
-import ThemeRegistry from '../style/theme/theme-registry';
-import { ChartBar, ChartScatter, CircleHalf, MapTrifold, PresentationChart } from '@phosphor-icons/react/dist/ssr';
+import AppThemeProvider from '../style/theme/theme-provider';
+import { ChartBar, ChartScatter, CircleHalf, MapTrifold, PresentationChart, Gear } from '@phosphor-icons/react/dist/ssr';
+import { ReduxProvider } from './store/provider';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 
@@ -43,6 +44,15 @@ const NAVIGATION: Navigation = [
     title: 'Side by Side',
     icon: <PresentationChart />,
   },
+  {
+    kind: 'header',
+    title: 'System',
+  },
+  {
+    segment: 'settings',
+    title: 'Settings',
+    icon: <Gear />,
+  },
 ];
 
 const BRANDING = {
@@ -63,16 +73,19 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-            <ThemeRegistry>
-              <NextAppProvider
-                navigation={NAVIGATION}
-                branding={BRANDING}
-                session={session}
-                authentication={AUTHENTICATION}
-              >
-                {props.children}
-              </NextAppProvider>
-            </ThemeRegistry>
+            <ReduxProvider>
+              <AppThemeProvider>
+                <NextAppProvider
+                  navigation={NAVIGATION}
+                  branding={BRANDING}
+                  session={session}
+                  authentication={AUTHENTICATION}
+                  
+                >
+                  {props.children}
+                </NextAppProvider>
+              </AppThemeProvider>
+            </ReduxProvider>
           </AppRouterCacheProvider>
         </SessionProvider>
       </body>

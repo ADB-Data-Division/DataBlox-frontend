@@ -85,7 +85,18 @@ const themeOptions: ThemeOptions = {
   cssVariables: {
     colorSchemeSelector: 'data-toolpad-color-scheme',
   },
-  colorSchemes: { light: true, dark: true },
+  colorSchemes: { 
+    light: {
+      palette: {
+        // Light mode specific palette overrides if needed
+      }
+    },
+    dark: {
+      palette: {
+        // Dark mode specific palette overrides if needed
+      }
+    }
+  },
 };
 
 // Create the theme

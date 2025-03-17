@@ -1,0 +1,72 @@
+[
+	{
+		"id": "migration2020",
+		"name": "Migration Data",
+		"subscription": "free",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "migration2021",
+		"name": "Device Migration Data",
+		"subscription": "free",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "migration2023",
+		"name": "Tourism Migration Data",
+		"subscription": "free",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "migration2022",
+		"name": "Migration Data 2022",
+		"subscription": "premium",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "industryShift",
+		"name": "Industry Shift Analysis",
+		"subscription": "premium",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "sectoralTrends",
+		"name": "Sectoral Trends 2022",
+		"subscription": "premium",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	},
+	{
+		"id": "custom",
+		"name": "Custom Upload",
+		"subscription": "free",
+		"supported_visualizations": [
+			"bar",
+			"map",
+			"chord"
+		]
+	}
+]

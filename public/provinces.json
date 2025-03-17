@@ -1,0 +1,37 @@
+[
+	{
+		"id": "bangkok",
+		"name": "Bangkok",
+		"category": "industrial"
+	},
+	{
+		"id": "samutPrakan",
+		"name": "Samut Prakan",
+		"category": "industrial"
+	},
+	{
+		"id": "chonBuri",
+		"name": "Chon Buri",
+		"category": "industrial"
+	},
+	{
+		"id": "rayong",
+		"name": "Rayong",
+		"category": "industrial"
+	},
+	{
+		"id": "chachoengsao",
+		"name": "Chachoengsao",
+		"category": "industrial"
+	},
+	{
+		"id": "nakhonSawan",
+		"name": "Nakhon Sawan",
+		"category": "agricultural"
+	},
+	{
+		"id": "chiangMai",
+		"name": "Chiang Mai",
+		"category": "agricultural"
+	}
+]
