@@ -127,7 +127,7 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
     if (datasetId === null) {
       setDatasetId(reduxDatasetId);
     }
-  }, [reduxDatasetId]);
+  }, [reduxDatasetId, datasetId]);
   
   // Handle visualization type change
   const handleVisualizationTypeChange = (type: VisualizationMethod) => {

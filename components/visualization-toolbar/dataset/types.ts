@@ -1,4 +1,4 @@
-import { DateTimeFilter } from "@/app/store/features/datasetSlice";
+import { DateTimeFilter } from "@/app/services/data-loader/data-loader-interface";
 
 export interface DatasetMetadata {
 	/**

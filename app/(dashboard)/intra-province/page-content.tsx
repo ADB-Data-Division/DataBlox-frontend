@@ -8,6 +8,10 @@ import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
 import moveOutSampleDataset from '../../../public/move-out-sample-dataset.json';
 import MigrationContent from '../migration/migration-content';
 import VisualizationToolbar, { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import { Subaction } from '@/components/visualization-toolbar/types';
+import { Filter } from '@/app/services/data-loader/data-loader-interface';
+import { transformFilter } from '@/app/services/filter/transform';
+import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
 
 function valueFormatter(value: number | null) {
 	return `${value}mm`;
@@ -15,9 +19,11 @@ function valueFormatter(value: number | null) {
   
 export default function IntraProvincePageContent() {
 	const [activeDataset, setActiveDataset] = React.useState(moveInSampleDataset);
-	const [dataType, setDataType] = React.useState<'moveIn' | 'moveOut' | 'net'>('moveIn');
-	const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
-	
+  const [subAction, setSubAction] = React.useState<Subaction>('movein');
+  const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isEmpty, setIsEmpty] = React.useState(true);
+  
 
 const chartSetting = {
 	yAxis: [
@@ -35,37 +41,32 @@ const chartSetting = {
   };
   
 
-  const handleVisualize = (filters: VisualizationFilters) => {
-    setSelectedProvinces(filters.provinces);
-    setDataType(filters.dataType);
-    
-    // Set the active dataset based on the data type
-    if (filters.dataType === 'moveIn') {
-      setActiveDataset(moveInSampleDataset);
-    } else if (filters.dataType === 'moveOut') {
-      setActiveDataset(moveOutSampleDataset);
-    } else {
-      // For 'net', you would need to calculate the difference
-      // This is a simplified example
-      const netDataset = moveInSampleDataset.map((item, index) => {
-        const moveOut = moveOutSampleDataset[index];
-        const netItem: any = { month: item.month };
-        
-        Object.keys(item).forEach(key => {
-          if (key !== 'month') {
-            netItem[key] = (item as any)[key] - (moveOut as any)[key];
-          }
-        });
-        
-        return netItem;
-      });
-      
-      setActiveDataset(netDataset);
+  const handleVisualize = async (filters: VisualizationFilters) => {
+
+    setIsLoading(true);
+
+    const appliedFilters: Filter[] = transformFilter(filters);
+    setSelectedProvinces(filters.provinces.map(province => province.id));
+    setSubAction(filters.subaction as 'movein' | 'moveout' | 'net');
+
+    // const dataloaderService = new DataLoaderService();
+    const migrationProcessor = new MigrationDataProcessor();
+    await migrationProcessor.loadDataset('/Jan20-Dec20_sparse.json');
+    if (onDataLoaded) {
+      const data = await migrationProcessor.applyFilters(appliedFilters)
+      onDataLoaded(data);
     }
     
     // In a real app, you might fetch data from an API based on filters
     console.log('Visualization requested with filters:', filters);
   };
+  
+  const onDataLoaded = (data: any) => {
+    console.log(data);
+    setActiveDataset(data);
+    setIsLoading(false);
+    setIsEmpty(false);
+  }
   
   const handleFileUpload = (file: File) => {
     // In a real app, you would process the uploaded file

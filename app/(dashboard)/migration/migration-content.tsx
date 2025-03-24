@@ -43,10 +43,10 @@ export default function MigrationContent() {
       // Check if we received data
       if (data && data.length > 0) {
         // Set the appropriate data based on the selected action type
-        if (filters.subaction === 'movein' || filters.subaction === 'moveIn') {
+        if (filters.subaction === 'movein') {
           setMoveInData(data);
           setTabValue(0);
-        } else if (filters.subaction === 'moveout' || filters.subaction === 'moveOut') {
+        } else if (filters.subaction === 'moveout') {
           setMoveOutData(data);
           setTabValue(1);
         }
