@@ -5,17 +5,19 @@ import PROVINCES from "@/public/provinces.json";
 import { Province } from "@/models/province-district-subdistrict";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { addFilter } from "@/app/store/features/datasetSlice";
-import { ProvinceFilter as ProvinceFilterType } from "@/app/store/features/datasetSlice";
-
+import { ProvinceFilter } from "@/app/services/data-loader/data-loader-interface";
 export type ProvinceFilterProps = {
+  provinceFilter: ProvinceFilter;
 	darkMode: boolean;
 	onProvinceChange?: (provinces: string[]) => void;
 }
 
-export default function ProvinceFilter({ darkMode, onProvinceChange }: ProvinceFilterProps) {
+export default function ProvinceFilterUI({ 
+  darkMode, 
+  onProvinceChange,
+  provinceFilter
+}: ProvinceFilterProps) {
 	const dispatch = useAppDispatch();
-	const { filters } = useAppSelector(state => state.dataset);
-  const provinceFilter = filters.find(f => f.type === "province") as ProvinceFilterType;
 	
 	const handleProvinceChange = (event: SelectChangeEvent<string[]>) => {
 		const value = event.target.value;
@@ -26,7 +28,7 @@ export default function ProvinceFilter({ darkMode, onProvinceChange }: ProvinceF
       filter_id: 'province',
       type: 'province',
       province_ids: selectedProvinces
-    } as ProvinceFilterType));
+    } as ProvinceFilter));
 		
 		// Call optional callback for backward compatibility
 		if (onProvinceChange) {

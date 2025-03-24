@@ -1,25 +1,26 @@
+'use client';
 import { Box, IconButton, Tooltip } from "@mui/material";
-import { ChartBar, MapPin, ArrowsLeftRight } from "@phosphor-icons/react";
 import { VisualizationFilters } from "./visualization-toolbar";
+import { Subaction, VISUALIZATION_TYPES, VisualizationMethod, VisualizationType } from "./types";
 
-// Define visualization types
-const VISUALIZATION_TYPES = [
-	{ id: 'bar', name: 'Bar Chart', icon: <ChartBar size={20} /> },
-	{ id: 'map', name: 'Map View', icon: <MapPin size={20} /> },
-	{ id: 'chord', name: 'Chord Diagram', icon: <ArrowsLeftRight size={20} /> }
-  ];
 
 export type VisualizationSelectorProps = {
+  supportedVisualizations: VisualizationType[];
 	filters: VisualizationFilters;
 	darkMode: boolean;
-	handleVisualizationTypeChange: (type: string) => void;
+	handleVisualizationTypeChange: (type: VisualizationMethod) => void;
 }
 
-export default function VisualizationSelector({ filters, darkMode, handleVisualizationTypeChange }: VisualizationSelectorProps) {
+export default function VisualizationSelector({ 
+  filters, 
+  darkMode, 
+  handleVisualizationTypeChange,
+  supportedVisualizations
+}: VisualizationSelectorProps) {
 	return (
 		<>
 		<Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-            {VISUALIZATION_TYPES.map((type) => (
+            {supportedVisualizations.map((type) => (
               <Tooltip key={type.id} title={type.name}>
                 <IconButton
                   color={filters.visualizationType === type.id ? 'primary' : 'default'}

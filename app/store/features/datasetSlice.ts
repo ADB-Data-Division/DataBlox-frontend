@@ -1,37 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { DateTime } from 'luxon';
-import STATIC_PROVINCES from '@/public/provinces.json';
 import { Province } from '@/models/province-district-subdistrict';
+import { Filter, SubactionFilter } from '@/app/services/data-loader/data-loader-interface';
 // Define types for our state
 export interface DateRange {
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface Filter {
-  type: 'province' | 'industry' | 'district' | 'datetime';
-  filter_id: string;
-}
-
-export interface ProvinceFilter extends Filter {
-  type: 'province';
-  province_ids: string[];
-}
-
-export interface IndustryFilter extends Filter {
-  type: 'industry';
-  industry_id: string;
-}
-
-export interface DistrictFilter extends Filter {
-  type: 'district';
-  district_id: string;
-}
-
-export interface DateTimeFilter extends Filter {
-  type: 'datetime';
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface DatasetState {
@@ -55,8 +28,8 @@ const initialState: DatasetState = {
   datasetId: 'default',
   timePeriod: 'last-month',
   dateRange: {
-    startDate: undefined,
-    endDate: undefined,
+    start_date: undefined,
+    end_date: undefined,
   },
   provinces: [],
   filters: [],
@@ -82,8 +55,8 @@ export const datasetSlice = createSlice({
       // Otherwise, clear the date range
       if (action.payload !== 'custom') {
         state.dateRange = {
-          startDate: undefined,
-          endDate: undefined,
+          start_date: undefined,
+          end_date: undefined,
         };
       }
     },
@@ -94,7 +67,7 @@ export const datasetSlice = createSlice({
     },
     
     // Set a specific date (startDate or endDate)
-    setDate: (state, action: PayloadAction<{ field: 'startDate' | 'endDate', value: string | undefined }>) => {
+    setDate: (state, action: PayloadAction<{ field: 'start_date' | 'end_date', value: string | undefined }>) => {
       const { field, value } = action.payload;
       state.dateRange[field] = value;
     },
@@ -165,6 +138,8 @@ export const {
   resetDataset,
   clearPersistedState,
 } = datasetSlice.actions;
+
+export type DatasetReducerType = typeof datasetSlice.reducer;
 
 // Export reducer
 export default datasetSlice.reducer; 

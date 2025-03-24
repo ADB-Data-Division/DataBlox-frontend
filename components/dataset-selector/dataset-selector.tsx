@@ -18,10 +18,10 @@ import { setDatasetId } from '@/app/store/features/datasetSlice';
 
 // Define available datasets
 const DATASETS = [
-  { id: 'default', name: 'Default Dataset', subscription: 'free' },
-  { id: 'migration-2019', name: 'Province Migration Dataset 2019', subscription: 'free' },
+  // { id: 'default', name: 'Default Dataset', subscription: 'free' },
+  // { id: 'migration-2019', name: 'Province Migration Dataset 2019', subscription: 'free' },
   { id: 'migration-2020', name: 'Province Migration Dataset 2020', subscription: 'free' },
-  { id: 'migration-2021', name: 'Province Migration Dataset 2021', subscription: 'free' },
+  // { id: 'migration-2021', name: 'Province Migration Dataset 2021', subscription: 'free' },
   { id: 'industry', name: 'Industry Dataset', subscription: 'free' },
   { id: 'premium-1', name: 'Premium Dataset 1', subscription: 'premium' },
   { id: 'premium-2', name: 'Premium Dataset 2', subscription: 'premium' },
@@ -29,6 +29,10 @@ const DATASETS = [
 ];
 
 interface DatasetSelectorProps {
+  /**
+   * The dataset ID to be selected. If null, the dataset selector has no data selected yet.
+   */
+  datasetId: string|null;
   darkMode?: boolean;
   userSubscription?: 'free' | 'premium';
   onFileUpload?: (file: File) => void;
@@ -36,13 +40,13 @@ interface DatasetSelectorProps {
 }
 
 export default function DatasetSelector({ 
+  datasetId,
   darkMode = false, 
   userSubscription = 'free',
   onFileUpload,
   onDatasetSelect
 }: DatasetSelectorProps) {
   const dispatch = useAppDispatch();
-  const { datasetId } = useAppSelector(state => state.dataset);
   
   const [file, setFile] = useState<File | null>(null);
   const [isCustomUpload, setIsCustomUpload] = useState(datasetId === 'custom');
@@ -108,7 +112,7 @@ export default function DatasetSelector({
         <Select
           labelId="dataset-select-label"
           id="dataset-select"
-          value={datasetId}
+          value={datasetId ?? ''}
           onChange={handleDatasetChange}
           label="Dataset"
           IconComponent={CaretDown}

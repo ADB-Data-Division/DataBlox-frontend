@@ -1,149 +1,19 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { Box, Typography, Container, useTheme, Paper } from '@mui/material';
-import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
-
-// Updated tooltip interface
-interface TooltipData {
-  visible: boolean;
-  source?: string;
-  destination?: string;
-  sourceToDestValue?: number;
-  sourceToDestPercent?: number;
-  destToSourceValue?: number;
-  destToSourcePercent?: number;
-  sourceColor?: string;
-  destColor?: string;
-  x: number;
-  y: number;
-}
-
+import { Box, Typography, Container, useTheme, Paper, CircularProgress } from '@mui/material';
+import VisualizationToolbar, { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
+import { Filter, ProvinceFilter } from '@/app/services/data-loader/data-loader-interface';
+import { transformFilter } from '@/app/services/filter/transform';
+import { MigrationData, processMigrationData } from '@/app/services/data-loader/process-migration-data';
+import ChordTooltip from '@/components/chord-tooltip/chord-tooltip';
+import { TooltipData } from '@/components/chord-tooltip/types';
 interface IndustryMigrationProps {
   title?: string;
   darkMode?: boolean;
 }
-
-// Redesigned Tooltip component
-const Tooltip: React.FC<TooltipData & { darkMode: boolean }> = ({ 
-  visible, 
-  source, 
-  destination, 
-  sourceToDestValue,
-  sourceToDestPercent,
-  destToSourceValue,
-  destToSourcePercent,
-  sourceColor,
-  destColor,
-  x, 
-  y, 
-  darkMode 
-}) => {
-  if (!visible || !source || !destination) return null;
-  
-  return (
-    <Paper
-      elevation={3}
-      sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        transform: `translate(${x}px, ${y}px)`,
-        padding: '16px',
-        borderRadius: '4px',
-        width: '300px',
-        zIndex: 1000,
-        pointerEvents: 'none',
-        backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        color: darkMode ? '#ffffff' : '#333333',
-        transition: 'transform 0.1s ease-out',
-      }}
-    >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* Source to Destination Flow */}
-        {sourceToDestValue !== undefined && sourceToDestPercent !== undefined && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="body1" fontWeight="bold" sx={{ mb: 0.5 }}>
-              {sourceToDestValue.toLocaleString()} ({sourceToDestPercent}%)
-            </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              width: '100%', 
-              justifyContent: 'space-between' 
-            }}>
-              <Typography variant="body2" sx={{ color: sourceColor }}>
-                {source}
-              </Typography>
-              <Box sx={{ 
-                flex: 1, 
-                height: '2px', 
-                backgroundColor: sourceColor || (darkMode ? '#fff' : '#000'),
-                mx: 1,
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  right: 0,
-                  top: '-4px',
-                  width: 0,
-                  height: 0,
-                  borderTop: '5px solid transparent',
-                  borderBottom: '5px solid transparent',
-                  borderLeft: `8px solid ${sourceColor || (darkMode ? '#fff' : '#000')}`,
-                }
-              }} />
-              <Typography variant="body2" sx={{ color: destColor }}>
-                {destination}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-        
-        {/* Destination to Source Flow */}
-        {destToSourceValue !== undefined && destToSourcePercent !== undefined && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1 }}>
-            <Typography variant="body1" fontWeight="bold" sx={{ mb: 0.5 }}>
-              {destToSourceValue.toLocaleString()} ({destToSourcePercent}%)
-            </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              width: '100%', 
-              justifyContent: 'space-between' 
-            }}>
-              <Typography variant="body2" sx={{ color: destColor }}>
-                {destination}
-              </Typography>
-              <Box sx={{ 
-                flex: 1, 
-                height: '2px', 
-                backgroundColor: destColor || (darkMode ? '#fff' : '#000'),
-                mx: 1,
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  left: 0,
-                  top: '-4px',
-                  width: 0,
-                  height: 0,
-                  borderTop: '5px solid transparent',
-                  borderBottom: '5px solid transparent',
-                  borderRight: `8px solid ${destColor || (darkMode ? '#fff' : '#000')}`,
-                }
-              }} />
-              <Typography variant="body2" sx={{ color: sourceColor }}>
-                {source}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Box>
-    </Paper>
-  );
-};
 
 const IndustryMigration: React.FC<IndustryMigrationProps> = ({ 
   title = "ADB Data Visualization",
@@ -151,6 +21,16 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
+  
+  // State for migration data
+  const [migrationData, setMigrationData] = useState<MigrationData>({
+    matrix: [],
+    names: []
+  });
+  
+  // Loading state
+  const [loading, setLoading] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(true);
   
   // State for tooltip
   const [tooltip, setTooltip] = useState<TooltipData>({
@@ -171,21 +51,15 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
   const textColor = darkMode ? '#ffffff' : '#333333';
   const backgroundColor = darkMode ? '#121212' : 'transparent';
 
-  useEffect(() => {
-    if (!chartRef.current) return;
+  // Function to draw the chart
+  const drawChart = useCallback(() => {
+    if (!chartRef.current || migrationData.matrix.length === 0 || migrationData.names.length === 0) return;
     
     // Clear any existing SVG
     d3.select(chartRef.current).selectAll("svg").remove();
     
-    // Sample data structure
-    const data = [
-      [0, 5871, 8916, 2868],
-      [1951, 0, 2060, 6171],
-      [8010, 16145, 0, 8045],
-      [1013, 990, 940, 0]
-    ];
-
-    const names = ["Agriculture", "Industrial", "Service", "Migrant"];
+    const data = migrationData.matrix;
+    const names = migrationData.names;
     const colors = d3.schemeCategory10;
 
     function groupTicks(d: any, step: number) {
@@ -250,89 +124,96 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
         destToSourcePercent: destToSourcePercent,
         sourceColor: color(names[d.source.index]) as string,
         destColor: color(names[d.target.index]) as string,
-        x: event.pageX + 10,
-        y: event.pageY + 10
+        x: event.clientX + offset,
+        y: event.clientY + offset
       });
     };
-
+    
     // Helper function to hide tooltip
     const hideTooltip = () => {
-      setTooltip(prev => ({ ...prev, visible: false }));
+      setTooltip((prev: any) => ({ ...prev, visible: false }));
     };
 
-    // Draw the ribbons with standard D3 ribbon
-    const ribbons = svg.append("g")
-      .attr("fill-opacity", 0.8)
-      .selectAll("path")
-      .data(chords)
-      .join("path")
-      .style("mix-blend-mode", darkMode ? "screen" : "multiply")
-      .attr("fill", d => color(names[d.source.index]))
-      .attr("d", ribbon as any)
-      .attr("class", d => `chord chord-source-${d.source.index} chord-target-${d.target.index}`)
-      .on("mouseover", function(event, d) {
-        // Fade all ribbons to 5% opacity
-        ribbons.transition().duration(200).attr("fill-opacity", 0.05);
-        
-        // Highlight only this ribbon
-        d3.select(this).transition().duration(200).attr("fill-opacity", 0.8);
-        
-        showTooltip(event, d);
-      })
-      .on("mouseout", function() {
-        // Restore all ribbons to original opacity
-        ribbons.transition().duration(200).attr("fill-opacity", 0.8);
-        hideTooltip();
-      })
-      .on("mousemove", function(event, d) {
-        showTooltip(event, d);
-      });
-
-    // Then draw the groups
     const group = svg.append("g")
+      .attr("font-size", 10)
+      .attr("font-family", "sans-serif")
       .selectAll("g")
       .data(chords.groups)
       .join("g");
 
-    // Draw the outer arcs with hover effects
     group.append("path")
-      .attr("fill", d => color(names[d.index]))
+      .attr("fill", d => color(names[d.index]) as string)
       .attr("d", arc as any)
-      .attr("class", d => `group-${d.index}`)
       .on("mouseover", function(event, d) {
-        // Fade all ribbons to 5% opacity
-        ribbons.transition().duration(200).attr("fill-opacity", 0.05);
+        // Calculate the total value for this group
+        const totalValue = d.value;
+        const totalPercent = Math.round((totalValue / d3.sum(data.flat())) * 100);
         
-        // Highlight ribbons connected to this group
-        ribbons.filter(c => c.source.index === d.index || c.target.index === d.index)
-          .transition().duration(200).attr("fill-opacity", 0.8);
-          
-        // For group hover, we'll show a different tooltip
+        // Show a special tooltip for group totals
         setTooltip({
           visible: true,
           source: names[d.index],
-          destination: "All sectors",
-          sourceToDestValue: d.value,
-          sourceToDestPercent: Math.round(d.value / totalValue * 100),
+          destination: "All provinces", // or "Total"
+          sourceToDestValue: totalValue,
+          sourceToDestPercent: totalPercent,
           sourceColor: color(names[d.index]) as string,
-          destColor: "#888888",
-          x: event.pageX + 10,
-          y: event.pageY + 10
+          destColor: undefined,
+          x: event.clientX + 10,
+          y: event.clientY + 10
         });
+        
+        // Optional: Highlight related chords
+        svg.selectAll(".chord")
+          .filter((c: any) => c.source.index === d.index || c.target.index === d.index)
+          .attr("opacity", 1);
+          
+        svg.selectAll(".chord")
+          .filter((c: any) => c.source.index !== d.index && c.target.index !== d.index)
+          .attr("opacity", 0.1);
       })
       .on("mouseout", function() {
-        // Restore all ribbons to original opacity
-        ribbons.transition().duration(200).attr("fill-opacity", 0.8);
-        hideTooltip();
+        // Hide tooltip and restore opacity
+        setTooltip((prev: any) => ({ ...prev, visible: false }));
+        svg.selectAll(".chord").attr("opacity", 0.8);
       })
-      .on("mousemove", function(event, d) {
-        // Update tooltip position on mouse move
-        setTooltip(prev => ({
+      .on("mousemove", function(event) {
+        // Update tooltip position
+        setTooltip((prev: any) => ({
           ...prev,
-          x: event.pageX + 10,
-          y: event.pageY + 10
+          x: event.clientX + 10,
+          y: event.clientY + 10
         }));
       });
+
+    group.append("text")
+      .each(d => (d as any).angle = (d.startAngle + d.endAngle) / 2)
+      .attr("dy", "0.35em")
+      .attr("transform", d => `
+        rotate(${((d as any).angle * 180 / Math.PI - 90)})
+        translate(${outerRadius + 5})
+        ${(d as any).angle > Math.PI ? "rotate(180)" : ""}
+      `)
+      .attr("text-anchor", d => (d as any).angle > Math.PI ? "end" : null)
+      .text(d => names[d.index])
+      .style("fill", textColor);
+
+    // group.append("title")
+    //   .text(d => `${names[d.index]}\n${formatValue(d.value)} of total flow`);
+
+    svg.append("g")
+      .attr("fill-opacity", 0.8)
+      .selectAll("path")
+      .data(chords)
+      .join("path")
+      .attr("d", ribbon as any)
+      .attr("fill", d => color(names[d.source.index]) as string)
+      .attr("stroke", d => d3.rgb(color(names[d.source.index]) as string).darker(0.1).toString())
+      .on("mouseover", showTooltip as any)
+      .on("mousemove", showTooltip as any)
+      .on("mouseout", hideTooltip)
+//       .append("title")
+//       .text(d => `${names[d.source.index]} → ${names[d.target.index]}: ${d.source.value}
+// ${names[d.target.index]} → ${names[d.source.index]}: ${d.target.value}`);
 
     const groupTick = group.append("g")
       .selectAll("g")
@@ -342,31 +223,57 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
 
     groupTick.append("line")
       .attr("stroke", textColor)
-      .attr("x2", d => d.isMajor ? 10 : 6) // Longer line for major ticks
-      .attr("stroke-width", d => d.isMajor ? 2 : 1); // Thicker line for major ticks
+      .attr("stroke-opacity", d => d.isMajor ? 0.7 : 0.2)
+      .attr("x2", d => d.isMajor ? 7 : 4);
 
-    // Only add text labels to major ticks
-    groupTick.filter(d => d.isMajor)
-      .append("text")
-      .attr("x", 12) // Moved slightly further out
-      .attr("dy", "0.35em")
-      .attr("fill", textColor)
-      .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-24)" : null)
+    groupTick.filter(d => d.isMajor).append("text")
+      .attr("x", 10)
+      .attr("dy", ".35em")
+      .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-20)" : null)
       .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
-      .text(d => formatValue(d.value));
+      .text(d => d.value)
+      .style("fill", textColor)
+      .style("font-size", "8px");
+  }, [migrationData, textColor, backgroundColor]);
 
-    group.select("text")
-      .attr("font-weight", "bold")
-      .attr("fill", textColor)
-      .text(function(d) {
-        // Use optional chaining and type assertion for SVGElement
-        return (this as SVGTextElement)?.getAttribute("text-anchor") === "end"
-          ? `↑ ${names[d.index]}`
-          : `${names[d.index]} ↓`;
-      })
-      .attr("style", `font: 9px sans-serif;`);
+  const handleVisualize = async (filters: VisualizationFilters) => {
+    setLoading(true);
+    setIsEmpty(true);
+    
+    try {
+      const appliedFilters: Filter[] = transformFilter(filters);
+      
+      // Process and load data using the MigrationDataProcessor
+      const migrationProcessor = new MigrationDataProcessor();
+      await migrationProcessor.fetchData('/Jan20-Dec20_sparse.json');
+      
+      const data = await migrationProcessor.applyFilters(appliedFilters);
+      
+      if (data && data.length > 0) {
+        const monthSelector = null;
+        const processed = processMigrationData(data, monthSelector, appliedFilters);
+        setMigrationData(processed);
+        setIsEmpty(false);
+        console.log('Visualization data loaded:', processed);
+      } else {
+        console.log('No data returned after applying filters');
+      }
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Draw the chart when migration data changes
+  useEffect(() => {
+    drawChart();
+  }, [migrationData, drawChart]);
 
-  }, [darkMode, textColor, backgroundColor]);
+  const initialFilters: Partial<VisualizationFilters> = {
+    visualizationType: 'chord',
+    subaction: 'raw',
+  };
 
   return (
     <Box sx={{ 
@@ -375,15 +282,35 @@ const IndustryMigration: React.FC<IndustryMigrationProps> = ({
       position: 'relative', // For tooltip positioning
       width: '100%'
     }}>
-      <VisualizationToolbar onVisualize={() => {}} />
+      <VisualizationToolbar 
+        onVisualize={handleVisualize}
+        onFileUpload={(file) => console.log('File uploaded:', file.name)}
+        onDataLoaded={(data) => console.log('Data loaded:', data)}
+        darkMode={darkMode}
+        subActionsAllowed={['raw']}
+        initialFilters={initialFilters}
+      />
+      
       <Container sx={{ px: 2, py: 2 }}>
-        <Box sx={{ display: 'grid', gap: 4 }}>
-          <div ref={chartRef} id="chart"></div>
-        </Box>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ display: 'grid', gap: 4 }}>
+            {isEmpty ? (
+              <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
+                Please select a dataset and apply filters to visualize industry migration data.
+              </Typography>
+            ) : (
+              <div ref={chartRef} id="chart"></div>
+            )}
+          </Box>
+        )}
       </Container>
       
       {/* Custom tooltip component */}
-      <Tooltip {...tooltip} darkMode={darkMode} />
+      <ChordTooltip {...tooltip} darkMode={darkMode} />
     </Box>
   );
 };

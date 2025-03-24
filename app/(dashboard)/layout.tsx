@@ -1,13 +1,11 @@
 'use client';
 import * as React from 'react';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { Box, Typography, useTheme } from '@mui/material';
-import ThemeToggle from '@/components/theme-toggle';
+import { Box, useTheme } from '@mui/material';
 
 export default function Layout(props: { children: React.ReactNode }) {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
-  
   
   return (
     <DashboardLayout

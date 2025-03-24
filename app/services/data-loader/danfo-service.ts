@@ -1,7 +1,8 @@
 import { normalizeAsKey } from "@/models/normalize";
 import { Province } from "@/models/province-district-subdistrict";
 import * as dfd from "danfojs";
-import { Filter, ProvinceFilter } from "./data-loader-interface";
+import { Filter, ProvinceFilter, DateTimeFilter, SubactionFilter } from "./data-loader-interface";
+import { DateTime } from "luxon";
 
 interface SparseMatrix {
   [sourceDistrict: string]: {
@@ -359,85 +360,183 @@ class MigrationDataProcessor {
   }
 
   async applyFilters(filters: Filter[]){ 
+    // Convert dates from datetime filter to Month format for filtering
+    const getFilteredMonths = (filters: Filter[]): string[] => {
+      // Get all available months from the data
+      const availableMonths = this.data ? Object.keys(this.data) : [];
+      if (availableMonths.length === 0) {
+        console.warn("No months available in data");
+        return [];
+      }
+      
+      // If no datetime filter is present, return all available months
+      const datetimeFilter = filters.find(filter => filter.type === 'datetime') as DateTimeFilter | undefined;
+      if (!datetimeFilter) {
+        return availableMonths;
+      }
+
+      // Parse start and end dates
+      const startDate = DateTime.fromISO(datetimeFilter.start_date);
+      const endDate = DateTime.fromISO(datetimeFilter.end_date);
+      
+      if (!startDate.isValid || !endDate.isValid) {
+        console.error("Invalid date format in datetime filter");
+        return availableMonths.slice(0, 3); // Return first 3 months as fallback
+      }
+
+      // Map of month codes to DateTime objects for each available month
+      const monthMap: {[key: string]: DateTime} = {};
+      
+      // Populate the monthMap with available months from data
+      availableMonths.forEach(monthCode => {
+        // Assuming month codes are in format "MmmYY" like "Jan20"
+        const monthName = monthCode.substring(0, 3);
+        const yearSuffix = monthCode.substring(3);
+        const year = 2000 + parseInt(yearSuffix, 10); // Convert "20" to 2020
+        
+        // Map month name to month number (1-12)
+        const monthNameToNumber: {[key: string]: number} = {
+          "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
+          "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
+        };
+        
+        const month = monthNameToNumber[monthName] || 1;
+        monthMap[monthCode] = DateTime.fromObject({ year, month, day: 1 });
+      });
+
+      // Filter months based on date range
+      return Object.entries(monthMap)
+        .filter(([_, monthDate]) => {
+          // Proper DateTime comparisons in Luxon
+          // For start date: Check if month date is after or equal to the start of the month containing the start date
+          const monthStartDate = startDate.startOf('month');
+          const monthEndDate = endDate.endOf('month');
+          
+          return monthDate.toMillis() >= monthStartDate.toMillis() && 
+                 monthDate.toMillis() <= monthEndDate.toMillis();
+        })
+        .map(([monthCode, _]) => monthCode);
+    };
+
+    const filteredMonths = getFilteredMonths(filters);
+    console.log("Filtered months based on datetime filter:", filteredMonths);
+
     const loadData = async (month: string) => {
       const matrix = await this.createProvinceMigrationMatrix(month, filters);
-      const moveOut = this.mapToProvince(matrix, "moveout", "province")
-      return {...moveOut, month: month}
+      const subactionFilter = filters.find(filter => filter.type === "subaction") as SubactionFilter | undefined;
+      const subaction = subactionFilter?.subaction;
+      if (subaction === "raw") {
+        return (matrix as any).$data;
+      }
+      
+      const data = this.mapToProvince(matrix, subaction as "movein"|"moveout"|"net", "province")
+      return {...data, month: month}
     }
-    const jan20moveOut = await loadData("Jan20");
-    const feb20moveOut = await loadData("Feb20");
-    const mar20moveOut = await loadData("Mar20");
-    // const apr20moveOut = await loadData("Apr20");
-    // const may20moveOut = await loadData("May20");
-    // const jun20moveOut = await loadData("Jun20");
-    // const jul20moveOut = await loadData("Jul20");
-    // const aug20moveOut = await loadData("Aug20");
-    // const sep20moveOut = await loadData("Sep20");
-    // const oct20moveOut = await loadData("Oct20");
-    // const nov20moveOut = await loadData("Nov20");
-    // const dec20moveOut = await loadData("Dec20");
+
+    // Only load data for months that match the datetime filter
+    const monthlyData = await Promise.all(
+      filteredMonths.map(async (month) => {
+        const data = await loadData(month);
+        // Extract short month name for display
+        const shortMonth = month.substring(0, 3);
+        return {...data, month: shortMonth};
+      })
+    );
     
-    const data = [
-      {...jan20moveOut, month: 'Jan'},
-      {...feb20moveOut, month: 'Feb'},
-      {...mar20moveOut, month: 'Mar'},
-      // {...apr20moveOut, month: 'Apr'},
-      // {...may20moveOut, month: 'May'},
-      // {...jun20moveOut, month: 'Jun'},
-      // {...jul20moveOut, month: 'Jul'},
-      // {...aug20moveOut, month: 'Aug'},
-      // {...sep20moveOut, month: 'Sep'},
-      // {...oct20moveOut, month: 'Oct'},
-      // {...nov20moveOut, month: 'Nov'},
-      // {...dec20moveOut, month: 'Dec'},
-    ]
-    
-    return data;
+    // Return the filtered data
+    return monthlyData;
   }
 
-  mapToProvince(data: dfd.DataFrame, type: "movein"|"moveout"|"net", scope: "province"): any {
+  mapToProvince(source: dfd.DataFrame, subaction: string, scope: "province"): any {
     let result: any = {};
+    
+    // Ensure source is defined and has values
+    if (!source || source.shape[0] === 0) {
+      console.warn("Source DataFrame is empty or undefined");
+      return result;
+    }
 
-    const d: any = data.values;
-    switch (type) {
+    // Get values as a proper 2D array to ensure consistent access
+    const values = source.values as number[][];
+    
+    switch (subaction) {
       case "moveout":
-        data.head().print();
-        data.columns.forEach((targetProvince: (string|number), idxr: number) => {
-          if (typeof targetProvince == 'string') {
-            data.index.forEach((sourceProvince: (string|number), idxc: number) => {
-              if (idxr == idxc) return; // Don't regard self to self movement as movein
+        // Debug the source at this point
+        console.log("Processing moveout with source shape:", source.shape);
+        
+        // Iterate through columns (target provinces)
+        source.columns.forEach((targetProvince: string|number, targetIdx: number) => {
+          // Only process string column names (provinces)
+          if (typeof targetProvince === 'string') {
+            // Iterate through rows (source provinces)
+            source.index.forEach((sourceProvince: string|number, sourceIdx: number) => {
+              // Skip self-to-self migrations
+              if (targetIdx === sourceIdx) return;
+              
               const key = normalizeAsKey(sourceProvince as string);
-              const current = result[key] ?? 0;
-              const addition = d[idxr][idxc];
+              const current = result[key] || 0;
+              
+              // Safely access value - ensure indices are valid
+              let addition = 0;
+              if (sourceIdx < values.length && targetIdx < values[sourceIdx].length) {
+                addition = values[sourceIdx][targetIdx];
+              }
+              
               result[key] = current + addition;
             });
           }
         });
         break;
       case "movein":
-        data.index.forEach((sourceProvince: (string|number), idxr: number) => {
+        source.index.forEach((sourceProvince: (string|number), idxr: number) => {
           if (typeof sourceProvince == 'string') {
-            data.columns.forEach((column: string, idxc: number) => {
+            source.columns.forEach((column: string, idxc: number) => {
               if (idxr == idxc) return; // Don't regard self to self movement as moveout
               const key = normalizeAsKey(sourceProvince as string);
               const current = result[key] ?? 0;
-              const addition = d[idxr][idxc];
+              const addition = values[idxr][idxc];
               result[key] = current + addition;
             });
           }
         });
         break;
       case "net":
-        data.index.forEach((sourceProvince: (string|number)) => {
+        let movein: any = {};
+        let moveout: any = {};
+            
+        source.index.forEach((sourceProvince: (string|number), idxr: number) => {
           if (typeof sourceProvince == 'string') {
-            const key = normalizeAsKey(sourceProvince as string);
-            result[key] = data.loc({ rows: [sourceProvince] }).sum();
+            source.columns.forEach((targetProvince: (string|number), idxc: number) => {
+              if (idxr == idxc) return; // Don't regard self to self movement as moveout
+              const key = normalizeAsKey(sourceProvince as string);
+              const current = movein[key] ?? 0;
+              const addition = values[idxr][idxc];
+              movein[key] = current + addition;
+            });
           }
         });
+
+        source.columns.forEach((targetProvince: (string|number), idxr: number) => {
+          if (typeof targetProvince == 'string') {
+            source.index.forEach((sourceProvince: (string|number), idxc: number) => {
+              if (idxr == idxc) return; // Don't regard self to self movement as moveout
+              const key = normalizeAsKey(sourceProvince as string);
+              const current = moveout[key] ?? 0;
+              const addition = values[idxr][idxc];
+              moveout[key] = current + addition;
+            });
+          }
+        });
+
+        Object.keys(movein).forEach((key) => {
+          result[key] = movein[key] - moveout[key];
+        });
         break;
+
+      case "raw":
+        return (source as any).$data;
     }
 
-    
     return result;
   }
 }

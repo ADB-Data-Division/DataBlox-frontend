@@ -5,17 +5,16 @@ import { Box, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
-import moveOutSampleDataset from '../../../public/move-out-sample-dataset.json';
 import VisualizationToolbar, { VisualizationFilters } from '../../../components/visualization-toolbar/visualization-toolbar';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
-import { DataLoaderService } from '@/app/services/data-loader/data-loader-service';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { normalizeAsKey } from '@/models/normalize';
 import { Filter } from '@/app/services/data-loader/data-loader-interface';
+import { transformFilter } from '@/app/services/filter/transform';
 
 export default function InterProvincePageContent() {
   const [activeDataset, setActiveDataset] = React.useState(moveInSampleDataset);
-  const [dataType, setDataType] = React.useState<'moveIn' | 'moveOut' | 'net'>('moveIn');
+  const [subAction, setSubAction] = React.useState<'movein' | 'moveout' | 'net'>('movein');
   const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isEmpty, setIsEmpty] = React.useState(true);
@@ -64,39 +63,16 @@ export default function InterProvincePageContent() {
 
     setIsLoading(true);
 
-    const appliedFilters: Filter[] = [];
+    const appliedFilters: Filter[] = transformFilter(filters);
     setSelectedProvinces(filters.provinces.map(province => province.id));
-    setDataType(filters.dataType);
-    
-    // Set the active dataset based on the data type
-    if (filters.dataType === 'moveIn') {
-      setActiveDataset(moveInSampleDataset);
-    } else if (filters.dataType === 'moveOut') {
+    setSubAction(filters.subaction as 'movein' | 'moveout' | 'net');
 
-      // const dataloaderService = new DataLoaderService();
-      const migrationProcessor = new MigrationDataProcessor();
-      await migrationProcessor.loadDataset('/Jan20-Dec20_sparse.json');
-      if (onDataLoaded) {
-        const data = await migrationProcessor.applyFilters(appliedFilters)
-        onDataLoaded(data);
-      }
-    } else {
-      // // For 'net', you would need to calculate the difference
-      // // This is a simplified example
-      // const netDataset = moveInSampleDataset.map((item, index) => {
-      //   const moveOut = moveOutSampleDataset[index];
-      //   const netItem: any = { month: item.month };
-        
-      //   Object.keys(item).forEach(key => {
-      //     if (key !== 'month') {
-      //       netItem[key] = (item as any)[key] - (moveOut as any)[key];
-      //     }
-      //   });
-        
-      //   return netItem;
-      // });
-      
-      // setActiveDataset(netDataset);
+    // const dataloaderService = new DataLoaderService();
+    const migrationProcessor = new MigrationDataProcessor();
+    await migrationProcessor.loadDataset('/Jan20-Dec20_sparse.json');
+    if (onDataLoaded) {
+      const data = await migrationProcessor.applyFilters(appliedFilters)
+      onDataLoaded(data);
     }
     
     // In a real app, you might fetch data from an API based on filters
@@ -141,6 +117,11 @@ export default function InterProvincePageContent() {
           onFileUpload={handleFileUpload}
           onDataLoaded={onDataLoaded}
           darkMode={true}
+          subActionsAllowed={['movein', 'moveout', 'net']}
+          initialFilters={{
+            subaction: 'movein',
+            visualizationType: 'bar'
+          }}
         />
       </Box>
       <Box sx={{ width: '100%' }}>
@@ -160,8 +141,9 @@ export default function InterProvincePageContent() {
         {isEmpty === false && (
         <>
           <Typography variant="h4" sx={{ marginBottom: 2 }}>
-            {dataType === 'moveIn' ? 'Move In' : 
-            dataType === 'moveOut' ? 'Move Out' : 'Net Migration'}
+            {subAction === 'movein' ? 'Move In' : 
+            subAction === 'moveout' ? 'Move Out' : 
+            'Net Migration'}
           </Typography>
           <BarChart
             dataset={activeDataset}
@@ -169,7 +151,7 @@ export default function InterProvincePageContent() {
             series={getFilteredSeries}
             {...chartSetting}
           />
-          <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
+          {/* <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
             Analysis of Thailand&apos;s Inter-Province Migration Patterns
           </Typography>
           <Typography variant="body1" sx={{ marginBottom: 2 }}>
@@ -177,7 +159,7 @@ export default function InterProvincePageContent() {
           </Typography>
           <Typography variant="body1" sx={{ marginBottom: 2 }}>
             In stark contrast, agricultural provinces like Nakhon Sawan and Chiang Mai experience significantly lower inflows, typically below 700 people per month, reflecting the ongoing rural-to-urban migration trend. Seasonal patterns are evident with higher migration to industrial areas during the dry season (November-March) and reduced movement during the rainy season (July-August) when agricultural work increases. This visualization clearly illustrates Thailand&apos;s urbanization challenge, as people consistently move from agricultural regions to industrial centers seeking better economic opportunities, potentially creating labor shortages in food production areas while increasing population density in already crowded urban centers.
-          </Typography>
+          </Typography> */}
         </>
         )}
         

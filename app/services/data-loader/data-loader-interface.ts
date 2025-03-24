@@ -1,5 +1,5 @@
 export type Filter = {
-	type: 'province' | 'industry' | 'district' | 'datetime';
+	type: 'province' | 'industry' | 'district' | 'datetime' | 'subaction';
 	filter_id: string;
 }
 
@@ -20,6 +20,7 @@ export type DistrictFilter = Filter & {
 
 export type DateTimeFilter = Filter & {
 	type: 'datetime';
+	time_period: string;
 	/**
 	 * In ISO 8601 format
 	 */
@@ -28,6 +29,11 @@ export type DateTimeFilter = Filter & {
 	 * In ISO 8601 format
 	 */
 	end_date: string;
+}
+
+export type SubactionFilter = Filter & {
+	type: 'subaction';
+	subaction: string;
 }
 
 export type DataQuery = {

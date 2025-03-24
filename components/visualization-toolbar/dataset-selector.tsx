@@ -1,3 +1,5 @@
+'use client';
+
 import { FormControl, InputLabel, Select, MenuItem, Typography, Box, Button, SelectChangeEvent } from "@mui/material";
 import { CaretDown, Database, UploadSimple } from "@phosphor-icons/react";
 import { Dataset, STATIC_DATASETS as DATASETS } from '@/models/datasets';

@@ -1,54 +1,37 @@
+'use client';
 import { Box, Button } from "@mui/material";
-
+import { Subaction } from "./types";
 export type SubactionsSelectorProps = {
-	selectedSubAction: string;
+	selectedSubAction: string | null;
 	darkMode: boolean;
-	handleSubActionChange: (subAction: 'moveIn' | 'moveOut' | 'net') => void;
+	handleSubActionChange: (subAction: Subaction) => void;
+  subActionOptions: {
+    label: string;
+    value: Subaction;
+  }[];
 }
 
-export default function SubactionsSelector({ selectedSubAction, darkMode, handleSubActionChange }: SubactionsSelectorProps) {
+export default function SubactionsSelector({ selectedSubAction, darkMode, handleSubActionChange, subActionOptions }: SubactionsSelectorProps) {
 	return (
 		<>
 		{/* Data Type Selection */}
 		<Box sx={{ display: 'flex', borderRadius: 1, overflow: 'hidden' }}>
-            <Button
-              variant={selectedSubAction === 'moveIn' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => handleSubActionChange('moveIn')}
-              sx={{ 
-                borderRadius: '4px 0 0 4px',
-                borderColor: darkMode ? 'rgba(255,255,255,0.3)' : undefined,
-                color: selectedSubAction !== 'moveIn' && darkMode ? '#fff' : undefined
-              }}
-            >
-              Move In
-            </Button>
-            <Button
-              variant={selectedSubAction === 'moveOut' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => handleSubActionChange('moveOut')}
-              sx={{ 
-                borderRadius: 0,
-                borderLeft: 0,
-                borderColor: darkMode ? 'rgba(255,255,255,0.3)' : undefined,
-                color: selectedSubAction !== 'moveOut' && darkMode ? '#fff' : undefined
-              }}
-            >
-              Move Out
-            </Button>
-            <Button
-              variant={selectedSubAction === 'net' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => handleSubActionChange('net')}
-              sx={{ 
-                borderRadius: '0 4px 4px 0',
-                borderLeft: 0,
-                borderColor: darkMode ? 'rgba(255,255,255,0.3)' : undefined,
-                color: selectedSubAction !== 'net' && darkMode ? '#fff' : undefined
-              }}
-            >
-              Net
-            </Button>
+            {subActionOptions.map((subAction) => (
+              <Button
+                key={subAction.value}
+                variant={selectedSubAction === subAction.value ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => handleSubActionChange(subAction.value)}
+                sx={{ 
+                  borderRadius: '4px',
+                  borderColor: darkMode ? 'rgba(255,255,255,0.3)' : undefined,
+                  color: selectedSubAction !== subAction.value && darkMode ? '#fff' : undefined,
+                  marginRight: '4px'
+                }}
+              >
+                {subAction.label}
+              </Button>
+            ))}
           </Box>
 		</>
 	)

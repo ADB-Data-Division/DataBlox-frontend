@@ -127,7 +127,7 @@ export default function SettingsPage() {
           
           <Typography variant="subtitle2">Date Range:</Typography>
           <Typography>
-            {dateRange.startDate ? `${dateRange.startDate} to ${dateRange.endDate}` : 'Not set'}
+            {dateRange.start_date ? `${dateRange.start_date} to ${dateRange.end_date}` : 'Not set'}
           </Typography>
           
           <Typography variant="subtitle2">Selected Provinces:</Typography>
