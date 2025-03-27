@@ -205,7 +205,7 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
         default:
         setDatasetMetadata({
           dateTimeFilter: {
-            time_period: 'full-year',
+            time_period: 'fullYear',
             start_date: '2020-01-01',
             end_date: '2020-12-31'
           }

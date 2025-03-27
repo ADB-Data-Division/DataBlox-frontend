@@ -70,8 +70,7 @@ export default function ProvinceFilterUI({
                       label={province?.name} 
                       size="small"
                       sx={{ 
-                        bgcolor: province?.category === 'industrial' ? 
-                          'primary.main' : 'success.main',
+                        bgcolor: 'primary.main',
                         color: '#fff'
                       }}
                     />
@@ -88,7 +87,12 @@ export default function ProvinceFilterUI({
             }}
             sx={{ color: darkMode ? '#fff' : undefined }}
           >
-            <MenuItem disabled>
+            {PROVINCES.map((province) => (
+              <MenuItem key={province.id} value={province.id}>
+                {province.name}
+              </MenuItem>
+            ))}
+            {/* <MenuItem disabled>
               <Typography variant="caption" fontWeight="bold">
                 Industrial
               </Typography>
@@ -107,7 +111,7 @@ export default function ProvinceFilterUI({
               <MenuItem key={province.id} value={province.id}>
                 {province.name}
               </MenuItem>
-            ))}
+            ))} */}
           </Select>
         </FormControl>
 	)

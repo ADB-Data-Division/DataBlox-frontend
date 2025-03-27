@@ -35,8 +35,8 @@ const NAVIGATION: Navigation = [
     icon: <ChartBar />,
   },
   {
-    segment: 'industry-migration',
-    title: 'Industry Migration',
+    segment: 'migration-trends',
+    title: 'Migration Trends',
     icon: <CircleHalf />,
   },
   {

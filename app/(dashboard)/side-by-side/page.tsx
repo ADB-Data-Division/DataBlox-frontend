@@ -1,13 +1,9 @@
 import * as React from 'react';
-import Typography from '@mui/material/Typography';
-
-
-export default async function OrdersPage() {
+import SideBySidePageContent from './page-content';
+export default async function SideBySidePage() {
   
 
   return (
-    <Typography>
-      Welcome to the Toolpad orders!
-    </Typography>
+    <SideBySidePageContent />
   );
 }

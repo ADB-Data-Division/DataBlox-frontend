@@ -128,15 +128,24 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
       L.latLng(5.6, 97.3),  // Southwest corner (latitude, longitude)
       L.latLng(20.5, 105.6) // Northeast corner (latitude, longitude)
     );
+
+    // Define Thailand's approximate bounds
+    const biggerBounds = L.latLngBounds(
+      L.latLng(-10, 70),     // Southwest corner: includes parts of Indonesia
+      L.latLng(30, 140)    // Northeast corner: includes parts of China and Japan
+    );
+
+    const darrenPreferredZoom = 8;
+    const macPreferredZoom = 5;
     
     // Create map centered on Thailand with restricted bounds
     const map = L.map(mapRef.current, {
       // 13.6788232,99.9785312,465243m
       center: [13.6788232,99.9785312], // Center of Thailand
-      zoom: 8,
-      minZoom: 8, // Prevent zooming out too far
+      zoom: macPreferredZoom,
+      minZoom: macPreferredZoom, // Prevent zooming out too far
       maxZoom: 12, // Prevent zooming in too far
-      maxBounds: thailandBounds, // Restrict panning to these bounds
+      maxBounds: biggerBounds, // Restrict panning to these bounds
       maxBoundsViscosity: 1.0 // Makes the bounds completely solid (prevents dragging outside)
     });
     
@@ -145,7 +154,7 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 12,
-      bounds: thailandBounds // Also restrict the tile loading to Thailand bounds
+      bounds: biggerBounds // Also restrict the tile loading to Thailand bounds
     }).addTo(map);
     
     // More detailed zoom tracking

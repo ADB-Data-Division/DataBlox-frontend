@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { Database, UploadSimple } from '@phosphor-icons/react';
 import { CaretDown } from '@phosphor-icons/react';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { useAppDispatch } from '@/app/store/hooks';
 import { setDatasetId } from '@/app/store/features/datasetSlice';
 
 // Define available datasets
