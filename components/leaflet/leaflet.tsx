@@ -3,13 +3,12 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Box, Typography, CircularProgress, useTheme, Tooltip } from '@mui/material';
 import 'leaflet/dist/leaflet.css';
-import { MapPin } from '@phosphor-icons/react/dist/ssr';
 import dynamic from 'next/dynamic';
 import { dataService } from '@/app/services/data-loader/data-loader-service';
 import { GeoJSONLevel } from '@/app/services/data-loader/data-loader-interface';
-import { Feature, GeoJsonObject } from 'geojson';
+import { Feature } from 'geojson';
 import { GEOJsonProperty } from '@/models/geojson';
-import { Language, LanguageOutlined } from '@mui/icons-material';
+import { LanguageOutlined } from '@mui/icons-material';
 import theme from '@/style/theme/theme';
 
 // Define the props interface

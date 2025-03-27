@@ -1,9 +1,9 @@
 'use client';
 
-import { FormControl, InputLabel, Select, OutlinedInput, Box, Chip, MenuItem, Typography, SelectChangeEvent } from "@mui/material";
+import { FormControl, InputLabel, Select, OutlinedInput, Box, Chip, MenuItem, SelectChangeEvent } from "@mui/material";
 import PROVINCES from "@/public/provinces.json";
 import { Province } from "@/models/province-district-subdistrict";
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { useAppDispatch } from "@/app/store/hooks";
 import { addFilter } from "@/app/store/features/datasetSlice";
 import { ProvinceFilter } from "@/app/services/data-loader/data-loader-interface";
 export type ProvinceFilterProps = {

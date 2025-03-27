@@ -7,17 +7,60 @@ import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
 import VisualizationToolbar, { VisualizationFilters } from '../../../components/visualization-toolbar/visualization-toolbar';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { normalizeAsKey } from '@/models/normalize';
-import { Filter } from '@/app/services/data-loader/data-loader-interface';
+import { Filter, GeoJSONLevel } from '@/app/services/data-loader/data-loader-interface';
 import { transformFilter } from '@/app/services/filter/transform';
+import ChordDiagramContainer from '@/components/chord-diagram';
+import { processMigrationData } from '@/app/services/data-loader/process-migration-data';
+import { MigrationData } from '@/app/services/data-loader/process-migration-data';
+import { useAppSelector } from '@/app/store/hooks';
+import ThailandMap from '@/components/leaflet/leaflet';
 
 export default function SideBySidePageContent() {
-  const [activeDataset, setActiveDataset] = React.useState(moveInSampleDataset);
-  const [subAction, setSubAction] = React.useState<'movein' | 'moveout' | 'net'>('movein');
-  const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isEmpty, setIsEmpty] = React.useState(true);
+  const [activeDataset, setActiveDataset] = useState(moveInSampleDataset);
+  const [subAction, setSubAction] = useState<'movein' | 'moveout' | 'net'>('movein');
+  const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(true);
+  const { themeMode } = useAppSelector(state => state.userPreferences);
+  const darkMode = themeMode === 'dark';
+
+  // State for migration data
+  const [migrationData, setMigrationData] = useState<MigrationData>({
+    matrix: [],
+    names: []
+  });
+  
+  const handleVisualize = async (filters: VisualizationFilters) => {
+    setIsLoading(true);
+    setIsEmpty(true);
+    
+    try {
+      const appliedFilters: Filter[] = transformFilter(filters);
+      
+      // Process and load data using the MigrationDataProcessor
+      const migrationProcessor = new MigrationDataProcessor();
+      await migrationProcessor.fetchData('/Jan20-Dec20_sparse.json');
+      
+      const data = await migrationProcessor.applyFilters(appliedFilters);
+      
+      if (data && data.length > 0) {
+        const monthSelector = null;
+        const processed = processMigrationData(data, monthSelector, appliedFilters);
+        setMigrationData(processed);
+        setIsEmpty(false);
+        onDataLoaded(data);
+        console.log('Visualization data loaded:', processed);
+      } else {
+        console.log('No data returned after applying filters');
+      }
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   function valueFormatter(value: number | null) {
     return `${value}`;
@@ -59,26 +102,6 @@ export default function SideBySidePageContent() {
     },
   };
   
-  const handleVisualize = async (filters: VisualizationFilters) => {
-
-    setIsLoading(true);
-
-    const appliedFilters: Filter[] = transformFilter(filters);
-    setSelectedProvinces(filters.provinces.map(province => province.id));
-    setSubAction(filters.subaction as 'movein' | 'moveout' | 'net');
-
-    // const dataloaderService = new DataLoaderService();
-    const migrationProcessor = new MigrationDataProcessor();
-    await migrationProcessor.loadDataset('/Jan20-Dec20_sparse.json');
-    if (onDataLoaded) {
-      const data = await migrationProcessor.applyFilters(appliedFilters)
-      onDataLoaded(data);
-    }
-    
-    // In a real app, you might fetch data from an API based on filters
-    console.log('Visualization requested with filters:', filters);
-  };
-  
   const handleFileUpload = (file: File) => {
     // In a real app, you would process the uploaded file
     console.log('File uploaded:', file.name);
@@ -117,52 +140,27 @@ export default function SideBySidePageContent() {
           onFileUpload={handleFileUpload}
           onDataLoaded={onDataLoaded}
           darkMode={true}
-          subActionsAllowed={['movein', 'moveout', 'net']}
+          subActionsAllowed={['raw']}
           initialFilters={{
-            subaction: 'movein',
-            visualizationType: 'bar'
+            subaction: 'raw',
+            visualizationType: 'chord'
           }}
         />
       </Box>
-      <Box sx={{ width: '100%' }}>
-        {(isEmpty && isLoading) && (
-          <Typography variant="body1" sx={{ marginBottom: 2 }}>
-            Loading...
-          </Typography>
-        )}
-      {(isEmpty && isLoading === false) && (
-        <>
-          <Typography variant="body1" sx={{ marginBottom: 2 }}>
-            Please select a dataset to visualize.
-          </Typography>
-        </>
-        )}
-
-        {isEmpty === false && (
-        <>
-          <Typography variant="h4" sx={{ marginBottom: 2 }}>
-            {subAction === 'movein' ? 'Move In' : 
-            subAction === 'moveout' ? 'Move Out' : 
-            'Net Migration'}
-          </Typography>
-          <BarChart
-            dataset={activeDataset}
-            xAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-            series={getFilteredSeries}
-            {...chartSetting}
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
+        <Box sx={{ px: 2, py: 2, height: 'fit-content', width: '50%' }}>
+          <ThailandMap adminLevel={GeoJSONLevel.PROVINCE} height="700px" />
+        </Box>
+        <Box sx={{ px: 2, py: 2, height: 'fit-content', width: '50%' }}>
+          <ChordDiagramContainer
+            migrationData={migrationData}
+            darkMode={false}
+            title="Migration Flow Visualization"
+            isLoading={isLoading}
+            isEmpty={isEmpty}
+            height="700px"
           />
-          {/* <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2 }}>
-            Analysis of Thailand&apos;s Inter-Province Migration Patterns
-          </Typography>
-          <Typography variant="body1" sx={{ marginBottom: 2 }}>
-            The most striking pattern in Thailand&apos;s migration data is the consistent dominance of Bangkok as the primary destination for internal migrants, with monthly inflows consistently exceeding 3,000 people and peaking at nearly 3,700 in March and December. Industrial provinces like Samut Prakan and Chon Buri maintain steady inflows between 1,500-2,000 people monthly, highlighting the economic pull of Thailand&apos;s Eastern Economic Corridor development zone. Rayong and Chachoengsao, also industrial provinces, show moderate but stable migration patterns with monthly inflows around 1,000-1,400 people.
-          </Typography>
-          <Typography variant="body1" sx={{ marginBottom: 2 }}>
-            In stark contrast, agricultural provinces like Nakhon Sawan and Chiang Mai experience significantly lower inflows, typically below 700 people per month, reflecting the ongoing rural-to-urban migration trend. Seasonal patterns are evident with higher migration to industrial areas during the dry season (November-March) and reduced movement during the rainy season (July-August) when agricultural work increases. This visualization clearly illustrates Thailand&apos;s urbanization challenge, as people consistently move from agricultural regions to industrial centers seeking better economic opportunities, potentially creating labor shortages in food production areas while increasing population density in already crowded urban centers.
-          </Typography> */}
-        </>
-        )}
-        
+        </Box>
       </Box>
     </Box>
   );
