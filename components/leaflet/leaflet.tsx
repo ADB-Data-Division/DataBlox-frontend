@@ -10,6 +10,7 @@ import { Feature } from 'geojson';
 import { GEOJsonProperty } from '@/models/geojson';
 import { LanguageOutlined } from '@mui/icons-material';
 import theme from '@/style/theme/theme';
+import VisualizationContainer from '../visualization-container/visualization-container';
 
 // Define the props interface
 interface ThailandMapProps {
@@ -373,21 +374,8 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
 const ThailandMap = dynamic(() => Promise.resolve(ThailandMapClient), {
   ssr: false,
   loading: () => {
-    console.log("Loading ThailandMapClient component...");
     return (
-      <Box sx={{ 
-        width: '100%', 
-        height: 500,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'background.paper',
-        borderRadius: 2,
-        boxShadow: 1,
-      }}>
-        <CircularProgress />
-        <Typography ml={2}>Loading map...</Typography>
-      </Box>
+      <VisualizationContainer type="map" isLoading={true} />
     );
   },
 });

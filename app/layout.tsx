@@ -8,6 +8,8 @@ import { ChartBar, ChartScatter, CircleHalf, MapTrifold, PresentationChart, Gear
 import { ReduxProvider } from './store/provider';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
+import { RootState } from './store';
+import { useAppSelector } from './store/hooks';
 
 const NAVIGATION: Navigation = [
   {
@@ -57,7 +59,7 @@ const NAVIGATION: Navigation = [
 
 const BRANDING = {
   title: 'ADB Thailand Capacity Building',
-  logo: <ChartScatter size={32} style={{ margin: '3px', color: "white", borderRadius: '5px' }} />
+  logo: <ChartScatter size={32} style={{ margin: '3px', borderRadius: '5px' }} />
 };
 
 const AUTHENTICATION = {

@@ -1,4 +1,4 @@
-import { VisualizationFilters } from "@/components/visualization-toolbar/visualization-toolbar";
+import { VisualizationFilters } from "@/components/visualization-toolbar/state/types";
 import { Filter, ProvinceFilter, DateTimeFilter, SubactionFilter } from "../data-loader/data-loader-interface";
 
 export function transformFilter(visualizationFilter: VisualizationFilters): Filter[] {
@@ -17,6 +17,7 @@ export function transformFilter(visualizationFilter: VisualizationFilters): Filt
         const dateTimeFilter: DateTimeFilter = {
             type: 'datetime',
             filter_id: 'datetime-filter',
+            label: visualizationFilter.timePeriod || 'custom',
             time_period: visualizationFilter.timePeriod || 'custom',
             start_date: visualizationFilter.startDate,
             end_date: visualizationFilter.endDate
@@ -28,6 +29,7 @@ export function transformFilter(visualizationFilter: VisualizationFilters): Filt
         const subactionFilter: SubactionFilter = {
             type: 'subaction',
             filter_id: 'subaction-filter',
+            label: visualizationFilter.subaction,
             subaction: visualizationFilter.subaction
         };
         filters.push(subactionFilter);

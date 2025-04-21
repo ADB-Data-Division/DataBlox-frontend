@@ -1,5 +1,5 @@
-import { Filter, DateTimeFilter } from "@/app/services/data-loader/data-loader-interface";
-import { DatasetMetadata } from "../dataset/types";
+import { DateTimeFilter } from "@/app/services/data-loader/data-loader-interface";
+import { DatasetMetadata } from "@/models/datasets";
 
 export interface DateTimePeriodFilterProps {
 	/**
@@ -11,7 +11,13 @@ export interface DateTimePeriodFilterProps {
 	/**
 	 * Default filter to be applied
 	 */
-	defaultFilter?: Filter;
+	selectedDateTimeFilter?: DateTimeFilter;
+	
+	/**
+	 * @deprecated Use selectedDateTimeFilter instead
+	 * Default filter to be applied - for backward compatibility
+	 */
+	defaultFilter?: DateTimeFilter;
 	
 	/**
 	 * Dataset metadata
@@ -22,4 +28,11 @@ export interface DateTimePeriodFilterProps {
 	 * Dark mode
 	 */
 	darkMode?: boolean;
+} 
+
+
+export interface TimePeriod {
+	id: string;
+	name: string;
+	isEnabled: boolean;
 } 

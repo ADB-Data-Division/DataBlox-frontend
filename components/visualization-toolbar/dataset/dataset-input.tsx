@@ -14,21 +14,10 @@ import {
 import { Database, UploadSimple } from '@phosphor-icons/react';
 import { CaretDown } from '@phosphor-icons/react';
 import { useAppDispatch } from '@/app/store/hooks';
-import { setDatasetId } from '@/app/store/features/datasetSlice';
+import { resetDataset, setDatasetId } from '@/app/store/features/datasetSlice';
+import { DATASETS } from '@/models/datasets';
 
-// Define available datasets
-const DATASETS = [
-  // { id: 'default', name: 'Default Dataset', subscription: 'free' },
-  // { id: 'migration-2019', name: 'Province Migration Dataset 2019', subscription: 'free' },
-  { id: 'migration-2020', name: 'Province Migration Dataset 2020', subscription: 'free' },
-  // { id: 'migration-2021', name: 'Province Migration Dataset 2021', subscription: 'free' },
-  { id: 'industry', name: 'Industry Dataset', subscription: 'free' },
-  { id: 'premium-1', name: 'Premium Dataset 1', subscription: 'premium' },
-  { id: 'premium-2', name: 'Premium Dataset 2', subscription: 'premium' },
-  { id: 'custom', name: 'Custom Upload', subscription: 'free' },
-];
-
-interface DatasetSelectorProps {
+interface DatasetInputProps {
   /**
    * The dataset ID to be selected. If null, the dataset selector has no data selected yet.
    */
@@ -37,15 +26,17 @@ interface DatasetSelectorProps {
   userSubscription?: 'free' | 'premium';
   onFileUpload?: (file: File) => void;
   onDatasetSelect?: (datasetId: string) => void;
+  datasetsAllowed?: string[];
 }
 
-export default function DatasetSelector({ 
+export default function DatasetInput({ 
   datasetId,
   darkMode = false, 
   userSubscription = 'free',
   onFileUpload,
-  onDatasetSelect
-}: DatasetSelectorProps) {
+  onDatasetSelect,
+  datasetsAllowed
+}: DatasetInputProps) {
   const dispatch = useAppDispatch();
   
   const [file, setFile] = useState<File | null>(null);
@@ -54,6 +45,8 @@ export default function DatasetSelector({
   const ALLOW_UPLOAD = false;
   
   const handleDatasetChange = (event: SelectChangeEvent<string>) => {
+    
+    dispatch(resetDataset());
     const newDatasetId = event.target.value;
     
     // Update Redux state
@@ -88,7 +81,7 @@ export default function DatasetSelector({
     }
   };
   
-  const filteredDatasets = DATASETS.filter(d => d.id !== 'custom');
+  const filteredDatasets = DATASETS.filter(d => d.id !== 'custom' && (datasetsAllowed ? datasetsAllowed.includes(d.id) : true));
   
   return (
     <Box>

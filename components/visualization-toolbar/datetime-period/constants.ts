@@ -1,4 +1,6 @@
-export const PREDEFINED_TIME_PERIODS = [
+import { TimePeriod } from "./types";
+
+export const PREDEFINED_TIME_PERIODS: TimePeriod[] = [
 	{ id: 'fullYear', name: 'Full Year', isEnabled: true },
 	{ id: 'q1', name: 'Q1 (Jan-Mar)', isEnabled: true },
 	{ id: 'q2', name: 'Q2 (Apr-Jun)', isEnabled: true },
@@ -9,9 +11,3 @@ export const PREDEFINED_TIME_PERIODS = [
 	// { id: 'last3Months', name: 'Last 3 Months', isEnabled: true },
 	{ id: 'custom', name: 'Custom Range', isEnabled: false }
 ];
-
-export interface TimePeriod {
-	id: string;
-	name: string;
-	isEnabled: boolean;
-} 

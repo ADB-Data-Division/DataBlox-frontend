@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Box, Typography, Container } from '@mui/material';
-import VisualizationToolbar, { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
+import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
 import { Filter } from '@/app/services/data-loader/data-loader-interface';
 import { transformFilter } from '@/app/services/filter/transform';
@@ -74,10 +75,11 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
       <VisualizationToolbar 
         onVisualize={handleVisualize}
         onFileUpload={(file) => console.log('File uploaded:', file.name)}
-        onDataLoaded={(data) => console.log('Data loaded:', data)}
         darkMode={darkMode}
         subActionsAllowed={['raw']}
         initialFilters={initialFilters}
+        datasetsAllowed={['migration-2020', 'premium-1', 'premium-2']}
+        visualizationTypesAllowed={['chord']}
       />
       
       <Container sx={{ px: 2, py: 2, height: 'fit-content' }}>

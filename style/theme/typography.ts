@@ -62,7 +62,7 @@ const typography: TypographyOptions = {
   },
   h6: {
     fontWeight: 600,
-    fontSize: '3rem',
+    fontSize: '1.25rem',
     lineHeight: 1.4,
     letterSpacing: '0.0075em',
   },

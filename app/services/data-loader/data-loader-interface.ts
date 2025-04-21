@@ -1,6 +1,15 @@
+import { Subaction } from "@/components/visualization-toolbar/types";
+
 export type Filter = {
 	type: 'province' | 'industry' | 'district' | 'datetime' | 'subaction';
-	filter_id: string;
+	/**
+	 * A unique identifier for this filter.
+	 * 
+	 * Note that for each type of filter (e.g. ProvinceFilter) all values must have the same filter id.
+	 * 
+	 * Another example: datetime filters should have the same filter id if they are for the same dataset.
+	 */
+	filter_id: 'province-filter' | 'industry-filter' | 'district-filter' | 'datetime-filter' | 'subaction-filter';
 }
 
 export type ProvinceFilter = Filter & {
@@ -20,6 +29,7 @@ export type DistrictFilter = Filter & {
 
 export type DateTimeFilter = Filter & {
 	type: 'datetime';
+	label: string;
 	time_period: string;
 	/**
 	 * In ISO 8601 format
@@ -33,7 +43,8 @@ export type DateTimeFilter = Filter & {
 
 export type SubactionFilter = Filter & {
 	type: 'subaction';
-	subaction: string;
+	label: string;
+	subaction: Subaction;
 }
 
 export type DataQuery = {

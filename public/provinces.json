@@ -1,37 +1,387 @@
 [
 	{
+		"id": "amnat charoen",
+		"name": "Amnat Charoen",
+		"category": null
+	},
+	{
+		"id": "ang thong",
+		"name": "Ang Thong",
+		"category": null
+	},
+	{
 		"id": "bangkok",
 		"name": "Bangkok",
-		"category": "industrial"
+		"category": null
 	},
 	{
-		"id": "samutprakan",
-		"name": "Samut Prakan",
-		"category": "industrial"
+		"id": "bueng kan",
+		"name": "Bueng Kan",
+		"category": null
 	},
 	{
-		"id": "chonburi",
-		"name": "Chon Buri",
-		"category": "industrial"
-	},
-	{
-		"id": "rayong",
-		"name": "Rayong",
-		"category": "industrial"
+		"id": "buri ram",
+		"name": "Buri Ram",
+		"category": null
 	},
 	{
 		"id": "chachoengsao",
 		"name": "Chachoengsao",
-		"category": "industrial"
+		"category": null
 	},
 	{
-		"id": "nakhonsawan",
-		"name": "Nakhon Sawan",
-		"category": "agricultural"
+		"id": "chai nat",
+		"name": "Chai Nat",
+		"category": null
 	},
 	{
-		"id": "chiangmai",
+		"id": "chaiyaphum",
+		"name": "Chaiyaphum",
+		"category": null
+	},
+	{
+		"id": "chanthaburi",
+		"name": "Chanthaburi",
+		"category": null
+	},
+	{
+		"id": "chiang mai",
 		"name": "Chiang Mai",
-		"category": "agricultural"
+		"category": null
+	},
+	{
+		"id": "chiang rai",
+		"name": "Chiang Rai",
+		"category": null
+	},
+	{
+		"id": "chon buri",
+		"name": "Chon Buri",
+		"category": null
+	},
+	{
+		"id": "chumphon",
+		"name": "Chumphon",
+		"category": null
+	},
+	{
+		"id": "kalasin",
+		"name": "Kalasin",
+		"category": null
+	},
+	{
+		"id": "kamphaeng phet",
+		"name": "Kamphaeng Phet",
+		"category": null
+	},
+	{
+		"id": "kanchanaburi",
+		"name": "Kanchanaburi",
+		"category": null
+	},
+	{
+		"id": "khon kaen",
+		"name": "Khon Kaen",
+		"category": null
+	},
+	{
+		"id": "krabi",
+		"name": "Krabi",
+		"category": null
+	},
+	{
+		"id": "lampang",
+		"name": "Lampang",
+		"category": null
+	},
+	{
+		"id": "lamphun",
+		"name": "Lamphun",
+		"category": null
+	},
+	{
+		"id": "loei",
+		"name": "Loei",
+		"category": null
+	},
+	{
+		"id": "lop buri",
+		"name": "Lop Buri",
+		"category": null
+	},
+	{
+		"id": "mae hong son",
+		"name": "Mae Hong Son",
+		"category": null
+	},
+	{
+		"id": "maha sarakham",
+		"name": "Maha Sarakham",
+		"category": null
+	},
+	{
+		"id": "mukdahan",
+		"name": "Mukdahan",
+		"category": null
+	},
+	{
+		"id": "nakhon nayok",
+		"name": "Nakhon Nayok",
+		"category": null
+	},
+	{
+		"id": "nakhon pathom",
+		"name": "Nakhon Pathom",
+		"category": null
+	},
+	{
+		"id": "nakhon phanom",
+		"name": "Nakhon Phanom",
+		"category": null
+	},
+	{
+		"id": "nakhon ratchasima",
+		"name": "Nakhon Ratchasima",
+		"category": null
+	},
+	{
+		"id": "nakhon sawan",
+		"name": "Nakhon Sawan",
+		"category": null
+	},
+	{
+		"id": "nakhon si thammarat",
+		"name": "Nakhon Si Thammarat",
+		"category": null
+	},
+	{
+		"id": "nan",
+		"name": "Nan",
+		"category": null
+	},
+	{
+		"id": "narathiwat",
+		"name": "Narathiwat",
+		"category": null
+	},
+	{
+		"id": "nong bua lam phu",
+		"name": "Nong Bua Lam Phu",
+		"category": null
+	},
+	{
+		"id": "nong khai",
+		"name": "Nong Khai",
+		"category": null
+	},
+	{
+		"id": "nonthaburi",
+		"name": "Nonthaburi",
+		"category": null
+	},
+	{
+		"id": "pathum thani",
+		"name": "Pathum Thani",
+		"category": null
+	},
+	{
+		"id": "pattani",
+		"name": "Pattani",
+		"category": null
+	},
+	{
+		"id": "phangnga",
+		"name": "Phangnga",
+		"category": null
+	},
+	{
+		"id": "phatthalung",
+		"name": "Phatthalung",
+		"category": null
+	},
+	{
+		"id": "phayao",
+		"name": "Phayao",
+		"category": null
+	},
+	{
+		"id": "phetchabun",
+		"name": "Phetchabun",
+		"category": null
+	},
+	{
+		"id": "phetchaburi",
+		"name": "Phetchaburi",
+		"category": null
+	},
+	{
+		"id": "phichit",
+		"name": "Phichit",
+		"category": null
+	},
+	{
+		"id": "phitsanulok",
+		"name": "Phitsanulok",
+		"category": null
+	},
+	{
+		"id": "phra nakhon si ayutthaya",
+		"name": "Phra Nakhon Si Ayutthaya",
+		"category": null
+	},
+	{
+		"id": "phrae",
+		"name": "Phrae",
+		"category": null
+	},
+	{
+		"id": "phuket",
+		"name": "Phuket",
+		"category": null
+	},
+	{
+		"id": "prachin buri",
+		"name": "Prachin Buri",
+		"category": null
+	},
+	{
+		"id": "prachuap khiri khan",
+		"name": "Prachuap Khiri Khan",
+		"category": null
+	},
+	{
+		"id": "ranong",
+		"name": "Ranong",
+		"category": null
+	},
+	{
+		"id": "ratchaburi",
+		"name": "Ratchaburi",
+		"category": null
+	},
+	{
+		"id": "rayong",
+		"name": "Rayong",
+		"category": null
+	},
+	{
+		"id": "roi et",
+		"name": "Roi Et",
+		"category": null
+	},
+	{
+		"id": "sa kaeo",
+		"name": "Sa Kaeo",
+		"category": null
+	},
+	{
+		"id": "sakon nakhon",
+		"name": "Sakon Nakhon",
+		"category": null
+	},
+	{
+		"id": "samut prakan",
+		"name": "Samut Prakan",
+		"category": null
+	},
+	{
+		"id": "samut sakhon",
+		"name": "Samut Sakhon",
+		"category": null
+	},
+	{
+		"id": "samut songkhram",
+		"name": "Samut Songkhram",
+		"category": null
+	},
+	{
+		"id": "saraburi",
+		"name": "Saraburi",
+		"category": null
+	},
+	{
+		"id": "satun",
+		"name": "Satun",
+		"category": null
+	},
+	{
+		"id": "si sa ket",
+		"name": "Si Sa Ket",
+		"category": null
+	},
+	{
+		"id": "sing buri",
+		"name": "Sing Buri",
+		"category": null
+	},
+	{
+		"id": "songkhla",
+		"name": "Songkhla",
+		"category": null
+	},
+	{
+		"id": "sukhothai",
+		"name": "Sukhothai",
+		"category": null
+	},
+	{
+		"id": "suphan buri",
+		"name": "Suphan Buri",
+		"category": null
+	},
+	{
+		"id": "surat thani",
+		"name": "Surat Thani",
+		"category": null
+	},
+	{
+		"id": "surin",
+		"name": "Surin",
+		"category": null
+	},
+	{
+		"id": "tak",
+		"name": "Tak",
+		"category": null
+	},
+	{
+		"id": "trang",
+		"name": "Trang",
+		"category": null
+	},
+	{
+		"id": "trat",
+		"name": "Trat",
+		"category": null
+	},
+	{
+		"id": "ubon ratchathani",
+		"name": "Ubon Ratchathani",
+		"category": null
+	},
+	{
+		"id": "udon thani",
+		"name": "Udon Thani",
+		"category": null
+	},
+	{
+		"id": "uthai thani",
+		"name": "Uthai Thani",
+		"category": null
+	},
+	{
+		"id": "uttaradit",
+		"name": "Uttaradit",
+		"category": null
+	},
+	{
+		"id": "yala",
+		"name": "Yala",
+		"category": null
+	},
+	{
+		"id": "yasothon",
+		"name": "Yasothon",
+		"category": null
 	}
 ]

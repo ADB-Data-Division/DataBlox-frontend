@@ -8,8 +8,8 @@ export interface DateRange {
 }
 
 export interface DatasetState {
-  datasetId: string;
-  timePeriod: string;
+  datasetId: string | null;
+  timePeriod: string | null;
   dateRange: DateRange;
   /**
    * All the available provinces in the dataset.
@@ -25,8 +25,8 @@ export interface DatasetState {
 
 // Define the initial state
 const initialState: DatasetState = {
-  datasetId: 'default',
-  timePeriod: 'last-month',
+  datasetId: null,
+  timePeriod: null,
   dateRange: {
     start_date: undefined,
     end_date: undefined,

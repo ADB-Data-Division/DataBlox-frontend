@@ -25,7 +25,7 @@ export default function ProvinceFilterUI({
 		
 		// Update Redux state
 		dispatch(addFilter({
-      filter_id: 'province',
+      filter_id: 'province-filter',
       type: 'province',
       province_ids: selectedProvinces
     } as ProvinceFilter));

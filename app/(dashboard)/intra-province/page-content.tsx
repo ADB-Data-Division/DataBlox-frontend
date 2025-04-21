@@ -1,17 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { Box, Typography } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { Box } from '@mui/material';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
-import moveOutSampleDataset from '../../../public/move-out-sample-dataset.json';
 import MigrationContent from '../migration/migration-content';
-import VisualizationToolbar, { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import { Subaction } from '@/components/visualization-toolbar/types';
 import { Filter } from '@/app/services/data-loader/data-loader-interface';
 import { transformFilter } from '@/app/services/filter/transform';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
+import { useAppSelector } from '@/app/store/hooks';
 
 function valueFormatter(value: number | null) {
 	return `${value}mm`;
@@ -23,7 +22,8 @@ export default function IntraProvincePageContent() {
   const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isEmpty, setIsEmpty] = React.useState(true);
-  
+  const { themeMode } = useAppSelector(state => state.userPreferences);
+  const darkMode = themeMode === 'dark';
 
 const chartSetting = {
 	yAxis: [
@@ -96,13 +96,6 @@ const chartSetting = {
 
   return (
     <Box sx={{ width: '100%' }}>
-		<Box sx={{ width: '100%' }}>
-        <VisualizationToolbar 
-          onVisualize={handleVisualize}
-          onFileUpload={handleFileUpload}
-          darkMode={true}
-        />
-      </Box>
 		<MigrationContent />
 	</Box>
   );

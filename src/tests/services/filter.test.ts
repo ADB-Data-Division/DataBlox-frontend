@@ -1,5 +1,5 @@
 import { transformFilter } from '@/app/services/filter/transform';
-import { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import { Filter, ProvinceFilter, DateTimeFilter, SubactionFilter } from '@/app/services/data-loader/data-loader-interface';
 import { Province } from '@/models/province-district-subdistrict';
 import { DateTime } from 'luxon';

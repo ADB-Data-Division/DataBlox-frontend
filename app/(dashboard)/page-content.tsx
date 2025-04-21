@@ -80,12 +80,6 @@ export default function PageContent() {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 4, width: '100%' }}>
-        <Typography variant="body1" color="text.secondary">
-          Movement and visitor statistics across Thailand provinces.
-        </Typography>
-      </Box>
-
       <Paper 
         elevation={0} 
         sx={{ 

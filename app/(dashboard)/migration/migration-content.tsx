@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Tabs, Tab, CircularProgress } from '@mui/material';
 import MigrationChart from '../../../components/migration-chart/migration-chart';
-import VisualizationToolbar, { VisualizationFilters } from '@/components/visualization-toolbar/visualization-toolbar';
+import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
+import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import { transformFilter } from '@/app/services/filter/transform';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
 import { Filter } from '@/app/services/data-loader/data-loader-interface';
+import { useAppSelector } from '@/app/store/hooks';
 
 // Define the type for migration data
 interface MigrationData {
@@ -22,6 +24,8 @@ export default function MigrationContent() {
   const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
   const [subAction, setSubAction] = useState<'movein' | 'moveout' | 'net'>('movein');
   const [isEmpty, setIsEmpty] = useState(true);
+  const { themeMode } = useAppSelector(state => state.userPreferences);
+  const darkMode = themeMode === 'dark';
 
   const handleVisualize = async (filters: VisualizationFilters) => {
     setLoading(true);
@@ -88,8 +92,7 @@ export default function MigrationContent() {
         <VisualizationToolbar 
           onVisualize={handleVisualize}
           onFileUpload={handleFileUpload}
-          onDataLoaded={onDataLoaded}
-          darkMode={true}
+          darkMode={darkMode}
         />
       </Box>
       

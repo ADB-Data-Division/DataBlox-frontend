@@ -5,7 +5,8 @@ import { Box, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
-import VisualizationToolbar, { VisualizationFilters } from '../../../components/visualization-toolbar/visualization-toolbar';
+import VisualizationToolbar from '../../../components/visualization-toolbar/visualization-toolbar';
+import { VisualizationFilters } from '../../../components/visualization-toolbar/state/types';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
 import { useMemo, useState } from 'react';
 import { normalizeAsKey } from '@/models/normalize';
@@ -138,13 +139,14 @@ export default function SideBySidePageContent() {
         <VisualizationToolbar 
           onVisualize={handleVisualize}
           onFileUpload={handleFileUpload}
-          onDataLoaded={onDataLoaded}
-          darkMode={true}
+          darkMode={darkMode}
           subActionsAllowed={['raw']}
+          visualizationTypesAllowed={['chord']}
           initialFilters={{
             subaction: 'raw',
             visualizationType: 'chord'
           }}
+          datasetsAllowed={['migration-2020', 'premium-1', 'premium-2']}
         />
       </Box>
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row' }}>

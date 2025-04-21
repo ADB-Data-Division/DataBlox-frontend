@@ -58,7 +58,11 @@ export const transformToMonthGranularity = (dateStr: string, isEndDate: boolean)
  */
 export const getDatasetYear = (startDateTime?: string): number => {
 	if (startDateTime) {
-		return DateTime.fromISO(startDateTime).year;
+		const dateTime = DateTime.fromISO(startDateTime);
+		// Make sure the parsed date is valid
+		if (dateTime.isValid) {
+			return dateTime.year;
+		}
 	}
 	return DateTime.now().year;
 };
@@ -73,29 +77,32 @@ export const generateDateTimeFilter = (
 	customStartDate?: DateTime,
 	customEndDate?: DateTime
 ): { startDate: DateTime, endDate: DateTime } => {
+	// Ensure datasetYear is valid
+	const year = (!isNaN(datasetYear) && datasetYear > 0) ? datasetYear : DateTime.now().year;
+	
 	let startDate: DateTime;
 	let endDate: DateTime;
 	
 	switch (periodId) {
 		case 'fullYear':
-			startDate = DateTime.fromObject({ year: datasetYear, month: 1, day: 1 });
-			endDate = DateTime.fromObject({ year: datasetYear, month: 12, day: 31 });
+			startDate = DateTime.fromObject({ year: year, month: 1, day: 1 });
+			endDate = DateTime.fromObject({ year: year, month: 12, day: 31 });
 			break;
 		case 'q1':
-			startDate = DateTime.fromObject({ year: datasetYear, month: 1, day: 1 });
-			endDate = DateTime.fromObject({ year: datasetYear, month: 3, day: 31 });
+			startDate = DateTime.fromObject({ year: year, month: 1, day: 1 });
+			endDate = DateTime.fromObject({ year: year, month: 3, day: 31 });
 			break;
 		case 'q2':
-			startDate = DateTime.fromObject({ year: datasetYear, month: 4, day: 1 });
-			endDate = DateTime.fromObject({ year: datasetYear, month: 6, day: 30 });
+			startDate = DateTime.fromObject({ year: year, month: 4, day: 1 });
+			endDate = DateTime.fromObject({ year: year, month: 6, day: 30 });
 			break;
 		case 'q3':
-			startDate = DateTime.fromObject({ year: datasetYear, month: 7, day: 1 });
-			endDate = DateTime.fromObject({ year: datasetYear, month: 9, day: 30 });
+			startDate = DateTime.fromObject({ year: year, month: 7, day: 1 });
+			endDate = DateTime.fromObject({ year: year, month: 9, day: 30 });
 			break;
 		case 'q4':
-			startDate = DateTime.fromObject({ year: datasetYear, month: 10, day: 1 });
-			endDate = DateTime.fromObject({ year: datasetYear, month: 12, day: 31 });
+			startDate = DateTime.fromObject({ year: year, month: 10, day: 1 });
+			endDate = DateTime.fromObject({ year: year, month: 12, day: 31 });
 			break;
 		case 'lastYear':
 			startDate = DateTime.now().minus({ years: 1 });

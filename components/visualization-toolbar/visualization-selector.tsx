@@ -1,6 +1,6 @@
 'use client';
 import { Box, IconButton, Tooltip } from "@mui/material";
-import { VisualizationFilters } from "./visualization-toolbar";
+import { VisualizationFilters } from "./state/types";
 import { Subaction, VISUALIZATION_TYPES, VisualizationMethod, VisualizationType } from "./types";
 
 

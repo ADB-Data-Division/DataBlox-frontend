@@ -7,26 +7,45 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAppDispatch } from "@/app/store/hooks";
 import { DateTimeFilter } from "@/app/services/data-loader/data-loader-interface";
 
-// Import constants and utilities
-import { PREDEFINED_TIME_PERIODS } from "./constants";
 import { 
   isDateTimeFilter, 
   getDatasetYear,
   generateDateTimeFilter
 } from "./utils";
-import { DateTimePeriodFilterProps } from "./types";
+import { DateTimePeriodFilterProps, TimePeriod } from "./types";
+import { addFilter, setDateRange } from "@/app/store/features/datasetSlice";
 
 export default function DateTimePeriodFilter({ 
   onFilterChange, 
-  defaultFilter, 
+  selectedDateTimeFilter, 
+  defaultFilter, // For backward compatibility
   datasetMetadata, 
-  darkMode = false 
+  darkMode = false,
 }: DateTimePeriodFilterProps) {
   // Get state from Redux
   const dispatch = useAppDispatch();
-  const timePeriod = datasetMetadata?.dateTimeFilter.time_period;
-  const startDate = datasetMetadata?.dateTimeFilter.start_date;
-  const endDate = datasetMetadata?.dateTimeFilter.end_date;
+  // Use either selectedDateTimeFilter or defaultFilter
+  const activeFilter = selectedDateTimeFilter || defaultFilter;
+  
+  // Add proper guards for time_periods array
+  const timePeriod = datasetMetadata?.time_periods && datasetMetadata.time_periods.length > 0 
+    ? datasetMetadata.time_periods[0].time_period 
+    : undefined;
+  const startDate = datasetMetadata?.time_periods && datasetMetadata.time_periods.length > 0 
+    ? datasetMetadata.time_periods[0].start_date 
+    : undefined;
+  const endDate = datasetMetadata?.time_periods && datasetMetadata.time_periods.length > 0 
+    ? datasetMetadata.time_periods[0].end_date 
+    : undefined;
+
+  const timePeriods : TimePeriod[] = (datasetMetadata?.time_periods || []).map((timePeriod) => ({
+    id: timePeriod.time_period,
+    name: timePeriod.label,
+    isEnabled: true
+  }));
+
+  console.log("activeFilter", activeFilter);
+  console.log("timePeriods", timePeriods);
   
   // Move useRef to component top level
   const initialSetupRef = useRef(false);
@@ -41,22 +60,38 @@ export default function DateTimePeriodFilter({
   const handlePredefinedPeriodChange = useCallback((periodId: string) => {
     setShowCustomDateRange(periodId === 'custom');  
     
-    const { startDate: modifiedStartDate, endDate: modifiedEndDate } = generateDateTimeFilter(
+    let { startDate: modifiedStartDate, endDate: modifiedEndDate } = generateDateTimeFilter(
       periodId,   
       datasetYear, 
       useMonthGranularity, 
       customStartDate, 
       customEndDate
     );
+
+    const selectedDateTimeFilter = datasetMetadata?.time_periods.find(tp => tp.time_period === periodId);
+
+    if (selectedDateTimeFilter && periodId !== 'custom') {
+      modifiedStartDate = DateTime.fromISO(selectedDateTimeFilter.start_date);
+      modifiedEndDate = DateTime.fromISO(selectedDateTimeFilter.end_date);
+    }
     
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
       time_period: periodId,
+      label: timePeriods.find(period => period.id === periodId)?.name || '',
       start_date: modifiedStartDate.toFormat('yyyy-MM-dd'),
       end_date: modifiedEndDate.toFormat('yyyy-MM-dd')
     };
+
+    // Update Redux state
+		dispatch(addFilter(dateTimeFilter));
+    dispatch(setDateRange({
+      start_date: modifiedStartDate.toFormat('yyyy-MM-dd'),
+      end_date: modifiedEndDate.toFormat('yyyy-MM-dd')
+    }));
     
+    // Propagate the filter change to the parent component
     onFilterChange(dateTimeFilter);
   }, [
     useMonthGranularity, 
@@ -64,6 +99,9 @@ export default function DateTimePeriodFilter({
     customStartDate,
     customEndDate,
     datasetYear,
+    timePeriods,
+    dispatch,
+    datasetMetadata
   ]);
 
   // const handleCustomDateChange = (field: 'start_date' | 'end_date', value: string) => {
@@ -108,20 +146,23 @@ export default function DateTimePeriodFilter({
     if (typeof window !== 'undefined' && !initialSetupRef.current) {
       initialSetupRef.current = true;
       
-      if (defaultFilter && isDateTimeFilter(defaultFilter)) {
-        // Use existing filter
-        if (!startDate && !endDate) {
-          handlePredefinedPeriodChange(timePeriod || 'last3Months');
-        }
+      if (activeFilter && isDateTimeFilter(activeFilter)) {
+        // Use existing filter from default values
+        handlePredefinedPeriodChange(activeFilter.time_period || 'last3Months');
       } else if (datasetMetadata) {
-        // If no default filter but dataset metadata exists, use fullYear option
-        handlePredefinedPeriodChange('fullYear');
+        if (timePeriod) {
+          // Use time period from dataset metadata
+          handlePredefinedPeriodChange(timePeriod);
+        } else {
+          // Fallback to full year if dataset exists but no time period
+          handlePredefinedPeriodChange('fullYear');
+        }
       } else {
         // Default behavior (last 3 months)
         handlePredefinedPeriodChange('last3Months');
       }
     }
-  }, [dispatch, timePeriod, startDate, endDate, defaultFilter, datasetMetadata, handlePredefinedPeriodChange]);
+  }, [dispatch, timePeriod, startDate, endDate, activeFilter, datasetMetadata, handlePredefinedPeriodChange]);
   
   // Effect to update dates when granularity toggle changes - simplified to prevent loops
   // useEffect(() => {
@@ -194,13 +235,13 @@ export default function DateTimePeriodFilter({
       </InputLabel>
       <Select
         labelId="time-period-label"
-        value={timePeriod}
+        value={activeFilter?.time_period || ''}
         onChange={(e) => handlePredefinedPeriodChange(e.target.value)}
         label="Time Period"
         IconComponent={CaretDown}
         sx={{ color: darkMode ? '#fff' : undefined, height: '100%' }}
       >
-        {PREDEFINED_TIME_PERIODS.map((period) => (
+        {timePeriods.map((period) => (
           <MenuItem key={period.id} value={period.id} disabled={!period.isEnabled}>
             {period.name}
           </MenuItem>

@@ -15,7 +15,20 @@ interface MonthlyData {
 }
 
 class MigrationDataProcessor {
+  /**
+   * This data structure holds on to a sparse matrix of migration data per month.
+   * 
+   * Commonly used with pickle file datasets.
+   */
   private data: MonthlyData | null = null;
+
+  /**
+   * This data structure holds on to a processed dataframe of migration data per month.
+   * 
+   * Commonly used with CSV-based aggregated datasets.
+   */
+  private processedData : dfd.DataFrame | null = null;
+
   private districtMapping: string[] = [];
   private nameToIdMap: Map<string, number> = new Map();
 
@@ -28,12 +41,25 @@ class MigrationDataProcessor {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
+      const is_json = url.includes('.json');
+      const is_csv = url.includes('.csv');
+      const is_sparse = url.includes('sparse');
       
-      this.data = await response.json();
-      console.log(`Loaded data for ${Object.keys(this.data!).length} months`);
+      if (is_json) {
+        this.data = await response.json();
+        console.log(`Loaded data for ${Object.keys(this.data!).length} months`);
+        
+        // Create district mapping on first load
+        if (is_sparse) {
+          this.createDistrictMapping();
+        }
+      } else if (is_csv) {
+        const blob = await response.blob();
+        this.processedData = await dfd.readCSV(blob);
+        console.log(`Loaded data for ${this.processedData.shape[1]} months and ${this.processedData.shape[0]} provinces`);
+      }
       
-      // Create district mapping on first load
-      this.createDistrictMapping();
     } catch (error) {
       console.error("Error fetching migration data:", error);
       throw error;
@@ -74,6 +100,10 @@ class MigrationDataProcessor {
    * Gets the list of available months in the data
    */
   getAvailableMonths(): string[] {
+    if (this.processedData) {
+      return this.processedData.columns.map(col => col.toString());
+    }
+
     if (!this.data) return [];
     return Object.keys(this.data);
   }
@@ -264,8 +294,9 @@ class MigrationDataProcessor {
 
     const provinceFilters = filters.find(filter => filter.type === "province") as ProvinceFilter | undefined;
 
+    const provinceIDs = provinceFilters ? provinceFilters.province_ids.map(id => normalizeAsKey(id)) : [];
     const provinceFilter = provinceFilters ? 
-    (province: string) => provinceFilters.province_ids.includes(normalizeAsKey(province)) : 
+    (province: string) => provinceIDs.includes(normalizeAsKey(province)) : 
     () => true;
     
     // Get unique provinces
@@ -319,6 +350,10 @@ class MigrationDataProcessor {
   
     // Replace with your actual JSON URL
     await processor.fetchData(dataset);
+
+    if (processor.processedData) {
+      return processor.processedData;
+    }
     
     // Get available months
     const months = processor.getAvailableMonths();
