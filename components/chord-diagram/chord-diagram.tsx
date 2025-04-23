@@ -5,6 +5,13 @@ import * as d3 from 'd3';
 import { ChordDiagramProps } from './types';
 import { calculatePercentage, createColorScale, groupTicks } from './utils';
 import { TooltipData } from '../chord-tooltip/types';
+import { stringToColor } from '@/src/utils/colors';
+import { normalizeAsKey } from '@/models/normalize';
+import { capitalize } from '@mui/material';
+
+const capitalizeFirstLetterOfEachWord = (str: string) => {
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
 
 const ChordDiagram: React.FC<ChordDiagramProps & { 
   onTooltipChange: (tooltipData: TooltipData | ((prevTooltip: TooltipData) => TooltipData)) => void 
@@ -52,7 +59,13 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
       .padAngle(1 / innerRadius);
 
     // Set up color scale
-    const color = createColorScale(names, colorScheme);
+    // const color = createColorScale(names, colorScheme);
+    
+    // Use the same color function as the map
+    const getProvinceColor = (name: string) => {
+      // Otherwise use the same string-to-color function as the map
+      return stringToColor(normalizeAsKey(name));
+    };
 
     // Setup SVG
     const svg = d3.select(svgRef.current)
@@ -75,14 +88,14 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
       
       onTooltipChange({
         visible: true,
-        source: names[d.source.index],
-        destination: names[d.target.index],
+        source: capitalizeFirstLetterOfEachWord(names[d.source.index]),
+        destination: capitalizeFirstLetterOfEachWord(names[d.target.index]),
         sourceToDestValue: d.source.value,
         sourceToDestPercent: sourceToDestPercent,
         destToSourceValue: d.source.index !== d.target.index ? d.target.value : undefined,
         destToSourcePercent: destToSourcePercent,
-        sourceColor: color(names[d.source.index]) as string,
-        destColor: color(names[d.target.index]) as string,
+        sourceColor: getProvinceColor(normalizeAsKey(names[d.source.index])),
+        destColor: getProvinceColor(normalizeAsKey(names[d.target.index])),
         x: event.clientX + offset,
         y: event.clientY + offset
       });
@@ -103,7 +116,7 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
 
     // Add arc paths for each group
     group.append("path")
-      .attr("fill", d => color(names[d.index]) as string)
+      .attr("fill", d => getProvinceColor(names[d.index]))
       .attr("d", arc as any)
       .on("mouseover", function(event, d) {
         // Calculate the total value for this group
@@ -113,11 +126,11 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
         // Show a special tooltip for group totals
         onTooltipChange({
           visible: true,
-          source: names[d.index],
+          source: capitalizeFirstLetterOfEachWord(names[d.index]),
           destination: "All provinces", // or "Total"
           sourceToDestValue: totalGroupValue,
           sourceToDestPercent: totalGroupPercent,
-          sourceColor: color(names[d.index]) as string,
+          sourceColor: getProvinceColor(names[d.index]),
           destColor: undefined,
           x: event.clientX + 10,
           y: event.clientY + 10
@@ -161,7 +174,7 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
         ${(d as any).angle > Math.PI ? "rotate(180)" : ""}
       `)
       .attr("text-anchor", d => (d as any).angle > Math.PI ? "end" : null)
-      .text(d => names[d.index])
+      .text(d => capitalizeFirstLetterOfEachWord(names[d.index]))
       .style("fill", textColor);
 
     // Add ribbons (chords)
@@ -173,8 +186,8 @@ const ChordDiagram: React.FC<ChordDiagramProps & {
       .join("path")
       .attr("class", "chord")
       .attr("d", ribbon as any)
-      .attr("fill", d => color(names[d.source.index]) as string)
-      .attr("stroke", d => d3.rgb(color(names[d.source.index]) as string).darker(0.1).toString())
+      .attr("fill", d => getProvinceColor(names[d.source.index]))
+      .attr("stroke", d => d3.rgb(getProvinceColor(names[d.source.index])).darker(0.1).toString())
       .attr("opacity", 0.8)
       .on("mouseover", showTooltip as any)
       .on("mousemove", showTooltip as any)

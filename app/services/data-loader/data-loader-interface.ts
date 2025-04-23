@@ -1,4 +1,5 @@
 import { Subaction } from "@/components/visualization-toolbar/types";
+import type { Feature, FeatureCollection } from 'geojson';
 
 export type Filter = {
 	type: 'province' | 'industry' | 'district' | 'datetime' | 'subaction';
@@ -61,22 +62,50 @@ export type MigrationDataResult = {
 	// Your migration data structure here
 }
 
-// New GeoJSON types
+// Define different GeoJSON levels
 export enum GeoJSONLevel {
-	PROVINCE = 'adm1',
-	DISTRICT = 'adm2',
-	SUBDISTRICT = 'adm3'
+	PROVINCE = 'province',
+	DISTRICT = 'district',
+	SUBDISTRICT = 'subdistrict'
 }
 
+// Result type for GeoJSON data
 export type GeoJSONDataResult = {
 	type: 'geojson';
 	level: GeoJSONLevel;
-	data: any; // GeoJSON data
+	data: FeatureCollection;
 }
 
+// Result type for streaming GeoJSON data
+export type GeoJSONStreamResult = {
+	type: 'geojson-stream';
+	level: GeoJSONLevel;
+	// This will immediately return basic metadata
+	metadata: {
+		type: 'FeatureCollection';
+		// Optional metadata that might be available from the header
+		bbox?: number[];
+		crs?: any;
+	};
+	// This is an async generator that will yield features as they arrive
+	stream: AsyncGenerator<Feature>;
+	// Optional cache that will collect the features for later use
+	cacheFeatures?: boolean;
+}
+
+// Callback type for feature events
+export type FeatureCallback = (feature: Feature) => void;
+
 export interface DataLoaderInterface {
+	// Load a dataset
 	getData(query: DataQuery): Promise<any>;
 	
-	// New method for fetching GeoJSON data
+	// Load GeoJSON data (complete mode - waits for all data)
 	getGeoJSON(level: GeoJSONLevel): Promise<GeoJSONDataResult>;
+	
+	// Load GeoJSON data with streaming (incremental mode - yields as data arrives)
+	getGeoJSONStream(level: GeoJSONLevel, cacheFeatures?: boolean): Promise<GeoJSONStreamResult>;
+	
+	// Clear the cache
+	clearGeoJSONCache(level?: GeoJSONLevel): void;
 }

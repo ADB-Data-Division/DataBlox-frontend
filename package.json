@@ -25,6 +25,7 @@
 		"d3": "^7.9.0",
 		"danfojs": "^1.2.0",
 		"debug": "^4.4.0",
+		"flatgeobuf": "^4.0.1",
 		"leaflet": "^1.9.4",
 		"leaflet-providers": "^2.0.0",
 		"luxon": "^3.5.0",

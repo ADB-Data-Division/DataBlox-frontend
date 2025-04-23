@@ -5,12 +5,14 @@ import { Box, Typography, CircularProgress, useTheme, Tooltip } from '@mui/mater
 import 'leaflet/dist/leaflet.css';
 import dynamic from 'next/dynamic';
 import { dataService } from '@/app/services/data-loader/data-loader-service';
-import { GeoJSONLevel } from '@/app/services/data-loader/data-loader-interface';
+import { GeoJSONLevel, ProvinceFilter } from '@/app/services/data-loader/data-loader-interface';
 import { Feature } from 'geojson';
 import { GEOJsonProperty } from '@/models/geojson';
 import { LanguageOutlined } from '@mui/icons-material';
-import theme from '@/style/theme/theme';
 import VisualizationContainer from '../visualization-container/visualization-container';
+import { normalizeAsKey } from '@/models/normalize';
+import { useAppSelector } from '@/app/store/hooks';
+import { stringToColor, getSafeTextColor } from '@/src/utils/colors';
 
 // Define the props interface
 interface ThailandMapProps {
@@ -44,33 +46,98 @@ const sampleProvinceData: ProvinceData[] = [
   { name: 'Hua Hin', visitors: 1234567, lat: 12.5684, lng: 99.9576, trend: 14.5, color: '#673ab7' },
 ];
 
+
+// Format large numbers with commas
+const formatNumber = (num: number) => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 // Create a client-side only component for the map
 const ThailandMapClient: React.FC<ThailandMapProps> = ({
   provinceData = sampleProvinceData,
   height = '100%',
   width = '100%',
-  title = 'Thailand Visitor Distribution',
+  title = 'Thailand',
   onProvinceClick,
   adminLevel = GeoJSONLevel.PROVINCE,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
   const geoJsonLayerRef = useRef<any>(null);
+  const boundsSetRef = useRef<boolean>(false);
   const theme = useTheme();
   const [mapReady, setMapReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [boundaryData, setBoundaryData] = useState<any>(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [totalFeatures, setTotalFeatures] = useState(0);
+  const [loadedFeatures, setLoadedFeatures] = useState(0);
   const [L, setL] = useState<any>(null);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [tooltipContent, setTooltipContent] = useState('');
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [tooltipProvinceInfo, setTooltipProvinceInfo] = useState<ProvinceData | undefined>(undefined);
   const [languageMode, setLanguageMode] = useState<'th' | 'en'>('en');
+  const filters = useAppSelector(state => state.dataset.filters);
+  const selectedProvinces = ((filters.find(f => f.type === 'province') as ProvinceFilter)?.province_ids ?? []).map(p => normalizeAsKey(p));
 
-  // Format large numbers with commas
-  const formatNumber = useCallback((num: number) => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }, []);
+  // Use refs for tooltip data to prevent re-renders
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const tooltipDataRef = useRef({
+    visible: false,
+    content: '',
+    position: { x: 0, y: 0 },
+    provinceInfo: undefined as ProvinceData | undefined,
+    mapColor: undefined as string | undefined
+  });
+
+  // Function to update tooltip without causing re-renders
+  const updateTooltip = useCallback(() => {
+    if (!tooltipRef.current) return;
+    
+    const tooltip = tooltipRef.current;
+    const data = tooltipDataRef.current;
+    
+    if (data.visible) {
+      tooltip.style.display = 'block';
+      tooltip.style.transform = `translate(${data.position.x + 10}px, ${data.position.y + 10}px)`;
+      
+      // Use the map feature color for the tooltip if it exists
+      const featureColor = data.mapColor || data.provinceInfo?.color || theme.palette.primary.main;
+      
+      // Update border color to match the feature
+      tooltip.style.borderColor = featureColor;
+      
+      // Ensure text is readable by darkening light colors
+      const titleColor = getSafeTextColor(featureColor);
+      const textColor = getSafeTextColor(featureColor);
+      
+      let tooltipContent = `
+        <div style="font-weight: bold; color: ${titleColor}; font-size: 16px; text-shadow: 0 0 1px rgba(0,0,0,0.1);">
+          ${data.content}
+        </div>
+      `;
+      
+      if (data.provinceInfo) {
+        tooltipContent += `
+          <div style="margin-top: 8px; color: ${textColor}; font-size: 14px; text-shadow: 0 0 1px rgba(0,0,0,0.1);">
+            Visitors: ${data.provinceInfo.visitors.toLocaleString()}
+          </div>
+        `;
+        
+        if (data.provinceInfo.trend !== undefined) {
+          const trendColor = data.provinceInfo.trend > 0 ? 
+            theme.palette.success.main : theme.palette.error.main;
+          
+          tooltipContent += `
+            <div style="color: ${trendColor}; font-size: 14px; text-shadow: 0 0 1px rgba(0,0,0,0.1);">
+              Trend: ${data.provinceInfo.trend > 0 ? '+' : ''}${data.provinceInfo.trend}%
+            </div>
+          `;
+        }
+      }
+      
+      tooltip.innerHTML = tooltipContent;
+    } else {
+      tooltip.style.display = 'none';
+    }
+  }, [theme.palette.primary.main, theme.palette.success.main, theme.palette.error.main]);
 
   // Calculate marker size based on visitor count
   const getMarkerSize = useCallback((visitors: number) => {
@@ -95,12 +162,68 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
 
   // Fetch GeoJSON data using the data service
   useEffect(() => {
+    // Reset the bounds flag when admin level changes
+    boundsSetRef.current = false;
+    
     const fetchGeoJsonData = async () => {
       try {
-        const result = await dataService.getGeoJSON(adminLevel);
-        setBoundaryData(result.data);
+        // Use streaming version instead of blocking version
+        const streamResult = await dataService.getGeoJSONStream(adminLevel);
+        
+        // Create a feature collection to build incrementally
+        const initialFeatureCollection = {
+          type: 'FeatureCollection',
+          features: []
+        };
+        
+        // Set initial empty feature collection
+        setBoundaryData(initialFeatureCollection);
+        
+        // Set loading state
+        setLoading(true);
+        setLoadingProgress(0);
+        setLoadedFeatures(0);
+        
+        // Estimate total features (this is approximate as we're streaming)
+        // For Thailand provinces, we know there are about 77 provinces
+        setTotalFeatures(adminLevel === GeoJSONLevel.PROVINCE ? 77 : 100);
+        
+        // Process features as they arrive
+        let count = 0;
+        let allFeatures: Feature[] = []; // Track all features to avoid state update issues
+        const batchSize = adminLevel === GeoJSONLevel.PROVINCE ? 5 : 10;
+        
+        for await (const feature of streamResult.stream) {
+          count++;
+          allFeatures.push(feature as Feature); // Add to complete collection
+          
+          // Update progress
+          setLoadedFeatures(count);
+          setLoadingProgress(Math.min(99, (count / (adminLevel === GeoJSONLevel.PROVINCE ? 77 : 100)) * 100));
+          
+          // Update boundary data every batch of features - use the complete collection
+          if (count % batchSize === 0) {
+            console.log(`Updating boundaryData with ${allFeatures.length} features so far`);
+            setBoundaryData({
+              type: 'FeatureCollection',
+              features: [...allFeatures] // Use complete array instead of batches
+            });
+          }
+        }
+        
+        // Final update with all features to ensure nothing is missed
+        console.log(`Final update - total features: ${allFeatures.length}`);
+        setBoundaryData({
+          type: 'FeatureCollection',
+          features: allFeatures
+        });
+        
+        // Done loading
+        setLoadingProgress(100);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching GeoJSON data:', error);
+        setLoading(false);
       }
     };
 
@@ -190,44 +313,72 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
 
   // Add GeoJSON layer when data is loaded and map is ready
   useEffect(() => {
+    console.log(`Rendering map with selected provinces (${selectedProvinces.length}): ${selectedProvinces.join(', ')}`);
+    console.log(`Total features in boundaryData: ${boundaryData?.features?.length || 0}`);
+    
     if (!L || !leafletMapRef.current || !mapReady || !boundaryData) return;
     
+    console.log(`Creating GeoJSON layer with ${boundaryData.features.length} features`);
+    // Log the first few features to inspect their structure
+    if (boundaryData.features.length > 0) {
+      console.log('Sample feature structure:', JSON.stringify(boundaryData.features[0], null, 2).substring(0, 500) + '...');
+    }
+
     const map = leafletMapRef.current;
+    console.log("Rendering map with selected provinces", selectedProvinces);
+    console.log(`Total features in boundaryData: ${boundaryData?.features?.length || 0}`);
     
-    // Remove existing GeoJSON layer if it exists
+    // If we already have a GeoJSON layer and are just updating features
     if (geoJsonLayerRef.current) {
-      map.removeLayer(geoJsonLayerRef.current);
-      geoJsonLayerRef.current = null;
+      // Clear the current features
+      geoJsonLayerRef.current.clearLayers();
+      
+      // Add the updated features to the existing layer
+      geoJsonLayerRef.current.addData(boundaryData);
+      
+      // Log the number of features in the layer after update
+      console.log(`Features in layer after update: ${Object.keys(geoJsonLayerRef.current._layers).length}`);
+      
+      // Fit bounds only the first time we have complete data
+      if (geoJsonLayerRef.current.getBounds().isValid() && !boundsSetRef.current) {
+        map.fitBounds(geoJsonLayerRef.current.getBounds(), {
+          padding: [20, 20],
+          animate: false // Disable animation to reduce jerkiness
+        });
+        boundsSetRef.current = true;
+      }
+      
+      // Check if features are properly formatted for GeoJSON
+      const validFeatures = boundaryData.features.filter((feature: any) => 
+        feature && feature.geometry && feature.properties
+      );
+      console.log(`Valid GeoJSON features: ${validFeatures.length} out of ${boundaryData.features.length}`);
+      
+      return;
     }
     
-    // Create and add the GeoJSON layer
+    // First time setup - create the GeoJSON layer
     const geoJsonLayer = L.geoJSON(boundaryData, {
       style: (feature: Feature<any, GEOJsonProperty>) => {
         // Find matching province data to get color and style based on visitor count
-        const provinceName = feature?.properties?.ADM1_EN || '';
-        const provinceInfo = provinceData.find(p => 
-          p.name.toLowerCase() === provinceName.toLowerCase()
-        );
+        const featureProvinceName = feature?.properties?.ADM1_EN || '';
+        const featureProvinceNormalizedName = normalizeAsKey(featureProvinceName);
         
-        if (!provinceInfo) {
-          return {
-            fillColor: '#aaaaaa',
-            weight: 1,
-            opacity: 1,
-            color: 'white',
-            fillOpacity: 0.2,
-          };
-        }
+        // Log province names for debugging
+        // console.log(`Processing province: ${featureProvinceName}, normalized: ${featureProvinceNormalizedName}, selected: ${selectedProvinces.includes(featureProvinceNormalizedName)}`);
         
-        // Calculate fill opacity based on visitor count (higher count = more opaque)
-        const minVisitors = Math.min(...provinceData.map(p => p.visitors));
-        const maxVisitors = Math.max(...provinceData.map(p => p.visitors));
-        const normalizedValue = (provinceInfo.visitors - minVisitors) / (maxVisitors - minVisitors);
-        const fillOpacity = 0.2 + (normalizedValue * 0.6); // Range from 0.2 to 0.8
+        // Set different styles for selected vs non-selected provinces
+        const isSelected = selectedProvinces.includes(featureProvinceNormalizedName);
+        const fillOpacity = isSelected ? 0.8 : 0.5;
+        
+        // Always use a color - for selected use the province color, for non-selected use a light gray
+        const featureColor = isSelected 
+          ? stringToColor(featureProvinceNormalizedName)
+          : '#aaaaaa';
         
         return {
-          fillColor: provinceInfo.color || theme.palette.primary.main,
-          weight: 2,
+          fillColor: featureColor,
+          weight: isSelected ? 2 : 1,
           opacity: 1,
           color: 'white',
           fillOpacity: fillOpacity
@@ -236,9 +387,16 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
       onEachFeature: (feature: Feature<any, GEOJsonProperty>, layer: any) => {
         const provinceLabel = languageMode === 'th' ? feature?.properties?.ADM1_TH || '' : feature?.properties?.ADM1_EN || 'Unknown';
         const provinceName = feature?.properties?.ADM1_EN || '';
+        
+        // Find province info and pre-calculate map color
         const provinceInfo = provinceData.find(p => 
           p.name.toLowerCase() === provinceName.toLowerCase()
         );
+        
+        // Get the map feature color
+        const featureProvinceNormalizedName = normalizeAsKey(provinceName);
+        const isSelected = selectedProvinces.includes(featureProvinceNormalizedName);
+        const mapColor = isSelected ? stringToColor(featureProvinceNormalizedName) : '#aaaaaa';
         
         // Add hover events for tooltip
         layer.on({
@@ -250,32 +408,44 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
             });
             l.bringToFront();
             
-            // Update tooltip state
-            setTooltipContent(provinceLabel);
-            setTooltipVisible(true);
+            // Update tooltip data in ref instead of state
+            tooltipDataRef.current.content = provinceLabel;
+            tooltipDataRef.current.visible = true;
+            tooltipDataRef.current.mapColor = mapColor;
+            
             if (provinceInfo) {
-              setTooltipProvinceInfo(provinceInfo);
+              tooltipDataRef.current.provinceInfo = provinceInfo;
             } else {
-              setTooltipProvinceInfo(undefined);
+              tooltipDataRef.current.provinceInfo = undefined;
             }
+            
+            // Update tooltip directly
+            updateTooltip();
           },
           mouseout: (e: any) => {
             const l = e.target;
             geoJsonLayer.resetStyle(l);
             
-            // Hide tooltip
-            setTooltipVisible(false);
+            // Hide tooltip using ref
+            tooltipDataRef.current.visible = false;
+            updateTooltip();
           },
           mousemove: (e: any) => {
-            // Update tooltip position based on mouse coordinates
-            setTooltipPosition({
+            // Update tooltip position in ref
+            tooltipDataRef.current.position = {
               x: e.originalEvent.pageX,
               y: e.originalEvent.pageY
-            });
+            };
+            updateTooltip();
           },
           click: (e: any) => {
-            if (onProvinceClick && provinceInfo) {
-              onProvinceClick(provinceInfo);
+            if (onProvinceClick) {
+              const provinceInfo = provinceData.find(p => 
+                p.name.toLowerCase() === provinceName.toLowerCase()
+              );
+              if (provinceInfo) {
+                onProvinceClick(provinceInfo);
+              }
             }
           }
         });
@@ -283,18 +453,56 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
     }).addTo(map);
     
     // Fit the map to the bounds of the GeoJSON data
-    if (geoJsonLayer.getBounds().isValid()) {
+    if (geoJsonLayer.getBounds().isValid() && !boundsSetRef.current) {
       map.fitBounds(geoJsonLayer.getBounds(), {
-        padding: [20, 20] // Add some padding around the bounds
+        padding: [20, 20], // Add some padding around the bounds
+        animate: false // Disable animation to reduce jerkiness
       });
+      boundsSetRef.current = true; // Mark that we've set the bounds
     }
     
     // Store reference to GeoJSON layer
     geoJsonLayerRef.current = geoJsonLayer;
 
-    setLoading(false);
+    // If all features are loaded, we can hide the loading indicator
+    if (loadingProgress >= 99) {
+      setLoading(false);
+    }
     
-  }, [boundaryData, mapReady, provinceData, onProvinceClick, formatNumber, theme, L, languageMode]);
+  }, [boundaryData, mapReady, onProvinceClick, theme, L, languageMode, selectedProvinces, provinceData, updateTooltip, loadingProgress]);
+
+  // Create tooltip element on mount
+  useEffect(() => {
+    // Create tooltip element if it doesn't exist
+    if (!tooltipRef.current) {
+      const tooltip = document.createElement('div');
+      tooltip.style.position = 'fixed';
+      tooltip.style.top = '0';
+      tooltip.style.left = '0';
+      tooltip.style.zIndex = '1000';
+      tooltip.style.pointerEvents = 'none';
+      tooltip.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+      tooltip.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+      tooltip.style.borderRadius = '4px';
+      tooltip.style.padding = '12px';
+      tooltip.style.minWidth = '180px';
+      tooltip.style.maxWidth = '250px';
+      tooltip.style.border = '2px solid'; // Make border thicker
+      tooltip.style.borderColor = theme.palette.primary.main;
+      tooltip.style.display = 'none';
+      
+      document.body.appendChild(tooltip);
+      tooltipRef.current = tooltip;
+    }
+    
+    // Clean up on unmount
+    return () => {
+      if (tooltipRef.current) {
+        document.body.removeChild(tooltipRef.current);
+        tooltipRef.current = null;
+      }
+    };
+  }, [theme.palette.primary.main]);
 
   return (
     <Box sx={{ 
@@ -342,30 +550,28 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
             right: 0,
             bottom: 0,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             bgcolor: 'rgba(255, 255, 255, 0.7)',
             zIndex: 1000,
           }}>
-            <CircularProgress />
+            <CircularProgress variant={loading && loadingProgress > 0 ? "determinate" : "indeterminate"} value={loadingProgress} />
+            {loading && loadedFeatures > 0 && (
+              <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                Loading features: {loadedFeatures} {totalFeatures > 0 ? `/ ~${totalFeatures}` : ''}
+              </Typography>
+            )}
           </Box>
         )}
         <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
       </Box>
       
-      <Box className='leaflet-footer' sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+      {/* <Box className='leaflet-footer' sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
         <Typography variant="body2" color="text.secondary">
           Province color intensity represents visitor volume. Darker regions indicate higher visitor numbers.
         </Typography>
-      </Box>
-      
-      {/* Add the tooltip */}
-      <MapTooltip
-        visible={tooltipVisible}
-        content={tooltipContent}
-        position={tooltipPosition}
-        provinceInfo={tooltipProvinceInfo}
-      />
+      </Box> */}
     </Box>
   );
 };
@@ -379,57 +585,5 @@ const ThailandMap = dynamic(() => Promise.resolve(ThailandMapClient), {
     );
   },
 });
-
-// Enhanced tooltip with more information
-const MapTooltip: React.FC<{
-  visible: boolean;
-  content: string;
-  position: { x: number; y: number };
-  provinceInfo?: ProvinceData;
-}> = ({ visible, content, position, provinceInfo }) => {
-  if (!visible) return null;
-  
-  return (
-    <Box
-      sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        transform: `translate(${position.x + 10}px, ${position.y + 10}px)`,
-        zIndex: 1000,
-        pointerEvents: 'none',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
-        borderRadius: 1,
-        padding: 1.5,
-        minWidth: 150,
-        maxWidth: 250,
-        border: '1px solid',
-        borderColor: provinceInfo?.color || 'primary.main',
-      }}
-    >
-      <Typography variant="subtitle2" fontWeight="bold" color={provinceInfo?.color || 'primary.main'}>
-        {content}
-      </Typography>
-      
-      {provinceInfo && (
-        <>
-          <Typography variant="body2" sx={{ mt: 0.5, color: theme.palette.primary.light }}>
-            Visitors: {provinceInfo.visitors.toLocaleString()}
-          </Typography>
-          
-          {provinceInfo.trend !== undefined && (
-            <Typography 
-              variant="body2" 
-              color={provinceInfo.trend > 0 ? 'success.main' : 'error.main'}
-            >
-              Trend: {provinceInfo.trend > 0 ? '+' : ''}{provinceInfo.trend}%
-            </Typography>
-          )}
-        </>
-      )}
-    </Box>
-  );
-};
 
 export default ThailandMap;
