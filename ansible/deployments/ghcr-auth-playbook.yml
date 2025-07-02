@@ -1,0 +1,88 @@
+---
+- name: Configure GitHub Container Registry (ghcr.io) Authentication
+  hosts: azure_vm
+  become: yes
+  vars:
+      # These should be provided via ansible-vault or environment variables
+      github_username: "{{ github_username | default('') }}"
+      github_token: "{{ github_token | default('') }}"
+      docker_config_dir: "/home/{{ ansible_user }}/.docker"
+
+  tasks:
+      - name: Fail if GitHub credentials are not provided
+        fail:
+            msg: "GitHub username and token must be provided. Use -e github_username=your_username -e github_token=your_pat"
+        when: github_username == '' or github_token == ''
+
+      - name: Create Docker config directory for user
+        file:
+            path: "{{ docker_config_dir }}"
+            state: directory
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0700"
+
+      - name: Login to GitHub Container Registry
+        shell: |
+            echo "{{ github_token }}" | docker login ghcr.io -u "{{ github_username }}" --password-stdin
+        become_user: "{{ ansible_user }}"
+        register: ghcr_login_result
+        no_log: true # Don't log the token
+
+      - name: Display login result
+        debug:
+            msg: "GitHub Container Registry login {{ 'successful' if ghcr_login_result.rc == 0 else 'failed' }}"
+
+      - name: Test pulling a public image from ghcr.io
+        shell: docker pull ghcr.io/github/super-linter:latest
+        become_user: "{{ ansible_user }}"
+        register: test_pull
+        ignore_errors: yes
+
+      - name: Display test pull result
+        debug:
+            var: test_pull.stdout_lines
+        when: test_pull.rc == 0
+
+      - name: Clean up test image
+        shell: docker rmi ghcr.io/github/super-linter:latest
+        become_user: "{{ ansible_user }}"
+        ignore_errors: yes
+        when: test_pull.rc == 0
+
+      - name: Create systemd service for Docker credential helper (optional)
+        template:
+            content: |
+                [Unit]
+                Description=Ensure Docker is logged into GitHub Container Registry
+                After=docker.service
+                Requires=docker.service
+
+                [Service]
+                Type=oneshot
+                User={{ ansible_user }}
+                ExecStart=/bin/bash -c 'echo "{{ github_token }}" | docker login ghcr.io -u "{{ github_username }}" --password-stdin'
+                RemainAfterExit=yes
+
+                [Install]
+                WantedBy=multi-user.target
+            dest: /etc/systemd/system/ghcr-docker-login.service
+            owner: root
+            group: root
+            mode: "0644"
+        when: false # Disabled by default - enable if you want automatic re-login on boot
+
+      - name: Display instructions for manual usage
+        debug:
+            msg: |
+                GitHub Container Registry authentication configured successfully!
+
+                To pull images from your private repositories:
+                docker pull ghcr.io/your-username/your-repo:tag
+
+                To push images (if you have write access):
+                docker tag your-image ghcr.io/your-username/your-repo:tag
+                docker push ghcr.io/your-username/your-repo:tag
+
+                Note: The authentication is stored in ~/.docker/config.json
+                and will persist until you run 'docker logout ghcr.io'
