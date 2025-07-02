@@ -1,0 +1,126 @@
+---
+- name: Deploy Traefik with Docker Compose
+  hosts: azure_vm
+  become: yes
+  vars:
+      traefik_dir: /home/{{ ansible_user }}/traefik
+      traefik_version: "v3.0"
+  tasks:
+      - name: Install Python pip
+        apt:
+            name: python3-pip
+            state: present
+
+      - name: Install Docker Python library
+        apt:
+            name: python3-docker
+            state: present
+
+      - name: Create Traefik directory
+        file:
+            path: "{{ traefik_dir }}"
+            state: directory
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0755"
+
+      - name: Create Traefik configuration file
+        copy:
+            content: |
+                # Traefik Configuration
+                api:
+                  dashboard: true
+                  insecure: true
+
+                entryPoints:
+                  web:
+                    address: ":80"
+                  websecure:
+                    address: ":443"
+
+                providers:
+                  docker:
+                    exposedByDefault: false
+                    network: traefik
+
+                certificatesResolvers:
+                  letsencrypt:
+                    acme:
+                      email: admin@example.com
+                      storage: /acme.json
+                      httpChallenge:
+                        entryPoint: web
+
+                log:
+                  level: INFO
+
+                accessLog: {}
+            dest: "{{ traefik_dir }}/traefik.yml"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+
+      - name: Create Docker Compose file for Traefik
+        copy:
+            content: |
+                version: '3.8'
+
+                networks:
+                  traefik:
+                    external: true
+
+                services:
+                  traefik:
+                    image: traefik:{{ traefik_version }}
+                    container_name: traefik
+                    restart: unless-stopped
+                    ports:
+                      - "80:80"
+                      - "443:443"
+                      - "8080:8080"
+                    volumes:
+                      - /var/run/docker.sock:/var/run/docker.sock:ro
+                      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+                      - ./acme.json:/acme.json
+                    networks:
+                      - traefik
+                    labels:
+                      - "traefik.enable=true"
+                      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+                      - "traefik.http.routers.dashboard.service=api@internal"
+            dest: "{{ traefik_dir }}/docker-compose.yml"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+
+      - name: Create acme.json file for Let's Encrypt certificates
+        file:
+            path: "{{ traefik_dir }}/acme.json"
+            state: touch
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0600"
+
+      - name: Create Traefik network
+        shell: sudo docker network create traefik || true
+
+      - name: Start Traefik with Docker Compose
+        shell: cd {{ traefik_dir }} && sudo docker compose up -d
+
+      - name: Wait for Traefik to be ready
+        uri:
+            url: "http://{{ ansible_host }}:8080/api/rawdata"
+            method: GET
+            status_code: 200
+        register: traefik_health
+        until: traefik_health.status == 200
+        retries: 30
+        delay: 2
+
+      - name: Display Traefik dashboard URL
+        debug:
+            msg: "Traefik dashboard is available at: http://{{ ansible_host }}:8080/dashboard/"
+
+      - name: Display Traefik API URL
+        debug:
+            msg: "Traefik API is available at: http://{{ ansible_host }}:8080/api/rawdata"
