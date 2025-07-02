@@ -1,5 +1,3 @@
-import { TypographyOptions } from '@mui/material/styles/createTypography';
-
 // Define font families
 const fontFamily = [
   'Inter',
@@ -15,7 +13,7 @@ const fontFamily = [
   '"Segoe UI Symbol"',
 ].join(',');
 
-const typography: TypographyOptions = {
+const typography = {
   fontFamily,
   // Headings
   h1: {
@@ -99,7 +97,7 @@ const typography: TypographyOptions = {
     fontSize: '0.875rem',
     lineHeight: 1.75,
     letterSpacing: '0.02857em',
-    textTransform: 'none', // Override default uppercase
+    textTransform: 'none' as const, // Override default uppercase
   },
   caption: {
     fontWeight: 400,
@@ -112,7 +110,7 @@ const typography: TypographyOptions = {
     fontSize: '0.75rem',
     lineHeight: 1.5,
     letterSpacing: '0.08333em',
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
   },
 };
 
