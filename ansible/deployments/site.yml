@@ -1,3 +1,6 @@
 ---
 - import_playbook: docker-playbook.yml
 - import_playbook: traefik-playbook.yml
+# Uncomment the next line to include GHCR auth and app deployment
+# - import_playbook: ghcr-auth-playbook.yml
+# - import_playbook: app-deployment-playbook.yml
