@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Typography from '@mui/material/Typography';
-import { auth } from '../../auth';
+import { auth } from '@/auth';
 import { Box } from '@mui/material';
 import PageContent from './page-content';
 

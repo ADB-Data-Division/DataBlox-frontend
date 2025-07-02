@@ -9,7 +9,7 @@ import {
   Divider,
   useTheme
 } from '@mui/material';
-import Scorecard from '../../components/score-card/score-card';
+import Scorecard from '../../../components/score-card/score-card';
 import { 
   ChartBar,
   ArrowsLeftRight,
