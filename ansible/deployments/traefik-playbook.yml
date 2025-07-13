@@ -46,7 +46,7 @@
                 certificatesResolvers:
                   letsencrypt:
                     acme:
-                      email: admin@example.com
+                      email: mcordel@adb.org
                       storage: /acme.json
                       httpChallenge:
                         entryPoint: web

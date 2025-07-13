@@ -6,7 +6,7 @@
       app_image: "ghcr.io/darrensapalo/capacity-building-visualization:latest"
       app_name: "capacity-building-viz"
       app_port: "3000"
-      domain: "4.193.207.59" # Change this to your actual domain when ready
+      domain: "adb.sapalo.dev" # Your actual domain
 
   tasks:
       - name: Pull latest application image
@@ -49,6 +49,13 @@
               -l "traefik.enable=true" \
               -l "traefik.http.routers.{{ app_name }}.rule=Host(\`{{ domain }}\`)" \
               -l "traefik.http.routers.{{ app_name }}.entrypoints=web" \
+              -l "traefik.http.routers.{{ app_name }}-secure.rule=Host(\`{{ domain }}\`)" \
+              -l "traefik.http.routers.{{ app_name }}-secure.entrypoints=websecure" \
+              -l "traefik.http.routers.{{ app_name }}-secure.tls=true" \
+              -l "traefik.http.routers.{{ app_name }}-secure.tls.certresolver=letsencrypt" \
+              -l "traefik.http.middlewares.{{ app_name }}-redirect.redirectscheme.scheme=https" \
+              -l "traefik.http.middlewares.{{ app_name }}-redirect.redirectscheme.permanent=true" \
+              -l "traefik.http.routers.{{ app_name }}.middlewares={{ app_name }}-redirect" \
               -l "traefik.http.services.{{ app_name }}.loadbalancer.server.port=3000" \
               {{ app_image }}
         become_user: "{{ ansible_user }}"
@@ -91,7 +98,9 @@
                 Local access: http://localhost:{{ app_port }}
                 External access: http://{{ domain }}:{{ app_port }}
 
-                Via Traefik (if configured): http://{{ domain }}
+                Via Traefik with SSL: https://{{ domain }}
+                Via Traefik HTTP (redirects to HTTPS): http://{{ domain }}
 
                 To check logs: docker logs {{ app_name }}
                 To check status: docker ps --filter "name={{ app_name }}"
+                To check Traefik logs: docker logs traefik
