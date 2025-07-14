@@ -6,7 +6,19 @@
       app_image: "ghcr.io/darrensapalo/capacity-building-visualization:latest"
       app_name: "capacity-building-viz"
       app_port: "3000"
-      domain: "adb.sapalo.dev" # Your actual domain
+      # domain is now set in inventory.ini
+
+      # Computed environment variables dictionary (uses values from inventory.ini with defaults)
+      app_env_vars:
+          NEXT_PUBLIC_URL: "{{ app_url | default('https://' + domain) }}"
+          NEXT_PUBLIC_BACKEND_URL: "{{ backend_url | default('https://' + domain + '/api/v1') }}"
+          NEXT_PUBLIC_GRAPHQL_URL: "{{ graphql_url | default('https://hasura.' + domain + '/v1/graphql') }}"
+          NEXT_PUBLIC_AUTH0_DOMAIN: "{{ auth0_domain | default('auth.' + domain) }}"
+          NEXT_PUBLIC_AUTH0_CLIENT_ID: "{{ auth0_client_id | default('your-auth0-client-id') }}"
+          NEXT_PUBLIC_AUTH0_REDIRECT_URI: "{{ auth0_redirect_uri | default('https://' + domain + '/api/auth/callback') }}"
+          NEXT_PUBLIC_AUTH0_AUDIENCE: "{{ auth0_audience | default('https://hasura.' + domain + '/v1/graphql') }}"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "{{ ga_measurement_id | default('G-XXXXXXXXXX') }}"
+          NEXT_PUBLIC_AMPLITUDE_API_KEY: "{{ amplitude_api_key | default('your-amplitude-key') }}"
 
   tasks:
       - name: Pull latest application image
@@ -39,6 +51,10 @@
         when: traefik_network_check.rc != 0
         become_user: "{{ ansible_user }}"
 
+      - name: Display environment variables that will be used
+        debug:
+            msg: "Environment variables: {{ app_env_vars }}"
+
       - name: Run new container with Traefik labels
         shell: |
             docker run -d \
@@ -46,6 +62,9 @@
               --network traefik \
               --restart unless-stopped \
               -p {{ app_port }}:3000 \
+              {% for key, value in app_env_vars.items() %}
+              -e "{{ key }}={{ value }}" \
+              {% endfor %}
               -l "traefik.enable=true" \
               -l "traefik.http.routers.{{ app_name }}.rule=Host(\`{{ domain }}\`)" \
               -l "traefik.http.routers.{{ app_name }}.entrypoints=web" \
@@ -89,6 +108,16 @@
       - name: Display health check result
         debug:
             msg: "Application is {{ 'accessible' if health_check.status == 200 else 'not accessible' }} on localhost:{{ app_port }}"
+
+      - name: Verify environment variables are set in container
+        shell: docker exec {{ app_name }} printenv | grep NEXT_PUBLIC_
+        become_user: "{{ ansible_user }}"
+        register: container_env_vars
+        ignore_errors: yes
+
+      - name: Display container environment variables
+        debug:
+            var: container_env_vars.stdout_lines
 
       - name: Display access instructions
         debug:

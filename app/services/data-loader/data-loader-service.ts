@@ -107,7 +107,8 @@ export class DataLoaderService implements DataLoaderInterface {
         
         try {
             // Determine if we have a FGB configuration for this level
-            const usesFlatGeobuf = level === GeoJSONLevel.PROVINCE && !!config.geojsondata.province;
+            // const usesFlatGeobuf = level === GeoJSONLevel.PROVINCE && !!(config as any).geojsondata.province;
+            throw new Error('Not implemented');
             
             // Return a stream result with async generator
             return {
@@ -187,8 +188,9 @@ export class DataLoaderService implements DataLoaderInterface {
         try {
             if (usesFlatGeobuf) {
                 // Use FlatGeobuf approach
-                const fgbUrl = config.geojsondata.province.uri;
-                console.log(`Loading FlatGeobuf from: ${fgbUrl}`);
+                // const fgbUrl = (config `as any`).geojsondata.province.uri;
+                throw new Error('Not implemented');
+                // console.log(`Loading FlatGeobuf from: ${fgbUrl}`);
                 
                 try {
                     // First try with streaming approach, which is more efficient

@@ -4,15 +4,13 @@
   become: yes
   vars:
       # These should be provided via ansible-vault or environment variables
-      github_username: "{{ github_username | default('') }}"
-      github_token: "{{ github_token | default('') }}"
       docker_config_dir: "/home/{{ ansible_user }}/.docker"
 
   tasks:
       - name: Fail if GitHub credentials are not provided
         fail:
             msg: "GitHub username and token must be provided. Use -e github_username=your_username -e github_token=your_pat"
-        when: github_username == '' or github_token == ''
+        when: github_username is not defined or github_token is not defined or github_username == '' or github_token == ''
 
       - name: Create Docker config directory for user
         file:
