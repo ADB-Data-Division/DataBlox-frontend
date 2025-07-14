@@ -1,9 +1,9 @@
 # Stage 1: Dependencies and Build
-FROM node:22.12-slim AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Install yarn using the official Yarn APT repository
+# Install yarn and necessary tools for ARM64 optimization
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
@@ -17,9 +17,13 @@ RUN apt-get update && apt-get install -y \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy and install dependencies, caching this layer
+# Copy package files first for better caching
 COPY package.json package-lock.json ./
-RUN npm install --frozen-lockfile --production=false
+
+# Install dependencies with optimizations for ARM64
+RUN npm ci --only=production --frozen-lockfile && \
+    npm ci --only=development --frozen-lockfile && \
+    npm cache clean --force
 
 # Copy application files
 COPY . .
@@ -35,57 +39,49 @@ ENV NEXT_PUBLIC_AUTH0_REDIRECT_URI="https://placeholder-app.sapalo.dev/api/auth/
 ENV NEXT_PUBLIC_AUTH0_AUDIENCE="https://placeholder-audience.sapalo.dev/v1/graphql"
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID="G-PLACEHOLDER1234"
 
-# Build with these placeholder values
-RUN npm run build
+# Build with these placeholder values and run replacement in one layer
+RUN npm run build && \
+    node replace-placeholders.mjs
 
-# Run the replacement script to insert placeholders in the build files
-RUN node replace-placeholders.mjs
-
-# Stage 2: Production
-# Production image, copy all the files and run next
+# Stage 2: Production - Optimized for ARM64
 FROM node:20-slim AS runner
+
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install required tools for the entrypoint script
+# Install required tools for the entrypoint script in one layer
 RUN apt-get update && apt-get install -y \
     findutils \
     grep \
     sed \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
+# Copy files from builder stage
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir .next && chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy the entrypoint script
+# Copy the entrypoint script and create health check in one layer
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
-# Create a simple health check script
-RUN echo '#!/bin/sh\necho "OK"' > /app/health.sh && chmod +x /app/health.sh
+RUN chmod +x /docker-entrypoint.sh && \
+    echo '#!/bin/sh\necho "OK"' > /app/health.sh && \
+    chmod +x /app/health.sh
 
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD [ "/app/health.sh" ]
