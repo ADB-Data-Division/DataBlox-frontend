@@ -1,8 +1,8 @@
 import { AppConfig } from "./types/config";
 
 export const config: AppConfig = {
-	url: process.env.NEXT_PUBLIC_URL ?? "",
-	backend_url: process.env.NEXT_PUBLIC_BACKEND_URL ?? "",
+	url: "PLACEHOLDER_URL",
+	backend_url: "PLACEHOLDER_BACKEND_URL",
 	graphqlUrl: "PLACEHOLDER_GRAPHQL_URL",
 	auth0: {
 		domain: "PLACEHOLDER_AUTH0_DOMAIN",
