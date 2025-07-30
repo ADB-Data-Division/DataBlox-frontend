@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, KeyboardEvent, useEffect, useReducer, useCallback } from 'react';
+import React, { useRef, KeyboardEvent, useEffect, useReducer, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Typography, 
@@ -45,6 +45,7 @@ import {
   getLocationsByUniqueIds 
 } from './helper';
 import { mapViewReducer, initialState } from './reducer';
+import Image from 'next/image';
 
 export default function PageContent() {
   const theme = useTheme();
@@ -191,8 +192,25 @@ export default function PageContent() {
     dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false });
   };
 
-  // Get all locations
-  const allLocations = getAllLocations();
+  // State for all locations (loaded asynchronously)
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
+
+  // Load all locations on component mount
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const locations = await getAllLocations();
+        setAllLocations(locations);
+      } catch (error) {
+        console.error('Failed to load locations:', error);
+        // Fallback to mock data if API fails
+        const { getAllLocationsMock } = await import('./helper');
+        setAllLocations(getAllLocationsMock());
+      }
+    };
+
+    loadLocations();
+  }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_SEARCH_QUERY', payload: event.target.value });
@@ -310,9 +328,7 @@ export default function PageContent() {
   return (
     <Box sx={{ width: '100%' }}>
       {/* Header */}
-      <Typography variant="h1" fontWeight="bold" sx={{ mb: 1, fontSize: '24px' }}>
-        GPS Estimates Dashboard
-      </Typography>
+      <Image src="/images/logo-1-smaller.png" alt="Header" width={250} height={60} />
 
       {/* Main Content Paper */}
       <Paper 

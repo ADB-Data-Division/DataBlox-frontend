@@ -30,8 +30,9 @@ export const providerMap = providers.map((provider) => {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   
+  // Trust the host - this is needed for NextAuth to work in production
+  trustHost: true,
   
-      
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/auth/signin',

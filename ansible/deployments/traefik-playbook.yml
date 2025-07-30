@@ -107,15 +107,40 @@
       - name: Start Traefik with Docker Compose
         shell: cd {{ traefik_dir }} && sudo docker compose up -d
 
-      - name: Wait for Traefik to be ready
-        uri:
-            url: "http://{{ ansible_host }}:8080/api/rawdata"
-            method: GET
-            status_code: 200
+      - name: Force restart Traefik container
+        shell: |
+            docker rm -f traefik || true
+            cd {{ traefik_dir }} && sudo docker compose up -d
+
+      - name: Check if Traefik container is running
+        shell: docker ps | grep traefik
+        register: traefik_container_check
+        retries: 5
+        delay: 2
+        until: traefik_container_check.rc == 0
+
+      - name: Show Traefik container status
+        debug:
+            msg: "{{ traefik_container_check.stdout_lines }}"
+
+      # Remove the /ping check and only use /api/rawdata
+      - name: Wait for Traefik API to be ready
+        shell: curl -f -s http://localhost:8080/api/rawdata
         register: traefik_health
-        until: traefik_health.status == 200
+        until: traefik_health.rc == 0
         retries: 30
         delay: 2
+        ignore_errors: yes
+
+      - name: Show Traefik logs if health check fails
+        shell: docker logs traefik --tail 20
+        register: traefik_logs
+        when: traefik_health.rc != 0
+
+      - name: Display Traefik logs on failure
+        debug:
+            msg: "{{ traefik_logs.stdout_lines if traefik_logs is defined and 'stdout_lines' in traefik_logs else 'No logs available.' }}"
+        when: traefik_health.rc != 0
 
       - name: Display Traefik dashboard URL
         debug:

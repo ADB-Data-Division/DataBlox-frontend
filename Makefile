@@ -2,7 +2,8 @@
 IMAGE_NAME = capacity-building-visualization
 TAG = latest
 REGISTRY = ghcr.io
-FULL_IMAGE_NAME = $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+GITHUB_USERNAME = darrensapalo
+FULL_IMAGE_NAME = $(REGISTRY)/$(GITHUB_USERNAME)/$(IMAGE_NAME):$(TAG)
 
 # Build the Docker image
 build:
@@ -24,6 +25,6 @@ clean:
 all: build tag push
 
 deploy:
-	@cd ../ansible && ./deploy.sh
+	@cd ./ansible/deployments && ./deploy.sh
 
 .PHONY: build tag push clean all

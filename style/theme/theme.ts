@@ -33,6 +33,10 @@ const palette = {
     disabled: '#9EAAB7',
   },
   divider: '#E1E8ED',
+  common: {
+    black: '#000000',
+    white: '#FFFFFF',
+  },
   // Professional color system for data visualization
   success: {
     main: '#22C55E', // Professional green
@@ -132,6 +136,7 @@ const components = {
   MuiCssBaseline: {
     styleOverrides: {
       body: {
+        backgroundColor: '#FAFBFD', // Force light background
         scrollbarWidth: 'thin',
         scrollbarColor: '#E5E7EB #F9FAFB',
         '&::-webkit-scrollbar': {
@@ -147,6 +152,22 @@ const components = {
             backgroundColor: '#D1D5DB',
           },
         },
+      },
+      // Override Toolpad's dark mode CSS variables
+      ':root': {
+        '--mui-palette-common-background': '#FAFBFD !important',
+        '--mui-palette-background-default': '#FAFBFD !important',
+        '--mui-palette-background-paper': '#FFFFFF !important',
+        '--mui-palette-text-primary': '#1A1A1A !important',
+        '--mui-palette-text-secondary': '#5A6C7D !important',
+      },
+      // Force light mode for Toolpad components
+      '[data-toolpad-color-scheme="dark"]': {
+        '--mui-palette-common-background': '#FAFBFD !important',
+        '--mui-palette-background-default': '#FAFBFD !important',
+        '--mui-palette-background-paper': '#FFFFFF !important',
+        '--mui-palette-text-primary': '#1A1A1A !important',
+        '--mui-palette-text-secondary': '#5A6C7D !important',
       },
     },
   },
@@ -226,54 +247,16 @@ const components = {
 
 // Create the theme configuration with enhanced design system
 const themeOptions: ThemeOptions = {
-  palette,
+  palette: {
+    ...palette,
+    mode: 'light', // Force light mode
+  },
   typography: updatedTypography,
   components,
   shape: {
     borderRadius: 12, // More modern, rounded corners
   },
   spacing: 8, // Consistent spacing unit
-  // Enhanced color scheme support
-  // @ts-ignore
-  cssVariables: {
-    colorSchemeSelector: 'data-toolpad-color-scheme',
-  },
-  colorSchemes: { 
-    light: {
-      palette: {
-        ...palette,
-        mode: 'light',
-      }
-    },
-    dark: {
-      palette: {
-        mode: 'dark',
-        primary: {
-          main: '#60A5FA',
-          light: '#93C5FD',
-          dark: '#3B82F6',
-          contrastText: '#fff',
-        },
-        secondary: {
-          main: '#F97316',
-          light: '#FB923C',
-          dark: '#EA580C',
-          contrastText: '#fff',
-        },
-        background: {
-          default: '#0F172A',
-          paper: '#1E293B',
-          elevated: '#334155',
-        },
-        text: {
-          primary: '#F8FAFC',
-          secondary: '#CBD5E1',
-          disabled: '#64748B',
-        },
-        divider: '#475569',
-      }
-    }
-  },
 };
 
 // Create the theme

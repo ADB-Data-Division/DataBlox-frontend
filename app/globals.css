@@ -1,0 +1,50 @@
+/* Global CSS to force light mode and override Toolpad dark mode */
+
+/* Force light mode CSS variables */
+:root {
+  --mui-palette-common-background: #FAFBFD !important;
+  --mui-palette-background-default: #FAFBFD !important;
+  --mui-palette-background-paper: #FFFFFF !important;
+  --mui-palette-text-primary: #1A1A1A !important;
+  --mui-palette-text-secondary: #5A6C7D !important;
+  --mui-palette-divider: #E1E8ED !important;
+}
+
+/* Override Toolpad dark mode */
+[data-toolpad-color-scheme="dark"] {
+  --mui-palette-common-background: #FAFBFD !important;
+  --mui-palette-background-default: #FAFBFD !important;
+  --mui-palette-background-paper: #FFFFFF !important;
+  --mui-palette-text-primary: #1A1A1A !important;
+  --mui-palette-text-secondary: #5A6C7D !important;
+  --mui-palette-divider: #E1E8ED !important;
+}
+
+/* Force body and html to light mode */
+html, body {
+  background-color: #FAFBFD !important;
+  color: #1A1A1A !important;
+}
+
+/* Override any dark mode classes that Toolpad might apply */
+.dark, [data-theme="dark"], .dark-mode {
+  background-color: #FAFBFD !important;
+  color: #1A1A1A !important;
+}
+
+/* Ensure all Material-UI components use light theme */
+.MuiPaper-root {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.MuiCard-root {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+/* Override any Toolpad-specific dark mode styles */
+[data-toolpad-color-scheme="dark"] * {
+  background-color: inherit !important;
+  color: inherit !important;
+} 

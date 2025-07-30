@@ -8,7 +8,7 @@ export interface UserPreferencesState {
 }
 
 const initialState: UserPreferencesState = {
-  themeMode: 'light', // Default to light mode
+  themeMode: 'light', // Force light mode only
 };
 
 export const userPreferencesSlice = createSlice({

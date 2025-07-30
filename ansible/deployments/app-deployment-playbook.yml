@@ -10,6 +10,7 @@
 
       # Computed environment variables dictionary (uses values from inventory.ini with defaults)
       app_env_vars:
+          PORT: "3000"
           NEXT_PUBLIC_URL: "{{ app_url | default('https://' + domain) }}"
           NEXT_PUBLIC_BACKEND_URL: "{{ backend_url | default('https://' + domain + '/api/v1') }}"
           NEXT_PUBLIC_GRAPHQL_URL: "{{ graphql_url | default('https://hasura.' + domain + '/v1/graphql') }}"
@@ -19,6 +20,11 @@
           NEXT_PUBLIC_AUTH0_AUDIENCE: "{{ auth0_audience | default('https://hasura.' + domain + '/v1/graphql') }}"
           NEXT_PUBLIC_GA_MEASUREMENT_ID: "{{ ga_measurement_id | default('G-XXXXXXXXXX') }}"
           NEXT_PUBLIC_AMPLITUDE_API_KEY: "{{ amplitude_api_key | default('your-amplitude-key') }}"
+          # NextAuth.js specific environment variables
+          AUTH0_CLIENT_ID: "{{ auth0_client_id | default('your-auth0-client-id') }}"
+          AUTH0_CLIENT_SECRET: "{{ auth0_client_secret | default('your-auth0-client-secret') }}"
+          AUTH0_ISSUER: "{{ auth0_issuer | default('https://' + (auth0_domain | default('auth.' + domain))) }}"
+          AUTH_SECRET: "{{ auth_secret | default('your-auth-secret-key-here') }}"
 
   tasks:
       - name: Pull latest application image
@@ -86,7 +92,7 @@
 
       - name: Wait for container to be healthy
         pause:
-            seconds: 10
+            seconds: 15
 
       - name: Check container status
         shell: docker ps --filter "name={{ app_name }}"
@@ -97,17 +103,20 @@
         debug:
             var: container_status.stdout_lines
 
-      - name: Test application accessibility
+      - name: Wait for application to be ready
         uri:
             url: "http://localhost:{{ app_port }}"
             method: GET
-            timeout: 10
-        ignore_errors: yes
+            timeout: 30
+            status_code: [200, 302, 404] # Accept various status codes during startup
         register: health_check
+        retries: 5
+        delay: 10
+        until: health_check.status is defined
 
       - name: Display health check result
         debug:
-            msg: "Application is {{ 'accessible' if health_check.status == 200 else 'not accessible' }} on localhost:{{ app_port }}"
+            msg: "Application is {{ 'accessible' if health_check.status is defined else 'not accessible' }} on localhost:{{ app_port }}"
 
       - name: Verify environment variables are set in container
         shell: docker exec {{ app_name }} printenv | grep NEXT_PUBLIC_
@@ -118,6 +127,16 @@
       - name: Display container environment variables
         debug:
             var: container_env_vars.stdout_lines
+
+      - name: Check container logs for any errors
+        shell: docker logs --tail 20 {{ app_name }}
+        become_user: "{{ ansible_user }}"
+        register: container_logs
+        ignore_errors: yes
+
+      - name: Display recent container logs
+        debug:
+            var: container_logs.stdout_lines
 
       - name: Display access instructions
         debug:

@@ -6,6 +6,8 @@ import { auth } from '../auth';
 import AppThemeProvider from '../style/theme/theme-provider';
 import { ChartBarIcon, ChartScatterIcon, MapPinAreaIcon } from '@phosphor-icons/react/dist/ssr';
 import { ReduxProvider } from './store/provider';
+import ForceLightMode from '../components/force-light-mode';
+import './globals.css';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { RootState } from './store';
@@ -58,7 +60,7 @@ const NAVIGATION: Navigation = [
 ];
 
 const BRANDING = {
-  title: 'GPS Estimates Dashboard',
+  title: 'Datablox',
   logo: <MapPinAreaIcon size={32} style={{ margin: '3px', borderRadius: '5px' }} />
 };
 
@@ -71,21 +73,28 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const session = await auth();
 
   return (
-    <html lang="en" data-toolpad-color-scheme="light" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <ReduxProvider>
               <AppThemeProvider>
-                <NextAppProvider
-                  navigation={NAVIGATION}
-                  branding={BRANDING}
-                  session={session}
-                  authentication={AUTHENTICATION}
-                  
-                >
-                  {props.children}
-                </NextAppProvider>
+                <ForceLightMode />
+                <div style={{ 
+                  backgroundColor: '#FAFBFD', 
+                  color: '#1A1A1A',
+                  minHeight: '100vh'
+                }}>
+                  <NextAppProvider
+                    navigation={NAVIGATION}
+                    branding={BRANDING}
+                    session={session}
+                    authentication={AUTHENTICATION}
+                    
+                  >
+                    {props.children}
+                  </NextAppProvider>
+                </div>
               </AppThemeProvider>
             </ReduxProvider>
           </AppRouterCacheProvider>

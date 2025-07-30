@@ -197,7 +197,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   };
 
   // APA 7th Edition Citation
-  const citationText = "Cordel, M., Smith, J., & Brown, A. (2025). GPS estimates dashboard: Thailand migration flow visualization. Asian Development Bank. Retrieved from " + (typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com');
+  const citationText = "Cordel, M., Smith, J., & Brown, A. (2025). Datablox: Thailand migration flow visualization. Asian Development Bank. Retrieved from " + (typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com');
 
   // Copy citation to clipboard
   const handleCopyCitation = async () => {

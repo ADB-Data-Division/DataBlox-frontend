@@ -6,7 +6,11 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"test": "jest"
+		"test": "jest",
+		"build-image": "docker build -t ghcr.io/darrensapalo/capacity-building-visualization:latest .",
+		"push-image": "docker push ghcr.io/darrensapalo/capacity-building-visualization:latest",
+		"docker-login": "./docker-login.sh",
+		"build-and-push-image": "npm run build-image && npm run push-image"
 	},
 	"dependencies": {
 		"@emotion/react": "^11",
