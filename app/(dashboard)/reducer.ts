@@ -1,6 +1,15 @@
 import { Location } from './helper';
 
 /**
+ * Pagination state for search results
+ */
+export interface SearchPagination {
+  currentPage: number;
+  pageSize: number;
+  totalResults: number;
+}
+
+/**
  * State interface for the map view component
  */
 export interface MapViewState {
@@ -12,6 +21,7 @@ export interface MapViewState {
   queryExecutionState: 'idle' | 'loading' | 'success' | 'error';
   showSearchResults: boolean;
   selectedPeriod: string; // Migration analysis period (e.g., "2020-q1", "2020-q2", etc.)
+  searchPagination: SearchPagination;
 }
 
 /**
@@ -33,7 +43,11 @@ export type MapViewAction =
   | { type: 'SET_QUERY_ERROR' }
   | { type: 'RESET_QUERY_STATE' }
   | { type: 'CLEAR_ALL_LOCATIONS' }
-  | { type: 'SET_SELECTED_PERIOD'; payload: string };
+  | { type: 'SET_SELECTED_PERIOD'; payload: string }
+  | { type: 'SET_SEARCH_PAGE'; payload: number }
+  | { type: 'UPDATE_TOTAL_RESULTS'; payload: number }
+  | { type: 'RESET_PAGINATION' }
+  | { type: 'SET_PAGE_SIZE'; payload: number };
 
 /**
  * Initial state for the reducer
@@ -47,6 +61,11 @@ export const initialState: MapViewState = {
   queryExecutionState: 'idle',
   showSearchResults: true,
   selectedPeriod: '2020-all', // Default to "All" period
+  searchPagination: {
+    currentPage: 1,
+    pageSize: 5, // Reduced for better visibility of pagination
+    totalResults: 0
+  }
 };
 
 /**
@@ -62,6 +81,11 @@ export function mapViewReducer(state: MapViewState, action: MapViewAction): MapV
         // Show search results when user starts typing (reset from success state)
         showSearchResults: true,
         queryExecutionState: state.queryExecutionState === 'success' ? 'idle' : state.queryExecutionState,
+        // Reset pagination when search query changes
+        searchPagination: {
+          ...state.searchPagination,
+          currentPage: 1
+        }
       };
 
     case 'ADD_LOCATION':
@@ -177,6 +201,44 @@ export function mapViewReducer(state: MapViewState, action: MapViewAction): MapV
       return {
         ...state,
         selectedPeriod: action.payload,
+      };
+
+    case 'SET_SEARCH_PAGE':
+      return {
+        ...state,
+        searchPagination: {
+          ...state.searchPagination,
+          currentPage: action.payload
+        }
+      };
+
+    case 'UPDATE_TOTAL_RESULTS':
+      return {
+        ...state,
+        searchPagination: {
+          ...state.searchPagination,
+          totalResults: action.payload
+        }
+      };
+
+    case 'RESET_PAGINATION':
+      return {
+        ...state,
+        searchPagination: {
+          ...state.searchPagination,
+          currentPage: 1,
+          totalResults: 0
+        }
+      };
+
+    case 'SET_PAGE_SIZE':
+      return {
+        ...state,
+        searchPagination: {
+          ...state.searchPagination,
+          pageSize: action.payload,
+          currentPage: 1 // Reset to first page when changing page size
+        }
       };
 
     default:

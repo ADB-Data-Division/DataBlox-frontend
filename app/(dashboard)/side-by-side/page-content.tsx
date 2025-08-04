@@ -48,7 +48,7 @@ export default function SideBySidePageContent() {
       
       if (data && data.length > 0) {
         const monthSelector = null;
-        const processed = processMigrationData(data, monthSelector, appliedFilters);
+        const processed = await processMigrationData(data, monthSelector, appliedFilters);
         setMigrationData(processed);
         setIsEmpty(false);
         onDataLoaded(data);

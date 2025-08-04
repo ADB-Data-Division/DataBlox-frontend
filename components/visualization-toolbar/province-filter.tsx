@@ -1,11 +1,13 @@
 'use client';
 
-import { FormControl, InputLabel, Select, OutlinedInput, Box, Chip, MenuItem, SelectChangeEvent } from "@mui/material";
-import PROVINCES from "@/public/provinces.json";
+import { FormControl, InputLabel, Select, OutlinedInput, Box, Chip, MenuItem, SelectChangeEvent, CircularProgress } from "@mui/material";
 import { Province } from "@/models/province-district-subdistrict";
 import { useAppDispatch } from "@/app/store/hooks";
 import { addFilter } from "@/app/store/features/datasetSlice";
 import { ProvinceFilter } from "@/app/services/data-loader/data-loader-interface";
+import { metadataService } from "@/app/services/api";
+import { Province as APIProvince } from "@/app/services/api/types";
+import { useState, useEffect } from "react";
 export type ProvinceFilterProps = {
   provinceFilter: ProvinceFilter;
 	darkMode: boolean;
@@ -18,6 +20,28 @@ export default function ProvinceFilterUI({
   provinceFilter
 }: ProvinceFilterProps) {
 	const dispatch = useAppDispatch();
+	const [provinces, setProvinces] = useState<APIProvince[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	// Fetch provinces from metadata API
+	useEffect(() => {
+		const fetchProvinces = async () => {
+			try {
+				setLoading(true);
+				setError(null);
+				const provincesData = await metadataService.getProvinces();
+				setProvinces(provincesData);
+			} catch (error) {
+				console.error('Failed to fetch provinces:', error);
+				setError('Failed to load provinces');
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchProvinces();
+	}, []);
 	
 	const handleProvinceChange = (event: SelectChangeEvent<string[]>) => {
 		const value = event.target.value;
@@ -63,11 +87,11 @@ export default function ProvinceFilterUI({
             renderValue={(selected: string[]) => (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {selected.map((value: string) => {
-                  const province = PROVINCES.find((p: Province) => p.id === value);
+                  const province = provinces.find((p: APIProvince) => p.id === value);
                   return (
                     <Chip 
                       key={value} 
-                      label={province?.name} 
+                      label={province?.name || value} 
                       size="small"
                       sx={{ 
                         bgcolor: 'primary.main',
@@ -86,32 +110,32 @@ export default function ProvinceFilterUI({
               }
             }}
             sx={{ color: darkMode ? '#fff' : undefined }}
+            disabled={loading}
           >
-            {PROVINCES.map((province) => (
-              <MenuItem key={province.id} value={province.id}>
-                {province.name}
+            {loading ? (
+              <MenuItem disabled>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={16} />
+                  Loading provinces...
+                </Box>
               </MenuItem>
-            ))}
-            {/* <MenuItem disabled>
-              <Typography variant="caption" fontWeight="bold">
-                Industrial
-              </Typography>
-            </MenuItem>
-            {PROVINCES.filter((p: Province) => p.category === 'industrial').map((province) => (
-              <MenuItem key={province.id} value={province.id}>
-                {province.name}
+            ) : error ? (
+              <MenuItem disabled>
+                <Box sx={{ color: 'error.main' }}>
+                  {error}
+                </Box>
               </MenuItem>
-            ))}
-            <MenuItem disabled>
-              <Typography variant="caption" fontWeight="bold">
-                Agricultural
-              </Typography>
-            </MenuItem>
-            {PROVINCES.filter(p => p.category === 'agricultural').map((province) => (
-              <MenuItem key={province.id} value={province.id}>
-                {province.name}
+            ) : provinces.length === 0 ? (
+              <MenuItem disabled>
+                No provinces available
               </MenuItem>
-            ))} */}
+            ) : (
+              provinces.map((province) => (
+                <MenuItem key={province.id} value={province.id}>
+                  {province.name} {province.code && `(${province.code})`}
+                </MenuItem>
+              ))
+            )}
           </Select>
         </FormControl>
 	)

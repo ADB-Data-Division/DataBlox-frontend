@@ -23,11 +23,11 @@ export type MonthlyMatrixData = {
    * @param appliedFilters - The applied filters
    * @returns The processed migration data
    */
-export function processMigrationData(
+export async function processMigrationData(
 	data: MonthlyMatrixData[], 
 	monthSelector: MonthEnum | null, 
 	appliedFilters: Filter[]
-): MigrationData {
+): Promise<MigrationData> {
     // This is where we would process real data from the MigrationDataProcessor
     // For now, we'll use a sample transformation
     if (!data || data.length === 0) {
@@ -36,8 +36,18 @@ export function processMigrationData(
     
     // Extract province names using the provinceFilter and provinceMapper
     const provinceFilter = appliedFilters.find(filter => filter.type === "province") as ProvinceFilter | undefined;
-    const names = provinceFilter?.province_ids ? 
-      provinceMapper.mapToDisplayNames(provinceFilter.province_ids) : [];
+    
+    // Get province names asynchronously from API
+    let names: string[] = [];
+    if (provinceFilter?.province_ids) {
+      try {
+        names = await provinceMapper.mapToDisplayNames(provinceFilter.province_ids);
+      } catch (error) {
+        console.error('Failed to get province display names:', error);
+        // Fallback to using IDs as names
+        names = provinceFilter.province_ids;
+      }
+    }
 
 	if (monthSelector) {
 		data = data.filter(monthData => monthData.month === monthSelector);

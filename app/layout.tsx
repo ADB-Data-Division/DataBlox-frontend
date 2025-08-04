@@ -4,14 +4,24 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
 import AppThemeProvider from '../style/theme/theme-provider';
-import { ChartBarIcon, ChartScatterIcon, MapPinAreaIcon } from '@phosphor-icons/react/dist/ssr';
+import { ChartBarIcon, ChartScatterIcon } from '@phosphor-icons/react/dist/ssr';
 import { ReduxProvider } from './store/provider';
 import ForceLightMode from '../components/force-light-mode';
+import { Asap } from 'next/font/google';
 import './globals.css';
+import Script from 'next/script';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { RootState } from './store';
 import { useAppSelector } from './store/hooks';
+
+// Configure Asap font with the weights we need
+const asap = Asap({
+  subsets: ['latin'],
+  weight: ['400', '700', '900'],
+  display: 'swap',
+  variable: '--font-asap'
+});
 
 const NAVIGATION: Navigation = [
   {
@@ -61,7 +71,23 @@ const NAVIGATION: Navigation = [
 
 const BRANDING = {
   title: 'Datablox',
-  logo: <MapPinAreaIcon size={32} style={{ margin: '3px', borderRadius: '5px' }} />
+  logo: (
+    <div className={asap.className} style={{ 
+      fontSize: '24px', 
+      fontWeight: '900',
+      color: '#000000',
+      margin: '3px',
+      letterSpacing: '-0.5px'
+    }}>
+      Datablo<span style={{
+        backgroundColor: '#0077BE',
+        color: '#ffffff',
+        padding: '2px 4px',
+        borderRadius: '4px',
+        marginLeft: '1px'
+      }}>x</span>
+    </div>
+  )
 };
 
 const AUTHENTICATION = {
@@ -73,8 +99,24 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const session = await auth();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={asap.variable}>
       <body>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-EV8SV1ZMW0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-EV8SV1ZMW0', {
+              page_title: document.title,
+              page_location: window.location.href,
+            });
+          `}
+        </Script>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <ReduxProvider>
