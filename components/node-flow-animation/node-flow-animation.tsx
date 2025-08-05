@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Box, Slider, Typography, Button, IconButton, Snackbar, Alert } from '@mui/material';
 import { ContentCopy, Share } from '@mui/icons-material';
@@ -8,6 +8,13 @@ import {
   REGION_COLORS, 
   ThailandHexagon 
 } from './thailand-map-data';
+import type { MigrationResponse } from '@/app/services/api';
+import MigrationFlowDiagram from '@/components/migration-flow-diagram';
+
+// Default transform constants
+const DEFAULT_TRANSFORM_SCALE = 1.331968136327066;
+const DEFAULT_TRANSFORM_X = 261.824295721705;
+const DEFAULT_TRANSFORM_Y = 133.61470868737354;
 
 interface Node {
   id: string;
@@ -43,6 +50,7 @@ interface NodesVisualizationProps {
   onMonthRangeChange?: (monthRange: MonthRange) => void;
   selectedPeriod?: string;
   onPeriodChange?: (period: string) => void;
+  apiResponse?: MigrationResponse | null; // Add apiResponse prop for table data
 }
 
 // Custom hook to track container size
@@ -77,10 +85,34 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   curved = false,
   onMonthRangeChange,
   selectedPeriod,
-  onPeriodChange
+  onPeriodChange,
+  apiResponse
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // State for units selection
+  const [selectedUnits, setSelectedUnits] = useState<'thousands' | 'units'>('thousands');
+
+  // State for node click interaction
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // State for zoom level to dynamically size nodes (for initial render only)
+  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(1);
+
+  // State to track current transform (to make it persistent)
+  const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
+
+  // Ref to avoid dependency issues in useEffect
+  const selectedNodeIdRef = useRef<string | null>(null);
+  
+  // Ref to track if initial transform has been applied
+  const initialTransformApplied = useRef<boolean>(false);
+  
+  // Update ref when selectedNodeId changes
+  useEffect(() => {
+    selectedNodeIdRef.current = selectedNodeId;
+  }, [selectedNodeId]);
 
   // Helper function to map period ID to month index
   // Since visualization starts from Jan 2021 (index 0 = Jan 2021)
@@ -252,33 +284,78 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       toNodeId: 'bangkok',
       toFlowRate: 25, // Migration to Bangkok from Chiang Mai
       fromFlowRate: -8, // Return migration from Bangkok to Chiang Mai
-      metadata: { absoluteToFlow: 250000, absoluteFromFlow: 80000, units: 'people/year' }
+      metadata: { absoluteToFlow: 250000, absoluteFromFlow: 80000, units: 'people/month' }
     },
     { 
       fromNodeId: 'khonkaen', 
       toNodeId: 'bangkok',
       toFlowRate: 30,
       fromFlowRate: -10,
-      metadata: { absoluteToFlow: 300000, absoluteFromFlow: 100000, units: 'people/year' }
+      metadata: { absoluteToFlow: 300000, absoluteFromFlow: 100000, units: 'people/month' }
     },
     { 
       fromNodeId: 'songkhla', 
       toNodeId: 'bangkok',
       toFlowRate: 15,
       fromFlowRate: -12,
-      metadata: { absoluteToFlow: 150000, absoluteFromFlow: 120000, units: 'people/year' }
+      metadata: { absoluteToFlow: 150000, absoluteFromFlow: 120000, units: 'people/month' }
     },
     { 
       fromNodeId: 'chiangmai', 
       toNodeId: 'khonkaen',
       toFlowRate: 5,
       fromFlowRate: -3,
-      metadata: { absoluteToFlow: 50000, absoluteFromFlow: 30000, units: 'people/year' }
+      metadata: { absoluteToFlow: 50000, absoluteFromFlow: 30000, units: 'people/month' }
     }
   ];
 
   const activeNodes = nodes || defaultNodes;
   const activeConnections = connections || defaultConnections;
+
+  // Helper function to determine if an edge should be visible based on selected node
+  const isEdgeVisible = (connection: Connection, selectedNodeId: string | null): boolean => {
+    if (!selectedNodeId) return true; // Show all edges when no node is selected
+    return connection.fromNodeId === selectedNodeId || connection.toNodeId === selectedNodeId;
+  };
+
+  // Function to calculate dynamic node size based on zoom level
+  const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel: number): number => {
+    // As zoom increases, make nodes smaller to prevent them from covering edges
+    // Use inverse relationship with a minimum size limit
+    const scaleFactor = Math.max(0.3, 1 / Math.sqrt(zoomLevel)); // Minimum 30% of original size
+    return baseSize * scaleFactor;
+  }, []);
+
+  // Function to update edge visibility based on selected node
+  const updateEdgeVisibility = useCallback((selectedNodeId: string | null) => {
+    if (!selectedNodeId) {
+      // Show all edges when no node is selected
+      d3.selectAll('.flowline-to, .flowline-from').style('opacity', 0.7);
+      return;
+    }
+
+    // Get the selected node's title for comparison
+    const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
+    if (!selectedNode) return;
+
+    // Update "to" paths
+    d3.selectAll('.flowline-to').style('opacity', function() {
+      const fromNode = d3.select(this).attr('data-from-node');
+      const toNode = d3.select(this).attr('data-to-node');
+      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      return isRelated ? 0.7 : 0.1;
+    });
+
+    // Update "from" paths  
+    d3.selectAll('.flowline-from').style('opacity', function() {
+      const fromNode = d3.select(this).attr('data-from-node');
+      const toNode = d3.select(this).attr('data-to-node');
+      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      return isRelated ? 0.7 : 0.1;
+    });
+  }, [activeNodes]);
+
+
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -299,6 +376,32 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
+        
+        // Save current transform to state (for persistence)
+        setCurrentTransform(event.transform);
+        
+        // Update node sizes directly without React state updates
+        const zoomLevel = event.transform.k;
+        
+        // Update node sizes based on zoom level
+        d3.selectAll('.node').attr('r', function() {
+          const element = this as Element;
+          const parentElement = element.parentNode as SVGGElement;
+          if (!parentElement) return 20; // fallback size
+          const nodeGroup = d3.select(parentElement);
+          const nodeId = nodeGroup.attr('data-node-id');
+          const node = activeNodes.find(n => n.id === nodeId);
+          if (!node) return 20; // fallback size
+          const scaleFactor = Math.max(0.3, 1 / Math.sqrt(zoomLevel));
+          return (node.size * 2) * scaleFactor;
+        });
+
+        // Update text size to remain readable
+        d3.selectAll('.node-title').style('font-size', function() {
+          const baseFontSize = 12;
+          const scaleFactor = Math.max(0.7, 1 / Math.sqrt(zoomLevel));
+          return `${baseFontSize * scaleFactor}px`;
+        });
       });
 
     // Apply zoom behavior to SVG
@@ -310,15 +413,18 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     const mapHeight = 400; // Approximate height of Thailand hexagon layout
     
     // Center the map in the container
-    const centerX = (width - mapWidth) / 2 + 50; // Add small offset for legend space
+    const centerX = (width - mapWidth) / 2; // Center the map
     const centerY = (height - mapHeight) / 2;
     
-    // Set initial zoom to center content nicely
-    const initialTransform = d3.zoomIdentity
-      .translate(centerX, centerY) // Center translation
-      .scale(1); // Initial scale
+    // Set initial zoom to use the specified default transform (only once)
+    if (!initialTransformApplied.current) {
+      const initialTransform = d3.zoomIdentity
+        .translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y)
+        .scale(DEFAULT_TRANSFORM_SCALE);
 
-    svg.call(zoom.transform, initialTransform);
+      svg.call(zoom.transform, initialTransform);
+      initialTransformApplied.current = true;
+    }
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -386,82 +492,36 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
 
 
-    // Add legend (positioned relative to viewport, not zoomed content)
-    const legend = svg.append('g')
-      .attr('class', 'legend')
-      .attr('transform', `translate(${width - 140}, 40)`);
 
-    const legendData = [
-      { region: 'North', color: regionColors.north },
-      { region: 'Central', color: regionColors.central },
-      { region: 'Northeast', color: regionColors.northeast },
-      { region: 'East', color: regionColors.east },
-      { region: 'West', color: regionColors.west },
-      { region: 'South', color: regionColors.south }
-    ];
-
-    legend.selectAll('.legend-item')
-      .data(legendData)
-      .enter()
-      .append('g')
-      .attr('class', 'legend-item')
-      .attr('transform', (d, i) => `translate(0, ${i * 20})`)
-      .each(function(d) {
-        const group = d3.select(this);
-        
-        group.append('circle')
-          .attr('cx', 0)
-          .attr('cy', 0)
-          .attr('r', 6)
-          .attr('fill', d.color);
-          
-        group.append('text')
-          .attr('x', 15)
-          .attr('y', 5)
-          .text(d.region)
-          .attr('font-size', '12px')
-          .attr('font-family', 'Arial, sans-serif')
-          .attr('fill', '#374151');
-      });
-
-    // Add legend title
-    legend.append('text')
-      .attr('x', 0)
-      .attr('y', -15)
-      .text('THAILAND MAP')
-      .attr('font-size', '14px')
-      .attr('font-weight', 'bold')
-      .attr('font-family', 'Arial, sans-serif')
-      .attr('fill', '#111827');
 
     // Define arrow markers for direction indicators
     const defs = svg.append('defs');
     
-    // Arrow marker for "to" direction (blue)
+    // Arrow marker for "to" direction (gray, smaller)
     defs.append('marker')
       .attr('id', 'arrow-to')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 8)
+      .attr('viewBox', '0 -3 6 6')
+      .attr('refX', 5)
       .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
+      .attr('markerWidth', 4)
+      .attr('markerHeight', 4)
       .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#2563eb');
+      .attr('d', 'M0,-3L6,0L0,3')
+      .attr('fill', '#888888');
 
-    // Arrow marker for "from" direction (red)
+    // Arrow marker for "from" direction (gray, smaller)
     defs.append('marker')
       .attr('id', 'arrow-from')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 8)
+      .attr('viewBox', '0 -3 6 6')
+      .attr('refX', 5)
       .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
+      .attr('markerWidth', 4)
+      .attr('markerHeight', 4)
       .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#dc2626');
+      .attr('d', 'M0,-3L6,0L0,3')
+      .attr('fill', '#888888');
 
     // Helper function to create offset paths between two points
     function createOffsetPath(x1: number, y1: number, x2: number, y2: number, offset: number, curved: boolean = false) {
@@ -543,12 +603,14 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       activeNodes.forEach(node => {
         const nodeGroup = vizGroup.append('g')
           .attr('class', 'node-group')
-          .attr('transform', `translate(${node.x}, ${node.y})`);
+          .attr('data-node-id', node.id)
+          .attr('transform', `translate(${node.x}, ${node.y})`)
+          .style('cursor', 'pointer');
 
         // Node circle
         nodeGroup.append('circle')
           .attr('class', 'node')
-          .attr('r', node.size * 2);
+          .attr('r', getDynamicNodeSize(node.size * 2, currentZoomLevel));
 
         // Node title
         nodeGroup.append('text')
@@ -556,6 +618,37 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           .attr('text-anchor', 'middle')
           .attr('dy', '0.35em')
           .text(node.title);
+
+        // Add click events to node group
+        nodeGroup
+          .on('click', function() {
+            // Toggle selection
+            if (selectedNodeIdRef.current === node.id) {
+              // Unselect if already selected
+              setSelectedNodeId(null);
+              
+              // Reset node appearance
+              d3.select(this).select('.node')
+                .style('fill', '#f3f4f6')
+                .style('stroke', '#6b7280')
+                .style('stroke-width', '3');
+            } else {
+              // Select new node
+              setSelectedNodeId(node.id);
+              
+              // Reset all other nodes first
+              d3.selectAll('.node')
+                .style('fill', '#f3f4f6')
+                .style('stroke', '#6b7280')
+                .style('stroke-width', '3');
+              
+              // Highlight the selected node
+              d3.select(this).select('.node')
+                .style('fill', '#dbeafe')
+                .style('stroke', '#2563eb')
+                .style('stroke-width', '4');
+            }
+          });
       });
       
       // Apply styles directly to D3 elements
@@ -566,7 +659,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
       d3.selectAll('.node-title')
         .style('font-family', 'Arial, sans-serif')
-        .style('font-size', '12px')
+        .style('font-size', function() {
+          const baseFontSize = 12;
+          const scaleFactor = Math.max(0.7, 1 / Math.sqrt(currentZoomLevel));
+          return `${baseFontSize * scaleFactor}px`;
+        })
         .style('font-weight', 'bold')
         .style('fill', '#374151')
         .style('pointer-events', 'none');
@@ -666,7 +763,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-size', '12px')
         .style('pointer-events', 'none');
 
-      // Add hover events to paths
+      // Add A events to paths
       d3.selectAll('.flowline-to, .flowline-from')
         .on('mouseover', function(event) {
           const absoluteFlow = d3.select(this).attr('data-absolute-flow');
@@ -684,7 +781,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         });
 
     // Add zoom instructions
-    const zoomInstructions = svg.append('text')
+    svg.append('text')
       .attr('class', 'zoom-instructions')
       .attr('x', 20)
       .attr('y', height - 20)
@@ -699,7 +796,16 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, activeConnections, curved]);
+  }, [width, height, activeNodes, activeConnections, curved, currentZoomLevel, getDynamicNodeSize]);
+
+  // Separate useEffect for handling node selection changes (without resetting the visualization)
+  useEffect(() => {
+    if (selectedNodeId) {
+      updateEdgeVisibility(selectedNodeId);
+    } else {
+      updateEdgeVisibility(null);
+    }
+  }, [selectedNodeId, updateEdgeVisibility]);
 
   return (
     <div className="nodes-visualization" style={{ width: '100%', height: '100%' }}>
@@ -816,162 +922,220 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               </p>
             </div>
 
+            {/* Migration Flow Data - Visual Diagrams */}
+            {apiResponse && apiResponse.flows && (
+              <>
             <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '16px'
+                  }}>
               <h3 style={{ 
                 fontSize: '18px', 
                 fontWeight: 'bold', 
-                marginBottom: '16px',
+                      margin: 0,
                 color: '#374151'
               }}>
                 Migration Flow Data
               </h3>
-            </div>
-            <div style={{ overflowX: 'auto', paddingLeft: '24px', paddingRight: '24px' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '14px',
-                minWidth: '600px' // Ensure table doesn't get too compressed
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      From
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      To
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'right',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      To Flow Rate
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'right',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      From Flow Rate
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'right',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      Absolute To Flow
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'right',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      Absolute From Flow
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      borderBottom: '2px solid #e5e7eb',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      Units
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeConnections.map((connection, index) => {
-                    const fromNode = activeNodes.find(n => n.id === connection.fromNodeId);
-                    const toNode = activeNodes.find(n => n.id === connection.toNodeId);
                     
-                    return (
-                      <tr key={`${connection.fromNodeId}-${connection.toNodeId}`} style={{
-                        backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb'
+                    {/* Units Selector */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', color: '#6b7280' }}>Display as:</span>
+                      <select
+                        value={selectedUnits}
+                        onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
+                        style={{
+                          padding: '4px 8px',
+                fontSize: '14px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '4px',
+                          backgroundColor: '#ffffff',
+                          color: '#374151',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="thousands">Thousands (K)</option>
+                        <option value="units">Raw Units</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+                  {/* Filter indicator */}
+                  {selectedNodeId && (() => {
+                    const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
+                    return selectedNode ? (
+                      <div style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#dbeafe',
+                        border: '1px solid #2563eb',
+                        borderRadius: '6px',
+                        marginBottom: '12px',
+                        fontSize: '14px',
+                        color: '#1e40af',
+                        fontWeight: '500',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                       }}>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#111827',
-                          fontWeight: '500'
-                        }}>
-                          {fromNode?.title || connection.fromNodeId}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#111827',
-                          fontWeight: '500'
-                        }}>
-                          {toNode?.title || connection.toNodeId}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#2563eb',
-                          textAlign: 'right',
-                          fontWeight: '500'
-                        }}>
-                          {connection.toFlowRate}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#dc2626',
-                          textAlign: 'right',
-                          fontWeight: '500'
-                        }}>
-                          {connection.fromFlowRate}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#6b7280',
-                          textAlign: 'right'
-                        }}>
-                          {connection.metadata.absoluteToFlow.toLocaleString()}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#6b7280',
-                          textAlign: 'right'
-                        }}>
-                          {connection.metadata.absoluteFromFlow.toLocaleString()}
-                        </td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #e5e7eb',
-                          color: '#6b7280'
-                        }}>
-                          {connection.metadata.units || 'N/A'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        <span>📍 Showing flows involving: <strong>{selectedNode.title}</strong></span>
+                        <button
+                          onClick={() => {
+                            setSelectedNodeId(null);
+                            // Reset all node appearances
+                            d3.selectAll('.node')
+                              .style('fill', '#f3f4f6')
+                              .style('stroke', '#6b7280')
+                              .style('stroke-width', '3');
+                          }}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #2563eb',
+                            borderRadius: '4px',
+                            color: '#1e40af',
+                            cursor: 'pointer',
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    ) : null;
+                  })()}
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(470px, 100%), 1fr))',
+                    gap: '12px',
+                    padding: '16px',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '8px'
+                  }}>
+                    {(() => {
+                      // Filter flows for the selected period
+                      let filteredFlows = apiResponse.flows
+                        .filter(flow => flow.time_period_id === selectedPeriod || 
+                                       (selectedPeriod && !apiResponse.time_periods.find(tp => tp.id === selectedPeriod) && 
+                                        flow.time_period_id === apiResponse.time_periods[0]?.id));
+
+                      // Additional filter based on selected node
+                      if (selectedNodeId) {
+                        const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
+                        if (selectedNode) {
+                          filteredFlows = filteredFlows.filter(flow => 
+                            flow.origin.name === selectedNode.title || 
+                            flow.destination.name === selectedNode.title
+                          );
+                        }
+                      }
+
+                      // Group bidirectional flows and identify self-loops
+                      const processedFlows = new Map<string, {
+                        fromLocation: string;
+                        toLocation: string;
+                        flowCount: number;
+                        returnFlowCount: number;
+                        key: string;
+                      }>();
+                      const selfLoops: {
+                        location: string;
+                        flowCount: number;
+                        isSelfLoop: true;
+                        key: string;
+                      }[] = [];
+
+                      filteredFlows.forEach(flow => {
+                        const originId = flow.origin.id;
+                        const destinationId = flow.destination.id;
+
+                        // Check for self-loops
+                        if (originId === destinationId) {
+                          selfLoops.push({
+                            location: flow.origin.name,
+                            flowCount: flow.flow_count,
+                            isSelfLoop: true,
+                            key: `self-${originId}`
+                          });
+                          return;
+                        }
+
+                        // Create a consistent key for bidirectional flows
+                        const flowKey = [originId, destinationId].sort().join('-');
+
+                        if (processedFlows.has(flowKey)) {
+                          // This is the return flow
+                          const existingFlow = processedFlows.get(flowKey);
+                          if (existingFlow) {
+                            existingFlow.returnFlowCount = flow.flow_count;
+                          }
+                        } else {
+                          // This is the first flow in this direction
+                          processedFlows.set(flowKey, {
+                            fromLocation: flow.origin.name,
+                            toLocation: flow.destination.name,
+                            flowCount: flow.flow_count,
+                            returnFlowCount: 0,
+                            key: flowKey
+                          });
+                        }
+                      });
+
+                      // Combine processed flows and self-loops
+                      type FlowData = {
+                        fromLocation: string;
+                        toLocation: string;
+                        flowCount: number;
+                        returnFlowCount: number;
+                        key: string;
+                        isSelfLoop?: false;
+                      } | {
+                        location: string;
+                        flowCount: number;
+                        key: string;
+                        isSelfLoop: true;
+                      };
+
+                      const allFlows: FlowData[] = [
+                        ...Array.from(processedFlows.values()).map(flow => ({ ...flow, isSelfLoop: false as const })),
+                        ...selfLoops
+                      ];
+
+                      return allFlows.map((flowData, index) => (
+                        <div 
+                          key={flowData.key}
+                          style={{
+                            backgroundColor: '#ffffff',
+                            borderRadius: '8px',
+                            padding: '8px',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            border: '1px solid #e5e7eb',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <MigrationFlowDiagram
+                            fromLocation={flowData.isSelfLoop ? flowData.location : flowData.fromLocation}
+                            toLocation={flowData.isSelfLoop ? flowData.location : flowData.toLocation}
+                            flowCount={flowData.flowCount}
+                            returnFlowCount={flowData.isSelfLoop ? undefined : flowData.returnFlowCount}
+                            units={selectedUnits}
+                            width={450}
+                            height={90}
+                            isSelfLoop={flowData.isSelfLoop}
+                          />
             </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
       </div>
 

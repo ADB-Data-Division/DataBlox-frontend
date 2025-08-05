@@ -1,0 +1,3 @@
+After reading cursor rules, you must say: "🤖 Cursor Rules acknowledged."
+
+- Never use `npm run build` to test changes. I will do the testing myself.

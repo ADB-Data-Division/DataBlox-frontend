@@ -171,122 +171,13 @@ export default function MigrationResultsTable({
               connections={mapConnections}
               curved={true}
               width={960}
-              height={600}
+              height={800}
               selectedPeriod={selectedPeriod}
               onPeriodChange={onPeriodChange}
+              apiResponse={apiResponse}
             />
             
-            {/* Comprehensive Migration Flow Data Table */}
-            {apiResponse && apiResponse.flows && (
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h6" gutterBottom>
-                  Complete Migration Flow Data
-                </Typography>
-                <Paper elevation={1} sx={{ overflow: 'auto' }}>
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '14px'
-                  }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#f5f5f5' }}>
-                        <th style={{ 
-                          padding: '12px 16px', 
-                          textAlign: 'left', 
-                          borderBottom: '2px solid #ddd',
-                          fontWeight: '600'
-                        }}>
-                          From
-                        </th>
-                        <th style={{ 
-                          padding: '12px 16px', 
-                          textAlign: 'left', 
-                          borderBottom: '2px solid #ddd',
-                          fontWeight: '600'
-                        }}>
-                          To
-                        </th>
-                        <th style={{ 
-                          padding: '12px 16px', 
-                          textAlign: 'right', 
-                          borderBottom: '2px solid #ddd',
-                          fontWeight: '600'
-                        }}>
-                          Flow Count
-                        </th>
-                        <th style={{ 
-                          padding: '12px 16px', 
-                          textAlign: 'right', 
-                          borderBottom: '2px solid #ddd',
-                          fontWeight: '600'
-                        }}>
-                          Return Flow Count
-                        </th>
-                        <th style={{ 
-                          padding: '12px 16px', 
-                          textAlign: 'left', 
-                          borderBottom: '2px solid #ddd',
-                          fontWeight: '600'
-                        }}>
-                          Units
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {apiResponse.flows
-                        .filter(flow => flow.time_period_id === selectedPeriod || 
-                                       (selectedPeriod && !apiResponse.time_periods.find(tp => tp.id === selectedPeriod) && 
-                                        flow.time_period_id === apiResponse.time_periods[0]?.id))
-                        .map((flow, index) => (
-                          <tr key={`${flow.origin.id}-${flow.destination.id}-${index}`} style={{
-                            backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9f9f9'
-                          }}>
-                            <td style={{
-                              padding: '12px 16px',
-                              borderBottom: '1px solid #eee',
-                              fontWeight: '500'
-                            }}>
-                              {flow.origin.name}
-                            </td>
-                            <td style={{
-                              padding: '12px 16px',
-                              borderBottom: '1px solid #eee',
-                              fontWeight: '500'
-                            }}>
-                              {flow.destination.name}
-                            </td>
-                            <td style={{
-                              padding: '12px 16px',
-                              borderBottom: '1px solid #eee',
-                              textAlign: 'right',
-                              fontWeight: '500',
-                              color: '#2563eb'
-                            }}>
-                              {flow.flow_count.toLocaleString()}
-                            </td>
-                            <td style={{
-                              padding: '12px 16px',
-                              borderBottom: '1px solid #eee',
-                              textAlign: 'right',
-                              fontWeight: '500',
-                              color: flow.return_flow_count ? '#dc2626' : '#9ca3af'
-                            }}>
-                              {flow.return_flow_count ? flow.return_flow_count.toLocaleString() : 'N/A'}
-                            </td>
-                            <td style={{
-                              padding: '12px 16px',
-                              borderBottom: '1px solid #eee',
-                              color: '#6b7280'
-                            }}>
-                              people/year
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </Paper>
-              </Box>
-            )}
+
           </Box>
         )}
 
