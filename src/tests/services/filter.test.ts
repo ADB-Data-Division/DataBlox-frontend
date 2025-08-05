@@ -90,6 +90,7 @@ describe('transformFilter function', () => {
     const expectedDateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: '2023 Custom Range',
       time_period: 'custom',
       start_date: '2023-01-01',
       end_date: '2023-12-31'
@@ -119,6 +120,7 @@ describe('transformFilter function', () => {
     const expectedDateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Last Year',
       time_period: 'lastYear',
       start_date: '2023-01-01',
       end_date: '2024-01-01'
@@ -156,6 +158,7 @@ describe('transformFilter function', () => {
     const expectedDateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: '2023 Custom Range',
       time_period: 'custom',
       start_date: '2023-01-01',
       end_date: '2023-12-31'
@@ -199,6 +202,7 @@ describe('transformFilter function', () => {
     const expectedDateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: '2023 Custom Range',
       time_period: 'custom',
       start_date: '2023-01-01',
       end_date: '2023-12-31'
@@ -207,6 +211,7 @@ describe('transformFilter function', () => {
     const expectedSubactionFilter: SubactionFilter = {
       type: 'subaction',
       filter_id: 'subaction-filter',
+      label: 'Move Out',
       subaction: 'moveout'
     };
 
@@ -283,6 +288,7 @@ describe('MigrationDataProcessor with datetime filters', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Feb-Mar 2020',
       time_period: 'custom',
       start_date: '2020-02-01',
       end_date: '2020-03-31'
@@ -323,6 +329,7 @@ describe('MigrationDataProcessor with datetime filters', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Nov-Feb 2020',
       time_period: 'custom',
       start_date: '2019-11-01', // Before the data range
       end_date: '2020-02-15'    // During the data range

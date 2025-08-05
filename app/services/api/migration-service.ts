@@ -13,8 +13,8 @@ import {
  */
 export interface MigrationQueryOptions {
   scale: Scale;
-  startDate: string; // ISO 8601 format
-  endDate: string;   // ISO 8601 format
+  startDate?: string; // ISO 8601 format - optional, server will use latest dataset if omitted
+  endDate?: string;   // ISO 8601 format - optional, server will use latest dataset if omitted
   locationIds?: string[]; // Can be province, district, or subdistrict IDs based on scale
   aggregation?: Aggregation;
   includeFlows?: boolean;
@@ -31,11 +31,17 @@ export class MigrationService {
   async getMigrationData(options: MigrationQueryOptions): Promise<MigrationResponse> {
     const request: MigrationRequest = {
       scale: options.scale,
-      start_date: options.startDate,
-      end_date: options.endDate,
       aggregation: options.aggregation || 'monthly',
       include_flows: options.includeFlows || false
     };
+
+    // Only include dates if provided, otherwise let server use latest dataset
+    if (options.startDate) {
+      request.start_date = options.startDate;
+    }
+    if (options.endDate) {
+      request.end_date = options.endDate;
+    }
 
     // Add location filters based on scale
     if (options.locationIds && options.locationIds.length > 0) {
@@ -275,19 +281,23 @@ export class MigrationService {
       throw new Error('Scale must be one of: province, district, subdistrict');
     }
 
-    if (!options.startDate || !options.endDate) {
-      throw new Error('Start date and end date are required');
+    // If dates are provided, both must be present
+    if ((options.startDate && !options.endDate) || (!options.startDate && options.endDate)) {
+      throw new Error('If providing dates, both start date and end date are required');
     }
 
-    const startDate = new Date(options.startDate);
-    const endDate = new Date(options.endDate);
+    // Validate date formats only if dates are provided
+    if (options.startDate && options.endDate) {
+      const startDate = new Date(options.startDate);
+      const endDate = new Date(options.endDate);
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      throw new Error('Invalid date format. Use ISO 8601 format.');
-    }
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date format. Use ISO 8601 format.');
+      }
 
-    if (startDate >= endDate) {
-      throw new Error('Start date must be before end date');
+      if (startDate >= endDate) {
+        throw new Error('Start date must be before end date');
+      }
     }
 
     if (options.aggregation && !['monthly', 'quarterly', 'yearly'].includes(options.aggregation)) {

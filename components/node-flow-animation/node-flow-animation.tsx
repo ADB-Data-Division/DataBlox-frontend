@@ -494,8 +494,14 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Migration flow visualization (always show)
       // Draw "to" paths (blue, with negative flow rates)
       activeConnections.forEach(conn => {
-        const fromNode = activeNodes.find(n => n.id === conn.fromNodeId)!;
-        const toNode = activeNodes.find(n => n.id === conn.toNodeId)!;
+        const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
+        const toNode = activeNodes.find(n => n.id === conn.toNodeId);
+        
+        // Skip if either node is not found (e.g., "Other Provinces" aggregated data)
+        if (!fromNode || !toNode) {
+          console.log(`Skipping connection visualization: ${conn.fromNodeId} -> ${conn.toNodeId} (missing node data)`);
+          return;
+        }
         
         if (conn.toFlowRate !== 0) {
           vizGroup.append('path')
@@ -512,8 +518,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
       // Draw "from" paths (red, with positive flow rates)
       activeConnections.forEach(conn => {
-        const fromNode = activeNodes.find(n => n.id === conn.fromNodeId)!;
-        const toNode = activeNodes.find(n => n.id === conn.toNodeId)!;
+        const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
+        const toNode = activeNodes.find(n => n.id === conn.toNodeId);
+        
+        // Skip if either node is not found (e.g., "Other Provinces" aggregated data)
+        if (!fromNode || !toNode) {
+          return;
+        }
         
         if (conn.fromFlowRate !== 0) {
           vizGroup.append('path')

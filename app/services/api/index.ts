@@ -10,4 +10,12 @@ export { MigrationService, migrationService } from './migration-service';
 export { ValidationService, validationService } from './validation-service';
 
 // Export service interfaces
-export type { MigrationQueryOptions } from './migration-service'; 
+export type { MigrationQueryOptions } from './migration-service';
+
+// Export transformation utilities
+export { 
+  transformMigrationDataForMap, 
+  getAvailableTimePeriods,
+  testTransformation 
+} from './migration-flow-transformer';
+export type { MapNode, MapConnection, TransformedMigrationData } from './migration-flow-transformer'; 

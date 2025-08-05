@@ -30,6 +30,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Feb-Mar 2020',
       // Exact dates for February and March 2020
       start_date: '2020-02-01',
       end_date: '2020-03-31',
@@ -56,6 +57,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Jan-Apr 2020',
       // Dates in the middle of months
       start_date: '2020-01-15',
       end_date: '2020-04-15',
@@ -79,6 +81,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Nov 2019 - Feb 2020',
       // Range that starts before available data and ends after some data
       start_date: '2019-11-01',
       end_date: '2020-02-15',
@@ -119,6 +122,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'Q1 2021',
       // Range entirely in 2021, outside available data
       start_date: '2021-01-01',
       end_date: '2021-03-31',
@@ -140,6 +144,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: 'May 2020',
       // Range for just May 2020
       start_date: '2020-05-01',
       end_date: '2020-05-31',
@@ -162,6 +167,7 @@ describe('MigrationDataProcessor DateTime Filtering', () => {
     const dateTimeFilter: DateTimeFilter = {
       type: 'datetime',
       filter_id: 'datetime-filter',
+      label: '2020 Full Year',
       // Range that includes Jan and Dec but skips middle months
       start_date: '2020-01-01',
       end_date: '2020-12-31',

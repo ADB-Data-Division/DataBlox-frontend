@@ -41,14 +41,12 @@ export class MigrationAPIService {
         locationIds = await this.mapLocationsToAPIIds(provinces, 'province');
       }
 
-      // Use a default time range (can be made configurable later)
-      const startDate = '2020-01-01T00:00:00Z';
-      const endDate = '2021-12-31T23:59:59Z';
-
+      // Let the server determine the latest dataset automatically
+      // In the future, this will be configurable based on user-selected datasets
+      // from the metadata endpoint
       const queryOptions: MigrationQueryOptions = {
         scale,
-        startDate,
-        endDate,
+        // startDate/endDate intentionally omitted - server will use latest dataset
         locationIds,
         aggregation: 'monthly',
         includeFlows: true

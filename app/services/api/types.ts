@@ -65,8 +65,8 @@ export type Aggregation = 'monthly' | 'quarterly' | 'yearly';
 
 export interface MigrationRequest {
   scale: Scale;
-  start_date: string; // ISO 8601 format
-  end_date: string;   // ISO 8601 format
+  start_date?: string; // ISO 8601 format - optional, server will use latest dataset if omitted
+  end_date?: string;   // ISO 8601 format - optional, server will use latest dataset if omitted
   provinces?: string[];
   districts?: string[];
   subdistricts?: string[];

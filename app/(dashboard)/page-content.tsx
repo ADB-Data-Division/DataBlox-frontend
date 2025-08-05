@@ -58,6 +58,9 @@ import {
   shouldShowWarning, 
   getRemainingSlots 
 } from './constraints';
+import { MigrationAPIService } from '../services/migration-api-service';
+import { transformMigrationDataForMap, getAvailableTimePeriods } from '../services/api';
+import type { MigrationResponse, MapNode, MapConnection } from '../services/api';
 
 
 export default function PageContent() {
@@ -72,6 +75,24 @@ export default function PageContent() {
   
   // Track when we're resetting to prevent URL effect interference
   const isResettingRef = useRef<boolean>(false);
+
+  // Migration data state (for MigrationResultsTable)
+  const [migrationData, setMigrationData] = useState<{
+    mapNodes: MapNode[];
+    mapConnections: MapConnection[];
+    apiResponse: MigrationResponse | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    mapNodes: [],
+    mapConnections: [],
+    apiResponse: null,
+    loading: false,
+    error: null
+  });
+
+  // Initialize migration API service
+  const migrationAPIService = new MigrationAPIService();
 
   // URL parameter utilities
   const updateUrlWithLocations = (locations: Location[]) => {
@@ -98,8 +119,29 @@ export default function PageContent() {
     // Set new timer
     periodChangeTimerRef.current = setTimeout(() => {
       dispatch({ type: 'SET_SELECTED_PERIOD', payload: period });
+      
+      // Update migration data visualization when period changes
+      if (migrationData.apiResponse) {
+        try {
+          // Check if the new period exists in the API response
+          const timePeriods = getAvailableTimePeriods(migrationData.apiResponse);
+          const matchingPeriod = timePeriods.find(p => p.id === period);
+          const timePeriodId = matchingPeriod?.id || timePeriods[0]?.id || '';
+          
+          console.log(`Updating visualization for period: ${period} -> ${timePeriodId}`);
+          
+          const { nodes, connections } = transformMigrationDataForMap(migrationData.apiResponse, timePeriodId);
+          setMigrationData(prev => ({
+            ...prev,
+            mapNodes: nodes,
+            mapConnections: connections
+          }));
+        } catch (error) {
+          console.error('Error updating period:', error);
+        }
+      }
     }, 1000);
-  }, []);
+  }, [migrationData.apiResponse]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -123,6 +165,15 @@ export default function PageContent() {
     // Clear URL first to prevent interference
     clearUrlParams();
     
+    // Reset migration data
+    setMigrationData({
+      mapNodes: [],
+      mapConnections: [],
+      apiResponse: null,
+      loading: false,
+      error: null
+    });
+    
     // Then reset all state
     dispatch({ type: 'RESET_QUERY_STATE' });
     dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
@@ -133,6 +184,13 @@ export default function PageContent() {
     setTimeout(() => {
       isResettingRef.current = false;
     }, 100);
+  };
+
+  // Retry function for migration data loading
+  const handleRetryMigrationData = () => {
+    if (state.selectedLocations.length > 0) {
+      loadMigrationData(state.selectedLocations);
+    }
   };
 
   // Global keyboard shortcuts
@@ -288,6 +346,65 @@ export default function PageContent() {
     }
   };
 
+  // Load migration data using the proper API service
+  const loadMigrationData = async (locations: Location[]) => {
+    setMigrationData(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      console.log('Loading migration data for selected locations:', locations.map(l => l.name));
+      
+      // Use the MigrationAPIService which properly maps Location objects to API IDs
+      const result = await migrationAPIService.executeQuery(locations);
+      
+      if (result.success && result.data?.apiResponse) {
+        const apiResponse = result.data.apiResponse as MigrationResponse;
+        
+        // Get available time periods and use the selected period or first available
+        const timePeriods = getAvailableTimePeriods(apiResponse);
+        console.log('Available time periods:', timePeriods);
+        console.log('Current selected period:', state.selectedPeriod);
+        
+        // Check if current selected period matches any available period
+        const matchingPeriod = timePeriods.find(p => p.id === state.selectedPeriod);
+        const timePeriodId = matchingPeriod?.id || timePeriods[0]?.id || '';
+        
+        console.log('Using time period ID:', timePeriodId);
+        
+        // Transform data for map visualization
+        const { nodes, connections } = transformMigrationDataForMap(apiResponse, timePeriodId);
+        
+        setMigrationData({
+          mapNodes: nodes,
+          mapConnections: connections,
+          apiResponse,
+          loading: false,
+          error: null
+        });
+
+        console.log('Migration data loaded successfully:', {
+          locations: apiResponse.data.length,
+          flows: apiResponse.flows?.length || 0,
+          nodes: nodes.length,
+          connections: connections.length,
+          selectedPeriod: timePeriodId
+        });
+      } else {
+        setMigrationData(prev => ({
+          ...prev,
+          loading: false,
+          error: result.error || 'No migration data available for the selected locations'
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load migration data:', error);
+      setMigrationData(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Failed to load migration data'
+      }));
+    }
+  };
+
   const handleExecuteQuery = async () => {
     if (state.selectedLocations.length === 0) return;
     
@@ -299,17 +416,12 @@ export default function PageContent() {
     trackMigrationEvent.executeQuery(state.selectedLocations.length, queryType);
     
     try {
-      const result = await executeQuery(state.selectedLocations);
+      // Load migration data first
+      await loadMigrationData(state.selectedLocations);
       
-      if (result.success) {
-        // Add selected locations to URL query parameters
-        updateUrlWithLocations(state.selectedLocations);
-        dispatch({ type: 'SET_QUERY_SUCCESS' });
-      } else {
-        dispatch({ type: 'SET_QUERY_ERROR' });
-        // Track query failure
-        trackMigrationEvent.trackError('query_execution', 'Query execution failed');
-      }
+      // Add selected locations to URL query parameters
+      updateUrlWithLocations(state.selectedLocations);
+      dispatch({ type: 'SET_QUERY_SUCCESS' });
     } catch (error) {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
@@ -656,6 +768,12 @@ export default function PageContent() {
             selectedPeriod={state.selectedPeriod}
             onNewSearch={handleReset}
             onPeriodChange={debouncedPeriodChange}
+            mapNodes={migrationData.mapNodes}
+            mapConnections={migrationData.mapConnections}
+            apiResponse={migrationData.apiResponse}
+            loading={migrationData.loading}
+            error={migrationData.error}
+            onRetry={handleRetryMigrationData}
           />
         )}
 
