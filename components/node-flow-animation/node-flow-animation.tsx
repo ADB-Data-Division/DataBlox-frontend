@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Box, Slider, Typography, Button, IconButton, Snackbar, Alert } from '@mui/material';
 import { ContentCopy, Share } from '@mui/icons-material';
@@ -8,6 +8,15 @@ import {
   REGION_COLORS, 
   ThailandHexagon 
 } from './thailand-map-data';
+import { 
+  generateNodesFromAdministrativeUnits,
+  generateNodesFromProvinces, 
+  THAILAND_PROVINCE_COORDINATES 
+} from './thailand-map-utils';
+import { 
+  loadAdministrativeData, 
+  type ProcessedAdministrativeData 
+} from '@/app/services/data-loader/thailand-administrative-data';
 import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
 
@@ -91,6 +100,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // State for administrative data
+  const [administrativeData, setAdministrativeData] = useState<ProcessedAdministrativeData | null>(null);
+  const [dataLoading, setDataLoading] = useState<boolean>(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+  
   // State for units selection
   const [selectedUnits, setSelectedUnits] = useState<'thousands' | 'units'>('thousands');
 
@@ -157,6 +171,25 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  // Load administrative data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setDataLoading(true);
+        setDataError(null);
+        const data = await loadAdministrativeData();
+        setAdministrativeData(data);
+      } catch (error) {
+        console.error('Failed to load administrative data:', error);
+        setDataError(error instanceof Error ? error.message : 'Failed to load data');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Generate monthly labels (spanning 24 months for flexibility)
   const generateMonthlyLabels = (): string[] => {
@@ -270,46 +303,85 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const width = propWidth || containerSize.width;
   const height = propHeight || containerSize.height;
 
-  // Default data if none provided
-  const defaultNodes: Node[] = [
-    { id: 'bangkok', title: 'Bangkok', x: 180, y: 140, size: 25 }, // Central Thailand
-    { id: 'chiangmai', title: 'Chiang Mai', x: 110, y: 50, size: 20 }, // Northern Thailand
-    { id: 'khonkaen', title: 'Khon Kaen', x: 220, y: 90, size: 18 }, // Northeastern Thailand
-    { id: 'songkhla', title: 'Songkhla', x: 130, y: 290, size: 22 } // Southern Thailand
-  ];
+  // Calculate center position for Thailand map
+  // Approximate Thailand map bounds (based on hexagon layout)
+  const mapWidth = 200; // Approximate width of Thailand hexagon layout
+  const mapHeight = 300; // Approximate height of Thailand hexagon layout
+  
+  // Center the map in the container
+  const centerX = 100; // Center the map
+  const centerY = 0;
+
+  // Generate nodes from administrative data or fallback to static data
+  const defaultNodes: Node[] = useMemo(() => {
+    if (administrativeData) {
+      // Use provinces only for the main visualization
+      return generateNodesFromAdministrativeUnits(
+        administrativeData.provinces,
+        mapWidth,
+        mapHeight,
+        centerX,
+        centerY
+      );
+    } 
+    return [];
+  }, [administrativeData, mapWidth, mapHeight, centerX, centerY]);
 
   const defaultConnections: Connection[] = [
     { 
-      fromNodeId: 'chiangmai', 
-      toNodeId: 'bangkok',
+      fromNodeId: 'TH-10', // Chiang Mai
+      toNodeId: 'TH-03',   // Bangkok
       toFlowRate: 25, // Migration to Bangkok from Chiang Mai
       fromFlowRate: -8, // Return migration from Bangkok to Chiang Mai
       metadata: { absoluteToFlow: 250000, absoluteFromFlow: 80000, units: 'people/month' }
     },
     { 
-      fromNodeId: 'khonkaen', 
-      toNodeId: 'bangkok',
+      fromNodeId: 'TH-17', // Khon Kaen
+      toNodeId: 'TH-03',   // Bangkok
       toFlowRate: 30,
       fromFlowRate: -10,
       metadata: { absoluteToFlow: 300000, absoluteFromFlow: 100000, units: 'people/month' }
     },
     { 
-      fromNodeId: 'songkhla', 
-      toNodeId: 'bangkok',
+      fromNodeId: 'TH-64', // Songkhla
+      toNodeId: 'TH-03',   // Bangkok
       toFlowRate: 15,
       fromFlowRate: -12,
       metadata: { absoluteToFlow: 150000, absoluteFromFlow: 120000, units: 'people/month' }
     },
     { 
-      fromNodeId: 'chiangmai', 
-      toNodeId: 'khonkaen',
+      fromNodeId: 'TH-10', // Chiang Mai
+      toNodeId: 'TH-17',   // Khon Kaen
       toFlowRate: 5,
       fromFlowRate: -3,
       metadata: { absoluteToFlow: 50000, absoluteFromFlow: 30000, units: 'people/month' }
     }
   ];
 
-  const activeNodes = nodes || defaultNodes;
+  // Merge custom nodes with defaultNodes positions
+  const activeNodes = React.useMemo(() => {
+    if (!nodes) {
+      return defaultNodes;
+    }
+    
+    // Create a lookup map for defaultNodes positions by ID
+    const defaultPositions = new Map(
+      defaultNodes.map(node => [node.id, { x: node.x, y: node.y }])
+    );
+    
+    // Override x,y positions in custom nodes with positions from defaultNodes
+    return nodes.map(node => {
+      const defaultPosition = defaultPositions.get(node.id);
+      if (defaultPosition) {
+        return {
+          ...node,
+          x: defaultPosition.x,
+          y: defaultPosition.y
+        };
+      }
+      return node; // Keep original if no default position found
+    });
+  }, [nodes, defaultNodes]);
   const activeConnections = connections || defaultConnections;
 
   // Helper function to determine if an edge should be visible based on selected node
@@ -396,10 +468,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           return (node.size * 2) * scaleFactor;
         });
 
-        // Update text size to remain readable
+        // Update text size to scale more aggressively with zoom
         d3.selectAll('.node-title').style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.7, 1 / Math.sqrt(zoomLevel));
+          const scaleFactor = Math.max(0.4, 1 / zoomLevel); // More aggressive scaling, minimum 40%
           return `${baseFontSize * scaleFactor}px`;
         });
       });
@@ -407,14 +479,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    // Calculate center position for Thailand map
-    // Approximate Thailand map bounds (based on hexagon layout)
-    const mapWidth = 300; // Approximate width of Thailand hexagon layout
-    const mapHeight = 400; // Approximate height of Thailand hexagon layout
-    
-    // Center the map in the container
-    const centerX = (width - mapWidth) / 2; // Center the map
-    const centerY = (height - mapHeight) / 2;
+    // Map dimensions and centering (already calculated above for node generation)
     
     // Set initial zoom to use the specified default transform (only once)
     if (!initialTransformApplied.current) {
@@ -806,6 +871,43 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       updateEdgeVisibility(null);
     }
   }, [selectedNodeId, updateEdgeVisibility]);
+
+  // Show loading state while data is being fetched
+  if (dataLoading) {
+    return (
+      <div className="nodes-visualization" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', marginBottom: '8px' }}>Loading Thailand map data...</div>
+          <div style={{ fontSize: '14px', color: '#6b7280' }}>Please wait while we load province and district information</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if data failed to load
+  if (dataError) {
+    return (
+      <div className="nodes-visualization" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <div style={{ fontSize: '18px', marginBottom: '8px', color: '#dc2626' }}>Failed to load map data</div>
+          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>{dataError}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ 
+              padding: '8px 16px', 
+              backgroundColor: '#2563eb', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px', 
+              cursor: 'pointer' 
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="nodes-visualization" style={{ width: '100%', height: '100%' }}>
