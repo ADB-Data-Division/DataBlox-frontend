@@ -15,10 +15,6 @@ import {
   Divider,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   useTheme,
   Pagination,
@@ -40,15 +36,13 @@ import MigrationResultsTable from '@/components/migration-results-table';
 
 // Utils and helpers
 import { filterItems, getCommandKey } from '../../src/utils/search';
+import ShortcutsModal from '../../components/shortcuts-modal/shortcuts-modal';
 import { trackMigrationEvent, trackUserInteraction } from '../../src/utils/analytics';
 import { 
   Location, 
-  locationData, 
   getLocationIconType, 
   getLocationColor, 
   getAllLocations, 
-  executeQuery,
-  getLocationByUniqueId,
   getLocationsByUniqueIds 
 } from './helper';
 import { mapViewReducer, initialState } from './reducer';
@@ -686,12 +680,14 @@ export default function PageContent() {
                 borderRadius: 2,
               }
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MagnifyingGlassIcon size={20} color={theme.palette.text.secondary} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <MagnifyingGlassIcon size={20} color={theme.palette.text.secondary} />
+                  </InputAdornment>
+                ),
+              }
             }}
             helperText={
               <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -812,7 +808,7 @@ export default function PageContent() {
               color="text.secondary" 
               sx={{ 
                 mb: 2, 
-                fontWeight: 'bold',
+                fontWeight: 'bold', 
                 textTransform: 'uppercase',
                 letterSpacing: 1
               }}
@@ -1031,154 +1027,7 @@ export default function PageContent() {
       </Paper>
 
       {/* Shortcuts Modal */}
-      <Dialog
-        open={state.showShortcutsModal}
-        onClose={handleCloseShortcutsModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography component="span" variant="subtitle1" fontWeight="bold">
-            Keyboard Shortcuts
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1">Focus search bar</Typography>
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  {getCommandKey()}
-                </Box>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  K
-                </Box>
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1">Select first result</Typography>
-              <Box
-                sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  backgroundColor: theme.palette.grey[100],
-                  border: `1px solid ${theme.palette.grey[300]}`,
-                  fontSize: '0.875rem',
-                  fontFamily: 'monospace'
-                }}
-              >
-                Enter
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1">View Migration Trends</Typography>
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  Shift
-                </Box>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  Enter
-                </Box>
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1">Remove last selection</Typography>
-              <Box
-                sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  backgroundColor: theme.palette.grey[100],
-                  border: `1px solid ${theme.palette.grey[300]}`,
-                  fontSize: '0.875rem',
-                  fontFamily: 'monospace'
-                }}
-              >
-                Backspace
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1">Show this help</Typography>
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  {getCommandKey()}
-                </Box>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.grey[100],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    fontSize: '0.875rem',
-                    fontFamily: 'monospace'
-                  }}
-                >
-                  /
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseShortcutsModal}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <ShortcutsModal open={state.showShortcutsModal} onClose={handleCloseShortcutsModal} />
     </Box>
   );
 }

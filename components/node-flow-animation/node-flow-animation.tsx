@@ -1,29 +1,25 @@
 "use client"
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Box, Slider, Typography, Button, IconButton, Snackbar, Alert } from '@mui/material';
+import { Box, Slider, Typography, Button, Snackbar, Alert } from '@mui/material';
 import { ContentCopy, Share } from '@mui/icons-material';
 import { 
   generateThailandHexagonsFromCoordinates, 
-  REGION_COLORS, 
-  ThailandHexagon 
-} from './thailand-map-data';
+  REGION_COLORS} from './thailand-map-data';
 import { 
-  generateNodesFromAdministrativeUnits,
-  generateNodesFromProvinces, 
-  THAILAND_PROVINCE_COORDINATES 
-} from './thailand-map-utils';
+  generateNodesFromAdministrativeUnits} from './thailand-map-utils';
 import { 
   loadAdministrativeData, 
   type ProcessedAdministrativeData 
 } from '@/app/services/data-loader/thailand-administrative-data';
 import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
+import CitationFooter from '../citation-footer/citation-footer';
 
 // Default transform constants
-const DEFAULT_TRANSFORM_SCALE = 1.331968136327066;
-const DEFAULT_TRANSFORM_X = 261.824295721705;
-const DEFAULT_TRANSFORM_Y = 133.61470868737354;
+const DEFAULT_TRANSFORM_SCALE = 2;
+const DEFAULT_TRANSFORM_X = 175.8644263369394;
+const DEFAULT_TRANSFORM_Y = 147.29254719698156;
 
 interface Node {
   id: string;
@@ -112,7 +108,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   // State for zoom level to dynamically size nodes (for initial render only)
-  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(1);
+  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(DEFAULT_TRANSFORM_SCALE);
 
   // State to track current transform (to make it persistent)
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
@@ -261,42 +257,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Callbacks are now handled by the debounced effect above
   };
 
-  // APA 7th Edition Citation
-  const citationText = "Cordel, M., Smith, J., & Brown, A. (2025). Datablox: Thailand migration flow visualization. Asian Development Bank. Retrieved from " + (typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com');
-
-  // Copy citation to clipboard
-  const handleCopyCitation = async () => {
-    try {
-      await navigator.clipboard.writeText(citationText);
-      setSnackbarMessage('Citation copied to clipboard!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch (error) {
-      setSnackbarMessage('Failed to copy citation');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
-
-  // Copy page URL to clipboard
-  const handleShareLink = async () => {
-    try {
-      const url = typeof window !== 'undefined' ? window.location.href : '';
-      await navigator.clipboard.writeText(url);
-      setSnackbarMessage('Link copied to clipboard!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch (error) {
-      setSnackbarMessage('Failed to copy link');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
-
-  // Close snackbar
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
 
   // Use container size if no width/height provided
   const containerSize = useContainerSize(containerRef);
@@ -309,7 +269,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const mapHeight = 300; // Approximate height of Thailand hexagon layout
   
   // Center the map in the container
-  const centerX = 100; // Center the map
+  const centerX = 100 ; // Center the map
   const centerY = 0;
 
   // Generate nodes from administrative data or fallback to static data
@@ -327,36 +287,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     return [];
   }, [administrativeData, mapWidth, mapHeight, centerX, centerY]);
 
-  const defaultConnections: Connection[] = [
-    { 
-      fromNodeId: 'TH-10', // Chiang Mai
-      toNodeId: 'TH-03',   // Bangkok
-      toFlowRate: 25, // Migration to Bangkok from Chiang Mai
-      fromFlowRate: -8, // Return migration from Bangkok to Chiang Mai
-      metadata: { absoluteToFlow: 250000, absoluteFromFlow: 80000, units: 'people/month' }
-    },
-    { 
-      fromNodeId: 'TH-17', // Khon Kaen
-      toNodeId: 'TH-03',   // Bangkok
-      toFlowRate: 30,
-      fromFlowRate: -10,
-      metadata: { absoluteToFlow: 300000, absoluteFromFlow: 100000, units: 'people/month' }
-    },
-    { 
-      fromNodeId: 'TH-64', // Songkhla
-      toNodeId: 'TH-03',   // Bangkok
-      toFlowRate: 15,
-      fromFlowRate: -12,
-      metadata: { absoluteToFlow: 150000, absoluteFromFlow: 120000, units: 'people/month' }
-    },
-    { 
-      fromNodeId: 'TH-10', // Chiang Mai
-      toNodeId: 'TH-17',   // Khon Kaen
-      toFlowRate: 5,
-      fromFlowRate: -3,
-      metadata: { absoluteToFlow: 50000, absoluteFromFlow: 30000, units: 'people/month' }
-    }
-  ];
+  
 
   // Merge custom nodes with defaultNodes positions
   const activeNodes = React.useMemo(() => {
@@ -382,7 +313,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       return node; // Keep original if no default position found
     });
   }, [nodes, defaultNodes]);
-  const activeConnections = connections || defaultConnections;
+  const activeConnections = connections || [];
 
   // Helper function to determine if an edge should be visible based on selected node
   const isEdgeVisible = (connection: Connection, selectedNodeId: string | null): boolean => {
@@ -393,8 +324,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   // Function to calculate dynamic node size based on zoom level
   const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel: number): number => {
     // As zoom increases, make nodes smaller to prevent them from covering edges
-    // Use inverse relationship with a minimum size limit
-    const scaleFactor = Math.max(0.3, 1 / Math.sqrt(zoomLevel)); // Minimum 30% of original size
+    // Use more aggressive inverse relationship with a minimum size limit
+    const scaleFactor = Math.max(0.2, 1 / zoomLevel); // Minimum 20% of original size, more aggressive scaling
     return baseSize * scaleFactor;
   }, []);
 
@@ -443,7 +374,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.7, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
+      .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
       .translateExtent([[-500, -200], [width, height + 100]]) // Pan boundaries (with padding)
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
@@ -455,7 +386,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         // Update node sizes directly without React state updates
         const zoomLevel = event.transform.k;
         
-        // Update node sizes based on zoom level
+        // Update node sizes based on zoom level with more aggressive scaling
         d3.selectAll('.node').attr('r', function() {
           const element = this as Element;
           const parentElement = element.parentNode as SVGGElement;
@@ -464,7 +395,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           const nodeId = nodeGroup.attr('data-node-id');
           const node = activeNodes.find(n => n.id === nodeId);
           if (!node) return 20; // fallback size
-          const scaleFactor = Math.max(0.3, 1 / Math.sqrt(zoomLevel));
+          const scaleFactor = Math.max(0.2, 1 / zoomLevel); // More aggressive scaling, minimum 20%
           return (node.size * 2) * scaleFactor;
         });
 
@@ -474,6 +405,26 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           const scaleFactor = Math.max(0.4, 1 / zoomLevel); // More aggressive scaling, minimum 40%
           return `${baseFontSize * scaleFactor}px`;
         });
+
+        // Update border thickness based on zoom level
+        d3.selectAll('.node').style('stroke-width', function() {
+          const baseStrokeWidth = 3;
+          const scaleFactor = Math.max(0.3, 1 / zoomLevel); // Scale border thickness, minimum 30%
+          return `${baseStrokeWidth * scaleFactor}px`;
+        });
+
+        // Update arrow line thickness based on zoom level
+        d3.selectAll('.flowline-to, .flowline-from').style('stroke-width', function() {
+          const baseStrokeWidth = 5;
+          const scaleFactor = Math.max(0.3, 1 / zoomLevel); // Scale line thickness, minimum 30%
+          return `${baseStrokeWidth * scaleFactor}px`;
+        });
+
+        // Update arrow marker sizes based on zoom level
+        const arrowScaleFactor = Math.max(0.3, 1 / zoomLevel);
+        d3.selectAll('#arrow-to, #arrow-from')
+          .attr('markerWidth', 4 * arrowScaleFactor)
+          .attr('markerHeight', 4 * arrowScaleFactor);
       });
 
     // Apply zoom behavior to SVG
@@ -686,7 +637,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
         // Add click events to node group
         nodeGroup
-          .on('click', function() {
+          .on('click', function(event) {
+            // Prevent the click from propagating to the SVG zoom handler
+            event.stopPropagation();
             // Toggle selection
             if (selectedNodeIdRef.current === node.id) {
               // Unselect if already selected
@@ -696,7 +649,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               d3.select(this).select('.node')
                 .style('fill', '#f3f4f6')
                 .style('stroke', '#6b7280')
-                .style('stroke-width', '3');
+                .style('stroke-width', function() {
+                  const baseStrokeWidth = 3;
+                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  return `${baseStrokeWidth * scaleFactor}px`;
+                });
             } else {
               // Select new node
               setSelectedNodeId(node.id);
@@ -705,13 +662,21 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               d3.selectAll('.node')
                 .style('fill', '#f3f4f6')
                 .style('stroke', '#6b7280')
-                .style('stroke-width', '3');
+                .style('stroke-width', function() {
+                  const baseStrokeWidth = 3;
+                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  return `${baseStrokeWidth * scaleFactor}px`;
+                });
               
               // Highlight the selected node
               d3.select(this).select('.node')
                 .style('fill', '#dbeafe')
                 .style('stroke', '#2563eb')
-                .style('stroke-width', '4');
+                .style('stroke-width', function() {
+                  const baseStrokeWidth = 3; // Same thickness as unselected nodes
+                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  return `${baseStrokeWidth * scaleFactor}px`;
+                });
             }
           });
       });
@@ -720,13 +685,17 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll('.node')
         .style('fill', '#f3f4f6')
         .style('stroke', '#6b7280')
-        .style('stroke-width', '3');
+        .style('stroke-width', function() {
+          const baseStrokeWidth = 3;
+          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale border thickness, minimum 30%
+          return `${baseStrokeWidth * scaleFactor}px`;
+        });
 
       d3.selectAll('.node-title')
         .style('font-family', 'Arial, sans-serif')
         .style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.7, 1 / Math.sqrt(currentZoomLevel));
+          const scaleFactor = Math.max(0.4, 1 / currentZoomLevel); // More aggressive scaling, minimum 40%
           return `${baseFontSize * scaleFactor}px`;
         })
         .style('font-weight', 'bold')
@@ -738,7 +707,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('fill', 'none')
         .style('stroke', '#2563eb')
         .style('opacity', '0.7')
-        .style('stroke-width', '5px') // Constant width
+        .style('stroke-width', function() {
+          const baseStrokeWidth = 5;
+          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale line thickness, minimum 30%
+          return `${baseStrokeWidth * scaleFactor}px`;
+        })
         .style('stroke-dasharray', '8, 4');
 
       // Style "from" direction paths (red)
@@ -746,7 +719,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('fill', 'none')
         .style('stroke', '#888888')
         .style('opacity', '0.7')
-        .style('stroke-width', '5px') // Constant width
+        .style('stroke-width', function() {
+          const baseStrokeWidth = 5;
+          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale line thickness, minimum 30%
+          return `${baseStrokeWidth * scaleFactor}px`;
+        })
         .style('stroke-dasharray', '8, 4');
 
       // Animation configuration constants
@@ -861,7 +838,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, activeConnections, curved, currentZoomLevel, getDynamicNodeSize]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, height, activeNodes, activeConnections, curved, getDynamicNodeSize]);
 
   // Separate useEffect for handling node selection changes (without resetting the visualization)
   useEffect(() => {
@@ -917,7 +895,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         className="responsive-content-container"
         style={{
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           gap: '24px',
           width: '100%',
           minHeight: '50vh'
@@ -925,11 +903,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       >
         {/* SVG Container */}
         <div 
+          id="svg-container"
           ref={containerRef}
           className="svg-container"
           style={{
             flex: '1',
-            minHeight: '300px',
+            height: '700px',
             width: '100%',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
@@ -948,11 +927,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         
         {/* Table Container */}
         <div 
+            id="table-container"  
             className="table-container"
             style={{
               flex: '1',
-              minHeight: '300px',
-              overflowX: 'auto'
+              height  : '700px',
+              overflowY: 'unset'
             }}
           >
             {/* Month Slider - inside table container */}
@@ -1091,7 +1071,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                             d3.selectAll('.node')
                               .style('fill', '#f3f4f6')
                               .style('stroke', '#6b7280')
-                              .style('stroke-width', '3');
+                              .style('stroke-width', function() {
+                                const baseStrokeWidth = 3;
+                                const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                                return `${baseStrokeWidth * scaleFactor}px`;
+                              });
                           }}
                           style={{
                             background: 'none',
@@ -1116,7 +1100,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                     gap: '12px',
                     padding: '16px',
                     backgroundColor: '#f9fafb',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    height: '400px',
+                    overflowY: 'auto'
                   }}>
                     {(() => {
                       // Filter flows for the selected period
@@ -1240,124 +1226,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             )}
           </div>
       </div>
-
-      {/* Citation Footer */}
-      <Box
-        sx={{
-          mt: 2,
-          pt: 2,
-          pb: 2
-        }}
-      >
-        <Typography
-          variant="h6"
-          sx={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: '#374151',
-            mb: 2
-          }}
-        >
-          How to Cite This Research
-        </Typography>
-        
-        <Typography
-          variant="body2"
-          sx={{
-            color: '#6b7280',
-            mb: 2,
-            lineHeight: 1.6,
-            fontFamily: 'monospace',
-            fontSize: '13px'
-          }}
-        >
-          {citationText}
-        </Typography>
-        
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 2,
-            flexWrap: 'wrap'
-          }}
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ContentCopy />}
-            onClick={handleCopyCitation}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 500
-            }}
-          >
-            Copy Citation
-          </Button>
-          
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Share />}
-            onClick={handleShareLink}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 500
-            }}
-          >
-            Share Link
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Snackbar for copy notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* CSS for responsive behavior */}
-      <style jsx>{`
-        @media (min-width: 1024px) {
-          .responsive-content-container {
-            flex-direction: row !important;
-          }
-          
-          .svg-container {
-            flex: 2;
-            max-width: 60%;
-          }
-          
-          .table-container {
-            flex: 1;
-            max-width: 40%;
-            min-width: 400px;
-          }
-        }
-        
-        @media (max-width: 1023px) {
-          .responsive-content-container {
-            flex-direction: column;
-          }
-          
-          .svg-container {
-            min-height: 40vh;
-          }
-          
-          .table-container {
-            min-height: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 };
