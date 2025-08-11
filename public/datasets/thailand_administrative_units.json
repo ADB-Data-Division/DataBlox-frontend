@@ -1,0 +1,7938 @@
+[
+  {
+    "id": "TH-01",
+    "name": "Amnat Charoen",
+    "name_thai": "อำนาจเจริญ",
+    "type": "province",
+    "latitude": 15.8617,
+    "longitude": 104.6285
+  },
+  {
+    "id": "TH-02",
+    "name": "Ang Thong",
+    "name_thai": "อ่างทอง",
+    "type": "province",
+    "latitude": 14.5896,
+    "longitude": 100.4552
+  },
+  {
+    "id": "TH-03",
+    "name": "Bangkok",
+    "name_thai": "กรุงเทพมหานคร",
+    "type": "province",
+    "latitude": 13.7563,
+    "longitude": 100.5018
+  },
+  {
+    "id": "TH-04",
+    "name": "Bueng Kan",
+    "name_thai": "บึงกาฬ",
+    "type": "province",
+    "latitude": 18.3609,
+    "longitude": 103.6469
+  },
+  {
+    "id": "TH-05",
+    "name": "Buri Ram",
+    "name_thai": "บุรีรัมย์",
+    "type": "province",
+    "latitude": 14.993,
+    "longitude": 103.1029
+  },
+  {
+    "id": "TH-06",
+    "name": "Chachoengsao",
+    "name_thai": "ฉะเชิงเทรา",
+    "type": "province",
+    "latitude": 13.6904,
+    "longitude": 101.0779
+  },
+  {
+    "id": "TH-07",
+    "name": "Chai Nat",
+    "name_thai": "ชัยนาท",
+    "type": "province",
+    "latitude": 15.1851,
+    "longitude": 100.1251
+  },
+  {
+    "id": "TH-08",
+    "name": "Chaiyaphum",
+    "name_thai": "ชัยภูมิ",
+    "type": "province",
+    "latitude": 15.8069,
+    "longitude": 102.031
+  },
+  {
+    "id": "TH-09",
+    "name": "Chanthaburi",
+    "name_thai": "จันทบุรี",
+    "type": "province",
+    "latitude": 12.6117,
+    "longitude": 102.1038
+  },
+  {
+    "id": "TH-10",
+    "name": "Chiang Mai",
+    "name_thai": "เชียงใหม่",
+    "type": "province",
+    "latitude": 18.7883,
+    "longitude": 98.9853
+  },
+  {
+    "id": "TH-11",
+    "name": "Chiang Rai",
+    "name_thai": "เชียงราย",
+    "type": "province",
+    "latitude": 19.9105,
+    "longitude": 99.8406
+  },
+  {
+    "id": "TH-12",
+    "name": "Chon Buri",
+    "name_thai": "ชลบุรี",
+    "type": "province",
+    "latitude": 13.3611,
+    "longitude": 100.9847
+  },
+  {
+    "id": "TH-13",
+    "name": "Chumphon",
+    "name_thai": "ชุมพร",
+    "type": "province",
+    "latitude": 10.493,
+    "longitude": 99.18
+  },
+  {
+    "id": "TH-14",
+    "name": "Kalasin",
+    "name_thai": "กาฬสินธุ์",
+    "type": "province",
+    "latitude": 16.4322,
+    "longitude": 103.5057
+  },
+  {
+    "id": "TH-15",
+    "name": "Kamphaeng Phet",
+    "name_thai": "กำแพงเพชร",
+    "type": "province",
+    "latitude": 16.4827,
+    "longitude": 99.5226
+  },
+  {
+    "id": "TH-16",
+    "name": "Kanchanaburi",
+    "name_thai": "กาญจนบุรี",
+    "type": "province",
+    "latitude": 14.0227,
+    "longitude": 99.5328
+  },
+  {
+    "id": "TH-17",
+    "name": "Khon Kaen",
+    "name_thai": "ขอนแก่น",
+    "type": "province",
+    "latitude": 16.4419,
+    "longitude": 102.8359
+  },
+  {
+    "id": "TH-18",
+    "name": "Krabi",
+    "name_thai": "กระบี่",
+    "type": "province",
+    "latitude": 8.0863,
+    "longitude": 98.9063
+  },
+  {
+    "id": "TH-19",
+    "name": "Lampang",
+    "name_thai": "ลำปาง",
+    "type": "province",
+    "latitude": 18.2888,
+    "longitude": 99.4919
+  },
+  {
+    "id": "TH-20",
+    "name": "Lamphun",
+    "name_thai": "ลำพูน",
+    "type": "province",
+    "latitude": 18.5745,
+    "longitude": 99.0087
+  },
+  {
+    "id": "TH-21",
+    "name": "Loei",
+    "name_thai": "เลย",
+    "type": "province",
+    "latitude": 17.486,
+    "longitude": 101.7223
+  },
+  {
+    "id": "TH-22",
+    "name": "Lop Buri",
+    "name_thai": "ลพบุรี",
+    "type": "province",
+    "latitude": 14.7995,
+    "longitude": 100.6533
+  },
+  {
+    "id": "TH-23",
+    "name": "Mae Hong Son",
+    "name_thai": "แม่ฮ่องสอน",
+    "type": "province",
+    "latitude": 19.3016,
+    "longitude": 97.9658
+  },
+  {
+    "id": "TH-24",
+    "name": "Maha Sarakham",
+    "name_thai": "มหาสารคาม",
+    "type": "province",
+    "latitude": 16.1851,
+    "longitude": 103.3
+  },
+  {
+    "id": "TH-25",
+    "name": "Mukdahan",
+    "name_thai": "มุกดาหาร",
+    "type": "province",
+    "latitude": 16.542,
+    "longitude": 104.7233
+  },
+  {
+    "id": "TH-26",
+    "name": "Nakhon Nayok",
+    "name_thai": "นครนายก",
+    "type": "province",
+    "latitude": 14.2069,
+    "longitude": 101.213
+  },
+  {
+    "id": "TH-27",
+    "name": "Nakhon Pathom",
+    "name_thai": "นครปฐม",
+    "type": "province",
+    "latitude": 13.8199,
+    "longitude": 100.0644
+  },
+  {
+    "id": "TH-28",
+    "name": "Nakhon Phanom",
+    "name_thai": "นครพนม",
+    "type": "province",
+    "latitude": 17.4078,
+    "longitude": 104.7784
+  },
+  {
+    "id": "TH-29",
+    "name": "Nakhon Ratchasima",
+    "name_thai": "นครราชสีมา",
+    "type": "province",
+    "latitude": 14.9799,
+    "longitude": 102.0977
+  },
+  {
+    "id": "TH-30",
+    "name": "Nakhon Sawan",
+    "name_thai": "นครสวรรค์",
+    "type": "province",
+    "latitude": 15.7047,
+    "longitude": 100.1378
+  },
+  {
+    "id": "TH-31",
+    "name": "Nakhon Si Thammarat",
+    "name_thai": "นครศรีธรรมราช",
+    "type": "province",
+    "latitude": 8.4304,
+    "longitude": 99.9631
+  },
+  {
+    "id": "TH-32",
+    "name": "Nan",
+    "name_thai": "น่าน",
+    "type": "province",
+    "latitude": 18.7838,
+    "longitude": 100.7792
+  },
+  {
+    "id": "TH-33",
+    "name": "Narathiwat",
+    "name_thai": "นราธิวาส",
+    "type": "province",
+    "latitude": 6.4254,
+    "longitude": 101.8253
+  },
+  {
+    "id": "TH-34",
+    "name": "Nong Bua Lam Phu",
+    "name_thai": "หนองบัวลำภู",
+    "type": "province",
+    "latitude": 17.2042,
+    "longitude": 102.4415
+  },
+  {
+    "id": "TH-35",
+    "name": "Nong Khai",
+    "name_thai": "หนองคาย",
+    "type": "province",
+    "latitude": 17.8782,
+    "longitude": 102.7412
+  },
+  {
+    "id": "TH-36",
+    "name": "Nonthaburi",
+    "name_thai": "นนทบุรี",
+    "type": "province",
+    "latitude": 13.8621,
+    "longitude": 100.5144
+  },
+  {
+    "id": "TH-37",
+    "name": "Pathum Thani",
+    "name_thai": "ปทุมธานี",
+    "type": "province",
+    "latitude": 14.0208,
+    "longitude": 100.525
+  },
+  {
+    "id": "TH-38",
+    "name": "Pattani",
+    "name_thai": "ปัตตานี",
+    "type": "province",
+    "latitude": 6.8693,
+    "longitude": 101.2501
+  },
+  {
+    "id": "TH-39",
+    "name": "Phangnga",
+    "name_thai": "พังงา",
+    "type": "province",
+    "latitude": 8.4504,
+    "longitude": 98.5339
+  },
+  {
+    "id": "TH-40",
+    "name": "Phatthalung",
+    "name_thai": "พัทลุง",
+    "type": "province",
+    "latitude": 7.6166,
+    "longitude": 100.0741
+  },
+  {
+    "id": "TH-41",
+    "name": "Phayao",
+    "name_thai": "พะเยา",
+    "type": "province",
+    "latitude": 19.1664,
+    "longitude": 99.8748
+  },
+  {
+    "id": "TH-42",
+    "name": "Phetchabun",
+    "name_thai": "เพชรบูรณ์",
+    "type": "province",
+    "latitude": 16.4193,
+    "longitude": 101.1607
+  },
+  {
+    "id": "TH-43",
+    "name": "Phetchaburi",
+    "name_thai": "เพชรบุรี",
+    "type": "province",
+    "latitude": 13.1115,
+    "longitude": 99.9396
+  },
+  {
+    "id": "TH-44",
+    "name": "Phichit",
+    "name_thai": "พิจิตร",
+    "type": "province",
+    "latitude": 16.4388,
+    "longitude": 100.3489
+  },
+  {
+    "id": "TH-45",
+    "name": "Phitsanulok",
+    "name_thai": "พิษณุโลก",
+    "type": "province",
+    "latitude": 16.8211,
+    "longitude": 100.2659
+  },
+  {
+    "id": "TH-46",
+    "name": "Phra Nakhon Si Ayutthaya",
+    "name_thai": "พระนครศรีอยุธยา",
+    "type": "province",
+    "latitude": 14.3692,
+    "longitude": 100.5877
+  },
+  {
+    "id": "TH-47",
+    "name": "Phrae",
+    "name_thai": "แพร่",
+    "type": "province",
+    "latitude": 18.1459,
+    "longitude": 100.141
+  },
+  {
+    "id": "TH-48",
+    "name": "Phuket",
+    "name_thai": "ภูเก็ต",
+    "type": "province",
+    "latitude": 7.8804,
+    "longitude": 98.3923
+  },
+  {
+    "id": "TH-49",
+    "name": "Prachin Buri",
+    "name_thai": "ปราจีนบุรี",
+    "type": "province",
+    "latitude": 14.0504,
+    "longitude": 101.3687
+  },
+  {
+    "id": "TH-50",
+    "name": "Prachuap Khiri Khan",
+    "name_thai": "ประจวบคีรีขันธ์",
+    "type": "province",
+    "latitude": 11.8103,
+    "longitude": 99.7974
+  },
+  {
+    "id": "TH-51",
+    "name": "Ranong",
+    "name_thai": "ระนอง",
+    "type": "province",
+    "latitude": 9.9558,
+    "longitude": 98.6353
+  },
+  {
+    "id": "TH-52",
+    "name": "Ratchaburi",
+    "name_thai": "ราชบุรี",
+    "type": "province",
+    "latitude": 13.5282,
+    "longitude": 99.8134
+  },
+  {
+    "id": "TH-53",
+    "name": "Rayong",
+    "name_thai": "ระยอง",
+    "type": "province",
+    "latitude": 12.681,
+    "longitude": 101.282
+  },
+  {
+    "id": "TH-54",
+    "name": "Roi Et",
+    "name_thai": "ร้อยเอ็ด",
+    "type": "province",
+    "latitude": 16.0514,
+    "longitude": 103.6536
+  },
+  {
+    "id": "TH-55",
+    "name": "Sa Kaeo",
+    "name_thai": "สระแก้ว",
+    "type": "province",
+    "latitude": 13.824,
+    "longitude": 102.0641
+  },
+  {
+    "id": "TH-56",
+    "name": "Sakon Nakhon",
+    "name_thai": "สกลนคร",
+    "type": "province",
+    "latitude": 17.1614,
+    "longitude": 104.1486
+  },
+  {
+    "id": "TH-57",
+    "name": "Samut Prakan",
+    "name_thai": "สมุทรปราการ",
+    "type": "province",
+    "latitude": 13.599,
+    "longitude": 100.5998
+  },
+  {
+    "id": "TH-58",
+    "name": "Samut Sakhon",
+    "name_thai": "สมุทรสาคร",
+    "type": "province",
+    "latitude": 13.5477,
+    "longitude": 100.2741
+  },
+  {
+    "id": "TH-59",
+    "name": "Samut Songkhram",
+    "name_thai": "สมุทรสงคราม",
+    "type": "province",
+    "latitude": 13.4138,
+    "longitude": 100.002
+  },
+  {
+    "id": "TH-60",
+    "name": "Saraburi",
+    "name_thai": "สระบุรี",
+    "type": "province",
+    "latitude": 14.5289,
+    "longitude": 100.9106
+  },
+  {
+    "id": "TH-61",
+    "name": "Satun",
+    "name_thai": "สตูล",
+    "type": "province",
+    "latitude": 6.6238,
+    "longitude": 100.0673
+  },
+  {
+    "id": "TH-62",
+    "name": "Si Sa Ket",
+    "name_thai": "ศรีสะเกษ",
+    "type": "province",
+    "latitude": 15.1186,
+    "longitude": 104.322
+  },
+  {
+    "id": "TH-63",
+    "name": "Sing Buri",
+    "name_thai": "สิงห์บุรี",
+    "type": "province",
+    "latitude": 14.8936,
+    "longitude": 100.3968
+  },
+  {
+    "id": "TH-64",
+    "name": "Songkhla",
+    "name_thai": "สงขลา",
+    "type": "province",
+    "latitude": 7.1756,
+    "longitude": 100.6135
+  },
+  {
+    "id": "TH-65",
+    "name": "Sukhothai",
+    "name_thai": "สุโขทัย",
+    "type": "province",
+    "latitude": 17.0077,
+    "longitude": 99.8237
+  },
+  {
+    "id": "TH-66",
+    "name": "Suphan Buri",
+    "name_thai": "สุพรรณบุรี",
+    "type": "province",
+    "latitude": 14.4745,
+    "longitude": 100.1217
+  },
+  {
+    "id": "TH-67",
+    "name": "Surat Thani",
+    "name_thai": "สุราษฎร์ธานี",
+    "type": "province",
+    "latitude": 9.1382,
+    "longitude": 99.3215
+  },
+  {
+    "id": "TH-68",
+    "name": "Surin",
+    "name_thai": "สุรินทร์",
+    "type": "province",
+    "latitude": 14.8818,
+    "longitude": 103.4934
+  },
+  {
+    "id": "TH-69",
+    "name": "Tak",
+    "name_thai": "ตาก",
+    "type": "province",
+    "latitude": 16.884,
+    "longitude": 99.1255
+  },
+  {
+    "id": "TH-70",
+    "name": "Trang",
+    "name_thai": "ตรัง",
+    "type": "province",
+    "latitude": 7.5563,
+    "longitude": 99.6114
+  },
+  {
+    "id": "TH-71",
+    "name": "Trat",
+    "name_thai": "ตราด",
+    "type": "province",
+    "latitude": 12.2436,
+    "longitude": 102.515
+  },
+  {
+    "id": "TH-72",
+    "name": "Ubon Ratchathani",
+    "name_thai": "อุบลราชธานี",
+    "type": "province",
+    "latitude": 15.2441,
+    "longitude": 104.8473
+  },
+  {
+    "id": "TH-73",
+    "name": "Udon Thani",
+    "name_thai": "อุดรธานี",
+    "type": "province",
+    "latitude": 17.4138,
+    "longitude": 102.7879
+  },
+  {
+    "id": "TH-74",
+    "name": "Uthai Thani",
+    "name_thai": "อุทัยธานี",
+    "type": "province",
+    "latitude": 15.3794,
+    "longitude": 100.0245
+  },
+  {
+    "id": "TH-75",
+    "name": "Uttaradit",
+    "name_thai": "อุตรดิตถ์",
+    "type": "province",
+    "latitude": 17.62,
+    "longitude": 100.0994
+  },
+  {
+    "id": "TH-76",
+    "name": "Yala",
+    "name_thai": "ยะลา",
+    "type": "province",
+    "latitude": 6.5407,
+    "longitude": 101.28
+  },
+  {
+    "id": "TH-77",
+    "name": "Yasothon",
+    "name_thai": "ยโสธร",
+    "type": "province",
+    "latitude": 15.792,
+    "longitude": 104.1455
+  },
+  {
+    "id": "TH-05-001",
+    "name": "Akat Amnuai",
+    "name_thai": "Akat Amnuai",
+    "type": "district",
+    "latitude": 17.686931,
+    "longitude": 103.9608091
+  },
+  {
+    "id": "TH-59-001",
+    "name": "Amphawa",
+    "name_thai": "Amphawa",
+    "type": "district",
+    "latitude": 13.3601931,
+    "longitude": 99.91298450000001
+  },
+  {
+    "id": "TH-67-001",
+    "name": "Ao Luek",
+    "name_thai": "Ao Luek",
+    "type": "district",
+    "latitude": 8.3425807,
+    "longitude": 98.7921836
+  },
+  {
+    "id": "TH-55-001",
+    "name": "Aranyaprathet",
+    "name_thai": "Aranyaprathet",
+    "type": "district",
+    "latitude": 13.6782356,
+    "longitude": 102.5211986
+  },
+  {
+    "id": "TH-03-001",
+    "name": "At Samat",
+    "name_thai": "At Samat",
+    "type": "district",
+    "latitude": 15.836139,
+    "longitude": 103.8796018
+  },
+  {
+    "id": "TH-52-001",
+    "name": "Bacho",
+    "name_thai": "Bacho",
+    "type": "district",
+    "latitude": 6.5489555,
+    "longitude": 101.6385328
+  },
+  {
+    "id": "TH-52-002",
+    "name": "Bamnet Narong",
+    "name_thai": "Bamnet Narong",
+    "type": "district",
+    "latitude": 15.4502205,
+    "longitude": 101.6385328
+  },
+  {
+    "id": "TH-39-001",
+    "name": "Ban Bueng",
+    "name_thai": "Ban Bueng",
+    "type": "district",
+    "latitude": 13.308029,
+    "longitude": 101.1224066
+  },
+  {
+    "id": "TH-01-001",
+    "name": "Ban Chang",
+    "name_thai": "Ban Chang",
+    "type": "district",
+    "latitude": 12.7252408,
+    "longitude": 101.086142
+  },
+  {
+    "id": "TH-54-001",
+    "name": "Ban Dan",
+    "name_thai": "Ban Dan",
+    "type": "district",
+    "latitude": 15.1330481,
+    "longitude": 103.1971067
+  },
+  {
+    "id": "TH-38-001",
+    "name": "Ban Dan Lan Hoi",
+    "name_thai": "Ban Dan Lan Hoi",
+    "type": "district",
+    "latitude": 17.1137554,
+    "longitude": 99.5006143
+  },
+  {
+    "id": "TH-41-001",
+    "name": "Ban Dung",
+    "name_thai": "Ban Dung",
+    "type": "district",
+    "latitude": 17.7388236,
+    "longitude": 103.2201828
+  },
+  {
+    "id": "TH-06-001",
+    "name": "Ban Fang",
+    "name_thai": "Ban Fang",
+    "type": "district",
+    "latitude": 16.4444596,
+    "longitude": 102.6331035
+  },
+  {
+    "id": "TH-42-001",
+    "name": "Ban Haet",
+    "name_thai": "Ban Haet",
+    "type": "district",
+    "latitude": 16.2110402,
+    "longitude": 102.7612901
+  },
+  {
+    "id": "TH-33-001",
+    "name": "Ban Hong",
+    "name_thai": "Ban Hong",
+    "type": "district",
+    "latitude": 18.3062391,
+    "longitude": 98.8252502
+  },
+  {
+    "id": "TH-68-001",
+    "name": "Ban Kha",
+    "name_thai": "Ban Kha",
+    "type": "district",
+    "latitude": 13.3916523,
+    "longitude": 99.389511
+  },
+  {
+    "id": "TH-34-001",
+    "name": "Ban Khai",
+    "name_thai": "Ban Khai",
+    "type": "district",
+    "latitude": 12.7855768,
+    "longitude": 101.3034028
+  },
+  {
+    "id": "TH-04-001",
+    "name": "Ban Khok",
+    "name_thai": "Ban Khok",
+    "type": "district",
+    "latitude": 18.0013744,
+    "longitude": 101.0824912
+  },
+  {
+    "id": "TH-57-001",
+    "name": "Ban Khwao",
+    "name_thai": "Ban Khwao",
+    "type": "district",
+    "latitude": 15.7463121,
+    "longitude": 101.9233964
+  },
+  {
+    "id": "TH-28-001",
+    "name": "Ban Kruat",
+    "name_thai": "Ban Kruat",
+    "type": "district",
+    "latitude": 14.4356818,
+    "longitude": 103.0990809
+  },
+  {
+    "id": "TH-04-002",
+    "name": "Ban Laem",
+    "name_thai": "Ban Laem",
+    "type": "district",
+    "latitude": 13.1978672,
+    "longitude": 99.98004379999999
+  },
+  {
+    "id": "TH-48-001",
+    "name": "Ban Lat",
+    "name_thai": "Ban Lat",
+    "type": "district",
+    "latitude": 13.0551033,
+    "longitude": 99.9157776
+  },
+  {
+    "id": "TH-16-001",
+    "name": "Ban Luang",
+    "name_thai": "Ban Luang",
+    "type": "district",
+    "latitude": 18.422175,
+    "longitude": 98.67757180000001
+  },
+  {
+    "id": "TH-58-001",
+    "name": "Ban Lueam",
+    "name_thai": "Ban Lueam",
+    "type": "district",
+    "latitude": 15.6195755,
+    "longitude": 102.1289715
+  },
+  {
+    "id": "TH-45-001",
+    "name": "Ban Mai Chaiyaphot",
+    "name_thai": "Ban Mai Chaiyaphot",
+    "type": "district",
+    "latitude": 15.5679804,
+    "longitude": 102.8284772
+  },
+  {
+    "id": "TH-53-001",
+    "name": "Ban Mi",
+    "name_thai": "Ban Mi",
+    "type": "district",
+    "latitude": 15.1111195,
+    "longitude": 100.5746224
+  },
+  {
+    "id": "TH-66-001",
+    "name": "Ban Mo",
+    "name_thai": "Ban Mo",
+    "type": "district",
+    "latitude": 14.614994,
+    "longitude": 100.7154228
+  },
+  {
+    "id": "TH-70-001",
+    "name": "Ban Muang",
+    "name_thai": "Ban Muang",
+    "type": "district",
+    "latitude": 17.9053046,
+    "longitude": 103.4974258
+  },
+  {
+    "id": "TH-65-001",
+    "name": "Ban Na",
+    "name_thai": "Ban Na",
+    "type": "district",
+    "latitude": 8.8638586,
+    "longitude": 99.2896468
+  },
+  {
+    "id": "TH-52-003",
+    "name": "Ban Na Doem",
+    "name_thai": "Ban Na Doem",
+    "type": "district",
+    "latitude": 8.919251599999999,
+    "longitude": 99.2563859
+  },
+  {
+    "id": "TH-27-001",
+    "name": "Ban Na San",
+    "name_thai": "Ban Na San",
+    "type": "district",
+    "latitude": 8.8498948,
+    "longitude": 99.41171969999999
+  },
+  {
+    "id": "TH-11-001",
+    "name": "Ban Phaeng",
+    "name_thai": "Ban Phaeng",
+    "type": "district",
+    "latitude": 17.9630254,
+    "longitude": 104.222154
+  },
+  {
+    "id": "TH-52-004",
+    "name": "Ban Phaeo",
+    "name_thai": "Ban Phaeo",
+    "type": "district",
+    "latitude": 13.5904726,
+    "longitude": 100.1077163
+  },
+  {
+    "id": "TH-23-001",
+    "name": "Ban Phai",
+    "name_thai": "Ban Phai",
+    "type": "district",
+    "latitude": 16.1153851,
+    "longitude": 102.7022081
+  },
+  {
+    "id": "TH-48-002",
+    "name": "Ban Pho",
+    "name_thai": "Ban Pho",
+    "type": "district",
+    "latitude": 13.5990213,
+    "longitude": 101.0853202
+  },
+  {
+    "id": "TH-47-001",
+    "name": "Ban Phraek",
+    "name_thai": "Ban Phraek",
+    "type": "district",
+    "latitude": 14.6457099,
+    "longitude": 100.5788433
+  },
+  {
+    "id": "TH-08-001",
+    "name": "Ban Phue",
+    "name_thai": "Ban Phue",
+    "type": "district",
+    "latitude": 17.6851513,
+    "longitude": 102.4495221
+  },
+  {
+    "id": "TH-24-001",
+    "name": "Ban Pong",
+    "name_thai": "Ban Pong",
+    "type": "district",
+    "latitude": 13.8110781,
+    "longitude": 99.8752403
+  },
+  {
+    "id": "TH-15-001",
+    "name": "Ban Rai",
+    "name_thai": "Ban Rai",
+    "type": "district",
+    "latitude": 15.1070868,
+    "longitude": 99.634135
+  },
+  {
+    "id": "TH-61-001",
+    "name": "Ban Sang",
+    "name_thai": "Ban Sang",
+    "type": "district",
+    "latitude": 13.9548937,
+    "longitude": 101.2297105
+  },
+  {
+    "id": "TH-05-002",
+    "name": "Ban Ta Khun",
+    "name_thai": "Ban Ta Khun",
+    "type": "district",
+    "latitude": 9.1296714,
+    "longitude": 98.70407499999999
+  },
+  {
+    "id": "TH-69-001",
+    "name": "Ban Tak",
+    "name_thai": "Ban Tak",
+    "type": "district",
+    "latitude": 17.0405373,
+    "longitude": 99.05710889999999
+  },
+  {
+    "id": "TH-38-002",
+    "name": "Ban Thaen",
+    "name_thai": "Ban Thaen",
+    "type": "district",
+    "latitude": 16.4147512,
+    "longitude": 102.3578423
+  },
+  {
+    "id": "TH-13-001",
+    "name": "Ban Thi",
+    "name_thai": "Ban Thi",
+    "type": "district",
+    "latitude": 18.6197909,
+    "longitude": 99.1566855
+  },
+  {
+    "id": "TH-08-002",
+    "name": "Bang Ban",
+    "name_thai": "Bang Ban",
+    "type": "district",
+    "latitude": 14.4050979,
+    "longitude": 100.464947
+  },
+  {
+    "id": "TH-70-002",
+    "name": "Bang Bo",
+    "name_thai": "Bang Bo",
+    "type": "district",
+    "latitude": 13.5847649,
+    "longitude": 100.851776
+  },
+  {
+    "id": "TH-72-001",
+    "name": "Bang Bon",
+    "name_thai": "Bang Bon",
+    "type": "district",
+    "latitude": 13.6592043,
+    "longitude": 100.3991408
+  },
+  {
+    "id": "TH-08-003",
+    "name": "Bang Bua Thong",
+    "name_thai": "Bang Bua Thong",
+    "type": "district",
+    "latitude": 13.9295937,
+    "longitude": 100.4058633
+  },
+  {
+    "id": "TH-21-001",
+    "name": "Bang Kaeo",
+    "name_thai": "Bang Kaeo",
+    "type": "district",
+    "latitude": 13.6480292,
+    "longitude": 100.6853797
+  },
+  {
+    "id": "TH-63-001",
+    "name": "Bang Kapi",
+    "name_thai": "Bang Kapi",
+    "type": "district",
+    "latitude": 13.7627585,
+    "longitude": 100.6455972
+  },
+  {
+    "id": "TH-63-002",
+    "name": "Bang Khae",
+    "name_thai": "Bang Khae",
+    "type": "district",
+    "latitude": 13.7097613,
+    "longitude": 100.3958909
+  },
+  {
+    "id": "TH-51-001",
+    "name": "Bang Khan",
+    "name_thai": "Bang Khan",
+    "type": "district",
+    "latitude": 8.088979,
+    "longitude": 99.47838159999999
+  },
+  {
+    "id": "TH-55-002",
+    "name": "Bang Khen",
+    "name_thai": "Bang Khen",
+    "type": "district",
+    "latitude": 13.864387,
+    "longitude": 100.6146434
+  },
+  {
+    "id": "TH-34-002",
+    "name": "Bang Khla",
+    "name_thai": "Bang Khla",
+    "type": "district",
+    "latitude": 13.7245608,
+    "longitude": 101.2098797
+  },
+  {
+    "id": "TH-49-001",
+    "name": "Bang Kho Laem",
+    "name_thai": "Bang Kho Laem",
+    "type": "district",
+    "latitude": 13.6981697,
+    "longitude": 100.5047927
+  },
+  {
+    "id": "TH-43-001",
+    "name": "Bang Khonthi",
+    "name_thai": "Bang Khonthi",
+    "type": "district",
+    "latitude": 13.472624,
+    "longitude": 99.95768489999999
+  },
+  {
+    "id": "TH-65-002",
+    "name": "Bang Khun Thian",
+    "name_thai": "Bang Khun Thian",
+    "type": "district",
+    "latitude": 13.6332215,
+    "longitude": 100.4267474
+  },
+  {
+    "id": "TH-68-002",
+    "name": "Bang Klam",
+    "name_thai": "Bang Klam",
+    "type": "district",
+    "latitude": 7.109506499999999,
+    "longitude": 100.4227992
+  },
+  {
+    "id": "TH-64-001",
+    "name": "Bang Krathum",
+    "name_thai": "Bang Krathum",
+    "type": "district",
+    "latitude": 16.5909145,
+    "longitude": 100.2992789
+  },
+  {
+    "id": "TH-41-002",
+    "name": "Bang Kruai",
+    "name_thai": "Bang Kruai",
+    "type": "district",
+    "latitude": 13.8096705,
+    "longitude": 100.5097389
+  },
+  {
+    "id": "TH-47-002",
+    "name": "Bang Lamung",
+    "name_thai": "Bang Lamung",
+    "type": "district",
+    "latitude": 13.0407779,
+    "longitude": 100.9401504
+  },
+  {
+    "id": "TH-18-001",
+    "name": "Bang Len",
+    "name_thai": "Bang Len",
+    "type": "district",
+    "latitude": 14.0167928,
+    "longitude": 100.1748162
+  },
+  {
+    "id": "TH-62-001",
+    "name": "Bang Mun Nak",
+    "name_thai": "Bang Mun Nak",
+    "type": "district",
+    "latitude": 16.0362738,
+    "longitude": 100.4087543
+  },
+  {
+    "id": "TH-67-002",
+    "name": "Bang Na",
+    "name_thai": "Bang Na",
+    "type": "district",
+    "latitude": 13.663853,
+    "longitude": 100.6132453
+  },
+  {
+    "id": "TH-12-001",
+    "name": "Bang Nam Priao",
+    "name_thai": "Bang Nam Priao",
+    "type": "district",
+    "latitude": 13.8226773,
+    "longitude": 100.997658
+  },
+  {
+    "id": "TH-48-003",
+    "name": "Bang Pa-In",
+    "name_thai": "Bang Pa-In",
+    "type": "district",
+    "latitude": 14.2585578,
+    "longitude": 100.5971361
+  },
+  {
+    "id": "TH-53-002",
+    "name": "Bang Pahan",
+    "name_thai": "Bang Pahan",
+    "type": "district",
+    "latitude": 14.2585578,
+    "longitude": 100.5971361
+  },
+  {
+    "id": "TH-01-002",
+    "name": "Bang Pakong",
+    "name_thai": "Bang Pakong",
+    "type": "district",
+    "latitude": 13.5043389,
+    "longitude": 100.9977028
+  },
+  {
+    "id": "TH-68-003",
+    "name": "Bang Phae",
+    "name_thai": "Bang Phae",
+    "type": "district",
+    "latitude": 13.6784265,
+    "longitude": 99.95768489999999
+  },
+  {
+    "id": "TH-28-002",
+    "name": "Bang Phlat",
+    "name_thai": "Bang Phlat",
+    "type": "district",
+    "latitude": 13.7847305,
+    "longitude": 100.4945328
+  },
+  {
+    "id": "TH-37-001",
+    "name": "Bang Phli",
+    "name_thai": "Bang Phli",
+    "type": "district",
+    "latitude": 13.6117233,
+    "longitude": 100.7323332
+  },
+  {
+    "id": "TH-51-002",
+    "name": "Bang Pla Ma",
+    "name_thai": "Bang Pla Ma",
+    "type": "district",
+    "latitude": 14.4060686,
+    "longitude": 100.1143176
+  },
+  {
+    "id": "TH-71-001",
+    "name": "Bang Rachan",
+    "name_thai": "Bang Rachan",
+    "type": "district",
+    "latitude": 14.7956057,
+    "longitude": 100.2880581
+  },
+  {
+    "id": "TH-08-004",
+    "name": "Bang Rak",
+    "name_thai": "Bang Rak",
+    "type": "district",
+    "latitude": 13.7262544,
+    "longitude": 100.5279092
+  },
+  {
+    "id": "TH-21-002",
+    "name": "Bang Rakam",
+    "name_thai": "Bang Rakam",
+    "type": "district",
+    "latitude": 16.746183,
+    "longitude": 100.1111839
+  },
+  {
+    "id": "TH-63-003",
+    "name": "Bang Sai",
+    "name_thai": "Bang Sai",
+    "type": "district",
+    "latitude": 14.2186448,
+    "longitude": 100.4621366
+  },
+  {
+    "id": "TH-40-001",
+    "name": "Bang Sao Thong",
+    "name_thai": "Bang Sao Thong",
+    "type": "district",
+    "latitude": 13.5919768,
+    "longitude": 100.818269
+  },
+  {
+    "id": "TH-77-001",
+    "name": "Bang Saphan",
+    "name_thai": "Bang Saphan",
+    "type": "district",
+    "latitude": 11.2391244,
+    "longitude": 99.41171969999999
+  },
+  {
+    "id": "TH-03-002",
+    "name": "Bang Saphan Noi",
+    "name_thai": "Bang Saphan Noi",
+    "type": "district",
+    "latitude": 11.0626883,
+    "longitude": 99.32292129999999
+  },
+  {
+    "id": "TH-39-002",
+    "name": "Bang Sue",
+    "name_thai": "Bang Sue",
+    "type": "district",
+    "latitude": 13.8063886,
+    "longitude": 100.5307932
+  },
+  {
+    "id": "TH-75-001",
+    "name": "Bang Yai",
+    "name_thai": "Bang Yai",
+    "type": "district",
+    "latitude": 13.8398497,
+    "longitude": 100.3709988
+  },
+  {
+    "id": "TH-03-003",
+    "name": "Bangkok Noi",
+    "name_thai": "Bangkok Noi",
+    "type": "district",
+    "latitude": 13.7548478,
+    "longitude": 100.4693893
+  },
+  {
+    "id": "TH-03-004",
+    "name": "Bangkok Yai",
+    "name_thai": "Bangkok Yai",
+    "type": "district",
+    "latitude": 13.7293581,
+    "longitude": 100.474136
+  },
+  {
+    "id": "TH-32-001",
+    "name": "Bannang Sata",
+    "name_thai": "Bannang Sata",
+    "type": "district",
+    "latitude": 6.2544629,
+    "longitude": 101.2410442
+  },
+  {
+    "id": "TH-11-002",
+    "name": "Banphot Phisai",
+    "name_thai": "Banphot Phisai",
+    "type": "district",
+    "latitude": 15.9740902,
+    "longitude": 99.9465077
+  },
+  {
+    "id": "TH-71-002",
+    "name": "Benchalak",
+    "name_thai": "Benchalak",
+    "type": "district",
+    "latitude": 14.7642332,
+    "longitude": 104.7287607
+  },
+  {
+    "id": "TH-30-001",
+    "name": "Betong",
+    "name_thai": "Betong",
+    "type": "district",
+    "latitude": 5.779985099999999,
+    "longitude": 101.0372376
+  },
+  {
+    "id": "TH-36-001",
+    "name": "Bo Kluea",
+    "name_thai": "Bo Kluea",
+    "type": "district",
+    "latitude": 19.0825056,
+    "longitude": 101.207047
+  },
+  {
+    "id": "TH-01-003",
+    "name": "Bo Phloi",
+    "name_thai": "Bo Phloi",
+    "type": "district",
+    "latitude": 14.3059024,
+    "longitude": 99.47838159999999
+  },
+  {
+    "id": "TH-29-001",
+    "name": "Bo Rai",
+    "name_thai": "Bo Rai",
+    "type": "district",
+    "latitude": 12.4587171,
+    "longitude": 102.6675575
+  },
+  {
+    "id": "TH-30-002",
+    "name": "Bo Thong",
+    "name_thai": "Bo Thong",
+    "type": "district",
+    "latitude": 16.6280539,
+    "longitude": 100.1367166
+  },
+  {
+    "id": "TH-70-003",
+    "name": "Borabue",
+    "name_thai": "Borabue",
+    "type": "district",
+    "latitude": 16.0915907,
+    "longitude": 103.1163739
+  },
+  {
+    "id": "TH-10-001",
+    "name": "Bua Lai",
+    "name_thai": "Bua Lai",
+    "type": "district",
+    "latitude": 15.6462253,
+    "longitude": 102.4724537
+  },
+  {
+    "id": "TH-27-002",
+    "name": "Bua Yai",
+    "name_thai": "Bua Yai",
+    "type": "district",
+    "latitude": 15.5702018,
+    "longitude": 102.3922135
+  },
+  {
+    "id": "TH-76-001",
+    "name": "Buachet",
+    "name_thai": "Buachet",
+    "type": "district",
+    "latitude": 14.5285939,
+    "longitude": 103.9492051
+  },
+  {
+    "id": "TH-45-002",
+    "name": "Bueng Bun",
+    "name_thai": "Bueng Bun",
+    "type": "district",
+    "latitude": 15.3261466,
+    "longitude": 104.0594822
+  },
+  {
+    "id": "TH-34-003",
+    "name": "Bueng Khong Long",
+    "name_thai": "Bueng Khong Long",
+    "type": "district",
+    "latitude": 18.0113957,
+    "longitude": 104.0543425
+  },
+  {
+    "id": "TH-36-002",
+    "name": "Bueng Kum",
+    "name_thai": "Bueng Kum",
+    "type": "district",
+    "latitude": 13.8019913,
+    "longitude": 100.6482171
+  },
+  {
+    "id": "TH-21-003",
+    "name": "Bueng Na Rang",
+    "name_thai": "Bueng Na Rang",
+    "type": "district",
+    "latitude": 16.2080624,
+    "longitude": 100.1591213
+  },
+  {
+    "id": "TH-53-003",
+    "name": "Bueng Sam Phan",
+    "name_thai": "Bueng Sam Phan",
+    "type": "district",
+    "latitude": 15.8000368,
+    "longitude": 101.0202729
+  },
+  {
+    "id": "TH-47-003",
+    "name": "Bueng Samakkhi",
+    "name_thai": "Bueng Samakkhi",
+    "type": "district",
+    "latitude": 16.2863752,
+    "longitude": 99.98004379999999
+  },
+  {
+    "id": "TH-35-001",
+    "name": "Bung Khla",
+    "name_thai": "Bung Khla",
+    "type": "district",
+    "latitude": 18.2538823,
+    "longitude": 103.9724141
+  },
+  {
+    "id": "TH-33-002",
+    "name": "Buntharik",
+    "name_thai": "Buntharik",
+    "type": "district",
+    "latitude": 14.7451613,
+    "longitude": 105.3599568
+  },
+  {
+    "id": "TH-71-003",
+    "name": "Cha-Am",
+    "name_thai": "Cha-Am",
+    "type": "district",
+    "latitude": 12.7975327,
+    "longitude": 99.9718867
+  },
+  {
+    "id": "TH-63-004",
+    "name": "Cha-Uat",
+    "name_thai": "Cha-Uat",
+    "type": "district",
+    "latitude": 7.970148499999999,
+    "longitude": 99.9465077
+  },
+  {
+    "id": "TH-31-001",
+    "name": "Chae Hom",
+    "name_thai": "Chae Hom",
+    "type": "district",
+    "latitude": 18.6893329,
+    "longitude": 99.6452714
+  },
+  {
+    "id": "TH-39-003",
+    "name": "Chai Badan",
+    "name_thai": "Chai Badan",
+    "type": "district",
+    "latitude": 15.1042521,
+    "longitude": 101.0768333
+  },
+  {
+    "id": "TH-06-002",
+    "name": "Chai Buri",
+    "name_thai": "Chai Buri",
+    "type": "district",
+    "latitude": 8.433449399999999,
+    "longitude": 99.0902873
+  },
+  {
+    "id": "TH-07-001",
+    "name": "Chai Prakan",
+    "name_thai": "Chai Prakan",
+    "type": "district",
+    "latitude": 19.7313909,
+    "longitude": 99.1371561
+  },
+  {
+    "id": "TH-48-004",
+    "name": "Chai Wan",
+    "name_thai": "Chai Wan",
+    "type": "district",
+    "latitude": 17.2009231,
+    "longitude": 103.2894368
+  },
+  {
+    "id": "TH-08-005",
+    "name": "Chaiya",
+    "name_thai": "Chaiya",
+    "type": "district",
+    "latitude": 9.4507965,
+    "longitude": 99.03499769999999
+  },
+  {
+    "id": "TH-49-002",
+    "name": "Chaiyo",
+    "name_thai": "Chaiyo",
+    "type": "district",
+    "latitude": 14.6663289,
+    "longitude": 100.4733789
+  },
+  {
+    "id": "TH-76-002",
+    "name": "Chakkarat",
+    "name_thai": "Chakkarat",
+    "type": "district",
+    "latitude": 14.9216293,
+    "longitude": 102.4839212
+  },
+  {
+    "id": "TH-26-001",
+    "name": "Chaloem Phra Kiat",
+    "name_thai": "Chaloem Phra Kiat",
+    "type": "district",
+    "latitude": 15.0017506,
+    "longitude": 102.2776838
+  },
+  {
+    "id": "TH-04-003",
+    "name": "Chamni",
+    "name_thai": "Chamni",
+    "type": "district",
+    "latitude": 14.7926661,
+    "longitude": 102.8457316
+  },
+  {
+    "id": "TH-16-002",
+    "name": "Chana",
+    "name_thai": "Chana",
+    "type": "district",
+    "latitude": 6.8447264,
+    "longitude": 100.6647101
+  },
+  {
+    "id": "TH-54-002",
+    "name": "Chanae",
+    "name_thai": "Chanae",
+    "type": "district",
+    "latitude": 6.0570882,
+    "longitude": 101.6954435
+  },
+  {
+    "id": "TH-33-003",
+    "name": "Chang Klang",
+    "name_thai": "Chang Klang",
+    "type": "district",
+    "latitude": 8.3440995,
+    "longitude": 99.6564092
+  },
+  {
+    "id": "TH-71-004",
+    "name": "Changhan",
+    "name_thai": "Changhan",
+    "type": "district",
+    "latitude": 16.1360901,
+    "longitude": 103.5957596
+  },
+  {
+    "id": "TH-71-005",
+    "name": "Chanuman",
+    "name_thai": "Chanuman",
+    "type": "district",
+    "latitude": 16.221854,
+    "longitude": 104.9505671
+  },
+  {
+    "id": "TH-77-002",
+    "name": "Charoen Sin",
+    "name_thai": "Charoen Sin",
+    "type": "district",
+    "latitude": 17.5650372,
+    "longitude": 103.5552603
+  },
+  {
+    "id": "TH-31-002",
+    "name": "Chat Trakan",
+    "name_thai": "Chat Trakan",
+    "type": "district",
+    "latitude": 17.310993,
+    "longitude": 100.6872457
+  },
+  {
+    "id": "TH-22-001",
+    "name": "Chatturat",
+    "name_thai": "Chatturat",
+    "type": "district",
+    "latitude": 15.6006885,
+    "longitude": 101.8435568
+  },
+  {
+    "id": "TH-03-005",
+    "name": "Chatuchak",
+    "name_thai": "Chatuchak",
+    "type": "district",
+    "latitude": 13.824365,
+    "longitude": 100.5547948
+  },
+  {
+    "id": "TH-22-002",
+    "name": "Chaturaphak Phiman",
+    "name_thai": "Chaturaphak Phiman",
+    "type": "district",
+    "latitude": 15.8447115,
+    "longitude": 103.5668302
+  },
+  {
+    "id": "TH-34-004",
+    "name": "Chawang",
+    "name_thai": "Chawang",
+    "type": "district",
+    "latitude": 8.397207,
+    "longitude": 99.5007765
+  },
+  {
+    "id": "TH-64-002",
+    "name": "Chian Yai",
+    "name_thai": "Chian Yai",
+    "type": "district",
+    "latitude": 8.2085931,
+    "longitude": 100.1087187
+  },
+  {
+    "id": "TH-47-004",
+    "name": "Chiang Dao",
+    "name_thai": "Chiang Dao",
+    "type": "district",
+    "latitude": 19.3678141,
+    "longitude": 98.9649024
+  },
+  {
+    "id": "TH-54-003",
+    "name": "Chiang Kham",
+    "name_thai": "Chiang Kham",
+    "type": "district",
+    "latitude": 19.5064478,
+    "longitude": 100.3947116
+  },
+  {
+    "id": "TH-03-006",
+    "name": "Chiang Khan",
+    "name_thai": "Chiang Khan",
+    "type": "district",
+    "latitude": 17.8759173,
+    "longitude": 101.6271544
+  },
+  {
+    "id": "TH-13-002",
+    "name": "Chiang Khong",
+    "name_thai": "Chiang Khong",
+    "type": "district",
+    "latitude": 20.2646699,
+    "longitude": 100.404614
+  },
+  {
+    "id": "TH-01-004",
+    "name": "Chiang Khwan",
+    "name_thai": "Chiang Khwan",
+    "type": "district",
+    "latitude": 16.1853496,
+    "longitude": 103.7231245
+  },
+  {
+    "id": "TH-37-002",
+    "name": "Chiang Klang",
+    "name_thai": "Chiang Klang",
+    "type": "district",
+    "latitude": 19.2877661,
+    "longitude": 100.8620883
+  },
+  {
+    "id": "TH-31-003",
+    "name": "Chiang Muan",
+    "name_thai": "Chiang Muan",
+    "type": "district",
+    "latitude": 18.8758954,
+    "longitude": 100.3273368
+  },
+  {
+    "id": "TH-23-002",
+    "name": "Chiang Saen",
+    "name_thai": "Chiang Saen",
+    "type": "district",
+    "latitude": 20.2740728,
+    "longitude": 100.0851449
+  },
+  {
+    "id": "TH-21-004",
+    "name": "Chiang Yuen",
+    "name_thai": "Chiang Yuen",
+    "type": "district",
+    "latitude": 16.4159483,
+    "longitude": 103.0933171
+  },
+  {
+    "id": "TH-05-003",
+    "name": "Cho-Airong",
+    "name_thai": "Cho-Airong",
+    "type": "district",
+    "latitude": 6.2104079,
+    "longitude": 101.8207566
+  },
+  {
+    "id": "TH-73-001",
+    "name": "Chok Chai",
+    "name_thai": "Chok Chai",
+    "type": "district",
+    "latitude": 14.7531084,
+    "longitude": 102.2090224
+  },
+  {
+    "id": "TH-43-002",
+    "name": "Chom Bueng",
+    "name_thai": "Chom Bueng",
+    "type": "district",
+    "latitude": 13.6119882,
+    "longitude": 99.6118667
+  },
+  {
+    "id": "TH-74-001",
+    "name": "Chom Phra",
+    "name_thai": "Chom Phra",
+    "type": "district",
+    "latitude": 15.0959375,
+    "longitude": 103.6246954
+  },
+  {
+    "id": "TH-29-002",
+    "name": "Chom Thong",
+    "name_thai": "Chom Thong",
+    "type": "district",
+    "latitude": 18.374638,
+    "longitude": 98.61606739999999
+  },
+  {
+    "id": "TH-04-004",
+    "name": "Chon Daen",
+    "name_thai": "Chon Daen",
+    "type": "district",
+    "latitude": 16.1479075,
+    "longitude": 100.901604
+  },
+  {
+    "id": "TH-36-003",
+    "name": "Chonnabot",
+    "name_thai": "Chonnabot",
+    "type": "district",
+    "latitude": 16.0891712,
+    "longitude": 102.6204029
+  },
+  {
+    "id": "TH-18-002",
+    "name": "Chuen Chom",
+    "name_thai": "Chuen Chom",
+    "type": "district",
+    "latitude": 16.5623874,
+    "longitude": 103.1509672
+  },
+  {
+    "id": "TH-37-003",
+    "name": "Chulabhorn",
+    "name_thai": "Chulabhorn",
+    "type": "district",
+    "latitude": 8.0794544,
+    "longitude": 99.87947439999999
+  },
+  {
+    "id": "TH-46-001",
+    "name": "Chum Phae",
+    "name_thai": "Chum Phae",
+    "type": "district",
+    "latitude": 16.5235265,
+    "longitude": 102.0832543
+  },
+  {
+    "id": "TH-20-001",
+    "name": "Chum Phuang",
+    "name_thai": "Chum Phuang",
+    "type": "district",
+    "latitude": 15.3500317,
+    "longitude": 102.742295
+  },
+  {
+    "id": "TH-73-002",
+    "name": "Chum Saeng",
+    "name_thai": "Chum Saeng",
+    "type": "district",
+    "latitude": 15.8929623,
+    "longitude": 100.3006904
+  },
+  {
+    "id": "TH-26-002",
+    "name": "Chum Ta Bong",
+    "name_thai": "Chum Ta Bong",
+    "type": "district",
+    "latitude": 15.6085632,
+    "longitude": 99.5562219
+  },
+  {
+    "id": "TH-13-003",
+    "name": "Chumphon Buri",
+    "name_thai": "Chumphon Buri",
+    "type": "district",
+    "latitude": 15.3942217,
+    "longitude": 103.4280586
+  },
+  {
+    "id": "TH-46-002",
+    "name": "Chun",
+    "name_thai": "Chun",
+    "type": "district",
+    "latitude": 15.870032,
+    "longitude": 100.992541
+  },
+  {
+    "id": "TH-73-003",
+    "name": "Damnoen Saduak",
+    "name_thai": "Damnoen Saduak",
+    "type": "district",
+    "latitude": 13.5167584,
+    "longitude": 99.95412929999999
+  },
+  {
+    "id": "TH-50-001",
+    "name": "Dan Chang",
+    "name_thai": "Dan Chang",
+    "type": "district",
+    "latitude": 14.7983803,
+    "longitude": 99.5562219
+  },
+  {
+    "id": "TH-44-001",
+    "name": "Dan Khun Thot",
+    "name_thai": "Dan Khun Thot",
+    "type": "district",
+    "latitude": 15.1786657,
+    "longitude": 101.7637775
+  },
+  {
+    "id": "TH-13-004",
+    "name": "Dan Makham Tia",
+    "name_thai": "Dan Makham Tia",
+    "type": "district",
+    "latitude": 13.8183104,
+    "longitude": 99.3118282
+  },
+  {
+    "id": "TH-01-005",
+    "name": "Dan Sai",
+    "name_thai": "Dan Sai",
+    "type": "district",
+    "latitude": 17.2506701,
+    "longitude": 101.1504111
+  },
+  {
+    "id": "TH-13-005",
+    "name": "Den Chai",
+    "name_thai": "Den Chai",
+    "type": "district",
+    "latitude": 17.9644735,
+    "longitude": 100.0471549
+  },
+  {
+    "id": "TH-33-004",
+    "name": "Det Udom",
+    "name_thai": "Det Udom",
+    "type": "district",
+    "latitude": 14.8548457,
+    "longitude": 105.0791228
+  },
+  {
+    "id": "TH-27-003",
+    "name": "Din Daeng",
+    "name_thai": "Din Daeng",
+    "type": "district",
+    "latitude": 13.7604677,
+    "longitude": 100.5548638
+  },
+  {
+    "id": "TH-32-002",
+    "name": "Doem Bang Nang Buat",
+    "name_thai": "Doem Bang Nang Buat",
+    "type": "district",
+    "latitude": 14.882727,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-35-002",
+    "name": "Doi Lo",
+    "name_thai": "Doi Lo",
+    "type": "district",
+    "latitude": 18.4729631,
+    "longitude": 98.78116449999999
+  },
+  {
+    "id": "TH-48-005",
+    "name": "Doi Luang",
+    "name_thai": "Doi Luang",
+    "type": "district",
+    "latitude": 20.1560524,
+    "longitude": 100.1479182
+  },
+  {
+    "id": "TH-06-003",
+    "name": "Doi Saket",
+    "name_thai": "Doi Saket",
+    "type": "district",
+    "latitude": 18.934761,
+    "longitude": 99.21205929999999
+  },
+  {
+    "id": "TH-39-004",
+    "name": "Doi Tao",
+    "name_thai": "Doi Tao",
+    "type": "district",
+    "latitude": 17.8891466,
+    "longitude": 98.6930685
+  },
+  {
+    "id": "TH-61-002",
+    "name": "Dok Khamtai",
+    "name_thai": "Dok Khamtai",
+    "type": "district",
+    "latitude": 19.1485575,
+    "longitude": 99.96327409999999
+  },
+  {
+    "id": "TH-11-003",
+    "name": "Don Chan",
+    "name_thai": "Don Chan",
+    "type": "district",
+    "latitude": 16.4232826,
+    "longitude": 103.6941672
+  },
+  {
+    "id": "TH-25-001",
+    "name": "Don Chedi",
+    "name_thai": "Don Chedi",
+    "type": "district",
+    "latitude": 14.618048,
+    "longitude": 100.0024084
+  },
+  {
+    "id": "TH-17-001",
+    "name": "Don Mot Daeng",
+    "name_thai": "Don Mot Daeng",
+    "type": "district",
+    "latitude": 15.3221916,
+    "longitude": 105.0674317
+  },
+  {
+    "id": "TH-02-001",
+    "name": "Don Mueang",
+    "name_thai": "Don Mueang",
+    "type": "district",
+    "latitude": 13.9272289,
+    "longitude": 100.5858593
+  },
+  {
+    "id": "TH-10-002",
+    "name": "Don Sak",
+    "name_thai": "Don Sak",
+    "type": "district",
+    "latitude": 9.2823238,
+    "longitude": 99.7076122
+  },
+  {
+    "id": "TH-22-003",
+    "name": "Don Tan",
+    "name_thai": "Don Tan",
+    "type": "district",
+    "latitude": 16.2923061,
+    "longitude": 104.9272044
+  },
+  {
+    "id": "TH-05-004",
+    "name": "Don Tum",
+    "name_thai": "Don Tum",
+    "type": "district",
+    "latitude": 13.9477826,
+    "longitude": 100.0919243
+  },
+  {
+    "id": "TH-68-004",
+    "name": "Dong Charoen",
+    "name_thai": "Dong Charoen",
+    "type": "district",
+    "latitude": 16.0235446,
+    "longitude": 100.608395
+  },
+  {
+    "id": "TH-55-003",
+    "name": "Dong Luang",
+    "name_thai": "Dong Luang",
+    "type": "district",
+    "latitude": 16.8279683,
+    "longitude": 104.5072722
+  },
+  {
+    "id": "TH-03-007",
+    "name": "Dusit",
+    "name_thai": "Dusit",
+    "type": "district",
+    "latitude": 13.7818945,
+    "longitude": 100.5180034
+  },
+  {
+    "id": "TH-74-002",
+    "name": "Erawan",
+    "name_thai": "Erawan",
+    "type": "district",
+    "latitude": 17.3702095,
+    "longitude": 101.900579
+  },
+  {
+    "id": "TH-60-001",
+    "name": "Fak Tha",
+    "name_thai": "Fak Tha",
+    "type": "district",
+    "latitude": 18.0461423,
+    "longitude": 100.9128995
+  },
+  {
+    "id": "TH-70-004",
+    "name": "Fang",
+    "name_thai": "Fang",
+    "type": "district",
+    "latitude": 19.8572658,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-09-001",
+    "name": "Fao Rai",
+    "name_thai": "Fao Rai",
+    "type": "district",
+    "latitude": 18.0002831,
+    "longitude": 103.3009828
+  },
+  {
+    "id": "TH-57-002",
+    "name": "Galyani Vadhana",
+    "name_thai": "Galyani Vadhana",
+    "type": "district",
+    "latitude": 18.978506,
+    "longitude": 98.2869478
+  },
+  {
+    "id": "TH-36-004",
+    "name": "Hang Chat",
+    "name_thai": "Hang Chat",
+    "type": "district",
+    "latitude": 18.327514,
+    "longitude": 99.35350389999999
+  },
+  {
+    "id": "TH-77-003",
+    "name": "Hang Dong",
+    "name_thai": "Hang Dong",
+    "type": "district",
+    "latitude": 18.6923523,
+    "longitude": 98.9195934
+  },
+  {
+    "id": "TH-28-003",
+    "name": "Hankha",
+    "name_thai": "Hankha",
+    "type": "district",
+    "latitude": 15.0101985,
+    "longitude": 100.0024084
+  },
+  {
+    "id": "TH-50-002",
+    "name": "Hat Samran",
+    "name_thai": "Hat Samran",
+    "type": "district",
+    "latitude": 7.2400742,
+    "longitude": 99.5562219
+  },
+  {
+    "id": "TH-74-003",
+    "name": "Hat Yai",
+    "name_thai": "Hat Yai",
+    "type": "district",
+    "latitude": 7.0086472,
+    "longitude": 100.4746879
+  },
+  {
+    "id": "TH-65-003",
+    "name": "Hot",
+    "name_thai": "Hot",
+    "type": "district",
+    "latitude": 18.1001404,
+    "longitude": 98.4403573
+  },
+  {
+    "id": "TH-17-002",
+    "name": "Hua Hin",
+    "name_thai": "Hua Hin",
+    "type": "district",
+    "latitude": 12.5683747,
+    "longitude": 99.9576888
+  },
+  {
+    "id": "TH-14-001",
+    "name": "Hua Sai",
+    "name_thai": "Hua Sai",
+    "type": "district",
+    "latitude": 8.0448717,
+    "longitude": 100.2844485
+  },
+  {
+    "id": "TH-75-002",
+    "name": "Hua Taphan",
+    "name_thai": "Hua Taphan",
+    "type": "district",
+    "latitude": 15.712177,
+    "longitude": 104.4548621
+  },
+  {
+    "id": "TH-64-003",
+    "name": "Huai Khot",
+    "name_thai": "Huai Khot",
+    "type": "district",
+    "latitude": 15.259899,
+    "longitude": 99.5784754
+  },
+  {
+    "id": "TH-75-003",
+    "name": "Huai Khwang",
+    "name_thai": "Huai Khwang",
+    "type": "district",
+    "latitude": 13.7699094,
+    "longitude": 100.5864793
+  },
+  {
+    "id": "TH-33-005",
+    "name": "Huai Krachao",
+    "name_thai": "Huai Krachao",
+    "type": "district",
+    "latitude": 14.346554,
+    "longitude": 99.6118667
+  },
+  {
+    "id": "TH-35-003",
+    "name": "Huai Mek",
+    "name_thai": "Huai Mek",
+    "type": "district",
+    "latitude": 16.5933405,
+    "longitude": 103.2086442
+  },
+  {
+    "id": "TH-25-002",
+    "name": "Huai Phueng",
+    "name_thai": "Huai Phueng",
+    "type": "district",
+    "latitude": 16.6520892,
+    "longitude": 103.8911999
+  },
+  {
+    "id": "TH-72-002",
+    "name": "Huai Rat",
+    "name_thai": "Huai Rat",
+    "type": "district",
+    "latitude": 14.961081,
+    "longitude": 103.1883752
+  },
+  {
+    "id": "TH-19-001",
+    "name": "Huai Thalaeng",
+    "name_thai": "Huai Thalaeng",
+    "type": "district",
+    "latitude": 15.0273537,
+    "longitude": 102.644587
+  },
+  {
+    "id": "TH-40-002",
+    "name": "Huai Thap Than",
+    "name_thai": "Huai Thap Than",
+    "type": "district",
+    "latitude": 15.0640411,
+    "longitude": 104.04787
+  },
+  {
+    "id": "TH-24-002",
+    "name": "Huai Yot",
+    "name_thai": "Huai Yot",
+    "type": "district",
+    "latitude": 7.7734885,
+    "longitude": 99.6230001
+  },
+  {
+    "id": "TH-49-003",
+    "name": "In Buri",
+    "name_thai": "In Buri",
+    "type": "district",
+    "latitude": 15.0038804,
+    "longitude": 100.3262156
+  },
+  {
+    "id": "TH-39-005",
+    "name": "Kabang",
+    "name_thai": "Kabang",
+    "type": "district",
+    "latitude": 6.4374668,
+    "longitude": 101.0033112
+  },
+  {
+    "id": "TH-10-003",
+    "name": "Kabin Buri",
+    "name_thai": "Kabin Buri",
+    "type": "district",
+    "latitude": 13.9050107,
+    "longitude": 101.7979613
+  },
+  {
+    "id": "TH-44-002",
+    "name": "Kae Dam",
+    "name_thai": "Kae Dam",
+    "type": "district",
+    "latitude": 16.011284,
+    "longitude": 103.3876116
+  },
+  {
+    "id": "TH-51-003",
+    "name": "Kaeng Hang Maeo",
+    "name_thai": "Kaeng Hang Maeo",
+    "type": "district",
+    "latitude": 12.9678205,
+    "longitude": 101.9119871
+  },
+  {
+    "id": "TH-60-002",
+    "name": "Kaeng Khoi",
+    "name_thai": "Kaeng Khoi",
+    "type": "district",
+    "latitude": 14.5893267,
+    "longitude": 100.9943459
+  },
+  {
+    "id": "TH-17-003",
+    "name": "Kaeng Khro",
+    "name_thai": "Kaeng Khro",
+    "type": "district",
+    "latitude": 16.1126144,
+    "longitude": 102.1861447
+  },
+  {
+    "id": "TH-50-003",
+    "name": "Kaeng Krachan",
+    "name_thai": "Kaeng Krachan",
+    "type": "district",
+    "latitude": 12.910344,
+    "longitude": 99.6561832
+  },
+  {
+    "id": "TH-32-003",
+    "name": "Kaeng Sanam Nang",
+    "name_thai": "Kaeng Sanam Nang",
+    "type": "district",
+    "latitude": 15.7271335,
+    "longitude": 102.2662372
+  },
+  {
+    "id": "TH-30-003",
+    "name": "Kamalasai",
+    "name_thai": "Kamalasai",
+    "type": "district",
+    "latitude": 16.3171804,
+    "longitude": 103.5552603
+  },
+  {
+    "id": "TH-67-003",
+    "name": "Kamphaeng Saen",
+    "name_thai": "Kamphaeng Saen",
+    "type": "district",
+    "latitude": 14.0064568,
+    "longitude": 99.9889127
+  },
+  {
+    "id": "TH-31-004",
+    "name": "Kanchanadit",
+    "name_thai": "Kanchanadit",
+    "type": "district",
+    "latitude": 9.109699599999999,
+    "longitude": 99.5006143
+  },
+  {
+    "id": "TH-21-005",
+    "name": "Kantang",
+    "name_thai": "Kantang",
+    "type": "district",
+    "latitude": 7.4062872,
+    "longitude": 99.51729259999999
+  },
+  {
+    "id": "TH-24-003",
+    "name": "Kantharalak",
+    "name_thai": "Kantharalak",
+    "type": "district",
+    "latitude": 14.6066438,
+    "longitude": 104.705431
+  },
+  {
+    "id": "TH-14-002",
+    "name": "Kanthararom",
+    "name_thai": "Kanthararom",
+    "type": "district",
+    "latitude": 15.1589877,
+    "longitude": 104.6121475
+  },
+  {
+    "id": "TH-08-006",
+    "name": "Kantharawichai",
+    "name_thai": "Kantharawichai",
+    "type": "district",
+    "latitude": 16.2766477,
+    "longitude": 103.2894368
+  },
+  {
+    "id": "TH-32-004",
+    "name": "Kao Liao",
+    "name_thai": "Kao Liao",
+    "type": "district",
+    "latitude": 15.8469868,
+    "longitude": 100.0924066
+  },
+  {
+    "id": "TH-77-004",
+    "name": "Kap Choeng",
+    "name_thai": "Kap Choeng",
+    "type": "district",
+    "latitude": 14.4822976,
+    "longitude": 103.5784012
+  },
+  {
+    "id": "TH-09-002",
+    "name": "Kapho",
+    "name_thai": "Kapho",
+    "type": "district",
+    "latitude": 6.593021299999999,
+    "longitude": 101.5475409
+  },
+  {
+    "id": "TH-30-004",
+    "name": "Kapoe",
+    "name_thai": "Kapoe",
+    "type": "district",
+    "latitude": 9.594086899999999,
+    "longitude": 98.5940814
+  },
+  {
+    "id": "TH-51-004",
+    "name": "Kapong",
+    "name_thai": "Kapong",
+    "type": "district",
+    "latitude": 8.6984213,
+    "longitude": 98.4403573
+  },
+  {
+    "id": "TH-70-005",
+    "name": "Kaset Sombun",
+    "name_thai": "Kaset Sombun",
+    "type": "district",
+    "latitude": 16.3352229,
+    "longitude": 101.9348069
+  },
+  {
+    "id": "TH-28-004",
+    "name": "Kaset Wisai",
+    "name_thai": "Kaset Wisai",
+    "type": "district",
+    "latitude": 15.6580509,
+    "longitude": 103.6131203
+  },
+  {
+    "id": "TH-61-003",
+    "name": "Kathu",
+    "name_thai": "Kathu",
+    "type": "district",
+    "latitude": 7.9107391,
+    "longitude": 98.3337983
+  },
+  {
+    "id": "TH-70-006",
+    "name": "Khaen Dong",
+    "name_thai": "Khaen Dong",
+    "type": "district",
+    "latitude": 15.3097773,
+    "longitude": 103.1163739
+  },
+  {
+    "id": "TH-02-002",
+    "name": "Khai Bang Rachan",
+    "name_thai": "Khai Bang Rachan",
+    "type": "district",
+    "latitude": 14.8126417,
+    "longitude": 100.2936683
+  },
+  {
+    "id": "TH-58-002",
+    "name": "Kham Khuean Kaeo",
+    "name_thai": "Kham Khuean Kaeo",
+    "type": "district",
+    "latitude": 15.2473803,
+    "longitude": 105.488828
+  },
+  {
+    "id": "TH-10-004",
+    "name": "Kham Muang",
+    "name_thai": "Kham Muang",
+    "type": "district",
+    "latitude": 16.9447497,
+    "longitude": 103.6594267
+  },
+  {
+    "id": "TH-58-003",
+    "name": "Kham Sakaesaeng",
+    "name_thai": "Kham Sakaesaeng",
+    "type": "district",
+    "latitude": 15.3745452,
+    "longitude": 102.1861447
+  },
+  {
+    "id": "TH-60-003",
+    "name": "Kham Ta Kla",
+    "name_thai": "Kham Ta Kla",
+    "type": "district",
+    "latitude": 17.8516514,
+    "longitude": 103.7636752
+  },
+  {
+    "id": "TH-70-007",
+    "name": "Kham Thale So",
+    "name_thai": "Kham Thale So",
+    "type": "district",
+    "latitude": 14.9608979,
+    "longitude": 101.9690458
+  },
+  {
+    "id": "TH-31-005",
+    "name": "Khamcha-I",
+    "name_thai": "Khamcha-I",
+    "type": "district",
+    "latitude": 16.5331006,
+    "longitude": 104.3641859
+  },
+  {
+    "id": "TH-17-004",
+    "name": "Khan Na Yao",
+    "name_thai": "Khan Na Yao",
+    "type": "district",
+    "latitude": 13.8270581,
+    "longitude": 100.674334
+  },
+  {
+    "id": "TH-33-006",
+    "name": "Khanom",
+    "name_thai": "Khanom",
+    "type": "district",
+    "latitude": 9.2113692,
+    "longitude": 99.79017809999999
+  },
+  {
+    "id": "TH-39-006",
+    "name": "Khanu Woralaksaburi",
+    "name_thai": "Khanu Woralaksaburi",
+    "type": "district",
+    "latitude": 15.9863498,
+    "longitude": 99.6786894
+  },
+  {
+    "id": "TH-73-004",
+    "name": "Khao Chaison",
+    "name_thai": "Khao Chaison",
+    "type": "district",
+    "latitude": 7.420273900000001,
+    "longitude": 100.0919243
+  },
+  {
+    "id": "TH-69-002",
+    "name": "Khao Chakan",
+    "name_thai": "Khao Chakan",
+    "type": "district",
+    "latitude": 13.6909242,
+    "longitude": 102.0840445
+  },
+  {
+    "id": "TH-68-005",
+    "name": "Khao Chamao",
+    "name_thai": "Khao Chamao",
+    "type": "district",
+    "latitude": 12.9782355,
+    "longitude": 101.6840589
+  },
+  {
+    "id": "TH-56-001",
+    "name": "Khao Khitchakut",
+    "name_thai": "Khao Khitchakut",
+    "type": "district",
+    "latitude": 12.9356388,
+    "longitude": 102.1175404
+  },
+  {
+    "id": "TH-76-003",
+    "name": "Khao Kho",
+    "name_thai": "Khao Kho",
+    "type": "district",
+    "latitude": 16.6482598,
+    "longitude": 101.0118776
+  },
+  {
+    "id": "TH-31-006",
+    "name": "Khao Phanom",
+    "name_thai": "Khao Phanom",
+    "type": "district",
+    "latitude": 8.2398808,
+    "longitude": 99.02394439999999
+  },
+  {
+    "id": "TH-75-004",
+    "name": "Khao Saming",
+    "name_thai": "Khao Saming",
+    "type": "district",
+    "latitude": 12.3227921,
+    "longitude": 102.4495221
+  },
+  {
+    "id": "TH-16-003",
+    "name": "Khao Suan Kwang",
+    "name_thai": "Khao Suan Kwang",
+    "type": "district",
+    "latitude": 16.8627356,
+    "longitude": 102.8371041
+  },
+  {
+    "id": "TH-55-004",
+    "name": "Khao Wong",
+    "name_thai": "Khao Wong",
+    "type": "district",
+    "latitude": 16.6822686,
+    "longitude": 104.1233667
+  },
+  {
+    "id": "TH-26-003",
+    "name": "Khao Yoi",
+    "name_thai": "Khao Yoi",
+    "type": "district",
+    "latitude": 13.2394415,
+    "longitude": 99.79017809999999
+  },
+  {
+    "id": "TH-13-006",
+    "name": "Khemarat",
+    "name_thai": "Khemarat",
+    "type": "district",
+    "latitude": 16.0481202,
+    "longitude": 105.1375908
+  },
+  {
+    "id": "TH-75-005",
+    "name": "Khian Sa",
+    "name_thai": "Khian Sa",
+    "type": "district",
+    "latitude": 8.8229677,
+    "longitude": 99.1788304
+  },
+  {
+    "id": "TH-09-003",
+    "name": "Khiri Mat",
+    "name_thai": "Khiri Mat",
+    "type": "district",
+    "latitude": 16.8207716,
+    "longitude": 99.7678687
+  },
+  {
+    "id": "TH-31-007",
+    "name": "Khiri Rat Nikhom",
+    "name_thai": "Khiri Rat Nikhom",
+    "type": "district",
+    "latitude": 9.0356536,
+    "longitude": 98.96870109999999
+  },
+  {
+    "id": "TH-25-003",
+    "name": "Khlong Hat",
+    "name_thai": "Khlong Hat",
+    "type": "district",
+    "latitude": 13.4468508,
+    "longitude": 102.3234816
+  },
+  {
+    "id": "TH-64-004",
+    "name": "Khlong Hoi Khong",
+    "name_thai": "Khlong Hoi Khong",
+    "type": "district",
+    "latitude": 6.8309865,
+    "longitude": 100.3273368
+  },
+  {
+    "id": "TH-46-003",
+    "name": "Khlong Khlung",
+    "name_thai": "Khlong Khlung",
+    "type": "district",
+    "latitude": 16.1827913,
+    "longitude": 99.7131137
+  },
+  {
+    "id": "TH-19-002",
+    "name": "Khlong Khuean",
+    "name_thai": "Khlong Khuean",
+    "type": "district",
+    "latitude": 13.780713,
+    "longitude": 101.1673984
+  },
+  {
+    "id": "TH-76-004",
+    "name": "Khlong Lan",
+    "name_thai": "Khlong Lan",
+    "type": "district",
+    "latitude": 16.2854282,
+    "longitude": 99.23421959999999
+  },
+  {
+    "id": "TH-61-004",
+    "name": "Khlong Luang",
+    "name_thai": "Khlong Luang",
+    "type": "district",
+    "latitude": 14.116938,
+    "longitude": 100.6872457
+  },
+  {
+    "id": "TH-68-006",
+    "name": "Khlong Sam Wa",
+    "name_thai": "Khlong Sam Wa",
+    "type": "district",
+    "latitude": 13.8601042,
+    "longitude": 100.7039625
+  },
+  {
+    "id": "TH-75-006",
+    "name": "Khlong San",
+    "name_thai": "Khlong San",
+    "type": "district",
+    "latitude": 13.7286594,
+    "longitude": 100.5010205
+  },
+  {
+    "id": "TH-63-005",
+    "name": "Khlong Thom",
+    "name_thai": "Khlong Thom",
+    "type": "district",
+    "latitude": 7.9004946,
+    "longitude": 99.23421959999999
+  },
+  {
+    "id": "TH-49-004",
+    "name": "Khlong Toei",
+    "name_thai": "Khlong Toei",
+    "type": "district",
+    "latitude": 13.7189146,
+    "longitude": 100.5671855
+  },
+  {
+    "id": "TH-58-004",
+    "name": "Khlong Yai",
+    "name_thai": "Khlong Yai",
+    "type": "district",
+    "latitude": 11.7907511,
+    "longitude": 102.8773712
+  },
+  {
+    "id": "TH-23-003",
+    "name": "Khlung",
+    "name_thai": "Khlung",
+    "type": "district",
+    "latitude": 12.5444604,
+    "longitude": 102.2776838
+  },
+  {
+    "id": "TH-34-005",
+    "name": "Kho Wang",
+    "name_thai": "Kho Wang",
+    "type": "district",
+    "latitude": 15.3652968,
+    "longitude": 104.3384616
+  },
+  {
+    "id": "TH-63-006",
+    "name": "Khok Charoen",
+    "name_thai": "Khok Charoen",
+    "type": "district",
+    "latitude": 15.3944421,
+    "longitude": 100.7754207
+  },
+  {
+    "id": "TH-69-003",
+    "name": "Khok Pho",
+    "name_thai": "Khok Pho",
+    "type": "district",
+    "latitude": 6.7294206,
+    "longitude": 101.0958943
+  },
+  {
+    "id": "TH-05-005",
+    "name": "Khok Pho Chai",
+    "name_thai": "Khok Pho Chai",
+    "type": "district",
+    "latitude": 16.0557992,
+    "longitude": 102.3692982
+  },
+  {
+    "id": "TH-35-004",
+    "name": "Khok Samrong",
+    "name_thai": "Khok Samrong",
+    "type": "district",
+    "latitude": 15.067666,
+    "longitude": 100.7217139
+  },
+  {
+    "id": "TH-40-003",
+    "name": "Khok Si Suphan",
+    "name_thai": "Khok Si Suphan",
+    "type": "district",
+    "latitude": 17.0380098,
+    "longitude": 104.3093759
+  },
+  {
+    "id": "TH-64-005",
+    "name": "Khok Sung",
+    "name_thai": "Khok Sung",
+    "type": "district",
+    "latitude": 13.8239747,
+    "longitude": 102.7250036
+  },
+  {
+    "id": "TH-60-004",
+    "name": "Khon Buri",
+    "name_thai": "Khon Buri",
+    "type": "district",
+    "latitude": 14.4349111,
+    "longitude": 102.1632718
+  },
+  {
+    "id": "TH-55-005",
+    "name": "Khon San",
+    "name_thai": "Khon San",
+    "type": "district",
+    "latitude": 16.530982,
+    "longitude": 101.7523854
+  },
+  {
+    "id": "TH-30-005",
+    "name": "Khon Sawan",
+    "name_thai": "Khon Sawan",
+    "type": "district",
+    "latitude": 15.9308196,
+    "longitude": 102.334934
+  },
+  {
+    "id": "TH-46-004",
+    "name": "Khong",
+    "name_thai": "Khong",
+    "type": "district",
+    "latitude": 15.4129378,
+    "longitude": 102.3234816
+  },
+  {
+    "id": "TH-03-008",
+    "name": "Khong Chai",
+    "name_thai": "Khong Chai",
+    "type": "district",
+    "latitude": 16.252555,
+    "longitude": 103.485862
+  },
+  {
+    "id": "TH-44-003",
+    "name": "Khong Chiam",
+    "name_thai": "Khong Chiam",
+    "type": "district",
+    "latitude": 15.2961807,
+    "longitude": 105.4419546
+  },
+  {
+    "id": "TH-03-009",
+    "name": "Khu Mueang",
+    "name_thai": "Khu Mueang",
+    "type": "district",
+    "latitude": 15.2477472,
+    "longitude": 103.0011331
+  },
+  {
+    "id": "TH-25-004",
+    "name": "Khuan Don",
+    "name_thai": "Khuan Don",
+    "type": "district",
+    "latitude": 6.8047439,
+    "longitude": 100.0695367
+  },
+  {
+    "id": "TH-43-003",
+    "name": "Khuan Kalong",
+    "name_thai": "Khuan Kalong",
+    "type": "district",
+    "latitude": 7.0071124,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-39-007",
+    "name": "Khuan Khanun",
+    "name_thai": "Khuan Khanun",
+    "type": "district",
+    "latitude": 7.7484794,
+    "longitude": 100.0080005
+  },
+  {
+    "id": "TH-03-010",
+    "name": "Khuan Niang",
+    "name_thai": "Khuan Niang",
+    "type": "district",
+    "latitude": 7.169040799999999,
+    "longitude": 100.3722477
+  },
+  {
+    "id": "TH-40-004",
+    "name": "Khueang Nai",
+    "name_thai": "Khueang Nai",
+    "type": "district",
+    "latitude": 15.4113503,
+    "longitude": 104.5467528
+  },
+  {
+    "id": "TH-60-005",
+    "name": "Khukhan",
+    "name_thai": "Khukhan",
+    "type": "district",
+    "latitude": 14.7086364,
+    "longitude": 104.1698463
+  },
+  {
+    "id": "TH-34-006",
+    "name": "Khun Han",
+    "name_thai": "Khun Han",
+    "type": "district",
+    "latitude": 14.6333602,
+    "longitude": 104.373372
+  },
+  {
+    "id": "TH-55-006",
+    "name": "Khun Tan",
+    "name_thai": "Khun Tan",
+    "type": "district",
+    "latitude": 19.8657628,
+    "longitude": 100.2824483
+  },
+  {
+    "id": "TH-46-005",
+    "name": "Khun Yuam",
+    "name_thai": "Khun Yuam",
+    "type": "district",
+    "latitude": 18.831475,
+    "longitude": 97.9358292
+  },
+  {
+    "id": "TH-16-004",
+    "name": "Khura Buri",
+    "name_thai": "Khura Buri",
+    "type": "district",
+    "latitude": 9.223691299999999,
+    "longitude": 98.4403573
+  },
+  {
+    "id": "TH-61-005",
+    "name": "Khwao Sin Rin",
+    "name_thai": "Khwao Sin Rin",
+    "type": "district",
+    "latitude": 15.0166005,
+    "longitude": 103.6131203
+  },
+  {
+    "id": "TH-64-006",
+    "name": "Klaeng",
+    "name_thai": "Klaeng",
+    "type": "district",
+    "latitude": 12.7755498,
+    "longitude": 101.6612934
+  },
+  {
+    "id": "TH-02-003",
+    "name": "Ko Chan",
+    "name_thai": "Ko Chan",
+    "type": "district",
+    "latitude": 13.3992442,
+    "longitude": 101.4112049
+  },
+  {
+    "id": "TH-74-004",
+    "name": "Ko Chang",
+    "name_thai": "Ko Chang",
+    "type": "district",
+    "latitude": 12.0820667,
+    "longitude": 102.3120304
+  },
+  {
+    "id": "TH-54-004",
+    "name": "Ko Kha",
+    "name_thai": "Ko Kha",
+    "type": "district",
+    "latitude": 18.181371,
+    "longitude": 99.3506604
+  },
+  {
+    "id": "TH-14-003",
+    "name": "Ko Kut",
+    "name_thai": "Ko Kut",
+    "type": "district",
+    "latitude": 11.6680759,
+    "longitude": 102.5642261
+  },
+  {
+    "id": "TH-65-004",
+    "name": "Ko Lanta",
+    "name_thai": "Ko Lanta",
+    "type": "district",
+    "latitude": 7.7532419,
+    "longitude": 99.0792263
+  },
+  {
+    "id": "TH-53-004",
+    "name": "Ko Pha-Ngan",
+    "name_thai": "Ko Pha-Ngan",
+    "type": "district",
+    "latitude": 9.731875299999999,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-26-004",
+    "name": "Ko Yao",
+    "name_thai": "Ko Yao",
+    "type": "district",
+    "latitude": 8.055226,
+    "longitude": 98.56111419999999
+  },
+  {
+    "id": "TH-25-005",
+    "name": "Kong Krailat",
+    "name_thai": "Kong Krailat",
+    "type": "district",
+    "latitude": 16.9277496,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-27-004",
+    "name": "Kong Ra",
+    "name_thai": "Kong Ra",
+    "type": "district",
+    "latitude": 7.4670335,
+    "longitude": 99.91298450000001
+  },
+  {
+    "id": "TH-15-002",
+    "name": "Kosamphi Nakhon",
+    "name_thai": "Kosamphi Nakhon",
+    "type": "district",
+    "latitude": 16.5856597,
+    "longitude": 99.3007367
+  },
+  {
+    "id": "TH-33-007",
+    "name": "Kosum Phisai",
+    "name_thai": "Kosum Phisai",
+    "type": "district",
+    "latitude": 16.269546,
+    "longitude": 103.035694
+  },
+  {
+    "id": "TH-07-002",
+    "name": "Kra Buri",
+    "name_thai": "Kra Buri",
+    "type": "district",
+    "latitude": 10.6289183,
+    "longitude": 98.88039250000001
+  },
+  {
+    "id": "TH-28-005",
+    "name": "Kranuan",
+    "name_thai": "Kranuan",
+    "type": "district",
+    "latitude": 16.7531797,
+    "longitude": 103.0587399
+  },
+  {
+    "id": "TH-11-004",
+    "name": "Krasae Sin",
+    "name_thai": "Krasae Sin",
+    "type": "district",
+    "latitude": 7.564018900000001,
+    "longitude": 100.3385624
+  },
+  {
+    "id": "TH-19-003",
+    "name": "Krasang",
+    "name_thai": "Krasang",
+    "type": "district",
+    "latitude": 14.9094632,
+    "longitude": 103.3009828
+  },
+  {
+    "id": "TH-42-002",
+    "name": "Krathum Baen",
+    "name_thai": "Krathum Baen",
+    "type": "district",
+    "latitude": 13.6655807,
+    "longitude": 100.2712297
+  },
+  {
+    "id": "TH-67-004",
+    "name": "Krok Phra",
+    "name_thai": "Krok Phra",
+    "type": "district",
+    "latitude": 15.5568629,
+    "longitude": 100.0639407
+  },
+  {
+    "id": "TH-32-005",
+    "name": "Krong Pinang",
+    "name_thai": "Krong Pinang",
+    "type": "district",
+    "latitude": 6.4261463,
+    "longitude": 101.2807224
+  },
+  {
+    "id": "TH-51-005",
+    "name": "Ku Kaeo",
+    "name_thai": "Ku Kaeo",
+    "type": "district",
+    "latitude": 17.1637859,
+    "longitude": 103.1509672
+  },
+  {
+    "id": "TH-74-005",
+    "name": "Kuchinarai",
+    "name_thai": "Kuchinarai",
+    "type": "district",
+    "latitude": 16.5718851,
+    "longitude": 104.053676
+  },
+  {
+    "id": "TH-65-005",
+    "name": "Kui Buri",
+    "name_thai": "Kui Buri",
+    "type": "district",
+    "latitude": 12.0571158,
+    "longitude": 99.85603400000001
+  },
+  {
+    "id": "TH-45-003",
+    "name": "Kumphawapi",
+    "name_thai": "Kumphawapi",
+    "type": "district",
+    "latitude": 17.1095082,
+    "longitude": 103.0068926
+  },
+  {
+    "id": "TH-12-002",
+    "name": "Kusuman",
+    "name_thai": "Kusuman",
+    "type": "district",
+    "latitude": 17.3239443,
+    "longitude": 104.3442794
+  },
+  {
+    "id": "TH-18-003",
+    "name": "Kut Bak",
+    "name_thai": "Kut Bak",
+    "type": "district",
+    "latitude": 17.0416076,
+    "longitude": 103.7636752
+  },
+  {
+    "id": "TH-70-008",
+    "name": "Kut Chap",
+    "name_thai": "Kut Chap",
+    "type": "district",
+    "latitude": 17.3786089,
+    "longitude": 102.5183307
+  },
+  {
+    "id": "TH-20-002",
+    "name": "Kut Chum",
+    "name_thai": "Kut Chum",
+    "type": "district",
+    "latitude": 16.0577566,
+    "longitude": 104.3442794
+  },
+  {
+    "id": "TH-08-007",
+    "name": "Kut Khaopun",
+    "name_thai": "Kut Khaopun",
+    "type": "district",
+    "latitude": 15.8366515,
+    "longitude": 105.0557415
+  },
+  {
+    "id": "TH-52-005",
+    "name": "Kut Rang",
+    "name_thai": "Kut Rang",
+    "type": "district",
+    "latitude": 16.075658,
+    "longitude": 103.0011331
+  },
+  {
+    "id": "TH-01-006",
+    "name": "La-Ngu",
+    "name_thai": "La-Ngu",
+    "type": "district",
+    "latitude": 6.8709316,
+    "longitude": 99.8476134
+  },
+  {
+    "id": "TH-37-004",
+    "name": "La-Un",
+    "name_thai": "La-Un",
+    "type": "district",
+    "latitude": 10.0760209,
+    "longitude": 98.770147
+  },
+  {
+    "id": "TH-16-005",
+    "name": "Laem Ngop",
+    "name_thai": "Laem Ngop",
+    "type": "district",
+    "latitude": 12.2253711,
+    "longitude": 102.3692982
+  },
+  {
+    "id": "TH-64-007",
+    "name": "Laem Sing",
+    "name_thai": "Laem Sing",
+    "type": "district",
+    "latitude": 12.4724196,
+    "longitude": 102.1289715
+  },
+  {
+    "id": "TH-30-006",
+    "name": "Lahan Sai",
+    "name_thai": "Lahan Sai",
+    "type": "district",
+    "latitude": 14.4196566,
+    "longitude": 102.8744945
+  },
+  {
+    "id": "TH-48-006",
+    "name": "Lak Si",
+    "name_thai": "Lak Si",
+    "type": "district",
+    "latitude": 13.8897933,
+    "longitude": 100.5695721
+  },
+  {
+    "id": "TH-25-006",
+    "name": "Lam Luk Ka",
+    "name_thai": "Lam Luk Ka",
+    "type": "district",
+    "latitude": 13.9443098,
+    "longitude": 100.7745664
+  },
+  {
+    "id": "TH-16-006",
+    "name": "Lam Plai Mat",
+    "name_thai": "Lam Plai Mat",
+    "type": "district",
+    "latitude": 15.0281466,
+    "longitude": 102.8458197
+  },
+  {
+    "id": "TH-43-004",
+    "name": "Lam Sonthi",
+    "name_thai": "Lam Sonthi",
+    "type": "district",
+    "latitude": 15.3150989,
+    "longitude": 101.3544525
+  },
+  {
+    "id": "TH-38-003",
+    "name": "Lam Thamenchai",
+    "name_thai": "Lam Thamenchai",
+    "type": "district",
+    "latitude": 15.2868802,
+    "longitude": 102.9205295
+  },
+  {
+    "id": "TH-34-007",
+    "name": "Lam Thap",
+    "name_thai": "Lam Thap",
+    "type": "district",
+    "latitude": 8.0820246,
+    "longitude": 99.3118282
+  },
+  {
+    "id": "TH-12-003",
+    "name": "Lamae",
+    "name_thai": "Lamae",
+    "type": "district",
+    "latitude": 9.710348,
+    "longitude": 99.0080131
+  },
+  {
+    "id": "TH-58-005",
+    "name": "Lamduan",
+    "name_thai": "Lamduan",
+    "type": "district",
+    "latitude": 14.7061887,
+    "longitude": 103.6478486
+  },
+  {
+    "id": "TH-01-007",
+    "name": "Lan Krabue",
+    "name_thai": "Lan Krabue",
+    "type": "district",
+    "latitude": 16.6177269,
+    "longitude": 99.8683073
+  },
+  {
+    "id": "TH-43-005",
+    "name": "Lan Sak",
+    "name_thai": "Lan Sak",
+    "type": "district",
+    "latitude": 15.4681655,
+    "longitude": 99.5375509
+  },
+  {
+    "id": "TH-29-003",
+    "name": "Lan Saka",
+    "name_thai": "Lan Saka",
+    "type": "district",
+    "latitude": 8.3086334,
+    "longitude": 99.7790227
+  },
+  {
+    "id": "TH-74-006",
+    "name": "Lang Suan",
+    "name_thai": "Lang Suan",
+    "type": "district",
+    "latitude": 9.9133345,
+    "longitude": 99.05710889999999
+  },
+  {
+    "id": "TH-60-006",
+    "name": "Lao Khwan",
+    "name_thai": "Lao Khwan",
+    "type": "district",
+    "latitude": 14.5593582,
+    "longitude": 99.75671609999999
+  },
+  {
+    "id": "TH-15-003",
+    "name": "Lao Suea Kok",
+    "name_thai": "Lao Suea Kok",
+    "type": "district",
+    "latitude": 15.4283226,
+    "longitude": 104.9330448
+  },
+  {
+    "id": "TH-34-008",
+    "name": "Laplae",
+    "name_thai": "Laplae",
+    "type": "district",
+    "latitude": 17.67347,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-12-004",
+    "name": "Lat Bua Luang",
+    "name_thai": "Lat Bua Luang",
+    "type": "district",
+    "latitude": 14.190588,
+    "longitude": 100.3161126
+  },
+  {
+    "id": "TH-17-005",
+    "name": "Lat Krabang",
+    "name_thai": "Lat Krabang",
+    "type": "district",
+    "latitude": 13.7505781,
+    "longitude": 100.7943199
+  },
+  {
+    "id": "TH-02-004",
+    "name": "Lat Lum Kaeo",
+    "name_thai": "Lat Lum Kaeo",
+    "type": "district",
+    "latitude": 14.0032361,
+    "longitude": 100.4059456
+  },
+  {
+    "id": "TH-34-009",
+    "name": "Lat Phrao",
+    "name_thai": "Lat Phrao",
+    "type": "district",
+    "latitude": 13.8241468,
+    "longitude": 100.6087981
+  },
+  {
+    "id": "TH-24-004",
+    "name": "Lat Yao",
+    "name_thai": "Lat Yao",
+    "type": "district",
+    "latitude": 13.8478325,
+    "longitude": 100.5609455
+  },
+  {
+    "id": "TH-76-005",
+    "name": "Li",
+    "name_thai": "Li",
+    "type": "district",
+    "latitude": 15.870032,
+    "longitude": 100.992541
+  },
+  {
+    "id": "TH-58-006",
+    "name": "Loeng Nok Tha",
+    "name_thai": "Loeng Nok Tha",
+    "type": "district",
+    "latitude": 16.171991,
+    "longitude": 104.5189214
+  },
+  {
+    "id": "TH-08-008",
+    "name": "Lom Kao",
+    "name_thai": "Lom Kao",
+    "type": "district",
+    "latitude": 16.8877073,
+    "longitude": 101.2273373
+  },
+  {
+    "id": "TH-59-002",
+    "name": "Lom Sak",
+    "name_thai": "Lom Sak",
+    "type": "district",
+    "latitude": 16.7733926,
+    "longitude": 101.2451095
+  },
+  {
+    "id": "TH-22-004",
+    "name": "Long",
+    "name_thai": "Long",
+    "type": "district",
+    "latitude": 18.1266629,
+    "longitude": 99.85714159999999
+  },
+  {
+    "id": "TH-74-007",
+    "name": "Lue Amnat",
+    "name_thai": "Lue Amnat",
+    "type": "district",
+    "latitude": 15.7221906,
+    "longitude": 104.7287607
+  },
+  {
+    "id": "TH-69-004",
+    "name": "Mae Ai",
+    "name_thai": "Mae Ai",
+    "type": "district",
+    "latitude": 20.0638367,
+    "longitude": 99.2563859
+  },
+  {
+    "id": "TH-24-005",
+    "name": "Mae Chaem",
+    "name_thai": "Mae Chaem",
+    "type": "district",
+    "latitude": 18.7142442,
+    "longitude": 98.3964938
+  },
+  {
+    "id": "TH-42-003",
+    "name": "Mae Chai",
+    "name_thai": "Mae Chai",
+    "type": "district",
+    "latitude": 19.3356553,
+    "longitude": 99.82086319999999
+  },
+  {
+    "id": "TH-20-003",
+    "name": "Mae Chan",
+    "name_thai": "Mae Chan",
+    "type": "district",
+    "latitude": 20.0932902,
+    "longitude": 99.80133509999999
+  },
+  {
+    "id": "TH-49-005",
+    "name": "Mae Charim",
+    "name_thai": "Mae Charim",
+    "type": "district",
+    "latitude": 18.8288419,
+    "longitude": 101.1390878
+  },
+  {
+    "id": "TH-36-005",
+    "name": "Mae Fa Luang",
+    "name_thai": "Mae Fa Luang",
+    "type": "district",
+    "latitude": 20.2830985,
+    "longitude": 99.7790227
+  },
+  {
+    "id": "TH-19-004",
+    "name": "Mae La Noi",
+    "name_thai": "Mae La Noi",
+    "type": "district",
+    "latitude": 18.380624,
+    "longitude": 97.9374948
+  },
+  {
+    "id": "TH-01-008",
+    "name": "Mae Lan",
+    "name_thai": "Mae Lan",
+    "type": "district",
+    "latitude": 6.647476999999999,
+    "longitude": 101.2353772
+  },
+  {
+    "id": "TH-58-007",
+    "name": "Mae Lao",
+    "name_thai": "Mae Lao",
+    "type": "district",
+    "latitude": 19.7571563,
+    "longitude": 99.70097539999999
+  },
+  {
+    "id": "TH-75-007",
+    "name": "Mae Mo",
+    "name_thai": "Mae Mo",
+    "type": "district",
+    "latitude": 18.2988994,
+    "longitude": 99.70097539999999
+  },
+  {
+    "id": "TH-47-005",
+    "name": "Mae On",
+    "name_thai": "Mae On",
+    "type": "district",
+    "latitude": 18.7420762,
+    "longitude": 99.3007367
+  },
+  {
+    "id": "TH-52-006",
+    "name": "Mae Phrik",
+    "name_thai": "Mae Phrik",
+    "type": "district",
+    "latitude": 17.535405,
+    "longitude": 98.99079379999999
+  },
+  {
+    "id": "TH-55-007",
+    "name": "Mae Poen",
+    "name_thai": "Mae Poen",
+    "type": "district",
+    "latitude": 15.6970407,
+    "longitude": 99.389511
+  },
+  {
+    "id": "TH-38-004",
+    "name": "Mae Ramat",
+    "name_thai": "Mae Ramat",
+    "type": "district",
+    "latitude": 16.9641702,
+    "longitude": 98.5226706
+  },
+  {
+    "id": "TH-13-007",
+    "name": "Mae Rim",
+    "name_thai": "Mae Rim",
+    "type": "district",
+    "latitude": 18.9274165,
+    "longitude": 98.88039250000001
+  },
+  {
+    "id": "TH-57-003",
+    "name": "Mae Sai",
+    "name_thai": "Mae Sai",
+    "type": "district",
+    "latitude": 20.4389131,
+    "longitude": 99.9049441
+  },
+  {
+    "id": "TH-45-004",
+    "name": "Mae Sariang",
+    "name_thai": "Mae Sariang",
+    "type": "district",
+    "latitude": 18.1587905,
+    "longitude": 97.93141899999999
+  },
+  {
+    "id": "TH-63-007",
+    "name": "Mae Sot",
+    "name_thai": "Mae Sot",
+    "type": "district",
+    "latitude": 16.7124054,
+    "longitude": 98.5746649
+  },
+  {
+    "id": "TH-37-005",
+    "name": "Mae Suai",
+    "name_thai": "Mae Suai",
+    "type": "district",
+    "latitude": 19.6701183,
+    "longitude": 99.5673479
+  },
+  {
+    "id": "TH-05-006",
+    "name": "Mae Taeng",
+    "name_thai": "Mae Taeng",
+    "type": "district",
+    "latitude": 19.1496673,
+    "longitude": 98.91349650000001
+  },
+  {
+    "id": "TH-05-007",
+    "name": "Mae Tha",
+    "name_thai": "Mae Tha",
+    "type": "district",
+    "latitude": 18.3541359,
+    "longitude": 99.05710889999999
+  },
+  {
+    "id": "TH-54-005",
+    "name": "Mae Wang",
+    "name_thai": "Mae Wang",
+    "type": "district",
+    "latitude": 18.6776659,
+    "longitude": 98.68206359999999
+  },
+  {
+    "id": "TH-18-004",
+    "name": "Mae Wong",
+    "name_thai": "Mae Wong",
+    "type": "district",
+    "latitude": 18.6776659,
+    "longitude": 98.68206359999999
+  },
+  {
+    "id": "TH-67-005",
+    "name": "Maha Chana Chai",
+    "name_thai": "Maha Chana Chai",
+    "type": "district",
+    "latitude": 15.5246282,
+    "longitude": 104.262851
+  },
+  {
+    "id": "TH-22-005",
+    "name": "Maha Rat",
+    "name_thai": "Maha Rat",
+    "type": "district",
+    "latitude": 14.5822246,
+    "longitude": 100.5521142
+  },
+  {
+    "id": "TH-57-004",
+    "name": "Mai Kaen",
+    "name_thai": "Mai Kaen",
+    "type": "district",
+    "latitude": 6.6479272,
+    "longitude": 101.6669843
+  },
+  {
+    "id": "TH-11-005",
+    "name": "Makham",
+    "name_thai": "Makham",
+    "type": "district",
+    "latitude": 12.7269676,
+    "longitude": 102.2319048
+  },
+  {
+    "id": "TH-32-006",
+    "name": "Manang",
+    "name_thai": "Manang",
+    "type": "district",
+    "latitude": 7.009016000000001,
+    "longitude": 99.92415749999999
+  },
+  {
+    "id": "TH-40-005",
+    "name": "Mancha Khiri",
+    "name_thai": "Mancha Khiri",
+    "type": "district",
+    "latitude": 16.2107446,
+    "longitude": 102.4839212
+  },
+  {
+    "id": "TH-63-008",
+    "name": "Manorom",
+    "name_thai": "Manorom",
+    "type": "district",
+    "latitude": 15.3388555,
+    "longitude": 100.1479182
+  },
+  {
+    "id": "TH-07-003",
+    "name": "Mayo",
+    "name_thai": "Mayo",
+    "type": "district",
+    "latitude": 15.870032,
+    "longitude": 100.992541
+  },
+  {
+    "id": "TH-60-007",
+    "name": "Min Buri",
+    "name_thai": "Min Buri",
+    "type": "district",
+    "latitude": 13.8154818,
+    "longitude": 100.7352666
+  },
+  {
+    "id": "TH-07-004",
+    "name": "Moei Wadi",
+    "name_thai": "Moei Wadi",
+    "type": "district",
+    "latitude": 16.3966621,
+    "longitude": 104.1756573
+  },
+  {
+    "id": "TH-32-007",
+    "name": "Muak Lek",
+    "name_thai": "Muak Lek",
+    "type": "district",
+    "latitude": 14.6926819,
+    "longitude": 101.1390878
+  },
+  {
+    "id": "TH-53-005",
+    "name": "Muang Sam Sip",
+    "name_thai": "Muang Sam Sip",
+    "type": "district",
+    "latitude": 15.5058041,
+    "longitude": 104.7170954
+  },
+  {
+    "id": "TH-01-009",
+    "name": "Mueang Amnat Charoen",
+    "name_thai": "Mueang Amnat Charoen",
+    "type": "district",
+    "latitude": 15.8904274,
+    "longitude": 104.6121475
+  },
+  {
+    "id": "TH-02-005",
+    "name": "Mueang Ang Thong",
+    "name_thai": "Mueang Ang Thong",
+    "type": "district",
+    "latitude": 14.5752935,
+    "longitude": 100.4508956
+  },
+  {
+    "id": "TH-03-011",
+    "name": "Mueang Bangkok",
+    "name_thai": "Mueang Bangkok",
+    "type": "district",
+    "latitude": 13.8083115,
+    "longitude": 100.6153813
+  },
+  {
+    "id": "TH-04-005",
+    "name": "Mueang Bueng Kan",
+    "name_thai": "Mueang Bueng Kan",
+    "type": "district",
+    "latitude": 18.3697808,
+    "longitude": 103.4974258
+  },
+  {
+    "id": "TH-05-008",
+    "name": "Mueang Buri Ram",
+    "name_thai": "Mueang Buri Ram",
+    "type": "district",
+    "latitude": 14.8905684,
+    "longitude": 103.035694
+  },
+  {
+    "id": "TH-06-004",
+    "name": "Mueang Chachoengsao",
+    "name_thai": "Mueang Chachoengsao",
+    "type": "district",
+    "latitude": 13.7367644,
+    "longitude": 101.0033112
+  },
+  {
+    "id": "TH-07-005",
+    "name": "Mueang Chai Nat",
+    "name_thai": "Mueang Chai Nat",
+    "type": "district",
+    "latitude": 15.2000999,
+    "longitude": 100.1479182
+  },
+  {
+    "id": "TH-08-009",
+    "name": "Mueang Chaiyaphum",
+    "name_thai": "Mueang Chaiyaphum",
+    "type": "district",
+    "latitude": 15.8675815,
+    "longitude": 102.026135
+  },
+  {
+    "id": "TH-10-005",
+    "name": "Mueang Chan",
+    "name_thai": "Mueang Chan",
+    "type": "district",
+    "latitude": 15.1600286,
+    "longitude": 104.0652887
+  },
+  {
+    "id": "TH-09-004",
+    "name": "Mueang Chanthaburi",
+    "name_thai": "Mueang Chanthaburi",
+    "type": "district",
+    "latitude": 12.5958462,
+    "longitude": 102.1404037
+  },
+  {
+    "id": "TH-10-006",
+    "name": "Mueang Chiang Mai",
+    "name_thai": "Mueang Chiang Mai",
+    "type": "district",
+    "latitude": 18.7720046,
+    "longitude": 98.979339
+  },
+  {
+    "id": "TH-11-006",
+    "name": "Mueang Chiang Rai",
+    "name_thai": "Mueang Chiang Rai",
+    "type": "district",
+    "latitude": 19.9104798,
+    "longitude": 99.840576
+  },
+  {
+    "id": "TH-12-005",
+    "name": "Mueang Chon Buri",
+    "name_thai": "Mueang Chon Buri",
+    "type": "district",
+    "latitude": 13.3263965,
+    "longitude": 101.0033112
+  },
+  {
+    "id": "TH-13-008",
+    "name": "Mueang Chumphon",
+    "name_thai": "Mueang Chumphon",
+    "type": "district",
+    "latitude": 10.4431693,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-14-004",
+    "name": "Mueang Kalasin",
+    "name_thai": "Mueang Kalasin",
+    "type": "district",
+    "latitude": 16.5354231,
+    "longitude": 103.5668302
+  },
+  {
+    "id": "TH-15-004",
+    "name": "Mueang Kamphaeng Phet",
+    "name_thai": "Mueang Kamphaeng Phet",
+    "type": "district",
+    "latitude": 16.4600148,
+    "longitude": 99.5006143
+  },
+  {
+    "id": "TH-16-007",
+    "name": "Mueang Kanchanaburi",
+    "name_thai": "Mueang Kanchanaburi",
+    "type": "district",
+    "latitude": 14.1509771,
+    "longitude": 99.32292129999999
+  },
+  {
+    "id": "TH-17-006",
+    "name": "Mueang Khon Kaen",
+    "name_thai": "Mueang Khon Kaen",
+    "type": "district",
+    "latitude": 16.4049715,
+    "longitude": 102.8308414
+  },
+  {
+    "id": "TH-18-005",
+    "name": "Mueang Krabi",
+    "name_thai": "Mueang Krabi",
+    "type": "district",
+    "latitude": 8.1673273,
+    "longitude": 98.88039250000001
+  },
+  {
+    "id": "TH-19-005",
+    "name": "Mueang Lampang",
+    "name_thai": "Mueang Lampang",
+    "type": "district",
+    "latitude": 18.2901189,
+    "longitude": 99.4983205
+  },
+  {
+    "id": "TH-20-004",
+    "name": "Mueang Lamphun",
+    "name_thai": "Mueang Lamphun",
+    "type": "district",
+    "latitude": 18.5422768,
+    "longitude": 99.05710889999999
+  },
+  {
+    "id": "TH-21-006",
+    "name": "Mueang Loei",
+    "name_thai": "Mueang Loei",
+    "type": "district",
+    "latitude": 17.5536959,
+    "longitude": 101.7523854
+  },
+  {
+    "id": "TH-22-006",
+    "name": "Mueang Lop Buri",
+    "name_thai": "Mueang Lop Buri",
+    "type": "district",
+    "latitude": 14.8302328,
+    "longitude": 100.6647101
+  },
+  {
+    "id": "TH-23-004",
+    "name": "Mueang Mae Hong Son",
+    "name_thai": "Mueang Mae Hong Son",
+    "type": "district",
+    "latitude": 19.1071317,
+    "longitude": 98.04651849999999
+  },
+  {
+    "id": "TH-24-006",
+    "name": "Mueang Maha Sarakham",
+    "name_thai": "Mueang Maha Sarakham",
+    "type": "district",
+    "latitude": 16.1383681,
+    "longitude": 103.2894368
+  },
+  {
+    "id": "TH-25-007",
+    "name": "Mueang Mukdahan",
+    "name_thai": "Mueang Mukdahan",
+    "type": "district",
+    "latitude": 16.5329169,
+    "longitude": 104.6121475
+  },
+  {
+    "id": "TH-26-005",
+    "name": "Mueang Nakhon Nayok",
+    "name_thai": "Mueang Nakhon Nayok",
+    "type": "district",
+    "latitude": 14.2534482,
+    "longitude": 101.207047
+  },
+  {
+    "id": "TH-27-005",
+    "name": "Mueang Nakhon Pathom",
+    "name_thai": "Mueang Nakhon Pathom",
+    "type": "district",
+    "latitude": 13.8249803,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-28-006",
+    "name": "Mueang Nakhon Phanom",
+    "name_thai": "Mueang Nakhon Phanom",
+    "type": "district",
+    "latitude": 17.3798237,
+    "longitude": 104.6821048
+  },
+  {
+    "id": "TH-29-004",
+    "name": "Mueang Nakhon Ratchasima",
+    "name_thai": "Mueang Nakhon Ratchasima",
+    "type": "district",
+    "latitude": 14.9415189,
+    "longitude": 102.1175404
+  },
+  {
+    "id": "TH-30-007",
+    "name": "Mueang Nakhon Sawan",
+    "name_thai": "Mueang Nakhon Sawan",
+    "type": "district",
+    "latitude": 15.6872877,
+    "longitude": 100.1255164
+  },
+  {
+    "id": "TH-31-008",
+    "name": "Mueang Nakhon Si Thammarat",
+    "name_thai": "Mueang Nakhon Si Thammarat",
+    "type": "district",
+    "latitude": 8.4229039,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-32-008",
+    "name": "Mueang Nan",
+    "name_thai": "Mueang Nan",
+    "type": "district",
+    "latitude": 18.8333113,
+    "longitude": 100.6647101
+  },
+  {
+    "id": "TH-33-008",
+    "name": "Mueang Narathiwat",
+    "name_thai": "Mueang Narathiwat",
+    "type": "district",
+    "latitude": 6.3773117,
+    "longitude": 101.8207566
+  },
+  {
+    "id": "TH-34-010",
+    "name": "Mueang Nong Bua Lam Phu",
+    "name_thai": "Mueang Nong Bua Lam Phu",
+    "type": "district",
+    "latitude": 17.1426929,
+    "longitude": 102.3922135
+  },
+  {
+    "id": "TH-35-005",
+    "name": "Mueang Nong Khai",
+    "name_thai": "Mueang Nong Khai",
+    "type": "district",
+    "latitude": 17.8379143,
+    "longitude": 102.7824777
+  },
+  {
+    "id": "TH-36-006",
+    "name": "Mueang Nonthaburi",
+    "name_thai": "Mueang Nonthaburi",
+    "type": "district",
+    "latitude": 13.8869607,
+    "longitude": 100.5150745
+  },
+  {
+    "id": "TH-11-007",
+    "name": "Mueang Pan",
+    "name_thai": "Mueang Pan",
+    "type": "district",
+    "latitude": 18.7936282,
+    "longitude": 99.4450439
+  },
+  {
+    "id": "TH-37-006",
+    "name": "Mueang Pathum Thani",
+    "name_thai": "Mueang Pathum Thani",
+    "type": "district",
+    "latitude": 13.9854373,
+    "longitude": 100.5521142
+  },
+  {
+    "id": "TH-38-005",
+    "name": "Mueang Pattani",
+    "name_thai": "Mueang Pattani",
+    "type": "district",
+    "latitude": 6.862635099999999,
+    "longitude": 101.2637155
+  },
+  {
+    "id": "TH-39-008",
+    "name": "Mueang Phangnga",
+    "name_thai": "Mueang Phangnga",
+    "type": "district",
+    "latitude": 8.435230299999999,
+    "longitude": 98.5281613
+  },
+  {
+    "id": "TH-40-006",
+    "name": "Mueang Phatthalung",
+    "name_thai": "Mueang Phatthalung",
+    "type": "district",
+    "latitude": 7.622522300000001,
+    "longitude": 100.1255164
+  },
+  {
+    "id": "TH-41-003",
+    "name": "Mueang Phayao",
+    "name_thai": "Mueang Phayao",
+    "type": "district",
+    "latitude": 19.1601844,
+    "longitude": 99.85714159999999
+  },
+  {
+    "id": "TH-42-004",
+    "name": "Mueang Phetchabun",
+    "name_thai": "Mueang Phetchabun",
+    "type": "district",
+    "latitude": 16.3266492,
+    "longitude": 101.2523792
+  },
+  {
+    "id": "TH-43-006",
+    "name": "Mueang Phetchaburi",
+    "name_thai": "Mueang Phetchaburi",
+    "type": "district",
+    "latitude": 13.0957579,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-44-004",
+    "name": "Mueang Phichit",
+    "name_thai": "Mueang Phichit",
+    "type": "district",
+    "latitude": 16.3953091,
+    "longitude": 100.3722477
+  },
+  {
+    "id": "TH-45-005",
+    "name": "Mueang Phitsanulok",
+    "name_thai": "Mueang Phitsanulok",
+    "type": "district",
+    "latitude": 16.7989564,
+    "longitude": 100.2151578
+  },
+  {
+    "id": "TH-03-012",
+    "name": "Mueang Phra Nakhon Si Ayutthaya",
+    "name_thai": "Mueang Phra Nakhon Si Ayutthaya",
+    "type": "district",
+    "latitude": 14.4259288,
+    "longitude": 100.5450815
+  },
+  {
+    "id": "TH-47-006",
+    "name": "Mueang Phrae",
+    "name_thai": "Mueang Phrae",
+    "type": "district",
+    "latitude": 18.103139,
+    "longitude": 100.3048897
+  },
+  {
+    "id": "TH-48-007",
+    "name": "Mueang Phuket",
+    "name_thai": "Mueang Phuket",
+    "type": "district",
+    "latitude": 7.8649213,
+    "longitude": 98.3636131
+  },
+  {
+    "id": "TH-49-006",
+    "name": "Mueang Prachin Buri",
+    "name_thai": "Mueang Prachin Buri",
+    "type": "district",
+    "latitude": 14.0617473,
+    "longitude": 101.3885001
+  },
+  {
+    "id": "TH-50-004",
+    "name": "Mueang Prachuap Khiri Khan",
+    "name_thai": "Mueang Prachuap Khiri Khan",
+    "type": "district",
+    "latitude": 11.9469578,
+    "longitude": 99.7678687
+  },
+  {
+    "id": "TH-51-006",
+    "name": "Mueang Ranong",
+    "name_thai": "Mueang Ranong",
+    "type": "district",
+    "latitude": 9.85914,
+    "longitude": 98.5940814
+  },
+  {
+    "id": "TH-52-007",
+    "name": "Mueang Ratchaburi",
+    "name_thai": "Mueang Ratchaburi",
+    "type": "district",
+    "latitude": 13.5610133,
+    "longitude": 99.745565
+  },
+  {
+    "id": "TH-53-006",
+    "name": "Mueang Rayong",
+    "name_thai": "Mueang Rayong",
+    "type": "district",
+    "latitude": 12.6754092,
+    "longitude": 101.3658004
+  },
+  {
+    "id": "TH-54-006",
+    "name": "Mueang Roi Et",
+    "name_thai": "Mueang Roi Et",
+    "type": "district",
+    "latitude": 16.0256838,
+    "longitude": 103.6131203
+  },
+  {
+    "id": "TH-55-008",
+    "name": "Mueang Sa Kaeo",
+    "name_thai": "Mueang Sa Kaeo",
+    "type": "district",
+    "latitude": 13.934818,
+    "longitude": 102.1175404
+  },
+  {
+    "id": "TH-56-002",
+    "name": "Mueang Sakon Nakhon",
+    "name_thai": "Mueang Sakon Nakhon",
+    "type": "district",
+    "latitude": 17.2177685,
+    "longitude": 104.053676
+  },
+  {
+    "id": "TH-57-005",
+    "name": "Mueang Samut Prakan",
+    "name_thai": "Mueang Samut Prakan",
+    "type": "district",
+    "latitude": 13.5699534,
+    "longitude": 100.6421799
+  },
+  {
+    "id": "TH-58-008",
+    "name": "Mueang Samut Sakhon",
+    "name_thai": "Mueang Samut Sakhon",
+    "type": "district",
+    "latitude": 13.541268,
+    "longitude": 100.2375823
+  },
+  {
+    "id": "TH-59-003",
+    "name": "Mueang Samut Songkhram",
+    "name_thai": "Mueang Samut Songkhram",
+    "type": "district",
+    "latitude": 13.4132941,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-60-008",
+    "name": "Mueang Saraburi",
+    "name_thai": "Mueang Saraburi",
+    "type": "district",
+    "latitude": 14.5196239,
+    "longitude": 100.9128995
+  },
+  {
+    "id": "TH-61-006",
+    "name": "Mueang Satun",
+    "name_thai": "Mueang Satun",
+    "type": "district",
+    "latitude": 6.7117369,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-62-002",
+    "name": "Mueang Si Sa Ket",
+    "name_thai": "Mueang Si Sa Ket",
+    "type": "district",
+    "latitude": 15.0859063,
+    "longitude": 104.332644
+  },
+  {
+    "id": "TH-63-009",
+    "name": "Mueang Sing Buri",
+    "name_thai": "Mueang Sing Buri",
+    "type": "district",
+    "latitude": 14.8997786,
+    "longitude": 100.4059456
+  },
+  {
+    "id": "TH-64-008",
+    "name": "Mueang Songkhla",
+    "name_thai": "Mueang Songkhla",
+    "type": "district",
+    "latitude": 7.2029486,
+    "longitude": 100.5892967
+  },
+  {
+    "id": "TH-14-005",
+    "name": "Mueang Suang",
+    "name_thai": "Mueang Suang",
+    "type": "district",
+    "latitude": 15.8206635,
+    "longitude": 103.7636752
+  },
+  {
+    "id": "TH-65-006",
+    "name": "Mueang Sukhothai",
+    "name_thai": "Mueang Sukhothai",
+    "type": "district",
+    "latitude": 17.0076429,
+    "longitude": 99.8264435
+  },
+  {
+    "id": "TH-66-002",
+    "name": "Mueang Suphan Buri",
+    "name_thai": "Mueang Suphan Buri",
+    "type": "district",
+    "latitude": 14.4899575,
+    "longitude": 100.0359661
+  },
+  {
+    "id": "TH-67-006",
+    "name": "Mueang Surat Thani",
+    "name_thai": "Mueang Surat Thani",
+    "type": "district",
+    "latitude": 9.1596253,
+    "longitude": 99.3466307
+  },
+  {
+    "id": "TH-68-007",
+    "name": "Mueang Surin",
+    "name_thai": "Mueang Surin",
+    "type": "district",
+    "latitude": 14.8635547,
+    "longitude": 103.4974258
+  },
+  {
+    "id": "TH-69-005",
+    "name": "Mueang Tak",
+    "name_thai": "Mueang Tak",
+    "type": "district",
+    "latitude": 16.8495034,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-70-009",
+    "name": "Mueang Trang",
+    "name_thai": "Mueang Trang",
+    "type": "district",
+    "latitude": 7.612848599999999,
+    "longitude": 99.6118667
+  },
+  {
+    "id": "TH-71-006",
+    "name": "Mueang Trat",
+    "name_thai": "Mueang Trat",
+    "type": "district",
+    "latitude": 12.283268,
+    "longitude": 102.5757028
+  },
+  {
+    "id": "TH-72-003",
+    "name": "Mueang Ubon Ratchathani",
+    "name_thai": "Mueang Ubon Ratchathani",
+    "type": "district",
+    "latitude": 15.304668,
+    "longitude": 104.8221147
+  },
+  {
+    "id": "TH-73-005",
+    "name": "Mueang Udon Thani",
+    "name_thai": "Mueang Udon Thani",
+    "type": "district",
+    "latitude": 17.3384973,
+    "longitude": 102.842826
+  },
+  {
+    "id": "TH-74-008",
+    "name": "Mueang Uthai Thani",
+    "name_thai": "Mueang Uthai Thani",
+    "type": "district",
+    "latitude": 15.4375499,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-75-008",
+    "name": "Mueang Uttaradit",
+    "name_thai": "Mueang Uttaradit",
+    "type": "district",
+    "latitude": 17.7332664,
+    "longitude": 100.2151578
+  },
+  {
+    "id": "TH-76-006",
+    "name": "Mueang Yala",
+    "name_thai": "Mueang Yala",
+    "type": "district",
+    "latitude": 6.5583312,
+    "longitude": 101.2297105
+  },
+  {
+    "id": "TH-08-010",
+    "name": "Mueang Yang",
+    "name_thai": "Mueang Yang",
+    "type": "district",
+    "latitude": 15.4273569,
+    "longitude": 102.8744945
+  },
+  {
+    "id": "TH-77-005",
+    "name": "Mueang Yasothon",
+    "name_thai": "Mueang Yasothon",
+    "type": "district",
+    "latitude": 15.8515169,
+    "longitude": 104.1698463
+  },
+  {
+    "id": "TH-37-007",
+    "name": "Na Bon",
+    "name_thai": "Na Bon",
+    "type": "district",
+    "latitude": 8.247558999999999,
+    "longitude": 99.6230001
+  },
+  {
+    "id": "TH-29-005",
+    "name": "Na Chaluai",
+    "name_thai": "Na Chaluai",
+    "type": "district",
+    "latitude": 14.503619,
+    "longitude": 105.2428853
+  },
+  {
+    "id": "TH-40-007",
+    "name": "Na Chueak",
+    "name_thai": "Na Chueak",
+    "type": "district",
+    "latitude": 15.7734482,
+    "longitude": 103.0472164
+  },
+  {
+    "id": "TH-36-007",
+    "name": "Na Di",
+    "name_thai": "Na Di",
+    "type": "district",
+    "latitude": 14.2225061,
+    "longitude": 101.8435568
+  },
+  {
+    "id": "TH-49-007",
+    "name": "Na Duang",
+    "name_thai": "Na Duang",
+    "type": "district",
+    "latitude": 17.5124581,
+    "longitude": 102.0489791
+  },
+  {
+    "id": "TH-71-007",
+    "name": "Na Dun",
+    "name_thai": "Na Dun",
+    "type": "district",
+    "latitude": 15.7223021,
+    "longitude": 103.2259525
+  },
+  {
+    "id": "TH-19-006",
+    "name": "Na Haeo",
+    "name_thai": "Na Haeo",
+    "type": "district",
+    "latitude": 17.4778704,
+    "longitude": 101.048549
+  },
+  {
+    "id": "TH-46-006",
+    "name": "Na Kae",
+    "name_thai": "Na Kae",
+    "type": "district",
+    "latitude": 16.8863767,
+    "longitude": 104.4956239
+  },
+  {
+    "id": "TH-03-013",
+    "name": "Na Khu",
+    "name_thai": "Na Khu",
+    "type": "district",
+    "latitude": 16.8085029,
+    "longitude": 104.04787
+  },
+  {
+    "id": "TH-30-008",
+    "name": "Na Klang",
+    "name_thai": "Na Klang",
+    "type": "district",
+    "latitude": 17.3042606,
+    "longitude": 102.220463
+  },
+  {
+    "id": "TH-47-007",
+    "name": "Na Mom",
+    "name_thai": "Na Mom",
+    "type": "district",
+    "latitude": 6.9586209,
+    "longitude": 100.5352367
+  },
+  {
+    "id": "TH-17-007",
+    "name": "Na Mon",
+    "name_thai": "Na Mon",
+    "type": "district",
+    "latitude": 16.5661417,
+    "longitude": 103.7984428
+  },
+  {
+    "id": "TH-75-009",
+    "name": "Na Muen",
+    "name_thai": "Na Muen",
+    "type": "district",
+    "latitude": 18.1821215,
+    "longitude": 100.5746224
+  },
+  {
+    "id": "TH-09-005",
+    "name": "Na Noi",
+    "name_thai": "Na Noi",
+    "type": "district",
+    "latitude": 18.3052743,
+    "longitude": 100.6759772
+  },
+  {
+    "id": "TH-04-006",
+    "name": "Na Pho",
+    "name_thai": "Na Pho",
+    "type": "district",
+    "latitude": 15.6408669,
+    "longitude": 102.9346988
+  },
+  {
+    "id": "TH-05-009",
+    "name": "Na Tan",
+    "name_thai": "Na Tan",
+    "type": "district",
+    "latitude": 15.8991237,
+    "longitude": 105.3014109
+  },
+  {
+    "id": "TH-09-006",
+    "name": "Na Thawi",
+    "name_thai": "Na Thawi",
+    "type": "district",
+    "latitude": 6.694578099999999,
+    "longitude": 100.7774424
+  },
+  {
+    "id": "TH-63-010",
+    "name": "Na Thom",
+    "name_thai": "Na Thom",
+    "type": "district",
+    "latitude": 17.8315539,
+    "longitude": 104.0420642
+  },
+  {
+    "id": "TH-72-004",
+    "name": "Na Wa",
+    "name_thai": "Na Wa",
+    "type": "district",
+    "latitude": 17.4777267,
+    "longitude": 104.1349852
+  },
+  {
+    "id": "TH-30-009",
+    "name": "Na Wang",
+    "name_thai": "Na Wang",
+    "type": "district",
+    "latitude": 17.3263608,
+    "longitude": 102.0489791
+  },
+  {
+    "id": "TH-71-008",
+    "name": "Na Yai Am",
+    "name_thai": "Na Yai Am",
+    "type": "district",
+    "latitude": 12.7781601,
+    "longitude": 101.8549588
+  },
+  {
+    "id": "TH-23-005",
+    "name": "Na Yia",
+    "name_thai": "Na Yia",
+    "type": "district",
+    "latitude": 15.0230007,
+    "longitude": 105.1142011
+  },
+  {
+    "id": "TH-42-005",
+    "name": "Na Yong",
+    "name_thai": "Na Yong",
+    "type": "district",
+    "latitude": 7.5670301,
+    "longitude": 99.745565
+  },
+  {
+    "id": "TH-38-006",
+    "name": "Na Yung",
+    "name_thai": "Na Yung",
+    "type": "district",
+    "latitude": 17.9092223,
+    "longitude": 102.220463
+  },
+  {
+    "id": "TH-30-010",
+    "name": "Nakhon Chai Si",
+    "name_thai": "Nakhon Chai Si",
+    "type": "district",
+    "latitude": 13.7908833,
+    "longitude": 100.1959121
+  },
+  {
+    "id": "TH-31-009",
+    "name": "Nakhon Luang",
+    "name_thai": "Nakhon Luang",
+    "type": "district",
+    "latitude": 14.4759803,
+    "longitude": 100.6241192
+  },
+  {
+    "id": "TH-77-006",
+    "name": "Nakhon Thai",
+    "name_thai": "Nakhon Thai",
+    "type": "district",
+    "latitude": 17.0901878,
+    "longitude": 100.8903099
+  },
+  {
+    "id": "TH-63-011",
+    "name": "Nam Khun",
+    "name_thai": "Nam Khun",
+    "type": "district",
+    "latitude": 14.5946094,
+    "longitude": 104.8921668
+  },
+  {
+    "id": "TH-46-007",
+    "name": "Nam Kliang",
+    "name_thai": "Nam Kliang",
+    "type": "district",
+    "latitude": 14.9234729,
+    "longitude": 104.5538744
+  },
+  {
+    "id": "TH-67-007",
+    "name": "Nam Nao",
+    "name_thai": "Nam Nao",
+    "type": "district",
+    "latitude": 16.7488753,
+    "longitude": 101.5930268
+  },
+  {
+    "id": "TH-23-006",
+    "name": "Nam Pat",
+    "name_thai": "Nam Pat",
+    "type": "district",
+    "latitude": 17.7043083,
+    "longitude": 100.7548851
+  },
+  {
+    "id": "TH-07-006",
+    "name": "Nam Phong",
+    "name_thai": "Nam Phong",
+    "type": "district",
+    "latitude": 16.7554976,
+    "longitude": 102.8399799
+  },
+  {
+    "id": "TH-64-009",
+    "name": "Nam Som",
+    "name_thai": "Nam Som",
+    "type": "district",
+    "latitude": 17.742434,
+    "longitude": 102.0946818
+  },
+  {
+    "id": "TH-32-009",
+    "name": "Nam Yuen",
+    "name_thai": "Nam Yuen",
+    "type": "district",
+    "latitude": 14.4010244,
+    "longitude": 105.0791253
+  },
+  {
+    "id": "TH-32-010",
+    "name": "Nang Rong",
+    "name_thai": "Nang Rong",
+    "type": "district",
+    "latitude": 14.6335733,
+    "longitude": 102.7934934
+  },
+  {
+    "id": "TH-20-005",
+    "name": "Ngao",
+    "name_thai": "Ngao",
+    "type": "district",
+    "latitude": 19.6664202,
+    "longitude": 100.2712297
+  },
+  {
+    "id": "TH-28-007",
+    "name": "Nikhom Kham Soi",
+    "name_thai": "Nikhom Kham Soi",
+    "type": "district",
+    "latitude": 16.3355896,
+    "longitude": 104.5597007
+  },
+  {
+    "id": "TH-21-007",
+    "name": "Nikhom Nam Un",
+    "name_thai": "Nikhom Nam Un",
+    "type": "district",
+    "latitude": 17.1635384,
+    "longitude": 103.6710059
+  },
+  {
+    "id": "TH-62-003",
+    "name": "Nikhom Phatthana",
+    "name_thai": "Nikhom Phatthana",
+    "type": "district",
+    "latitude": 12.8299114,
+    "longitude": 101.2043333
+  },
+  {
+    "id": "TH-17-008",
+    "name": "Noen Kham",
+    "name_thai": "Noen Kham",
+    "type": "district",
+    "latitude": 14.9679283,
+    "longitude": 99.91298450000001
+  },
+  {
+    "id": "TH-52-008",
+    "name": "Noen Maprang",
+    "name_thai": "Noen Maprang",
+    "type": "district",
+    "latitude": 16.6020807,
+    "longitude": 100.6534443
+  },
+  {
+    "id": "TH-05-010",
+    "name": "Noen Sa-Nga",
+    "name_thai": "Noen Sa-Nga",
+    "type": "district",
+    "latitude": 15.568898,
+    "longitude": 102.0032957
+  },
+  {
+    "id": "TH-13-009",
+    "name": "Non Daeng",
+    "name_thai": "Non Daeng",
+    "type": "district",
+    "latitude": 15.4121381,
+    "longitude": 102.5412761
+  },
+  {
+    "id": "TH-05-011",
+    "name": "Non Din Daeng",
+    "name_thai": "Non Din Daeng",
+    "type": "district",
+    "latitude": 14.3121305,
+    "longitude": 102.7485673
+  },
+  {
+    "id": "TH-16-008",
+    "name": "Non Khun",
+    "name_thai": "Non Khun",
+    "type": "district",
+    "latitude": 14.9037704,
+    "longitude": 104.6821048
+  },
+  {
+    "id": "TH-27-006",
+    "name": "Non Narai",
+    "name_thai": "Non Narai",
+    "type": "district",
+    "latitude": 15.1824034,
+    "longitude": 103.8911999
+  },
+  {
+    "id": "TH-63-012",
+    "name": "Non Sa-At",
+    "name_thai": "Non Sa-At",
+    "type": "district",
+    "latitude": 16.9225261,
+    "longitude": 102.9435536
+  },
+  {
+    "id": "TH-10-007",
+    "name": "Non Sang",
+    "name_thai": "Non Sang",
+    "type": "district",
+    "latitude": 16.8653327,
+    "longitude": 102.5642261
+  },
+  {
+    "id": "TH-76-007",
+    "name": "Non Sila",
+    "name_thai": "Non Sila",
+    "type": "district",
+    "latitude": 15.967913,
+    "longitude": 102.6766143
+  },
+  {
+    "id": "TH-68-008",
+    "name": "Non Sung",
+    "name_thai": "Non Sung",
+    "type": "district",
+    "latitude": 15.1805822,
+    "longitude": 102.2575235
+  },
+  {
+    "id": "TH-40-008",
+    "name": "Non Suwan",
+    "name_thai": "Non Suwan",
+    "type": "district",
+    "latitude": 14.5369262,
+    "longitude": 102.6101398
+  },
+  {
+    "id": "TH-40-009",
+    "name": "Non Thai",
+    "name_thai": "Non Thai",
+    "type": "district",
+    "latitude": 15.2088556,
+    "longitude": 102.060403
+  },
+  {
+    "id": "TH-34-011",
+    "name": "Nong Bua",
+    "name_thai": "Nong Bua",
+    "type": "district",
+    "latitude": 15.8589974,
+    "longitude": 100.6534443
+  },
+  {
+    "id": "TH-53-007",
+    "name": "Nong Bua Daeng",
+    "name_thai": "Nong Bua Daeng",
+    "type": "district",
+    "latitude": 16.0816014,
+    "longitude": 101.8028478
+  },
+  {
+    "id": "TH-36-008",
+    "name": "Nong Bua Rawe",
+    "name_thai": "Nong Bua Rawe",
+    "type": "district",
+    "latitude": 15.7538158,
+    "longitude": 101.7865654
+  },
+  {
+    "id": "TH-49-008",
+    "name": "Nong Bun Mak",
+    "name_thai": "Nong Bun Mak",
+    "type": "district",
+    "latitude": 14.7432747,
+    "longitude": 102.3922135
+  },
+  {
+    "id": "TH-69-006",
+    "name": "Nong Chang",
+    "name_thai": "Nong Chang",
+    "type": "district",
+    "latitude": 15.3917217,
+    "longitude": 99.87389069999999
+  },
+  {
+    "id": "TH-45-006",
+    "name": "Nong Chik",
+    "name_thai": "Nong Chik",
+    "type": "district",
+    "latitude": 6.811785599999999,
+    "longitude": 101.1843887
+  },
+  {
+    "id": "TH-70-010",
+    "name": "Nong Chok",
+    "name_thai": "Nong Chok",
+    "type": "district",
+    "latitude": 13.8563339,
+    "longitude": 100.8630399
+  },
+  {
+    "id": "TH-51-007",
+    "name": "Nong Don",
+    "name_thai": "Nong Don",
+    "type": "district",
+    "latitude": 14.6790319,
+    "longitude": 100.6985155
+  },
+  {
+    "id": "TH-25-008",
+    "name": "Nong Han",
+    "name_thai": "Nong Han",
+    "type": "district",
+    "latitude": 17.3645735,
+    "longitude": 103.0933171
+  },
+  {
+    "id": "TH-67-008",
+    "name": "Nong Hi",
+    "name_thai": "Nong Hi",
+    "type": "district",
+    "latitude": 15.6221834,
+    "longitude": 103.9956269
+  },
+  {
+    "id": "TH-29-006",
+    "name": "Nong Hin",
+    "name_thai": "Nong Hin",
+    "type": "district",
+    "latitude": 17.1232474,
+    "longitude": 101.8585023
+  },
+  {
+    "id": "TH-76-008",
+    "name": "Nong Hong",
+    "name_thai": "Nong Hong",
+    "type": "district",
+    "latitude": 14.8898061,
+    "longitude": 102.644587
+  },
+  {
+    "id": "TH-40-010",
+    "name": "Nong Khae",
+    "name_thai": "Nong Khae",
+    "type": "district",
+    "latitude": 14.3839605,
+    "longitude": 100.8677256
+  },
+  {
+    "id": "TH-01-010",
+    "name": "Nong Khaem",
+    "name_thai": "Nong Khaem",
+    "type": "district",
+    "latitude": 13.7054329,
+    "longitude": 100.3432355
+  },
+  {
+    "id": "TH-62-004",
+    "name": "Nong Khayang",
+    "name_thai": "Nong Khayang",
+    "type": "district",
+    "latitude": 15.3620878,
+    "longitude": 99.93944239999999
+  },
+  {
+    "id": "TH-03-014",
+    "name": "Nong Ki",
+    "name_thai": "Nong Ki",
+    "type": "district",
+    "latitude": 14.6746056,
+    "longitude": 102.5365942
+  },
+  {
+    "id": "TH-67-009",
+    "name": "Nong Kung Si",
+    "name_thai": "Nong Kung Si",
+    "type": "district",
+    "latitude": 16.6335739,
+    "longitude": 103.3009828
+  },
+  {
+    "id": "TH-18-006",
+    "name": "Nong Mamong",
+    "name_thai": "Nong Mamong",
+    "type": "district",
+    "latitude": 15.2049356,
+    "longitude": 99.7790227
+  },
+  {
+    "id": "TH-01-011",
+    "name": "Nong Muang",
+    "name_thai": "Nong Muang",
+    "type": "district",
+    "latitude": 15.2256001,
+    "longitude": 100.6600016
+  },
+  {
+    "id": "TH-39-009",
+    "name": "Nong Muang Khai",
+    "name_thai": "Nong Muang Khai",
+    "type": "district",
+    "latitude": 18.278167,
+    "longitude": 100.2095525
+  },
+  {
+    "id": "TH-05-012",
+    "name": "Nong Na Kham",
+    "name_thai": "Nong Na Kham",
+    "type": "district",
+    "latitude": 17.3534994,
+    "longitude": 102.9090191
+  },
+  {
+    "id": "TH-11-008",
+    "name": "Nong Phai",
+    "name_thai": "Nong Phai",
+    "type": "district",
+    "latitude": 16.001807,
+    "longitude": 101.0372376
+  },
+  {
+    "id": "TH-67-010",
+    "name": "Nong Phok",
+    "name_thai": "Nong Phok",
+    "type": "district",
+    "latitude": 16.3413382,
+    "longitude": 104.2279672
+  },
+  {
+    "id": "TH-19-007",
+    "name": "Nong Prue",
+    "name_thai": "Nong Prue",
+    "type": "district",
+    "latitude": 12.9323865,
+    "longitude": 100.9395678
+  },
+  {
+    "id": "TH-06-005",
+    "name": "Nong Ruea",
+    "name_thai": "Nong Ruea",
+    "type": "district",
+    "latitude": 16.4881862,
+    "longitude": 102.4839212
+  },
+  {
+    "id": "TH-06-006",
+    "name": "Nong Saeng",
+    "name_thai": "Nong Saeng",
+    "type": "district",
+    "latitude": 17.1670139,
+    "longitude": 102.8342284
+  },
+  {
+    "id": "TH-47-008",
+    "name": "Nong Song Hong",
+    "name_thai": "Nong Song Hong",
+    "type": "district",
+    "latitude": 15.6979174,
+    "longitude": 102.7709807
+  },
+  {
+    "id": "TH-12-006",
+    "name": "Nong Suea",
+    "name_thai": "Nong Suea",
+    "type": "district",
+    "latitude": 14.1785783,
+    "longitude": 100.8451467
+  },
+  {
+    "id": "TH-43-007",
+    "name": "Nong Sung",
+    "name_thai": "Nong Sung",
+    "type": "district",
+    "latitude": 16.4528238,
+    "longitude": 104.3617343
+  },
+  {
+    "id": "TH-49-009",
+    "name": "Nong Wua So",
+    "name_thai": "Nong Wua So",
+    "type": "district",
+    "latitude": 17.2813695,
+    "longitude": 102.5871807
+  },
+  {
+    "id": "TH-58-009",
+    "name": "Nong Ya Plong",
+    "name_thai": "Nong Ya Plong",
+    "type": "district",
+    "latitude": 13.1329951,
+    "longitude": 99.58960429999999
+  },
+  {
+    "id": "TH-63-013",
+    "name": "Nong Ya Sai",
+    "name_thai": "Nong Ya Sai",
+    "type": "district",
+    "latitude": 14.7611675,
+    "longitude": 99.890643
+  },
+  {
+    "id": "TH-30-011",
+    "name": "Nong Yai",
+    "name_thai": "Nong Yai",
+    "type": "district",
+    "latitude": 13.1394249,
+    "longitude": 101.3771496
+  },
+  {
+    "id": "TH-28-008",
+    "name": "Nopphitam",
+    "name_thai": "Nopphitam",
+    "type": "district",
+    "latitude": 8.722093899999999,
+    "longitude": 99.75066609999999
+  },
+  {
+    "id": "TH-59-004",
+    "name": "Nuea Khlong",
+    "name_thai": "Nuea Khlong",
+    "type": "district",
+    "latitude": 8.089469700000002,
+    "longitude": 98.97974669999999
+  },
+  {
+    "id": "TH-38-007",
+    "name": "Omkoi",
+    "name_thai": "Omkoi",
+    "type": "district",
+    "latitude": 17.9158197,
+    "longitude": 98.352656
+  },
+  {
+    "id": "TH-12-007",
+    "name": "Ongkharak",
+    "name_thai": "Ongkharak",
+    "type": "district",
+    "latitude": 14.1012315,
+    "longitude": 100.9884945
+  },
+  {
+    "id": "TH-27-007",
+    "name": "Pa Bon",
+    "name_thai": "Pa Bon",
+    "type": "district",
+    "latitude": 7.3334475,
+    "longitude": 100.1591213
+  },
+  {
+    "id": "TH-40-011",
+    "name": "Pa Daet",
+    "name_thai": "Pa Daet",
+    "type": "district",
+    "latitude": 18.7393095,
+    "longitude": 98.98031689999999
+  },
+  {
+    "id": "TH-31-010",
+    "name": "Pa Mok",
+    "name_thai": "Pa Mok",
+    "type": "district",
+    "latitude": 14.4980456,
+    "longitude": 100.4424658
+  },
+  {
+    "id": "TH-66-003",
+    "name": "Pa Phayom",
+    "name_thai": "Pa Phayom",
+    "type": "district",
+    "latitude": 7.8571319,
+    "longitude": 99.95209609999999
+  },
+  {
+    "id": "TH-28-009",
+    "name": "Pa Sang",
+    "name_thai": "Pa Sang",
+    "type": "district",
+    "latitude": 18.5189282,
+    "longitude": 98.9300538
+  },
+  {
+    "id": "TH-35-006",
+    "name": "Pa Tio",
+    "name_thai": "Pa Tio",
+    "type": "district",
+    "latitude": 15.8359591,
+    "longitude": 104.4024704
+  },
+  {
+    "id": "TH-77-007",
+    "name": "Pai",
+    "name_thai": "Pai",
+    "type": "district",
+    "latitude": 19.3589112,
+    "longitude": 98.43902709999999
+  },
+  {
+    "id": "TH-65-007",
+    "name": "Pak Chom",
+    "name_thai": "Pak Chom",
+    "type": "district",
+    "latitude": 18.0226967,
+    "longitude": 101.8812323
+  },
+  {
+    "id": "TH-62-005",
+    "name": "Pak Chong",
+    "name_thai": "Pak Chong",
+    "type": "district",
+    "latitude": 14.712928,
+    "longitude": 101.4244586
+  },
+  {
+    "id": "TH-01-012",
+    "name": "Pak Khat",
+    "name_thai": "Pak Khat",
+    "type": "district",
+    "latitude": 18.3472654,
+    "longitude": 103.324078
+  },
+  {
+    "id": "TH-77-008",
+    "name": "Pak Kret",
+    "name_thai": "Pak Kret",
+    "type": "district",
+    "latitude": 13.9151064,
+    "longitude": 100.4993348
+  },
+  {
+    "id": "TH-32-011",
+    "name": "Pak Phanang",
+    "name_thai": "Pak Phanang",
+    "type": "district",
+    "latitude": 8.3442177,
+    "longitude": 100.189937
+  },
+  {
+    "id": "TH-66-004",
+    "name": "Pak Phayun",
+    "name_thai": "Pak Phayun",
+    "type": "district",
+    "latitude": 7.329341099999999,
+    "longitude": 100.3385624
+  },
+  {
+    "id": "TH-54-007",
+    "name": "Pak Phli",
+    "name_thai": "Pak Phli",
+    "type": "district",
+    "latitude": 14.1063403,
+    "longitude": 101.2920619
+  },
+  {
+    "id": "TH-36-009",
+    "name": "Pak Tho",
+    "name_thai": "Pak Tho",
+    "type": "district",
+    "latitude": 13.4035626,
+    "longitude": 99.6786894
+  },
+  {
+    "id": "TH-44-005",
+    "name": "Pak Thong Chai",
+    "name_thai": "Pak Thong Chai",
+    "type": "district",
+    "latitude": 14.6710601,
+    "longitude": 102.026135
+  },
+  {
+    "id": "TH-70-011",
+    "name": "Pakham",
+    "name_thai": "Pakham",
+    "type": "district",
+    "latitude": 14.4438949,
+    "longitude": 102.72375
+  },
+  {
+    "id": "TH-56-003",
+    "name": "Palian",
+    "name_thai": "Palian",
+    "type": "district",
+    "latitude": 7.2868982,
+    "longitude": 99.85714159999999
+  },
+  {
+    "id": "TH-76-009",
+    "name": "Panare",
+    "name_thai": "Panare",
+    "type": "district",
+    "latitude": 6.8042842,
+    "longitude": 101.5020752
+  },
+  {
+    "id": "TH-56-004",
+    "name": "Pang Mapha",
+    "name_thai": "Pang Mapha",
+    "type": "district",
+    "latitude": 19.5962264,
+    "longitude": 98.19942759999999
+  },
+  {
+    "id": "TH-72-005",
+    "name": "Pang Sila Thong",
+    "name_thai": "Pang Sila Thong",
+    "type": "district",
+    "latitude": 16.0244212,
+    "longitude": 99.34511180000001
+  },
+  {
+    "id": "TH-50-005",
+    "name": "Pathio",
+    "name_thai": "Pathio",
+    "type": "district",
+    "latitude": 10.794463,
+    "longitude": 99.32292129999999
+  },
+  {
+    "id": "TH-64-010",
+    "name": "Pathum Rat",
+    "name_thai": "Pathum Rat",
+    "type": "district",
+    "latitude": 15.6021563,
+    "longitude": 103.4049445
+  },
+  {
+    "id": "TH-06-007",
+    "name": "Pathum Ratchawongsa",
+    "name_thai": "Pathum Ratchawongsa",
+    "type": "district",
+    "latitude": 15.8710211,
+    "longitude": 104.8921668
+  },
+  {
+    "id": "TH-40-012",
+    "name": "Pathum Wan",
+    "name_thai": "Pathum Wan",
+    "type": "district",
+    "latitude": 13.746183,
+    "longitude": 100.5307787
+  },
+  {
+    "id": "TH-05-013",
+    "name": "Pha Khao",
+    "name_thai": "Pha Khao",
+    "type": "district",
+    "latitude": 17.0502119,
+    "longitude": 102.0032957
+  },
+  {
+    "id": "TH-77-009",
+    "name": "Phachi",
+    "name_thai": "Phachi",
+    "type": "district",
+    "latitude": 14.4477589,
+    "longitude": 100.724572
+  },
+  {
+    "id": "TH-66-005",
+    "name": "Phaisali",
+    "name_thai": "Phaisali",
+    "type": "district",
+    "latitude": 15.6251826,
+    "longitude": 100.6985155
+  },
+  {
+    "id": "TH-25-009",
+    "name": "Phak Hai",
+    "name_thai": "Phak Hai",
+    "type": "district",
+    "latitude": 14.4578067,
+    "longitude": 100.3778632
+  },
+  {
+    "id": "TH-13-010",
+    "name": "Phakdi Chumphon",
+    "name_thai": "Phakdi Chumphon",
+    "type": "district",
+    "latitude": 15.97058,
+    "longitude": 101.4112049
+  },
+  {
+    "id": "TH-28-010",
+    "name": "Phan",
+    "name_thai": "Phan",
+    "type": "district",
+    "latitude": 15.870032,
+    "longitude": 100.992541
+  },
+  {
+    "id": "TH-11-009",
+    "name": "Phan Thong",
+    "name_thai": "Phan Thong",
+    "type": "district",
+    "latitude": 13.4709308,
+    "longitude": 101.0824912
+  },
+  {
+    "id": "TH-44-006",
+    "name": "Phana",
+    "name_thai": "Phana",
+    "type": "district",
+    "latitude": 15.6729405,
+    "longitude": 104.8629746
+  },
+  {
+    "id": "TH-73-006",
+    "name": "Phanat Nikhom",
+    "name_thai": "Phanat Nikhom",
+    "type": "district",
+    "latitude": 13.4472622,
+    "longitude": 101.1813795
+  },
+  {
+    "id": "TH-20-006",
+    "name": "Phang Khon",
+    "name_thai": "Phang Khon",
+    "type": "district",
+    "latitude": 17.375525,
+    "longitude": 103.6999581
+  },
+  {
+    "id": "TH-62-006",
+    "name": "Phanna Nikhom",
+    "name_thai": "Phanna Nikhom",
+    "type": "district",
+    "latitude": 17.3233062,
+    "longitude": 103.8680047
+  },
+  {
+    "id": "TH-28-011",
+    "name": "Phanom",
+    "name_thai": "Phanom",
+    "type": "district",
+    "latitude": 8.832497499999999,
+    "longitude": 98.78116449999999
+  },
+  {
+    "id": "TH-18-007",
+    "name": "Phanom Dong Rak",
+    "name_thai": "Phanom Dong Rak",
+    "type": "district",
+    "latitude": 14.4178959,
+    "longitude": 103.3125299
+  },
+  {
+    "id": "TH-14-006",
+    "name": "Phanom Phrai",
+    "name_thai": "Phanom Phrai",
+    "type": "district",
+    "latitude": 15.6803037,
+    "longitude": 104.1146479
+  },
+  {
+    "id": "TH-48-008",
+    "name": "Phanom Sarakham",
+    "name_thai": "Phanom Sarakham",
+    "type": "district",
+    "latitude": 13.7487688,
+    "longitude": 101.3458683
+  },
+  {
+    "id": "TH-41-004",
+    "name": "Phanom Thuan",
+    "name_thai": "Phanom Thuan",
+    "type": "district",
+    "latitude": 14.1240285,
+    "longitude": 99.71212059999999
+  },
+  {
+    "id": "TH-76-010",
+    "name": "Phasi Charoen",
+    "name_thai": "Phasi Charoen",
+    "type": "district",
+    "latitude": 13.7239706,
+    "longitude": 100.438497
+  },
+  {
+    "id": "TH-72-006",
+    "name": "Phato",
+    "name_thai": "Phato",
+    "type": "district",
+    "latitude": 9.8433842,
+    "longitude": 98.7982301
+  },
+  {
+    "id": "TH-11-010",
+    "name": "Phatthana Nikhom",
+    "name_thai": "Phatthana Nikhom",
+    "type": "district",
+    "latitude": 14.8889139,
+    "longitude": 100.9668767
+  },
+  {
+    "id": "TH-38-008",
+    "name": "Phaya Mengrai",
+    "name_thai": "Phaya Mengrai",
+    "type": "district",
+    "latitude": 19.8735119,
+    "longitude": 100.1479182
+  },
+  {
+    "id": "TH-21-008",
+    "name": "Phaya Thai",
+    "name_thai": "Phaya Thai",
+    "type": "district",
+    "latitude": 13.7888901,
+    "longitude": 100.5528993
+  },
+  {
+    "id": "TH-11-011",
+    "name": "Phayakkhaphum Phisai",
+    "name_thai": "Phayakkhaphum Phisai",
+    "type": "district",
+    "latitude": 15.5216056,
+    "longitude": 103.2201828
+  },
+  {
+    "id": "TH-51-008",
+    "name": "Phayu",
+    "name_thai": "Phayu",
+    "type": "district",
+    "latitude": 14.933948,
+    "longitude": 104.3908304
+  },
+  {
+    "id": "TH-08-011",
+    "name": "Phayuha Khiri",
+    "name_thai": "Phayuha Khiri",
+    "type": "district",
+    "latitude": 15.4977734,
+    "longitude": 100.2151578
+  },
+  {
+    "id": "TH-08-012",
+    "name": "Phen",
+    "name_thai": "Phen",
+    "type": "district",
+    "latitude": 17.6769513,
+    "longitude": 102.932041
+  },
+  {
+    "id": "TH-20-007",
+    "name": "Phibun Mangsahan",
+    "name_thai": "Phibun Mangsahan",
+    "type": "district",
+    "latitude": 15.2486739,
+    "longitude": 105.2253316
+  },
+  {
+    "id": "TH-60-009",
+    "name": "Phibun Rak",
+    "name_thai": "Phibun Rak",
+    "type": "district",
+    "latitude": 17.4944308,
+    "longitude": 103.0587399
+  },
+  {
+    "id": "TH-65-008",
+    "name": "Phichai",
+    "name_thai": "Phichai",
+    "type": "district",
+    "latitude": 17.2702191,
+    "longitude": 100.1255164
+  },
+  {
+    "id": "TH-19-008",
+    "name": "Phimai",
+    "name_thai": "Phimai",
+    "type": "district",
+    "latitude": 15.1970346,
+    "longitude": 102.4839212
+  },
+  {
+    "id": "TH-45-007",
+    "name": "Phipun",
+    "name_thai": "Phipun",
+    "type": "district",
+    "latitude": 8.5503103,
+    "longitude": 99.6452714
+  },
+  {
+    "id": "TH-54-008",
+    "name": "Phlapphla Chai",
+    "name_thai": "Phlapphla Chai",
+    "type": "district",
+    "latitude": 14.7238528,
+    "longitude": 103.1509672
+  },
+  {
+    "id": "TH-47-009",
+    "name": "Pho Chai",
+    "name_thai": "Pho Chai",
+    "type": "district",
+    "latitude": 16.3818183,
+    "longitude": 103.7984428
+  },
+  {
+    "id": "TH-68-009",
+    "name": "Pho Prathap Chang",
+    "name_thai": "Pho Prathap Chang",
+    "type": "district",
+    "latitude": 16.3025033,
+    "longitude": 100.3096878
+  },
+  {
+    "id": "TH-07-007",
+    "name": "Pho Sai",
+    "name_thai": "Pho Sai",
+    "type": "district",
+    "latitude": 15.7709698,
+    "longitude": 105.336536
+  },
+  {
+    "id": "TH-41-005",
+    "name": "Pho Si Suwan",
+    "name_thai": "Pho Si Suwan",
+    "type": "district",
+    "latitude": 15.2285929,
+    "longitude": 104.0652887
+  },
+  {
+    "id": "TH-69-007",
+    "name": "Pho Tak",
+    "name_thai": "Pho Tak",
+    "type": "district",
+    "latitude": 17.8494946,
+    "longitude": 102.4265952
+  },
+  {
+    "id": "TH-72-007",
+    "name": "Pho Thale",
+    "name_thai": "Pho Thale",
+    "type": "district",
+    "latitude": 16.1047137,
+    "longitude": 100.2544044
+  },
+  {
+    "id": "TH-07-008",
+    "name": "Pho Thong",
+    "name_thai": "Pho Thong",
+    "type": "district",
+    "latitude": 14.6823992,
+    "longitude": 100.3722477
+  },
+  {
+    "id": "TH-13-011",
+    "name": "Phon",
+    "name_thai": "Phon",
+    "type": "district",
+    "latitude": 15.8360932,
+    "longitude": 102.5757028
+  },
+  {
+    "id": "TH-04-007",
+    "name": "Phon Charoen",
+    "name_thai": "Phon Charoen",
+    "type": "district",
+    "latitude": 18.0351141,
+    "longitude": 103.7115408
+  },
+  {
+    "id": "TH-49-010",
+    "name": "Phon Na Kaeo",
+    "name_thai": "Phon Na Kaeo",
+    "type": "district",
+    "latitude": 17.2225884,
+    "longitude": 104.3093759
+  },
+  {
+    "id": "TH-41-006",
+    "name": "Phon Phisai",
+    "name_thai": "Phon Phisai",
+    "type": "district",
+    "latitude": 17.9309007,
+    "longitude": 103.1279039
+  },
+  {
+    "id": "TH-46-008",
+    "name": "Phon Sai",
+    "name_thai": "Phon Sai",
+    "type": "district",
+    "latitude": 15.4998892,
+    "longitude": 103.9376021
+  },
+  {
+    "id": "TH-26-006",
+    "name": "Phon Sawan",
+    "name_thai": "Phon Sawan",
+    "type": "district",
+    "latitude": 17.4539619,
+    "longitude": 104.4606845
+  },
+  {
+    "id": "TH-67-011",
+    "name": "Phon Thong",
+    "name_thai": "Phon Thong",
+    "type": "district",
+    "latitude": 16.3157634,
+    "longitude": 103.9260001
+  },
+  {
+    "id": "TH-16-009",
+    "name": "Phop Phra",
+    "name_thai": "Phop Phra",
+    "type": "district",
+    "latitude": 16.3901076,
+    "longitude": 98.6930685
+  },
+  {
+    "id": "TH-30-012",
+    "name": "Photharam",
+    "name_thai": "Photharam",
+    "type": "district",
+    "latitude": 13.691158,
+    "longitude": 99.8543504
+  },
+  {
+    "id": "TH-76-011",
+    "name": "Phra Khanong",
+    "name_thai": "Phra Khanong",
+    "type": "district",
+    "latitude": 13.6902667,
+    "longitude": 100.6086055
+  },
+  {
+    "id": "TH-03-015",
+    "name": "Phra Nakhon",
+    "name_thai": "Phra Nakhon",
+    "type": "district",
+    "latitude": 13.7573251,
+    "longitude": 100.4951406
+  },
+  {
+    "id": "TH-03-016",
+    "name": "Phra Nakhon Si Ayutthaya",
+    "name_thai": "พระนครศรีอยุธยา",
+    "type": "district",
+    "latitude": 14.3692325,
+    "longitude": 100.5876634
+  },
+  {
+    "id": "TH-61-007",
+    "name": "Phra Phrom",
+    "name_thai": "Phra Phrom",
+    "type": "district",
+    "latitude": 8.337468399999999,
+    "longitude": 99.92415749999999
+  },
+  {
+    "id": "TH-32-012",
+    "name": "Phra Phutthabat",
+    "name_thai": "Phra Phutthabat",
+    "type": "district",
+    "latitude": 14.7269745,
+    "longitude": 100.7939796
+  },
+  {
+    "id": "TH-66-006",
+    "name": "Phra Pradaeng",
+    "name_thai": "Phra Pradaeng",
+    "type": "district",
+    "latitude": 13.6532561,
+    "longitude": 100.5633676
+  },
+  {
+    "id": "TH-49-011",
+    "name": "Phra Samut Chedi",
+    "name_thai": "Phra Samut Chedi",
+    "type": "district",
+    "latitude": 13.5737973,
+    "longitude": 100.5521142
+  },
+  {
+    "id": "TH-32-013",
+    "name": "Phra Thong Kham",
+    "name_thai": "Phra Thong Kham",
+    "type": "district",
+    "latitude": 15.3385129,
+    "longitude": 102.0032957
+  },
+  {
+    "id": "TH-34-012",
+    "name": "Phra Yuen",
+    "name_thai": "Phra Yuen",
+    "type": "district",
+    "latitude": 16.3288881,
+    "longitude": 102.6331035
+  },
+  {
+    "id": "TH-76-012",
+    "name": "Phrai Bueng",
+    "name_thai": "Phrai Bueng",
+    "type": "district",
+    "latitude": 14.7531969,
+    "longitude": 104.367553
+  },
+  {
+    "id": "TH-73-007",
+    "name": "Phran Kratai",
+    "name_thai": "Phran Kratai",
+    "type": "district",
+    "latitude": 16.6567275,
+    "longitude": 99.53397439999999
+  },
+  {
+    "id": "TH-27-008",
+    "name": "Phrao",
+    "name_thai": "Phrao",
+    "type": "district",
+    "latitude": 19.2869151,
+    "longitude": 99.23421959999999
+  },
+  {
+    "id": "TH-29-007",
+    "name": "Phrasaeng",
+    "name_thai": "Phrasaeng",
+    "type": "district",
+    "latitude": 8.5971836,
+    "longitude": 99.05710889999999
+  },
+  {
+    "id": "TH-33-009",
+    "name": "Phrom Buri",
+    "name_thai": "Phrom Buri",
+    "type": "district",
+    "latitude": 14.8491644,
+    "longitude": 100.4447977
+  },
+  {
+    "id": "TH-58-010",
+    "name": "Phrom Khiri",
+    "name_thai": "Phrom Khiri",
+    "type": "district",
+    "latitude": 8.5029957,
+    "longitude": 99.80133509999999
+  },
+  {
+    "id": "TH-02-006",
+    "name": "Phrom Phiram",
+    "name_thai": "Phrom Phiram",
+    "type": "district",
+    "latitude": 17.0222158,
+    "longitude": 100.1815316
+  },
+  {
+    "id": "TH-13-012",
+    "name": "Phu Kamyao",
+    "name_thai": "Phu Kamyao",
+    "type": "district",
+    "latitude": 19.3187694,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-70-012",
+    "name": "Phu Khiao",
+    "name_thai": "Phu Khiao",
+    "type": "district",
+    "latitude": 16.3194009,
+    "longitude": 102.2090224
+  },
+  {
+    "id": "TH-64-011",
+    "name": "Phu Kradueng",
+    "name_thai": "Phu Kradueng",
+    "type": "district",
+    "latitude": 16.9066583,
+    "longitude": 101.8777664
+  },
+  {
+    "id": "TH-62-007",
+    "name": "Phu Luang",
+    "name_thai": "Phu Luang",
+    "type": "district",
+    "latitude": 17.0935616,
+    "longitude": 101.6612934
+  },
+  {
+    "id": "TH-53-008",
+    "name": "Phu Pha Man",
+    "name_thai": "Phu Pha Man",
+    "type": "district",
+    "latitude": 16.6401692,
+    "longitude": 101.9090201
+  },
+  {
+    "id": "TH-56-005",
+    "name": "Phu Phan",
+    "name_thai": "Phu Phan",
+    "type": "district",
+    "latitude": 16.9471857,
+    "longitude": 103.9608091
+  },
+  {
+    "id": "TH-38-009",
+    "name": "Phu Phiang",
+    "name_thai": "Phu Phiang",
+    "type": "district",
+    "latitude": 18.7980755,
+    "longitude": 100.8677256
+  },
+  {
+    "id": "TH-45-008",
+    "name": "Phu Ruea",
+    "name_thai": "Phu Ruea",
+    "type": "district",
+    "latitude": 17.3886501,
+    "longitude": 101.3885001
+  },
+  {
+    "id": "TH-55-009",
+    "name": "Phu Sang",
+    "name_thai": "Phu Sang",
+    "type": "district",
+    "latitude": 19.6723498,
+    "longitude": 100.3722477
+  },
+  {
+    "id": "TH-39-010",
+    "name": "Phu Sing",
+    "name_thai": "Phu Sing",
+    "type": "district",
+    "latitude": 14.4597494,
+    "longitude": 104.1466046
+  },
+  {
+    "id": "TH-59-005",
+    "name": "Phu Wiang",
+    "name_thai": "Phu Wiang",
+    "type": "district",
+    "latitude": 16.6599385,
+    "longitude": 102.376646
+  },
+  {
+    "id": "TH-64-012",
+    "name": "Phunphin",
+    "name_thai": "Phunphin",
+    "type": "district",
+    "latitude": 9.031280599999999,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-56-006",
+    "name": "Phutthaisong",
+    "name_thai": "Phutthaisong",
+    "type": "district",
+    "latitude": 15.5678638,
+    "longitude": 103.0241726
+  },
+  {
+    "id": "TH-67-012",
+    "name": "Phutthamonthon",
+    "name_thai": "Phutthamonthon",
+    "type": "district",
+    "latitude": 13.8247914,
+    "longitude": 100.2936683
+  },
+  {
+    "id": "TH-15-005",
+    "name": "Pla Pak",
+    "name_thai": "Pla Pak",
+    "type": "district",
+    "latitude": 17.2180417,
+    "longitude": 104.5305715
+  },
+  {
+    "id": "TH-77-010",
+    "name": "Plaeng Yao",
+    "name_thai": "Plaeng Yao",
+    "type": "district",
+    "latitude": 13.6233464,
+    "longitude": 101.2410442
+  },
+  {
+    "id": "TH-15-006",
+    "name": "Plai Phraya",
+    "name_thai": "Plai Phraya",
+    "type": "district",
+    "latitude": 8.535540899999999,
+    "longitude": 98.9024603
+  },
+  {
+    "id": "TH-44-007",
+    "name": "Pluak Daeng",
+    "name_thai": "Pluak Daeng",
+    "type": "district",
+    "latitude": 12.9829925,
+    "longitude": 101.2107386
+  },
+  {
+    "id": "TH-68-010",
+    "name": "Pom Prap Sattru Phai",
+    "name_thai": "Pom Prap Sattru Phai",
+    "type": "district",
+    "latitude": 13.7514954,
+    "longitude": 100.5108479
+  },
+  {
+    "id": "TH-67-013",
+    "name": "Pong",
+    "name_thai": "Pong",
+    "type": "district",
+    "latitude": 19.2244114,
+    "longitude": 100.3947116
+  },
+  {
+    "id": "TH-18-008",
+    "name": "Pong Nam Ron",
+    "name_thai": "Pong Nam Ron",
+    "type": "district",
+    "latitude": 12.90113,
+    "longitude": 102.3692982
+  },
+  {
+    "id": "TH-61-008",
+    "name": "Prachaksinlapakhom",
+    "name_thai": "Prachaksinlapakhom",
+    "type": "district",
+    "latitude": 17.254723,
+    "longitude": 103.0011331
+  },
+  {
+    "id": "TH-69-008",
+    "name": "Prachantakham",
+    "name_thai": "Prachantakham",
+    "type": "district",
+    "latitude": 14.0508866,
+    "longitude": 101.4963935
+  },
+  {
+    "id": "TH-24-007",
+    "name": "Prakhon Chai",
+    "name_thai": "Prakhon Chai",
+    "type": "district",
+    "latitude": 14.6101895,
+    "longitude": 103.0789353
+  },
+  {
+    "id": "TH-42-006",
+    "name": "Pran Buri",
+    "name_thai": "Pran Buri",
+    "type": "district",
+    "latitude": 12.3531546,
+    "longitude": 99.9409196
+  },
+  {
+    "id": "TH-36-010",
+    "name": "Prang Ku",
+    "name_thai": "Prang Ku",
+    "type": "district",
+    "latitude": 14.8297769,
+    "longitude": 104.053676
+  },
+  {
+    "id": "TH-44-008",
+    "name": "Prasat",
+    "name_thai": "Prasat",
+    "type": "district",
+    "latitude": 14.5950082,
+    "longitude": 103.4049445
+  },
+  {
+    "id": "TH-49-012",
+    "name": "Prathai",
+    "name_thai": "Prathai",
+    "type": "district",
+    "latitude": 15.5760583,
+    "longitude": 102.6905326
+  },
+  {
+    "id": "TH-54-009",
+    "name": "Prawet",
+    "name_thai": "Prawet",
+    "type": "district",
+    "latitude": 13.6999565,
+    "longitude": 100.6754809
+  },
+  {
+    "id": "TH-67-014",
+    "name": "Pua",
+    "name_thai": "Pua",
+    "type": "district",
+    "latitude": 19.1873229,
+    "longitude": 101.0259275
+  },
+  {
+    "id": "TH-50-006",
+    "name": "Pueai Noi",
+    "name_thai": "Pueai Noi",
+    "type": "district",
+    "latitude": 15.879993,
+    "longitude": 102.9032643
+  },
+  {
+    "id": "TH-52-009",
+    "name": "Ra-Ngae",
+    "name_thai": "Ra-Ngae",
+    "type": "district",
+    "latitude": 6.255170499999999,
+    "longitude": 101.6840589
+  },
+  {
+    "id": "TH-05-014",
+    "name": "Raman",
+    "name_thai": "Raman",
+    "type": "district",
+    "latitude": 40.0890533,
+    "longitude": -76.2791833
+  },
+  {
+    "id": "TH-63-014",
+    "name": "Ranot",
+    "name_thai": "Ranot",
+    "type": "district",
+    "latitude": 7.768713799999999,
+    "longitude": 100.2824483
+  },
+  {
+    "id": "TH-49-013",
+    "name": "Rasi Salai",
+    "name_thai": "Rasi Salai",
+    "type": "district",
+    "latitude": 15.3720254,
+    "longitude": 104.1466046
+  },
+  {
+    "id": "TH-48-009",
+    "name": "Rat Burana",
+    "name_thai": "Rat Burana",
+    "type": "district",
+    "latitude": 13.6715197,
+    "longitude": 100.5087772
+  },
+  {
+    "id": "TH-14-007",
+    "name": "Ratchasan",
+    "name_thai": "Ratchasan",
+    "type": "district",
+    "latitude": 13.7809557,
+    "longitude": 101.286392
+  },
+  {
+    "id": "TH-58-011",
+    "name": "Ratchathewi",
+    "name_thai": "Ratchathewi",
+    "type": "district",
+    "latitude": 13.757966,
+    "longitude": 100.5345012
+  },
+  {
+    "id": "TH-53-009",
+    "name": "Ratsada",
+    "name_thai": "Ratsada",
+    "type": "district",
+    "latitude": 7.905693599999999,
+    "longitude": 98.3677009
+  },
+  {
+    "id": "TH-16-010",
+    "name": "Rattanaburi",
+    "name_thai": "Rattanaburi",
+    "type": "district",
+    "latitude": 15.3196515,
+    "longitude": 103.8574529
+  },
+  {
+    "id": "TH-28-012",
+    "name": "Rattanawapi",
+    "name_thai": "Rattanawapi",
+    "type": "district",
+    "latitude": 18.2174678,
+    "longitude": 103.1855702
+  },
+  {
+    "id": "TH-46-009",
+    "name": "Rattaphum",
+    "name_thai": "Rattaphum",
+    "type": "district",
+    "latitude": 7.1088425,
+    "longitude": 100.2151578
+  },
+  {
+    "id": "TH-10-008",
+    "name": "Renu Nakhon",
+    "name_thai": "Renu Nakhon",
+    "type": "district",
+    "latitude": 17.0605203,
+    "longitude": 104.6354631
+  },
+  {
+    "id": "TH-74-009",
+    "name": "Ron Phibun",
+    "name_thai": "Ron Phibun",
+    "type": "district",
+    "latitude": 8.16682,
+    "longitude": 99.8348146
+  },
+  {
+    "id": "TH-59-006",
+    "name": "Rong Kham",
+    "name_thai": "Rong Kham",
+    "type": "district",
+    "latitude": 16.2766583,
+    "longitude": 103.7347091
+  },
+  {
+    "id": "TH-58-012",
+    "name": "Rong Kwang",
+    "name_thai": "Rong Kwang",
+    "type": "district",
+    "latitude": 18.3423505,
+    "longitude": 100.3178694
+  },
+  {
+    "id": "TH-20-008",
+    "name": "Rueso",
+    "name_thai": "Rueso",
+    "type": "district",
+    "latitude": 6.3529575,
+    "longitude": 101.5134398
+  },
+  {
+    "id": "TH-68-011",
+    "name": "Sa Bot",
+    "name_thai": "Sa Bot",
+    "type": "district",
+    "latitude": 15.2245864,
+    "longitude": 100.8564355
+  },
+  {
+    "id": "TH-59-007",
+    "name": "Saba Yoi",
+    "name_thai": "Saba Yoi",
+    "type": "district",
+    "latitude": 6.638707600000001,
+    "longitude": 100.9241963
+  },
+  {
+    "id": "TH-77-011",
+    "name": "Sadao",
+    "name_thai": "Sadao",
+    "type": "district",
+    "latitude": 6.6364833,
+    "longitude": 100.4238366
+  },
+  {
+    "id": "TH-29-008",
+    "name": "Sahatsakhan",
+    "name_thai": "Sahatsakhan",
+    "type": "district",
+    "latitude": 16.7323365,
+    "longitude": 103.5552603
+  },
+  {
+    "id": "TH-43-008",
+    "name": "Sai Buri",
+    "name_thai": "Sai Buri",
+    "type": "district",
+    "latitude": 6.7179589,
+    "longitude": 101.5930268
+  },
+  {
+    "id": "TH-53-010",
+    "name": "Sai Mai",
+    "name_thai": "Sai Mai",
+    "type": "district",
+    "latitude": 13.9047286,
+    "longitude": 100.6572405
+  },
+  {
+    "id": "TH-70-013",
+    "name": "Sai Mun",
+    "name_thai": "Sai Mun",
+    "type": "district",
+    "latitude": 15.9508732,
+    "longitude": 104.2279672
+  },
+  {
+    "id": "TH-75-010",
+    "name": "Sai Ngam",
+    "name_thai": "Sai Ngam",
+    "type": "district",
+    "latitude": 16.4768529,
+    "longitude": 99.890643
+  },
+  {
+    "id": "TH-38-010",
+    "name": "Sai Noi",
+    "name_thai": "Sai Noi",
+    "type": "district",
+    "latitude": 13.9708274,
+    "longitude": 100.3409136
+  },
+  {
+    "id": "TH-55-010",
+    "name": "Sai Thong Watthana",
+    "name_thai": "Sai Thong Watthana",
+    "type": "district",
+    "latitude": 16.326027,
+    "longitude": 99.87947439999999
+  },
+  {
+    "id": "TH-27-009",
+    "name": "Sai Yok",
+    "name_thai": "Sai Yok",
+    "type": "district",
+    "latitude": 14.403167,
+    "longitude": 98.7481167
+  },
+  {
+    "id": "TH-74-010",
+    "name": "Sak Lek",
+    "name_thai": "Sak Lek",
+    "type": "district",
+    "latitude": 16.5258421,
+    "longitude": 100.5521142
+  },
+  {
+    "id": "TH-09-007",
+    "name": "Sakhrai",
+    "name_thai": "Sakhrai",
+    "type": "district",
+    "latitude": 17.7061453,
+    "longitude": 102.7537372
+  },
+  {
+    "id": "TH-07-009",
+    "name": "Sam Chai",
+    "name_thai": "Sam Chai",
+    "type": "district",
+    "latitude": 16.9078885,
+    "longitude": 103.5205565
+  },
+  {
+    "id": "TH-65-009",
+    "name": "Sam Chuk",
+    "name_thai": "Sam Chuk",
+    "type": "district",
+    "latitude": 14.7579513,
+    "longitude": 100.0975221
+  },
+  {
+    "id": "TH-63-015",
+    "name": "Sam Khok",
+    "name_thai": "Sam Khok",
+    "type": "district",
+    "latitude": 14.0611298,
+    "longitude": 100.5239867
+  },
+  {
+    "id": "TH-68-012",
+    "name": "Sam Ngam",
+    "name_thai": "Sam Ngam",
+    "type": "district",
+    "latitude": 16.485037,
+    "longitude": 100.2039477
+  },
+  {
+    "id": "TH-47-010",
+    "name": "Sam Ngao",
+    "name_thai": "Sam Ngao",
+    "type": "district",
+    "latitude": 17.2099785,
+    "longitude": 99.0626377
+  },
+  {
+    "id": "TH-22-007",
+    "name": "Sam Phran",
+    "name_thai": "Sam Phran",
+    "type": "district",
+    "latitude": 13.7191394,
+    "longitude": 100.2207634
+  },
+  {
+    "id": "TH-37-008",
+    "name": "Sam Roi Yot",
+    "name_thai": "Sam Roi Yot",
+    "type": "district",
+    "latitude": 12.245087,
+    "longitude": 99.95768489999999
+  },
+  {
+    "id": "TH-22-008",
+    "name": "Sam Sung",
+    "name_thai": "Sam Sung",
+    "type": "district",
+    "latitude": 16.5682547,
+    "longitude": 103.0587399
+  },
+  {
+    "id": "TH-32-014",
+    "name": "Samko",
+    "name_thai": "Samko",
+    "type": "district",
+    "latitude": 14.6013032,
+    "longitude": 100.2544044
+  },
+  {
+    "id": "TH-67-015",
+    "name": "Samoeng",
+    "name_thai": "Samoeng",
+    "type": "district",
+    "latitude": 18.9399005,
+    "longitude": 98.61606739999999
+  },
+  {
+    "id": "TH-60-010",
+    "name": "Samphanthawong",
+    "name_thai": "Samphanthawong",
+    "type": "district",
+    "latitude": 13.736151,
+    "longitude": 100.5135894
+  },
+  {
+    "id": "TH-17-009",
+    "name": "Samrong",
+    "name_thai": "Samrong",
+    "type": "district",
+    "latitude": 15.0221073,
+    "longitude": 104.7871004
+  },
+  {
+    "id": "TH-34-013",
+    "name": "Samrong Thap",
+    "name_thai": "Samrong Thap",
+    "type": "district",
+    "latitude": 14.9860058,
+    "longitude": 103.9260001
+  },
+  {
+    "id": "TH-36-011",
+    "name": "San Kamphaeng",
+    "name_thai": "San Kamphaeng",
+    "type": "district",
+    "latitude": 18.7452996,
+    "longitude": 99.1191971
+  },
+  {
+    "id": "TH-73-008",
+    "name": "San Pa Tong",
+    "name_thai": "San Pa Tong",
+    "type": "district",
+    "latitude": 18.573179,
+    "longitude": 98.9024603
+  },
+  {
+    "id": "TH-43-009",
+    "name": "San Sai",
+    "name_thai": "San Sai",
+    "type": "district",
+    "latitude": 19.8897925,
+    "longitude": 99.2009815
+  },
+  {
+    "id": "TH-01-013",
+    "name": "Sanam Chai Khet",
+    "name_thai": "Sanam Chai Khet",
+    "type": "district",
+    "latitude": 13.6835921,
+    "longitude": 101.6612934
+  },
+  {
+    "id": "TH-26-007",
+    "name": "Sang Khom",
+    "name_thai": "Sang Khom",
+    "type": "district",
+    "latitude": 17.7729871,
+    "longitude": 103.0587399
+  },
+  {
+    "id": "TH-69-009",
+    "name": "Sangkha",
+    "name_thai": "Sangkha",
+    "type": "district",
+    "latitude": 14.6480747,
+    "longitude": 103.8564085
+  },
+  {
+    "id": "TH-50-007",
+    "name": "Sangkhla Buri",
+    "name_thai": "Sangkhla Buri",
+    "type": "district",
+    "latitude": 15.15657,
+    "longitude": 98.3964938
+  },
+  {
+    "id": "TH-23-007",
+    "name": "Sangkhom",
+    "name_thai": "Sangkhom",
+    "type": "district",
+    "latitude": 18.0599446,
+    "longitude": 102.2319048
+  },
+  {
+    "id": "TH-67-016",
+    "name": "Sankhaburi",
+    "name_thai": "Sankhaburi",
+    "type": "district",
+    "latitude": 15.0132647,
+    "longitude": 100.1927389
+  },
+  {
+    "id": "TH-23-008",
+    "name": "Sanom",
+    "name_thai": "Sanom",
+    "type": "district",
+    "latitude": 15.2017776,
+    "longitude": 103.7636752
+  },
+  {
+    "id": "TH-06-008",
+    "name": "Santi Suk",
+    "name_thai": "Santi Suk",
+    "type": "district",
+    "latitude": 18.9113099,
+    "longitude": 100.9354944
+  },
+  {
+    "id": "TH-63-016",
+    "name": "Sao Hai",
+    "name_thai": "Sao Hai",
+    "type": "district",
+    "latitude": 14.5367501,
+    "longitude": 100.8536132
+  },
+  {
+    "id": "TH-59-008",
+    "name": "Sap Yai",
+    "name_thai": "Sap Yai",
+    "type": "district",
+    "latitude": 15.6032152,
+    "longitude": 101.5816534
+  },
+  {
+    "id": "TH-45-009",
+    "name": "Saphan Sung",
+    "name_thai": "Saphan Sung",
+    "type": "district",
+    "latitude": 13.768533,
+    "longitude": 100.6918128
+  },
+  {
+    "id": "TH-76-013",
+    "name": "Sapphaya",
+    "name_thai": "Sapphaya",
+    "type": "district",
+    "latitude": 15.1327349,
+    "longitude": 100.2319757
+  },
+  {
+    "id": "TH-24-008",
+    "name": "Saraphi",
+    "name_thai": "Saraphi",
+    "type": "district",
+    "latitude": 18.679663,
+    "longitude": 99.0443681
+  },
+  {
+    "id": "TH-54-010",
+    "name": "Sathing Phra",
+    "name_thai": "Sathing Phra",
+    "type": "district",
+    "latitude": 7.4660607,
+    "longitude": 100.417181
+  },
+  {
+    "id": "TH-32-015",
+    "name": "Sathon",
+    "name_thai": "Sathon",
+    "type": "district",
+    "latitude": 13.7150398,
+    "longitude": 100.5335358
+  },
+  {
+    "id": "TH-14-008",
+    "name": "Sattahip",
+    "name_thai": "Sattahip",
+    "type": "district",
+    "latitude": 12.6945141,
+    "longitude": 100.9128995
+  },
+  {
+    "id": "TH-01-014",
+    "name": "Satuek",
+    "name_thai": "Satuek",
+    "type": "district",
+    "latitude": 15.2713655,
+    "longitude": 103.3097626
+  },
+  {
+    "id": "TH-44-009",
+    "name": "Sawaeng Ha",
+    "name_thai": "Sawaeng Ha",
+    "type": "district",
+    "latitude": 14.7324844,
+    "longitude": 100.2824483
+  },
+  {
+    "id": "TH-76-014",
+    "name": "Sawang Arom",
+    "name_thai": "Sawang Arom",
+    "type": "district",
+    "latitude": 15.5493633,
+    "longitude": 99.8459774
+  },
+  {
+    "id": "TH-70-014",
+    "name": "Sawang Daen Din",
+    "name_thai": "Sawang Daen Din",
+    "type": "district",
+    "latitude": 17.4555679,
+    "longitude": 103.4627375
+  },
+  {
+    "id": "TH-57-006",
+    "name": "Sawang Wirawong",
+    "name_thai": "Sawang Wirawong",
+    "type": "district",
+    "latitude": 15.2432339,
+    "longitude": 105.0557415
+  },
+  {
+    "id": "TH-26-008",
+    "name": "Sawankhalok",
+    "name_thai": "Sawankhalok",
+    "type": "district",
+    "latitude": 17.2836272,
+    "longitude": 99.85714159999999
+  },
+  {
+    "id": "TH-52-010",
+    "name": "Sawi",
+    "name_thai": "Sawi",
+    "type": "district",
+    "latitude": 10.2510773,
+    "longitude": 99.0626377
+  },
+  {
+    "id": "TH-39-011",
+    "name": "Seka",
+    "name_thai": "Seka",
+    "type": "district",
+    "latitude": 17.9897681,
+    "longitude": 103.9376021
+  },
+  {
+    "id": "TH-07-010",
+    "name": "Selaphum",
+    "name_thai": "Selaphum",
+    "type": "district",
+    "latitude": 16.0474745,
+    "longitude": 103.98402
+  },
+  {
+    "id": "TH-56-007",
+    "name": "Sena",
+    "name_thai": "Sena",
+    "type": "district",
+    "latitude": 13.7516036,
+    "longitude": 100.6262828
+  },
+  {
+    "id": "TH-32-016",
+    "name": "Senangkhanikhom",
+    "name_thai": "Senangkhanikhom",
+    "type": "district",
+    "latitude": 16.0459858,
+    "longitude": 104.6821048
+  },
+  {
+    "id": "TH-46-010",
+    "name": "Si Banphot",
+    "name_thai": "Si Banphot",
+    "type": "district",
+    "latitude": 7.692512100000001,
+    "longitude": 99.87947439999999
+  },
+  {
+    "id": "TH-58-013",
+    "name": "Si Bun Rueang",
+    "name_thai": "Si Bun Rueang",
+    "type": "district",
+    "latitude": 16.9067506,
+    "longitude": 102.2662372
+  },
+  {
+    "id": "TH-10-009",
+    "name": "Si Chiang Mai",
+    "name_thai": "Si Chiang Mai",
+    "type": "district",
+    "latitude": 17.9381572,
+    "longitude": 102.4953899
+  },
+  {
+    "id": "TH-41-007",
+    "name": "Si Chomphu",
+    "name_thai": "Si Chomphu",
+    "type": "district",
+    "latitude": 16.826695,
+    "longitude": 102.1815998
+  },
+  {
+    "id": "TH-19-009",
+    "name": "Si Maha Phot",
+    "name_thai": "Si Maha Phot",
+    "type": "district",
+    "latitude": 13.970651,
+    "longitude": 101.5161855
+  },
+  {
+    "id": "TH-26-009",
+    "name": "Si Mahosot",
+    "name_thai": "Si Mahosot",
+    "type": "district",
+    "latitude": 13.8659237,
+    "longitude": 101.4225592
+  },
+  {
+    "id": "TH-61-009",
+    "name": "Si Mueang Mai",
+    "name_thai": "Si Mueang Mai",
+    "type": "district",
+    "latitude": 15.5639458,
+    "longitude": 105.3599568
+  },
+  {
+    "id": "TH-68-013",
+    "name": "Si Nakhon",
+    "name_thai": "Si Nakhon",
+    "type": "district",
+    "latitude": 17.3593492,
+    "longitude": 99.98004379999999
+  },
+  {
+    "id": "TH-33-010",
+    "name": "Si Narong",
+    "name_thai": "Si Narong",
+    "type": "district",
+    "latitude": 14.7741737,
+    "longitude": 103.8448134
+  },
+  {
+    "id": "TH-67-017",
+    "name": "Si Prachan",
+    "name_thai": "Si Prachan",
+    "type": "district",
+    "latitude": 14.6047534,
+    "longitude": 100.1759285
+  },
+  {
+    "id": "TH-19-010",
+    "name": "Si Racha",
+    "name_thai": "Si Racha",
+    "type": "district",
+    "latitude": 13.1662975,
+    "longitude": 100.9314325
+  },
+  {
+    "id": "TH-57-007",
+    "name": "Si Rattana",
+    "name_thai": "Si Rattana",
+    "type": "district",
+    "latitude": 14.8247444,
+    "longitude": 104.4956239
+  },
+  {
+    "id": "TH-69-010",
+    "name": "Si Sakhon",
+    "name_thai": "Si Sakhon",
+    "type": "district",
+    "latitude": 6.1480133,
+    "longitude": 101.483016
+  },
+  {
+    "id": "TH-36-012",
+    "name": "Si Samrong",
+    "name_thai": "Si Samrong",
+    "type": "district",
+    "latitude": 17.1700266,
+    "longitude": 99.79017809999999
+  },
+  {
+    "id": "TH-25-010",
+    "name": "Si Satchanalai",
+    "name_thai": "Si Satchanalai",
+    "type": "district",
+    "latitude": 17.4161103,
+    "longitude": 99.7790227
+  },
+  {
+    "id": "TH-63-017",
+    "name": "Si Sawat",
+    "name_thai": "Si Sawat",
+    "type": "district",
+    "latitude": 14.7590649,
+    "longitude": 99.1013498
+  },
+  {
+    "id": "TH-46-011",
+    "name": "Si Somdet",
+    "name_thai": "Si Somdet",
+    "type": "district",
+    "latitude": 15.9706018,
+    "longitude": 103.4687168
+  },
+  {
+    "id": "TH-27-010",
+    "name": "Si Songkhram",
+    "name_thai": "Si Songkhram",
+    "type": "district",
+    "latitude": 17.6294217,
+    "longitude": 104.2744808
+  },
+  {
+    "id": "TH-08-013",
+    "name": "Si That",
+    "name_thai": "Si That",
+    "type": "district",
+    "latitude": 16.9863622,
+    "longitude": 103.2086442
+  },
+  {
+    "id": "TH-64-013",
+    "name": "Si Thep",
+    "name_thai": "Si Thep",
+    "type": "district",
+    "latitude": 15.4601543,
+    "longitude": 101.1949191
+  },
+  {
+    "id": "TH-19-011",
+    "name": "Si Wilai",
+    "name_thai": "Si Wilai",
+    "type": "district",
+    "latitude": 18.2244764,
+    "longitude": 103.7405019
+  },
+  {
+    "id": "TH-11-012",
+    "name": "Sichon",
+    "name_thai": "Sichon",
+    "type": "district",
+    "latitude": 9.0077023,
+    "longitude": 99.891325
+  },
+  {
+    "id": "TH-03-017",
+    "name": "Sida",
+    "name_thai": "Sida",
+    "type": "district",
+    "latitude": 56.1189179,
+    "longitude": -3.939061599999999
+  },
+  {
+    "id": "TH-19-012",
+    "name": "Sikao",
+    "name_thai": "Sikao",
+    "type": "district",
+    "latitude": 7.575825399999999,
+    "longitude": 99.34511180000001
+  },
+  {
+    "id": "TH-58-014",
+    "name": "Sikhio",
+    "name_thai": "Sikhio",
+    "type": "district",
+    "latitude": 14.970134,
+    "longitude": 101.5702813
+  },
+  {
+    "id": "TH-52-011",
+    "name": "Sikhoraphum",
+    "name_thai": "Sikhoraphum",
+    "type": "district",
+    "latitude": 14.9381825,
+    "longitude": 103.7752634
+  },
+  {
+    "id": "TH-33-011",
+    "name": "Sila Lat",
+    "name_thai": "Sila Lat",
+    "type": "district",
+    "latitude": 15.478746,
+    "longitude": 104.088517
+  },
+  {
+    "id": "TH-76-015",
+    "name": "Singhanakhon",
+    "name_thai": "Singhanakhon",
+    "type": "district",
+    "latitude": 7.250959399999999,
+    "longitude": 100.5071143
+  },
+  {
+    "id": "TH-33-012",
+    "name": "Sirindhorn",
+    "name_thai": "Sirindhorn",
+    "type": "district",
+    "latitude": 15.0111505,
+    "longitude": 105.4536718
+  },
+  {
+    "id": "TH-61-010",
+    "name": "So Phisai",
+    "name_thai": "So Phisai",
+    "type": "district",
+    "latitude": 18.097537,
+    "longitude": 103.4049445
+  },
+  {
+    "id": "TH-53-011",
+    "name": "Soem Ngam",
+    "name_thai": "Soem Ngam",
+    "type": "district",
+    "latitude": 18.0679495,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-23-009",
+    "name": "Soeng Sang",
+    "name_thai": "Soeng Sang",
+    "type": "district",
+    "latitude": 14.4324917,
+    "longitude": 102.4265952
+  },
+  {
+    "id": "TH-76-016",
+    "name": "Soi Dao",
+    "name_thai": "Soi Dao",
+    "type": "district",
+    "latitude": 13.2029586,
+    "longitude": 102.2090224
+  },
+  {
+    "id": "TH-49-014",
+    "name": "Somdet",
+    "name_thai": "Somdet",
+    "type": "district",
+    "latitude": 16.7752764,
+    "longitude": 103.7752634
+  },
+  {
+    "id": "TH-59-009",
+    "name": "Song",
+    "name_thai": "Song",
+    "type": "district",
+    "latitude": 15.870032,
+    "longitude": 100.992541
+  },
+  {
+    "id": "TH-38-011",
+    "name": "Song Dao",
+    "name_thai": "Song Dao",
+    "type": "district",
+    "latitude": 17.3397564,
+    "longitude": 103.4627375
+  },
+  {
+    "id": "TH-19-013",
+    "name": "Song Khwae",
+    "name_thai": "Song Khwae",
+    "type": "district",
+    "latitude": 19.3966901,
+    "longitude": 100.6647101
+  },
+  {
+    "id": "TH-77-012",
+    "name": "Song Phi Nong",
+    "name_thai": "Song Phi Nong",
+    "type": "district",
+    "latitude": 14.220008,
+    "longitude": 100.0303723
+  },
+  {
+    "id": "TH-73-009",
+    "name": "Sop Moei",
+    "name_thai": "Sop Moei",
+    "type": "district",
+    "latitude": 17.9114625,
+    "longitude": 97.8939317
+  },
+  {
+    "id": "TH-46-012",
+    "name": "Sop Prap",
+    "name_thai": "Sop Prap",
+    "type": "district",
+    "latitude": 17.8471851,
+    "longitude": 99.34511180000001
+  },
+  {
+    "id": "TH-46-013",
+    "name": "Srinagarindra",
+    "name_thai": "Srinagarindra",
+    "type": "district",
+    "latitude": 7.5629896,
+    "longitude": 99.92415749999999
+  },
+  {
+    "id": "TH-36-013",
+    "name": "Su-Ngai Kolok",
+    "name_thai": "Su-Ngai Kolok",
+    "type": "district",
+    "latitude": 6.0151191,
+    "longitude": 101.951925
+  },
+  {
+    "id": "TH-38-012",
+    "name": "Su-Ngai Padi",
+    "name_thai": "Su-Ngai Padi",
+    "type": "district",
+    "latitude": 6.1667058,
+    "longitude": 101.9119871
+  },
+  {
+    "id": "TH-39-012",
+    "name": "Suan Luang",
+    "name_thai": "Suan Luang",
+    "type": "district",
+    "latitude": 13.7203655,
+    "longitude": 100.629636
+  },
+  {
+    "id": "TH-66-007",
+    "name": "Suan Phueng",
+    "name_thai": "Suan Phueng",
+    "type": "district",
+    "latitude": 13.6034188,
+    "longitude": 99.23421959999999
+  },
+  {
+    "id": "TH-09-008",
+    "name": "Suk Samran",
+    "name_thai": "Suk Samran",
+    "type": "district",
+    "latitude": 9.4199878,
+    "longitude": 98.5062007
+  },
+  {
+    "id": "TH-62-008",
+    "name": "Sukhirin",
+    "name_thai": "Sukhirin",
+    "type": "district",
+    "latitude": 5.9532298,
+    "longitude": 101.6954435
+  },
+  {
+    "id": "TH-65-010",
+    "name": "Sung Men",
+    "name_thai": "Sung Men",
+    "type": "district",
+    "latitude": 18.0586475,
+    "longitude": 100.0947232
+  },
+  {
+    "id": "TH-42-007",
+    "name": "Sung Noen",
+    "name_thai": "Sung Noen",
+    "type": "district",
+    "latitude": 14.8704596,
+    "longitude": 101.8322677
+  },
+  {
+    "id": "TH-77-013",
+    "name": "Suwannakhuha",
+    "name_thai": "Suwannakhuha",
+    "type": "district",
+    "latitude": 17.5510031,
+    "longitude": 102.2719604
+  },
+  {
+    "id": "TH-44-010",
+    "name": "Suwannaphum",
+    "name_thai": "Suwannaphum",
+    "type": "district",
+    "latitude": 15.5789814,
+    "longitude": 103.7752634
+  },
+  {
+    "id": "TH-30-013",
+    "name": "Ta Phraya",
+    "name_thai": "Ta Phraya",
+    "type": "district",
+    "latitude": 13.9257238,
+    "longitude": 102.7364962
+  },
+  {
+    "id": "TH-69-011",
+    "name": "Tak Bai",
+    "name_thai": "Tak Bai",
+    "type": "district",
+    "latitude": 6.259185,
+    "longitude": 102.0529718
+  },
+  {
+    "id": "TH-69-012",
+    "name": "Tak Fa",
+    "name_thai": "Tak Fa",
+    "type": "district",
+    "latitude": 15.2880303,
+    "longitude": 100.4958678
+  },
+  {
+    "id": "TH-69-013",
+    "name": "Takhli",
+    "name_thai": "Takhli",
+    "type": "district",
+    "latitude": 15.2843488,
+    "longitude": 100.3273368
+  },
+  {
+    "id": "TH-69-014",
+    "name": "Takua Pa",
+    "name_thai": "Takua Pa",
+    "type": "district",
+    "latitude": 8.839381699999999,
+    "longitude": 98.3608737
+  },
+  {
+    "id": "TH-69-015",
+    "name": "Takua Thung",
+    "name_thai": "Takua Thung",
+    "type": "district",
+    "latitude": 8.2865208,
+    "longitude": 98.37457169999999
+  },
+  {
+    "id": "TH-14-009",
+    "name": "Taling Chan",
+    "name_thai": "Taling Chan",
+    "type": "district",
+    "latitude": 13.7809908,
+    "longitude": 100.4309351
+  },
+  {
+    "id": "TH-71-009",
+    "name": "Tamot",
+    "name_thai": "Tamot",
+    "type": "district",
+    "latitude": 7.304755699999999,
+    "longitude": 100.0135929
+  },
+  {
+    "id": "TH-06-009",
+    "name": "Tan Sum",
+    "name_thai": "Tan Sum",
+    "type": "district",
+    "latitude": 15.3226604,
+    "longitude": 105.1434387
+  },
+  {
+    "id": "TH-03-018",
+    "name": "Tao Ngoi",
+    "name_thai": "Tao Ngoi",
+    "type": "district",
+    "latitude": 16.993967,
+    "longitude": 104.1989038
+  },
+  {
+    "id": "TH-39-013",
+    "name": "Tap Khlo",
+    "name_thai": "Tap Khlo",
+    "type": "district",
+    "latitude": 16.1981843,
+    "longitude": 100.5971361
+  },
+  {
+    "id": "TH-35-007",
+    "name": "Taphan Hin",
+    "name_thai": "Taphan Hin",
+    "type": "district",
+    "latitude": 16.2154243,
+    "longitude": 100.4256085
+  },
+  {
+    "id": "TH-04-008",
+    "name": "Tha Bo",
+    "name_thai": "Tha Bo",
+    "type": "district",
+    "latitude": 17.8111448,
+    "longitude": 102.5699643
+  },
+  {
+    "id": "TH-06-010",
+    "name": "Tha Chana",
+    "name_thai": "Tha Chana",
+    "type": "district",
+    "latitude": 9.5900838,
+    "longitude": 99.1788304
+  },
+  {
+    "id": "TH-41-008",
+    "name": "Tha Chang",
+    "name_thai": "Tha Chang",
+    "type": "district",
+    "latitude": 16.9755481,
+    "longitude": 100.1815316
+  },
+  {
+    "id": "TH-17-010",
+    "name": "Tha Khantho",
+    "name_thai": "Tha Khantho",
+    "type": "district",
+    "latitude": 16.9331709,
+    "longitude": 103.2259525
+  },
+  {
+    "id": "TH-04-009",
+    "name": "Tha Li",
+    "name_thai": "Tha Li",
+    "type": "district",
+    "latitude": 17.5971303,
+    "longitude": 101.4112049
+  },
+  {
+    "id": "TH-74-011",
+    "name": "Tha Luang",
+    "name_thai": "Tha Luang",
+    "type": "district",
+    "latitude": 15.071815,
+    "longitude": 101.1504111
+  },
+  {
+    "id": "TH-34-014",
+    "name": "Tha Mai",
+    "name_thai": "Tha Mai",
+    "type": "district",
+    "latitude": 12.6207047,
+    "longitude": 102.0099504
+  },
+  {
+    "id": "TH-05-015",
+    "name": "Tha Maka",
+    "name_thai": "Tha Maka",
+    "type": "district",
+    "latitude": 13.9173449,
+    "longitude": 99.7671579
+  },
+  {
+    "id": "TH-67-018",
+    "name": "Tha Muang",
+    "name_thai": "Tha Muang",
+    "type": "district",
+    "latitude": 13.8649215,
+    "longitude": 99.58960429999999
+  },
+  {
+    "id": "TH-06-011",
+    "name": "Tha Phae",
+    "name_thai": "Tha Phae",
+    "type": "district",
+    "latitude": 6.797184499999999,
+    "longitude": 99.92415749999999
+  },
+  {
+    "id": "TH-54-011",
+    "name": "Tha Pla",
+    "name_thai": "Tha Pla",
+    "type": "district",
+    "latitude": 17.7947452,
+    "longitude": 100.4072583
+  },
+  {
+    "id": "TH-35-008",
+    "name": "Tha Ruea",
+    "name_thai": "Tha Ruea",
+    "type": "district",
+    "latitude": 14.5599975,
+    "longitude": 100.7238776
+  },
+  {
+    "id": "TH-22-009",
+    "name": "Tha Sae",
+    "name_thai": "Tha Sae",
+    "type": "district",
+    "latitude": 10.6650039,
+    "longitude": 99.1739448
+  },
+  {
+    "id": "TH-46-014",
+    "name": "Tha Sala",
+    "name_thai": "Tha Sala",
+    "type": "district",
+    "latitude": 8.645906199999999,
+    "longitude": 99.9409196
+  },
+  {
+    "id": "TH-68-014",
+    "name": "Tha Song Yang",
+    "name_thai": "Tha Song Yang",
+    "type": "district",
+    "latitude": 17.5674835,
+    "longitude": 97.92308609999999
+  },
+  {
+    "id": "TH-69-016",
+    "name": "Tha Takiap",
+    "name_thai": "Tha Takiap",
+    "type": "district",
+    "latitude": 13.4754941,
+    "longitude": 101.7296049
+  },
+  {
+    "id": "TH-69-017",
+    "name": "Tha Tako",
+    "name_thai": "Tha Tako",
+    "type": "district",
+    "latitude": 15.6361001,
+    "longitude": 100.4733789
+  },
+  {
+    "id": "TH-73-010",
+    "name": "Tha Tum",
+    "name_thai": "Tha Tum",
+    "type": "district",
+    "latitude": 15.322183,
+    "longitude": 103.6765709
+  },
+  {
+    "id": "TH-67-019",
+    "name": "Tha Uthen",
+    "name_thai": "Tha Uthen",
+    "type": "district",
+    "latitude": 17.5767798,
+    "longitude": 104.5946633
+  },
+  {
+    "id": "TH-56-008",
+    "name": "Tha Wang Pha",
+    "name_thai": "Tha Wang Pha",
+    "type": "district",
+    "latitude": 19.1229045,
+    "longitude": 100.8282161
+  },
+  {
+    "id": "TH-77-014",
+    "name": "Tha Wung",
+    "name_thai": "Tha Wung",
+    "type": "district",
+    "latitude": 14.8183921,
+    "longitude": 100.4978711
+  },
+  {
+    "id": "TH-20-009",
+    "name": "Tha Yang",
+    "name_thai": "Tha Yang",
+    "type": "district",
+    "latitude": 12.9714369,
+    "longitude": 99.8991604
+  },
+  {
+    "id": "TH-74-012",
+    "name": "Thai Charoen",
+    "name_thai": "Thai Charoen",
+    "type": "district",
+    "latitude": 16.0690115,
+    "longitude": 104.4315746
+  },
+  {
+    "id": "TH-74-013",
+    "name": "Thai Mueang",
+    "name_thai": "Thai Mueang",
+    "type": "district",
+    "latitude": 8.4621526,
+    "longitude": 98.2869478
+  },
+  {
+    "id": "TH-19-014",
+    "name": "Thalang",
+    "name_thai": "Thalang",
+    "type": "district",
+    "latitude": 8.070788799999999,
+    "longitude": 98.3307468
+  },
+  {
+    "id": "TH-08-014",
+    "name": "Tham Phannara",
+    "name_thai": "Tham Phannara",
+    "type": "district",
+    "latitude": 8.4211022,
+    "longitude": 99.3839598
+  },
+  {
+    "id": "TH-24-009",
+    "name": "Than To",
+    "name_thai": "Than To",
+    "type": "district",
+    "latitude": 6.1668369,
+    "longitude": 101.1900528
+  },
+  {
+    "id": "TH-17-011",
+    "name": "Thap Put",
+    "name_thai": "Thap Put",
+    "type": "district",
+    "latitude": 8.508657,
+    "longitude": 98.6490584
+  },
+  {
+    "id": "TH-03-019",
+    "name": "Thap Sakae",
+    "name_thai": "Thap Sakae",
+    "type": "district",
+    "latitude": 11.5289925,
+    "longitude": 99.6369129
+  },
+  {
+    "id": "TH-57-008",
+    "name": "Thap Than",
+    "name_thai": "Thap Than",
+    "type": "district",
+    "latitude": 15.46021,
+    "longitude": 99.8962279
+  },
+  {
+    "id": "TH-41-009",
+    "name": "That Phanom",
+    "name_thai": "That Phanom",
+    "type": "district",
+    "latitude": 16.94472,
+    "longitude": 104.7229279
+  },
+  {
+    "id": "TH-60-011",
+    "name": "Thawat Buri",
+    "name_thai": "Thawat Buri",
+    "type": "district",
+    "latitude": 16.1110285,
+    "longitude": 103.8042382
+  },
+  {
+    "id": "TH-34-015",
+    "name": "Thawi Watthana",
+    "name_thai": "Thawi Watthana",
+    "type": "district",
+    "latitude": 13.7878207,
+    "longitude": 100.3638201
+  },
+  {
+    "id": "TH-42-008",
+    "name": "Thep Sathit",
+    "name_thai": "Thep Sathit",
+    "type": "district",
+    "latitude": 15.7125734,
+    "longitude": 101.47935
+  },
+  {
+    "id": "TH-16-011",
+    "name": "Thepha",
+    "name_thai": "Thepha",
+    "type": "district",
+    "latitude": 6.8332123,
+    "longitude": 100.941144
+  },
+  {
+    "id": "TH-74-014",
+    "name": "Thepharak",
+    "name_thai": "Thepharak",
+    "type": "district",
+    "latitude": 13.6276643,
+    "longitude": 100.6268963
+  },
+  {
+    "id": "TH-16-012",
+    "name": "Thoen",
+    "name_thai": "Thoen",
+    "type": "district",
+    "latitude": 17.5455492,
+    "longitude": 99.2785583
+  },
+  {
+    "id": "TH-09-009",
+    "name": "Thoeng",
+    "name_thai": "Thoeng",
+    "type": "district",
+    "latitude": 19.7049239,
+    "longitude": 100.2151578
+  },
+  {
+    "id": "TH-32-017",
+    "name": "Thon Buri",
+    "name_thai": "Thon Buri",
+    "type": "district",
+    "latitude": 13.7148962,
+    "longitude": 100.4892251
+  },
+  {
+    "id": "TH-11-013",
+    "name": "Thong Pha Phum",
+    "name_thai": "Thong Pha Phum",
+    "type": "district",
+    "latitude": 14.772736,
+    "longitude": 98.7481167
+  },
+  {
+    "id": "TH-52-012",
+    "name": "Thong Saen Khan",
+    "name_thai": "Thong Saen Khan",
+    "type": "district",
+    "latitude": 17.53674,
+    "longitude": 100.3947116
+  },
+  {
+    "id": "TH-05-016",
+    "name": "Thung Chang",
+    "name_thai": "Thung Chang",
+    "type": "district",
+    "latitude": 19.3915669,
+    "longitude": 100.9467939
+  },
+  {
+    "id": "TH-07-011",
+    "name": "Thung Fon",
+    "name_thai": "Thung Fon",
+    "type": "district",
+    "latitude": 17.4928879,
+    "longitude": 103.254805
+  },
+  {
+    "id": "TH-65-011",
+    "name": "Thung Hua Chang",
+    "name_thai": "Thung Hua Chang",
+    "type": "district",
+    "latitude": 18.0027045,
+    "longitude": 99.03499769999999
+  },
+  {
+    "id": "TH-09-010",
+    "name": "Thung Khao Luang",
+    "name_thai": "Thung Khao Luang",
+    "type": "district",
+    "latitude": 16.0214032,
+    "longitude": 103.8564085
+  },
+  {
+    "id": "TH-32-018",
+    "name": "Thung Khru",
+    "name_thai": "Thung Khru",
+    "type": "district",
+    "latitude": 13.6472369,
+    "longitude": 100.4957628
+  },
+  {
+    "id": "TH-33-013",
+    "name": "Thung Saliam",
+    "name_thai": "Thung Saliam",
+    "type": "district",
+    "latitude": 17.2865367,
+    "longitude": 99.5562219
+  },
+  {
+    "id": "TH-41-010",
+    "name": "Thung Si Udom",
+    "name_thai": "Thung Si Udom",
+    "type": "district",
+    "latitude": 14.7520587,
+    "longitude": 104.9155243
+  },
+  {
+    "id": "TH-01-015",
+    "name": "Thung Song",
+    "name_thai": "Thung Song",
+    "type": "district",
+    "latitude": 8.288477,
+    "longitude": 99.49505549999999
+  },
+  {
+    "id": "TH-69-018",
+    "name": "Thung Tako",
+    "name_thai": "Thung Tako",
+    "type": "district",
+    "latitude": 10.1131984,
+    "longitude": 99.03499769999999
+  },
+  {
+    "id": "TH-33-014",
+    "name": "Thung Wa",
+    "name_thai": "Thung Wa",
+    "type": "district",
+    "latitude": 7.137408499999999,
+    "longitude": 99.87947439999999
+  },
+  {
+    "id": "TH-19-015",
+    "name": "Thung Yai",
+    "name_thai": "Thung Yai",
+    "type": "district",
+    "latitude": 8.360568899999999,
+    "longitude": 99.4228263
+  },
+  {
+    "id": "TH-39-014",
+    "name": "Thung Yang Daeng",
+    "name_thai": "Thung Yang Daeng",
+    "type": "district",
+    "latitude": 6.626886499999999,
+    "longitude": 101.4452717
+  },
+  {
+    "id": "TH-62-009",
+    "name": "Trakan Phuet Phon",
+    "name_thai": "Trakan Phuet Phon",
+    "type": "district",
+    "latitude": 15.5837056,
+    "longitude": 105.0791228
+  },
+  {
+    "id": "TH-62-010",
+    "name": "Tron",
+    "name_thai": "Tron",
+    "type": "district",
+    "latitude": 17.4794367,
+    "longitude": 100.1479182
+  },
+  {
+    "id": "TH-67-020",
+    "name": "U Thong",
+    "name_thai": "U Thong",
+    "type": "district",
+    "latitude": 14.3695605,
+    "longitude": 99.890643
+  },
+  {
+    "id": "TH-54-012",
+    "name": "Ubolratana",
+    "name_thai": "Ubolratana",
+    "type": "district",
+    "latitude": 16.7546971,
+    "longitude": 102.6675575
+  },
+  {
+    "id": "TH-21-009",
+    "name": "Umphang",
+    "name_thai": "Umphang",
+    "type": "district",
+    "latitude": 16.0148435,
+    "longitude": 98.9465814
+  },
+  {
+    "id": "TH-74-015",
+    "name": "Uthai",
+    "name_thai": "Uthai",
+    "type": "district",
+    "latitude": 14.3463104,
+    "longitude": 100.6872457
+  },
+  {
+    "id": "TH-40-013",
+    "name": "Uthumphon Phisai",
+    "name_thai": "Uthumphon Phisai",
+    "type": "district",
+    "latitude": 15.0977748,
+    "longitude": 104.1466046
+  },
+  {
+    "id": "TH-65-012",
+    "name": "Vadhana",
+    "name_thai": "Vadhana",
+    "type": "district",
+    "latitude": 13.7307942,
+    "longitude": 100.5864445
+  },
+  {
+    "id": "TH-59-010",
+    "name": "Vibhavadi",
+    "name_thai": "Vibhavadi",
+    "type": "district",
+    "latitude": 9.235576499999999,
+    "longitude": 98.8583309
+  },
+  {
+    "id": "TH-28-013",
+    "name": "Wachirabarami",
+    "name_thai": "Wachirabarami",
+    "type": "district",
+    "latitude": 16.5015931,
+    "longitude": 100.1031202
+  },
+  {
+    "id": "TH-37-009",
+    "name": "Waeng",
+    "name_thai": "Waeng",
+    "type": "district",
+    "latitude": 5.927816900000001,
+    "longitude": 101.8848056
+  },
+  {
+    "id": "TH-44-011",
+    "name": "Waeng Noi",
+    "name_thai": "Waeng Noi",
+    "type": "district",
+    "latitude": 15.8101846,
+    "longitude": 102.4265952
+  },
+  {
+    "id": "TH-75-011",
+    "name": "Waeng Yai",
+    "name_thai": "Waeng Yai",
+    "type": "district",
+    "latitude": 15.9595149,
+    "longitude": 102.5355393
+  },
+  {
+    "id": "TH-01-016",
+    "name": "Wan Yai",
+    "name_thai": "Wan Yai",
+    "type": "district",
+    "latitude": 16.7137921,
+    "longitude": 104.7345937
+  },
+  {
+    "id": "TH-34-016",
+    "name": "Wang Chan",
+    "name_thai": "Wang Chan",
+    "type": "district",
+    "latitude": 12.8603014,
+    "longitude": 101.5361726
+  },
+  {
+    "id": "TH-29-009",
+    "name": "Wang Chao",
+    "name_thai": "Wang Chao",
+    "type": "district",
+    "latitude": 16.6625992,
+    "longitude": 99.14561529999999
+  },
+  {
+    "id": "TH-56-009",
+    "name": "Wang Chin",
+    "name_thai": "Wang Chin",
+    "type": "district",
+    "latitude": 17.8319922,
+    "longitude": 99.6564092
+  },
+  {
+    "id": "TH-02-007",
+    "name": "Wang Hin",
+    "name_thai": "Wang Hin",
+    "type": "district",
+    "latitude": 14.9146903,
+    "longitude": 104.245408
+  },
+  {
+    "id": "TH-03-020",
+    "name": "Wang Muang",
+    "name_thai": "Wang Muang",
+    "type": "district",
+    "latitude": 14.874441,
+    "longitude": 101.1843887
+  },
+  {
+    "id": "TH-68-015",
+    "name": "Wang Nam Khiao",
+    "name_thai": "Wang Nam Khiao",
+    "type": "district",
+    "latitude": 14.4009073,
+    "longitude": 101.9348069
+  },
+  {
+    "id": "TH-52-013",
+    "name": "Wang Nam Yen",
+    "name_thai": "Wang Nam Yen",
+    "type": "district",
+    "latitude": 13.5109438,
+    "longitude": 102.1747077
+  },
+  {
+    "id": "TH-24-010",
+    "name": "Wang Noi",
+    "name_thai": "Wang Noi",
+    "type": "district",
+    "latitude": 14.2524816,
+    "longitude": 100.7323332
+  },
+  {
+    "id": "TH-70-015",
+    "name": "Wang Nuea",
+    "name_thai": "Wang Nuea",
+    "type": "district",
+    "latitude": 19.1632163,
+    "longitude": 99.5784754
+  },
+  {
+    "id": "TH-07-012",
+    "name": "Wang Pong",
+    "name_thai": "Wang Pong",
+    "type": "district",
+    "latitude": 16.3603106,
+    "longitude": 100.8338593
+  },
+  {
+    "id": "TH-59-011",
+    "name": "Wang Sai Phun",
+    "name_thai": "Wang Sai Phun",
+    "type": "district",
+    "latitude": 16.3962348,
+    "longitude": 100.5858786
+  },
+  {
+    "id": "TH-11-014",
+    "name": "Wang Sam Mo",
+    "name_thai": "Wang Sam Mo",
+    "type": "district",
+    "latitude": 16.9464222,
+    "longitude": 103.4627375
+  },
+  {
+    "id": "TH-65-013",
+    "name": "Wang Saphung",
+    "name_thai": "Wang Saphung",
+    "type": "district",
+    "latitude": 17.3099032,
+    "longitude": 101.7409946
+  },
+  {
+    "id": "TH-63-018",
+    "name": "Wang Sombun",
+    "name_thai": "Wang Sombun",
+    "type": "district",
+    "latitude": 13.3152042,
+    "longitude": 102.2319048
+  },
+  {
+    "id": "TH-02-008",
+    "name": "Wang Thong",
+    "name_thai": "Wang Thong",
+    "type": "district",
+    "latitude": 16.8292341,
+    "longitude": 100.4107165
+  },
+  {
+    "id": "TH-02-009",
+    "name": "Wang Thonglang",
+    "name_thai": "Wang Thonglang",
+    "type": "district",
+    "latitude": 13.7864323,
+    "longitude": 100.6086831
+  },
+  {
+    "id": "TH-15-007",
+    "name": "Wang Wiset",
+    "name_thai": "Wang Wiset",
+    "type": "district",
+    "latitude": 7.7465014,
+    "longitude": 99.389511
+  },
+  {
+    "id": "TH-44-012",
+    "name": "Wang Yang",
+    "name_thai": "Wang Yang",
+    "type": "district",
+    "latitude": 16.4579106,
+    "longitude": 100.7436084
+  },
+  {
+    "id": "TH-17-012",
+    "name": "Wanon Niwat",
+    "name_thai": "Wanon Niwat",
+    "type": "district",
+    "latitude": 17.644742,
+    "longitude": 103.7405019
+  },
+  {
+    "id": "TH-60-012",
+    "name": "Wapi Pathum",
+    "name_thai": "Wapi Pathum",
+    "type": "district",
+    "latitude": 15.8836834,
+    "longitude": 103.3125299
+  },
+  {
+    "id": "TH-75-012",
+    "name": "Warin Chamrap",
+    "name_thai": "Warin Chamrap",
+    "type": "district",
+    "latitude": 15.1958877,
+    "longitude": 104.8653786
+  },
+  {
+    "id": "TH-63-019",
+    "name": "Waritchaphum",
+    "name_thai": "Waritchaphum",
+    "type": "district",
+    "latitude": 17.2361032,
+    "longitude": 103.6246954
+  },
+  {
+    "id": "TH-29-010",
+    "name": "Wat Bot",
+    "name_thai": "Wat Bot",
+    "type": "district",
+    "latitude": 17.038735,
+    "longitude": 100.3161126
+  },
+  {
+    "id": "TH-22-010",
+    "name": "Wat Phleng",
+    "name_thai": "Wat Phleng",
+    "type": "district",
+    "latitude": 13.4473792,
+    "longitude": 99.87389069999999
+  },
+  {
+    "id": "TH-27-011",
+    "name": "Wat Sing",
+    "name_thai": "Wat Sing",
+    "type": "district",
+    "latitude": 15.2081378,
+    "longitude": 99.96886359999999
+  },
+  {
+    "id": "TH-20-010",
+    "name": "Watthana Nakhon",
+    "name_thai": "Watthana Nakhon",
+    "type": "district",
+    "latitude": 13.7303147,
+    "longitude": 102.334934
+  },
+  {
+    "id": "TH-20-011",
+    "name": "Wiang Chai",
+    "name_thai": "Wiang Chai",
+    "type": "district",
+    "latitude": 19.8750241,
+    "longitude": 99.91298450000001
+  },
+  {
+    "id": "TH-35-009",
+    "name": "Wiang Chiang Rung",
+    "name_thai": "Wiang Chiang Rung",
+    "type": "district",
+    "latitude": 19.9976243,
+    "longitude": 100.0359661
+  },
+  {
+    "id": "TH-51-009",
+    "name": "Wiang Haeng",
+    "name_thai": "Wiang Haeng",
+    "type": "district",
+    "latitude": 19.6003815,
+    "longitude": 98.61606739999999
+  },
+  {
+    "id": "TH-04-010",
+    "name": "Wiang Kaen",
+    "name_thai": "Wiang Kaen",
+    "type": "district",
+    "latitude": 19.9964005,
+    "longitude": 100.4621366
+  },
+  {
+    "id": "TH-50-008",
+    "name": "Wiang Kao",
+    "name_thai": "Wiang Kao",
+    "type": "district",
+    "latitude": 16.7089808,
+    "longitude": 102.2776838
+  },
+  {
+    "id": "TH-72-008",
+    "name": "Wiang Pa Pao",
+    "name_thai": "Wiang Pa Pao",
+    "type": "district",
+    "latitude": 19.2778322,
+    "longitude": 99.41171969999999
+  },
+  {
+    "id": "TH-44-013",
+    "name": "Wiang Sa",
+    "name_thai": "Wiang Sa",
+    "type": "district",
+    "latitude": 8.645461599999999,
+    "longitude": 99.3118282
+  },
+  {
+    "id": "TH-55-011",
+    "name": "Wichian Buri",
+    "name_thai": "Wichian Buri",
+    "type": "district",
+    "latitude": 15.6389808,
+    "longitude": 101.1164452
+  },
+  {
+    "id": "TH-75-013",
+    "name": "Wihan Daeng",
+    "name_thai": "Wihan Daeng",
+    "type": "district",
+    "latitude": 14.3153708,
+    "longitude": 100.9863525
+  },
+  {
+    "id": "TH-44-014",
+    "name": "Wiset Chai Chan",
+    "name_thai": "Wiset Chai Chan",
+    "type": "district",
+    "latitude": 14.5462949,
+    "longitude": 100.3273368
+  },
+  {
+    "id": "TH-74-016",
+    "name": "Yaha",
+    "name_thai": "Yaha",
+    "type": "district",
+    "latitude": 6.4866666,
+    "longitude": 101.1504111
+  },
+  {
+    "id": "TH-21-010",
+    "name": "Yan Nawa",
+    "name_thai": "Yan Nawa",
+    "type": "district",
+    "latitude": 13.6943097,
+    "longitude": 100.5393642
+  },
+  {
+    "id": "TH-21-011",
+    "name": "Yan Ta Khao",
+    "name_thai": "Yan Ta Khao",
+    "type": "district",
+    "latitude": 7.402920599999999,
+    "longitude": 99.67311880000001
+  },
+  {
+    "id": "TH-64-014",
+    "name": "Yang Chum Noi",
+    "name_thai": "Yang Chum Noi",
+    "type": "district",
+    "latitude": 15.2586847,
+    "longitude": 104.3966503
+  },
+  {
+    "id": "TH-51-010",
+    "name": "Yang Sisurat",
+    "name_thai": "Yang Sisurat",
+    "type": "district",
+    "latitude": 15.6786489,
+    "longitude": 103.0933171
+  },
+  {
+    "id": "TH-66-008",
+    "name": "Yang Talat",
+    "name_thai": "Yang Talat",
+    "type": "district",
+    "latitude": 16.4003968,
+    "longitude": 103.3712281
+  },
+  {
+    "id": "TH-67-021",
+    "name": "Yarang",
+    "name_thai": "Yarang",
+    "type": "district",
+    "latitude": 6.7699758,
+    "longitude": 101.2951403
+  },
+  {
+    "id": "TH-08-015",
+    "name": "Yaring",
+    "name_thai": "Yaring",
+    "type": "district",
+    "latitude": 6.828056999999999,
+    "longitude": 101.3885001
+  },
+  {
+    "id": "TH-42-009",
+    "name": "Yi-Ngo",
+    "name_thai": "Yi-Ngo",
+    "type": "district",
+    "latitude": 6.385286799999999,
+    "longitude": 101.7011363
+  }
+]

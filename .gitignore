@@ -154,4 +154,5 @@ public/adm2.geojson
 public/adm3.geojson
 public/migration_matrices_districts.pkl
 public/datasets/
+!public/datasets/thailand_administrative_units.json
 secrets/
