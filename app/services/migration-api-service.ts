@@ -12,7 +12,11 @@ export class MigrationAPIService {
    * Execute a migration query for selected locations
    * This replaces the mocked executeQuery function
    */
-  async executeQuery(locations: Location[]): Promise<{ success: boolean; data?: any; error?: string }> {
+  async executeQuery(
+    locations: Location[], 
+    startDate?: string, 
+    endDate?: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       if (locations.length === 0) {
         return {
@@ -41,16 +45,15 @@ export class MigrationAPIService {
         locationIds = await this.mapLocationsToAPIIds(provinces, 'province');
       }
 
-      // Let the server determine the latest dataset automatically
-      // In the future, this will be configurable based on user-selected datasets
-      // from the metadata endpoint
       const queryOptions: MigrationQueryOptions = {
         scale,
-        // startDate/endDate intentionally omitted - server will use latest dataset
+        startDate,
+        endDate,
         locationIds,
         aggregation: 'monthly',
         includeFlows: true
       };
+
 
       const response = await migrationService.getMigrationData(queryOptions);
       

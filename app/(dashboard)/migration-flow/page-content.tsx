@@ -147,7 +147,9 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
   };
 
   // Handle time period changes for map visualization
-  const handleTimePeriodChange = (timePeriodId: string) => {
+  const handleTimePeriodChange = (timePeriodId: string, startDate: string, endDate: string) => {
+    console.log('🔍 handleTimePeriodChange received:', { timePeriodId, startDate, endDate });
+    
     if (apiResponse && timePeriodId !== selectedTimePeriod) {
       setSelectedTimePeriod(timePeriodId);
       try {
@@ -231,7 +233,7 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
               nodes={mapNodes}
               connections={mapConnections}
               curved={true}
-              width={960}
+              width={720}
               height={600}
               selectedPeriod={selectedTimePeriod}
               onPeriodChange={handleTimePeriodChange}

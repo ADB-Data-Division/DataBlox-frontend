@@ -1,249 +1,163 @@
 'use client';
 
-import React, { useRef, KeyboardEvent, useEffect, useReducer, useCallback, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  Typography, 
-  Box, 
-  Paper, 
-  TextField,
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Chip,
-  CircularProgress,
-  Button,
-  useTheme,
-  Pagination,
-  Stack,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel
-} from '@mui/material';
-import { 
-  MagnifyingGlassIcon,
-  MapPinAreaIcon,
-  MapPinSimpleIcon,
-  TrainRegionalIcon,
-} from '@phosphor-icons/react/dist/ssr';
+import React, { useRef, KeyboardEvent, useEffect, useReducer, useCallback, useState, useMemo } from 'react';
+import { Box, Paper, useTheme } from '@mui/material';
 
 // Components
 import MigrationResultsTable from '@/components/migration-results-table';
+import ShortcutsModal from '../../components/shortcuts-modal/shortcuts-modal';
+import { Header } from './components/Header';
+import { LocationChips } from './components/LocationChips';
+import { SearchBar } from './components/SearchBar';
+import { LoadingState } from './components/LoadingState';
+import { NoResultsState } from './components/NoResultsState';
+import { LocationList } from './components/LocationList';
+import { SearchPagination } from './components/SearchPagination';
+import { SearchResultsSummary } from './components/SearchResultsSummary';
+
+// Hooks
+import { 
+  useMigrationData, 
+  useLocationSearch, 
+  useUrlParams, 
+  useKeyboardShortcuts 
+} from './hooks';
 
 // Utils and helpers
-import { filterItems, getCommandKey } from '../../src/utils/search';
-import ShortcutsModal from '../../components/shortcuts-modal/shortcuts-modal';
 import { trackMigrationEvent, trackUserInteraction } from '../../src/utils/analytics';
-import { 
-  Location, 
-  getLocationIconType, 
-  getLocationColor, 
-  getAllLocations, 
-  getLocationsByUniqueIds 
-} from './helper';
+import { Location, getLocationsByUniqueIds, getAllLocations } from './helper';
 import { mapViewReducer, initialState } from './reducer';
-import { 
-  LOCATION_CONSTRAINTS, 
-  canAddMoreLocations, 
-  shouldShowWarning, 
-  getRemainingSlots 
-} from './constraints';
-import { MigrationAPIService } from '../services/migration-api-service';
-import { transformMigrationDataForMap, getAvailableTimePeriods } from '../services/api';
-import type { MigrationResponse, MapNode, MapConnection } from '../services/api';
+import { LOCATION_CONSTRAINTS, canAddMoreLocations } from './constraints';
 
+
+// Style objects - defined outside component to prevent recreation
+const containerStyles = { width: '100%' };
 
 export default function PageContent() {
+  
   const theme = useTheme();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
   
-  // Debounce timer ref for period changes
-  const periodChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Track when we're resetting to prevent URL effect interference
   const isResettingRef = useRef<boolean>(false);
 
-  // Migration data state (for MigrationResultsTable)
-  const [migrationData, setMigrationData] = useState<{
-    mapNodes: MapNode[];
-    mapConnections: MapConnection[];
-    apiResponse: MigrationResponse | null;
-    loading: boolean;
-    error: string | null;
-  }>({
-    mapNodes: [],
-    mapConnections: [],
-    apiResponse: null,
-    loading: false,
-    error: null
-  });
+  // Memoize selectedLocations to prevent unnecessary callback recreations
+  const memoizedSelectedLocations = useMemo(() => state.selectedLocations, [state.selectedLocations]);
 
-  // Initialize migration API service
-  const migrationAPIService = new MigrationAPIService();
+  // Custom hooks
+    const { migrationData, loadMigrationData, resetMigrationData } = useMigrationData();
+  const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
+  
+  const searchResults = useLocationSearch(memoizedSelectedLocations, state.searchQuery);
 
-  // URL parameter utilities
-  const updateUrlWithLocations = (locations: Location[]) => {
-    const params = new URLSearchParams();
-    // Use comma-separated unique IDs for the locations parameter
-    if (locations.length > 0) {
-      const uniqueIds = locations.map(location => location.uniqueId).join(',');
-      params.set('locations', uniqueIds);
+  // Memoize keyboard shortcuts configuration
+  const keyboardShortcutsConfig = useMemo(() => ({
+    inputRef,
+    onShowShortcutsModal: () => {
+      dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: true });
+      trackUserInteraction('keyboard_shortcut', 'show_help_modal');
     }
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
+  }), [inputRef]);
 
-  const clearUrlParams = () => {
-    router.push(window.location.pathname, { scroll: false });
-  };
+  useKeyboardShortcuts(keyboardShortcutsConfig);
 
-  // Debounced period change handler
-  const debouncedPeriodChange = useCallback((period: string) => {
-    // Clear any existing timer
-    if (periodChangeTimerRef.current) {
-      clearTimeout(periodChangeTimerRef.current);
-    }
+  // Store date range for API calls
+  const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
+
+  // Memoize Paper styles to prevent recreation
+  const paperStyles = useMemo(() => ({
+    p: 1,
+    backgroundColor: theme.palette.background.paper,
+    minHeight: '70vh'
+  }), [theme.palette.background.paper]);
+
+  // Period change handler - no additional debouncing since MigrationAnalysisPeriod already handles it
+  const handlePeriodChange = useCallback((period: string, startDate?: string, endDate?: string) => {
+    console.log('📊 handlePeriodChange called:', { period, startDate, endDate });
+    dispatch({ type: 'SET_SELECTED_PERIOD', payload: period });
+    setDateRange({ startDate, endDate });
     
-    // Set new timer
-    periodChangeTimerRef.current = setTimeout(() => {
-      dispatch({ type: 'SET_SELECTED_PERIOD', payload: period });
-      
-      // Update migration data visualization when period changes
-      if (migrationData.apiResponse) {
-        try {
-          // Check if the new period exists in the API response
-          const timePeriods = getAvailableTimePeriods(migrationData.apiResponse);
-          const matchingPeriod = timePeriods.find(p => p.id === period);
-          const timePeriodId = matchingPeriod?.id || timePeriods[0]?.id || '';
-          
-          console.log(`Updating visualization for period: ${period} -> ${timePeriodId}`);
-          
-          const { nodes, connections } = transformMigrationDataForMap(migrationData.apiResponse, timePeriodId);
-          setMigrationData(prev => ({
-            ...prev,
-            mapNodes: nodes,
-            mapConnections: connections
-          }));
-        } catch (error) {
-          console.error('Error updating period:', error);
-        }
-      }
-    }, 1000);
-  }, [migrationData.apiResponse]);
+    // Trigger new API request with the updated date range if locations are selected
+    if (memoizedSelectedLocations.length > 0) {
+      // loadMigrationData immediately sets loading state and clears existing data
+      loadMigrationData(memoizedSelectedLocations, period, startDate, endDate);
+    }
+  }, [loadMigrationData, memoizedSelectedLocations]);
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (periodChangeTimerRef.current) {
-        clearTimeout(periodChangeTimerRef.current);
-      }
-      isResettingRef.current = false;
-    };
-  }, []);
+  // Note: Cleanup effect removed - isResettingRef is managed in handleReset
 
   const handleReset = () => {
-    // Clear any pending debounced changes
-    if (periodChangeTimerRef.current) {
-      clearTimeout(periodChangeTimerRef.current);
-    }
-    
-    // Mark that we're resetting
     isResettingRef.current = true;
-    
-    // Clear URL first to prevent interference
     clearUrlParams();
+    resetMigrationData();
     
-    // Reset migration data
-    setMigrationData({
-      mapNodes: [],
-      mapConnections: [],
-      apiResponse: null,
-      loading: false,
-      error: null
-    });
-    
-    // Then reset all state
     dispatch({ type: 'RESET_QUERY_STATE' });
     dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
     dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
-    dispatch({ type: 'SET_SELECTED_PERIOD', payload: '2020-all' }); // Reset to default period
+    dispatch({ type: 'SET_SELECTED_PERIOD', payload: '2020-all' });
     
-    // Clear the reset flag after a short delay to allow state updates
     setTimeout(() => {
       isResettingRef.current = false;
     }, 100);
   };
 
-  // Retry function for migration data loading
-  const handleRetryMigrationData = () => {
-    if (state.selectedLocations.length > 0) {
-      loadMigrationData(state.selectedLocations);
+  const handleRetryMigrationData = useCallback(() => {
+    if (memoizedSelectedLocations.length > 0) {
+      loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
     }
-  };
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData]);
 
-  // Global keyboard shortcuts
-  useEffect(() => {
-    const handleGlobalKeyDown = (event: globalThis.KeyboardEvent) => {
-      const cmdOrCtrl = event.metaKey || event.ctrlKey;
-
-      // CMD/CTRL + K: Focus search
-      if (cmdOrCtrl && event.key === 'k') {
-        event.preventDefault();
-        inputRef.current?.focus();
-        return;
-      }
-
-      // CMD/CTRL + /: Show shortcuts modal
-      if (cmdOrCtrl && event.key === '/') {
-        event.preventDefault();
-        dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: true });
-        trackUserInteraction('keyboard_shortcut', 'show_help_modal');
-        return;
-      }
-    };
-
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
-
-  // Load locations from URL parameters on mount
+  // Load locations from URL parameters on mount - using useEffect for legitimate side effect
   useEffect(() => {
     const loadFromUrl = async () => {
-      // Skip URL processing if we're in the middle of a reset
-      if (isResettingRef.current) {
-        return;
-      }
+      if (isResettingRef.current) return;
       
-      const locationsParam = searchParams.get('locations');
+      const locationsParam = getLocationsParam();
       
       if (locationsParam) {
         try {
-          // Split comma-separated unique IDs and convert to Location objects
-          const uniqueIds = locationsParam.split(',').filter(id => id.trim() !== '');
-          const locations = getLocationsByUniqueIds(uniqueIds);
+          // URL decode the parameter first, then split on commas
+          const decodedParam = decodeURIComponent(locationsParam);
+          const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
           
-          // Check if these locations are already loaded and query was successful
+          // Get all locations from API and find matches
+          const allLocations = await getAllLocations();
+          const locations = uniqueIds
+            .map(uniqueId => allLocations.find(loc => loc.uniqueId === uniqueId))
+            .filter((location): location is Location => location !== undefined);
+          
           const currentUniqueIds = state.selectedLocations.map(loc => loc.uniqueId).sort();
           const urlUniqueIds = uniqueIds.sort();
           const locationsMatch = currentUniqueIds.length === urlUniqueIds.length && 
                                 currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
           
-          // Only load if locations don't match current state
           if (locations.length > 0 && !locationsMatch) {
-            // Clear existing locations and load new ones
+            // Prevent this effect from running again while we're updating
+            isResettingRef.current = true;
+            
             dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
             locations.forEach(location => {
               dispatch({ type: 'ADD_LOCATION', payload: location });
             });
             
-            // Directly set to success state without loading - assume URL params represent completed queries
-            dispatch({ type: 'SET_QUERY_SUCCESS' });
+            // After loading locations from URL, automatically execute migration query
+            dispatch({ type: 'START_QUERY_EXECUTION' });
+            
+            try {
+              await loadMigrationData(locations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
+              updateUrlWithLocations(locations); // Update URL to ensure consistency
+              dispatch({ type: 'SET_QUERY_SUCCESS' });
+            } catch (error) {
+              console.error('Migration query failed after URL load:', error);
+              dispatch({ type: 'SET_QUERY_ERROR' });
+            }
+            
+            // Re-enable the effect
+            setTimeout(() => {
+              isResettingRef.current = false;
+            }, 100);
           }
         } catch (error) {
           console.error('Failed to parse locations from URL:', error);
@@ -252,522 +166,129 @@ export default function PageContent() {
     };
     
     loadFromUrl();
-  }, [searchParams, state.selectedLocations, state.queryExecutionState]);
+  }, [getLocationsParam]); // Only depend on getLocationsParam to avoid loops, other dependencies are stable within the effect
 
-  const handleCloseShortcutsModal = () => {
+  const handleCloseShortcutsModal = useCallback(() => {
     dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false });
     trackUserInteraction('modal_close', 'shortcuts_modal');
-  };
-
-  // State for all locations (loaded asynchronously)
-  const [allLocations, setAllLocations] = useState<Location[]>([]);
-
-  // Load all locations on component mount
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const locations = await getAllLocations();
-        setAllLocations(locations);
-      } catch (error) {
-        console.error('Failed to load locations:', error);
-        // Fallback to mock data if API fails
-        const { getAllLocationsMock } = await import('./helper');
-        setAllLocations(getAllLocationsMock());
-      }
-    };
-
-    loadLocations();
   }, []);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_SEARCH_QUERY', payload: event.target.value });
-  };
+  }, []);
 
-  const handleLocationSelect = (location: Location) => {
-    // Check if we can add more locations
-    if (!canAddMoreLocations(state.selectedLocations.length)) {
-      // Could add a toast notification here in the future
+  const handleExecuteQuery = useCallback(async () => {
+    if (memoizedSelectedLocations.length === 0) return;
+    
+    dispatch({ type: 'START_QUERY_EXECUTION' });
+    
+    const locationTypes = memoizedSelectedLocations.map(loc => loc.type);
+    const queryType = locationTypes.length === 1 ? locationTypes[0] : 'mixed';
+    trackMigrationEvent.executeQuery(memoizedSelectedLocations.length, queryType);
+    
+    try {
+      await loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
+      updateUrlWithLocations(memoizedSelectedLocations);
+      dispatch({ type: 'SET_QUERY_SUCCESS' });
+    } catch (error) {
+      console.error('Query execution error:', error);
+      dispatch({ type: 'SET_QUERY_ERROR' });
+      trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
+
+  const handleLocationSelect = useCallback((location: Location) => {
+    if (!canAddMoreLocations(memoizedSelectedLocations.length)) {
       console.warn(`Cannot add more locations. Maximum of ${LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations allowed.`);
       return;
     }
     
     dispatch({ type: 'ADD_LOCATION', payload: location });
-    
-    // Track location selection
     trackMigrationEvent.selectLocation(location.type, location.name);
     
-    // Focus back to input
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  };
+  }, [memoizedSelectedLocations.length]);
 
-  const handleLocationRemove = (locationId: number) => {
+  const handleLocationRemove = useCallback((locationId: number) => {
     dispatch({ type: 'REMOVE_LOCATION', payload: locationId });
-  };
+  }, []);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
       if (event.shiftKey) {
-        // Shift + Enter: Execute query
         handleExecuteQuery();
       } else {
-        // Enter: Select first result
         event.preventDefault();
-        const firstResult = getFirstAvailableResult();
+        const firstResult = searchResults.getFirstAvailableResult();
         if (firstResult) {
           handleLocationSelect(firstResult);
         }
       }
     } else if (event.key === 'Backspace') {
-      // Only handle backspace if search field is empty
-      if (state.searchQuery === '' && state.selectedLocations.length > 0) {
+      if (state.searchQuery === '' && memoizedSelectedLocations.length > 0) {
         event.preventDefault();
         
         if (state.highlightedForDeletion !== null) {
-          // Second backspace: Remove the highlighted location
           dispatch({ type: 'REMOVE_HIGHLIGHTED_LOCATION' });
         } else {
-          // First backspace: Highlight the last location for deletion
           dispatch({ type: 'HIGHLIGHT_LAST_LOCATION' });
         }
       }
     } else {
-      // Any other key press clears the highlighted state
       if (state.highlightedForDeletion !== null) {
         dispatch({ type: 'CLEAR_HIGHLIGHTED' });
       }
     }
-  };
-
-  // Load migration data using the proper API service
-  const loadMigrationData = async (locations: Location[]) => {
-    setMigrationData(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      console.log('Loading migration data for selected locations:', locations.map(l => l.name));
-      
-      // Use the MigrationAPIService which properly maps Location objects to API IDs
-      const result = await migrationAPIService.executeQuery(locations);
-      
-      if (result.success && result.data?.apiResponse) {
-        const apiResponse = result.data.apiResponse as MigrationResponse;
-        
-        // Get available time periods and use the selected period or first available
-        const timePeriods = getAvailableTimePeriods(apiResponse);
-        console.log('Available time periods:', timePeriods);
-        console.log('Current selected period:', state.selectedPeriod);
-        
-        // Check if current selected period matches any available period
-        const matchingPeriod = timePeriods.find(p => p.id === state.selectedPeriod);
-        const timePeriodId = matchingPeriod?.id || timePeriods[0]?.id || '';
-        
-        console.log('Using time period ID:', timePeriodId);
-        
-        // Transform data for map visualization
-        const { nodes, connections } = transformMigrationDataForMap(apiResponse, timePeriodId);
-        
-        setMigrationData({
-          mapNodes: nodes,
-          mapConnections: connections,
-          apiResponse,
-          loading: false,
-          error: null
-        });
-
-        console.log('Migration data loaded successfully:', {
-          locations: apiResponse.data.length,
-          flows: apiResponse.flows?.length || 0,
-          nodes: nodes.length,
-          connections: connections.length,
-          selectedPeriod: timePeriodId
-        });
-      } else {
-        setMigrationData(prev => ({
-          ...prev,
-          loading: false,
-          error: result.error || 'No migration data available for the selected locations'
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to load migration data:', error);
-      setMigrationData(prev => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load migration data'
-      }));
-    }
-  };
-
-  const handleExecuteQuery = async () => {
-    if (state.selectedLocations.length === 0) return;
-    
-    dispatch({ type: 'START_QUERY_EXECUTION' });
-    
-    // Track query execution
-    const locationTypes = state.selectedLocations.map(loc => loc.type);
-    const queryType = locationTypes.length === 1 ? locationTypes[0] : 'mixed';
-    trackMigrationEvent.executeQuery(state.selectedLocations.length, queryType);
-    
-    try {
-      // Load migration data first
-      await loadMigrationData(state.selectedLocations);
-      
-      // Add selected locations to URL query parameters
-      updateUrlWithLocations(state.selectedLocations);
-      dispatch({ type: 'SET_QUERY_SUCCESS' });
-    } catch (error) {
-      console.error('Query execution error:', error);
-      dispatch({ type: 'SET_QUERY_ERROR' });
-      // Track error
-      trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
-    }
-  };
-
-  const getFirstAvailableResult = (): Location | null => {
-    // Return the first result from current page of paginated results
-    const firstResult = paginatedResults.length > 0 ? paginatedResults[0] : null;
-    return firstResult;
-  };
-
-  // Filter locations using the dynamic API data
-  const selectedIds = state.selectedLocations.map(loc => loc.id);
-  
-  // Separate allLocations by type
-  const provinces = allLocations.filter(loc => loc.type === 'province');
-  const districts = allLocations.filter(loc => loc.type === 'district');
-  const subDistricts = allLocations.filter(loc => loc.type === 'subDistrict');
-  
-  // Define top 3 major provinces in Thailand (by population and economic importance)
-  const majorProvinceNames = ['Bangkok', 'Chiang Mai', 'Nakhon Ratchasima'];
-  
-  // Determine allowed location types based on current selections
-  const selectedLocationTypes = Array.from(new Set(state.selectedLocations.map(loc => loc.type)));
-  const allowedType = selectedLocationTypes.length > 0 && LOCATION_CONSTRAINTS.ENFORCE_SAME_TYPE_SELECTION 
-    ? selectedLocationTypes[0] // Only allow the same type as already selected
-    : null; // Allow all types
-  
-  // Apply filtering logic with default major provinces when no search
-  let allFilteredProvinces: Location[];
-  let allFilteredDistricts: Location[];
-  let allFilteredSubDistricts: Location[];
-  
-  if (!state.searchQuery.trim()) {
-    // No search query: show only top 3 major provinces by default (if no type constraint or if provinces are allowed)
-    if (!allowedType || allowedType === 'province') {
-      allFilteredProvinces = provinces.filter(province => 
-        majorProvinceNames.includes(province.name) && !selectedIds.includes(province.id)
-      );
-    } else {
-      allFilteredProvinces = [];
-    }
-    
-    // Show relevant defaults for other types if they're the allowed type
-    if (allowedType === 'district') {
-      // Show some default districts if districts are the allowed type
-      allFilteredDistricts = districts.slice(0, 5).filter(district => !selectedIds.includes(district.id));
-    } else {
-      allFilteredDistricts = [];
-    }
-    
-    if (allowedType === 'subDistrict') {
-      // Show some default sub-districts if they're the allowed type
-      allFilteredSubDistricts = subDistricts.slice(0, 5).filter(subDistrict => !selectedIds.includes(subDistrict.id));
-    } else {
-      allFilteredSubDistricts = [];
-    }
-  } else {
-    // Search query exists: filter based on allowed type
-    allFilteredProvinces = (!allowedType || allowedType === 'province') ? filterItems(
-      provinces,
-      state.searchQuery,
-      ['name', 'description'],
-      selectedIds
-    ) : [];
-    
-    allFilteredDistricts = (!allowedType || allowedType === 'district') ? filterItems(
-      districts,
-      state.searchQuery,
-      ['name', 'description'],
-      selectedIds
-    ) : [];
-    
-    allFilteredSubDistricts = (!allowedType || allowedType === 'subDistrict') ? filterItems(
-      subDistricts,
-      state.searchQuery,
-      ['name', 'description'],
-      selectedIds
-    ) : [];
-  }
-
-  // Calculate total results and update state if needed
-  const totalFilteredResults = allFilteredProvinces.length + allFilteredDistricts.length + allFilteredSubDistricts.length;
-  
-  // Update total results in state when they change
-  useEffect(() => {
-    if (totalFilteredResults !== state.searchPagination.totalResults) {
-      dispatch({ type: 'UPDATE_TOTAL_RESULTS', payload: totalFilteredResults });
-      
-      // Track search with results count when search query is not empty
-      if (state.searchQuery.trim() && totalFilteredResults !== state.searchPagination.totalResults) {
-        trackMigrationEvent.searchLocation(state.searchQuery, totalFilteredResults);
-      } else if (!state.searchQuery.trim() && totalFilteredResults > 0) {
-        // Track when default major provinces are shown
-        trackUserInteraction('view_default_provinces', 'major_provinces_displayed');
-      }
-    }
-  }, [totalFilteredResults, state.searchPagination.totalResults, state.searchQuery]);
-
-  // Pagination helper functions
-  const { currentPage, pageSize } = state.searchPagination;
-  const totalPages = Math.ceil(totalFilteredResults / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-
-  // Combine all filtered results for pagination
-  const allFilteredResults = [
-    ...allFilteredProvinces.map(item => ({ ...item, category: 'province' as const })),
-    ...allFilteredDistricts.map(item => ({ ...item, category: 'district' as const })),
-    ...allFilteredSubDistricts.map(item => ({ ...item, category: 'subDistrict' as const }))
-  ];
-
-  // Get paginated results
-  const paginatedResults = allFilteredResults.slice(startIndex, endIndex);
-  
-  // Separate paginated results by type
-  const filteredProvinces = paginatedResults.filter(item => item.category === 'province');
-  const filteredDistricts = paginatedResults.filter(item => item.category === 'district');
-  const filteredSubDistricts = paginatedResults.filter(item => item.category === 'subDistrict');
-
-  // Pagination handlers
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
-    dispatch({ type: 'SET_SEARCH_PAGE', payload: page });
-    // Track pagination usage
-    trackMigrationEvent.changePage(page, totalFilteredResults);
-  };
-
-  const handlePageSizeChange = (event: any) => {
-    const newPageSize = parseInt(event.target.value);
-    dispatch({ type: 'SET_PAGE_SIZE', payload: newPageSize });
-    // Track page size change
-    trackUserInteraction('change_page_size', `${newPageSize}_per_page`);
-  };
-
-  // Helper function to get icon component (for search results display)
-  const getLocationIcon = (type: Location['type']) => {
-    const iconType = getLocationIconType(type);
-    switch (iconType) {
-      case 'buildings': return <TrainRegionalIcon size={16} />;
-      case 'users': return <MapPinAreaIcon size={16} />;
-      case 'mapPin': return <MapPinSimpleIcon size={16} />;
-    }
-  };
+  }, [handleExecuteQuery, searchResults, handleLocationSelect, state.searchQuery, memoizedSelectedLocations.length, state.highlightedForDeletion]);
 
   return (
-    <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        sx={{ 
-          fontSize: '36px',
-          fontFamily: 'var(--font-asap), sans-serif',
-          fontWeight: '900',
-          color: '#000000',
-          letterSpacing: '-0.5px',
-          mb: 2
-        }}
-      >
-        Datablo<Box 
-          component="span" 
-          sx={{
-            backgroundColor: '#0077BE',
-            color: '#ffffff',
-            padding: '0px 2px',
-            borderRadius: '4px',
-            marginLeft: '1px',
-            display: 'inline-block'
-          }}
-        >
-          x
-        </Box>
-      </Typography>
+    <Box sx={containerStyles}>
+      <Header />
 
-      {/* Main Content Paper */}
       <Paper 
         elevation={0} 
-        sx={{ 
-          p: 1,
-          backgroundColor: theme.palette.background.paper,
-          minHeight: '70vh'
-        }}
+        sx={paperStyles}
       >
-
         {/* Search Interface - Hidden in success state */}
         {state.queryExecutionState !== 'success' && (
           <>
-            {/* Selected Locations Display */}
-            {state.selectedLocations.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-                Selected state{state.selectedLocations.length > 1 ? 's' : ''} ({state.selectedLocations.length})
-              </Typography>
-              <Typography 
-                variant="caption" 
-                color={shouldShowWarning(state.selectedLocations.length) ? "warning.main" : "text.secondary"}
-                sx={{ fontWeight: 'medium' }}
-              >
-                {getRemainingSlots(state.selectedLocations.length)} remaining
-              </Typography>
-            </Box>
-            {shouldShowWarning(state.selectedLocations.length) && (
-              <Typography variant="caption" color="warning.main" sx={{ display: 'block', mb: 1 }}>
-                ⚠️ Approaching limit of {LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations
-              </Typography>
-            )}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {state.selectedLocations.map((location) => (
-                <Chip
-                  key={location.id}
-                  icon={getLocationIcon(location.type)}
-                  label={location.name}
-                  color={getLocationColor(location.type)}
-                  onDelete={() => handleLocationRemove(location.id)}
-                  size="medium"
-                  sx={{ 
-                    fontWeight: 'medium',
-                    ...(state.highlightedForDeletion === location.id && {
-                      backgroundColor: theme.palette.error.light,
-                      color: theme.palette.error.contrastText,
-                      '& .MuiChip-icon': {
-                        color: theme.palette.error.contrastText,
-                      },
-                      '& .MuiChip-deleteIcon': {
-                        color: theme.palette.error.contrastText,
-                        '&:hover': {
-                          color: theme.palette.error.dark,
-                        }
-                      },
-                      animation: 'pulse 1s infinite',
-                      '@keyframes pulse': {
-                        '0%': { opacity: 1 },
-                        '50%': { opacity: 0.7 },
-                        '100%': { opacity: 1 },
-                      }
-                    })
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
+            <LocationChips
+              selectedLocations={state.selectedLocations}
+              highlightedForDeletion={state.highlightedForDeletion}
+              onLocationRemove={handleLocationRemove}
+            />
 
-        {/* Search Bar with Button */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, alignItems: 'flex-start' }}>
-          <TextField
-            inputRef={inputRef}
-            fullWidth
-            placeholder="Search for provinces or districts"
-            value={state.searchQuery}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-            variant="outlined"
-            size="medium"
-            disabled={state.isLoading}
-            sx={{ 
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              }
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <MagnifyingGlassIcon size={20} color={theme.palette.text.secondary} />
-                  </InputAdornment>
-                ),
-              }
-            }}
-            helperText={
-              <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <span>Press Enter to select. {getCommandKey()}+/ for help.</span>
-                {state.selectedLocations.length > 0 && (
-                  <span style={{ color: theme.palette.primary.main }}>
-                    {state.selectedLocations.length} location{state.selectedLocations.length > 1 ? 's' : ''} selected
-                    {state.highlightedForDeletion && (
-                      <span style={{ color: theme.palette.error.main, marginLeft: '8px' }}>
-                        (Press Backspace again to delete)
-                      </span>
-                    )}
-                  </span>
-                )}
-              </Box>
-            }
-          />
-
-          {/* View Migration Trends Button */}
-          {state.selectedLocations.length > 0 && (
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleExecuteQuery}
-              disabled={state.isLoading}
-              sx={{
-                px: 3,
-                py: 1.75,
-                fontSize: '14px',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                textTransform: 'none',
-                boxShadow: 2,
-                minWidth: '240px',
-                height: '56px', // Match TextField height
-                '&:hover': {
-                  boxShadow: 4,
-                  transform: 'translateY(-1px)',
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              View Migration Trends
-            </Button>
-          )}
-        </Box>
+            <SearchBar
+              inputRef={inputRef}
+              searchQuery={state.searchQuery}
+              selectedLocations={state.selectedLocations}
+              highlightedForDeletion={state.highlightedForDeletion}
+              isLoading={state.isLoading}
+              onSearchChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              onExecuteQuery={handleExecuteQuery}
+            />
           </>
         )}
 
-        {/* Loading State */}
-        {state.queryExecutionState === 'loading' && (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            py: 8,
-            minHeight: '40vh'
-          }}>
-            <CircularProgress size={60} sx={{ mb: 3 }} />
-            <Typography variant="h6" color="text.primary" sx={{ mb: 1 }}>
-              Executing Query
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Processing {state.selectedLocations.length} location{state.selectedLocations.length > 1 ? 's' : ''}...
-            </Typography>
-          </Box>
+        {/* Loading State - Show when initially loading OR when migration data is loading (e.g., period change) */}
+        {(state.queryExecutionState === 'loading' || migrationData.isLoading) && (
+          <LoadingState selectedLocations={state.selectedLocations} />
         )}
 
-        {/* Success State with Results */}
-        {state.queryExecutionState === 'success' && (
+        {/* Success State with Results - Show when successful AND not loading migration data */}
+        {state.queryExecutionState === 'success' && !migrationData.isLoading && (
           <MigrationResultsTable
             selectedLocations={state.selectedLocations}
             selectedPeriod={state.selectedPeriod}
             onNewSearch={handleReset}
-            onPeriodChange={debouncedPeriodChange}
+            onPeriodChange={handlePeriodChange}
             mapNodes={migrationData.mapNodes}
             mapConnections={migrationData.mapConnections}
             apiResponse={migrationData.apiResponse}
-            loading={migrationData.loading}
+            loading={migrationData.isLoading}
             error={migrationData.error}
             onRetry={handleRetryMigrationData}
           />
@@ -776,257 +297,35 @@ export default function PageContent() {
         {/* Search Results - Only show when not in loading or success state */}
         {state.showSearchResults && state.queryExecutionState === 'idle' && (
           <>
-            {/* Results Summary */}
-            {totalFilteredResults > 0 && (
-              <Box sx={{ mb: 2 }}>
-                {state.searchQuery.trim() ? (
-                  <Typography variant="body2" color="text.secondary">
-                    Showing {startIndex + 1}-{Math.min(endIndex, totalFilteredResults)} of {totalFilteredResults} results
-                    {allowedType && (
-                      <span style={{ marginLeft: '8px', color: theme.palette.primary.main }}>
-                        • Filtered to {allowedType}s only
-                      </span>
-                    )}
-                  </Typography>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    {allowedType ? (
-                      `Showing default ${allowedType}s`
-                    ) : (
-                      `Showing top ${totalFilteredResults} major provinces in Thailand`
-                    )}
-                  </Typography>
-                )}
-              </Box>
-            )}
+            <SearchResultsSummary
+              totalResults={searchResults.totalFilteredResults}
+              startIndex={searchResults.startIndex}
+              endIndex={searchResults.endIndex}
+              searchQuery={state.searchQuery}
+              allowedType={searchResults.allowedType}
+            />
 
-            {/* Provinces Section */}
-            {filteredProvinces.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mb: 2, 
-                fontWeight: 'bold', 
-                textTransform: 'uppercase',
-                letterSpacing: 1
-              }}
-            >
-              PROVINCE
-            </Typography>
-            <List disablePadding>
-              {filteredProvinces.map((province, index) => (
-                <React.Fragment key={province.id}>
-                  <ListItem
-                    onClick={canAddMoreLocations(state.selectedLocations.length) ? () => handleLocationSelect(province) : undefined}
-                    sx={{
-                      px: 0,
-                      py: 1.5,
-                      cursor: canAddMoreLocations(state.selectedLocations.length) ? 'pointer' : 'not-allowed',
-                      opacity: canAddMoreLocations(state.selectedLocations.length) ? 1 : 0.5,
-                      backgroundColor: canAddMoreLocations(state.selectedLocations.length) ? 'inherit' : theme.palette.action.disabled,
-                      '&:hover': canAddMoreLocations(state.selectedLocations.length) ? {
-                        backgroundColor: theme.palette.action.hover,
-                        borderRadius: 1
-                      } : {},
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36 }}>
-                      <TrainRegionalIcon size={20} color={theme.palette.text.primary} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body1" fontWeight="medium">
-                          {province.name}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="body2" color="text.secondary">
-                          {province.description}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                  {index < filteredProvinces.length - 1 && (
-                    <Divider sx={{ ml: 4.5 }} />
-                  )}
-                </React.Fragment>
-              ))}
-            </List>
-          </Box>
-        )}
+            <LocationList
+              filteredProvinces={searchResults.filteredProvinces}
+              filteredDistricts={searchResults.filteredDistricts}
+              filteredSubDistricts={searchResults.filteredSubDistricts}
+              selectedLocationsCount={state.selectedLocations.length}
+              onLocationSelect={handleLocationSelect}
+            />
 
-        {/* Districts Section */}
-        {filteredDistricts.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mb: 2, 
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: 1
-              }}
-            >
-              DISTRICT
-            </Typography>
-            <List disablePadding>
-              {filteredDistricts.map((district, index) => (
-                <React.Fragment key={district.id}>
-                  <ListItem
-                    onClick={canAddMoreLocations(state.selectedLocations.length) ? () => handleLocationSelect(district) : undefined}
-                    sx={{
-                      px: 0,
-                      py: 1.5,
-                      cursor: canAddMoreLocations(state.selectedLocations.length) ? 'pointer' : 'not-allowed',
-                      opacity: canAddMoreLocations(state.selectedLocations.length) ? 1 : 0.5,
-                      backgroundColor: canAddMoreLocations(state.selectedLocations.length) ? 'inherit' : theme.palette.action.disabled,
-                      '&:hover': canAddMoreLocations(state.selectedLocations.length) ? {
-                        backgroundColor: theme.palette.action.hover,
-                        borderRadius: 1
-                      } : {},
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36 }}>
-                      <MapPinAreaIcon size={20} color={theme.palette.text.primary} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body1" fontWeight="medium">
-                          {district.name}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="body2" color="text.secondary">
-                          {district.description}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                  {index < filteredDistricts.length - 1 && (
-                    <Divider sx={{ ml: 4.5 }} />
-                  )}
-                </React.Fragment>
-              ))}
-            </List>
-          </Box>
-        )}
+            <NoResultsState searchQuery={state.searchQuery} />
 
-        {/* Sub Districts Section */}
-        {filteredSubDistricts.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mb: 2, 
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: 1
-              }}
-            >
-              SUB DISTRICT
-            </Typography>
-            <List disablePadding>
-              {filteredSubDistricts.map((subDistrict, index) => (
-                <React.Fragment key={subDistrict.id}>
-                  <ListItem
-                    onClick={canAddMoreLocations(state.selectedLocations.length) ? () => handleLocationSelect(subDistrict) : undefined}
-                    sx={{
-                      px: 0,
-                      py: 1.5,
-                      cursor: canAddMoreLocations(state.selectedLocations.length) ? 'pointer' : 'not-allowed',
-                      opacity: canAddMoreLocations(state.selectedLocations.length) ? 1 : 0.5,
-                      backgroundColor: canAddMoreLocations(state.selectedLocations.length) ? 'inherit' : theme.palette.action.disabled,
-                      '&:hover': canAddMoreLocations(state.selectedLocations.length) ? {
-                        backgroundColor: theme.palette.action.hover,
-                        borderRadius: 1
-                      } : {},
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36 }}>
-                      <MapPinSimpleIcon size={20} color={theme.palette.text.primary} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body1" fontWeight="medium">
-                          {subDistrict.name}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="body2" color="text.secondary">
-                          {subDistrict.description}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                  {index < filteredSubDistricts.length - 1 && (
-                    <Divider sx={{ ml: 4.5 }} />
-                  )}
-                </React.Fragment>
-              ))}
-            </List>
-          </Box>
-        )}
-
-            {/* No Results State */}
-            {state.searchQuery.trim() && totalFilteredResults === 0 && (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="body1" color="text.secondary">
-                  No locations found matching &ldquo;{state.searchQuery}&rdquo;
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  Try searching with different keywords
-                </Typography>
-              </Box>
-            )}
-
-            {/* Footer Pagination */}
-            {totalFilteredResults > 0 && totalPages > 1 && (
-              <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Stack spacing={3} alignItems="center">
-                  <Pagination
-                    count={totalPages}
-                    page={currentPage}
-                    onChange={handlePageChange}
-                    color="primary"
-                    size="medium"
-                    showFirstButton
-                    showLastButton
-                    siblingCount={1}
-                    boundaryCount={1}
-                  />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {totalFilteredResults} total results
-                    </Typography>
-                    
-                    <FormControl size="small" sx={{ minWidth: 100 }}>
-                      <InputLabel>Per page</InputLabel>
-                      <Select
-                        value={pageSize}
-                        onChange={handlePageSizeChange}
-                        label="Per page"
-                        sx={{ fontSize: '0.875rem' }}
-                      >
-                        <MenuItem value={5}>5</MenuItem>
-                        <MenuItem value={10}>10</MenuItem>
-                        <MenuItem value={20}>20</MenuItem>
-                        <MenuItem value={50}>50</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Stack>
-              </Box>
-            )}
+            <SearchPagination
+              totalResults={searchResults.totalFilteredResults}
+              currentPage={searchResults.searchPagination.currentPage}
+              pageSize={searchResults.searchPagination.pageSize}
+              onPageChange={searchResults.handlePageChange}
+              onPageSizeChange={searchResults.handlePageSizeChange}
+            />
           </>
         )}
       </Paper>
 
-      {/* Shortcuts Modal */}
       <ShortcutsModal open={state.showShortcutsModal} onClose={handleCloseShortcutsModal} />
     </Box>
   );

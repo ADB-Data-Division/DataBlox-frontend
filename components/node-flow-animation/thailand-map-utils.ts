@@ -303,12 +303,4 @@ export function analyzeThailandMap(): void {
     console.log(`${region}: ${count} hexagons`);
   });
   console.log(`Total: ${hexagons.length} hexagons`);
-}
-
-// Development helper - call this to see current map layout
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  // Uncomment these lines when you want to analyze the current map:
-  console.log(generateThailandMapAscii());
-  printThailandCoordinates();
-  analyzeThailandMap();
-} 
+}   

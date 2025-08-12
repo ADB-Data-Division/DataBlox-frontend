@@ -27,7 +27,7 @@ interface MigrationResultsTableProps {
   selectedLocations: Location[];
   selectedPeriod: string;
   onNewSearch: () => void;
-  onPeriodChange: (period: string) => void;
+  onPeriodChange: (period: string, startDate: string, endDate: string) => void;
   // Migration data passed from parent
   mapNodes: MapNode[];
   mapConnections: MapConnection[];

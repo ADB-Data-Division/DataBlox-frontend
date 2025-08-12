@@ -1,11 +1,9 @@
 "use client"
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Box, Slider, Typography, Button, Snackbar, Alert } from '@mui/material';
-import { ContentCopy, Share } from '@mui/icons-material';
+import { Box, Typography, Button } from '@mui/material';
 import { 
-  generateThailandHexagonsFromCoordinates, 
-  REGION_COLORS} from './thailand-map-data';
+  generateThailandHexagonsFromCoordinates} from './thailand-map-data';
 import { 
   generateNodesFromAdministrativeUnits} from './thailand-map-utils';
 import { 
@@ -14,12 +12,12 @@ import {
 } from '@/app/services/data-loader/thailand-administrative-data';
 import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
-import CitationFooter from '../citation-footer/citation-footer';
+import { MigrationAnalysisPeriod } from '@/components/migration-analysis-period';
 
-// Default transform constants
-const DEFAULT_TRANSFORM_SCALE = 2;
-const DEFAULT_TRANSFORM_X = 175.8644263369394;
-const DEFAULT_TRANSFORM_Y = 147.29254719698156;
+// // Default transform constants
+// const DEFAULT_TRANSFORM_SCALE = 2;
+// const DEFAULT_TRANSFORM_X = 175.8644263369394;
+// const DEFAULT_TRANSFORM_Y = 147.29254719698156;
 
 interface Node {
   id: string;
@@ -52,9 +50,8 @@ interface NodesVisualizationProps {
   nodes?: Node[];
   connections?: Connection[];
   curved?: boolean;
-  onMonthRangeChange?: (monthRange: MonthRange) => void;
   selectedPeriod?: string;
-  onPeriodChange?: (period: string) => void;
+  onPeriodChange?: (period: string, startDate: string, endDate: string) => void;
   apiResponse?: MigrationResponse | null; // Add apiResponse prop for table data
 }
 
@@ -88,7 +85,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   nodes,
   connections,
   curved = false,
-  onMonthRangeChange,
   selectedPeriod,
   onPeriodChange,
   apiResponse
@@ -107,66 +103,15 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   // State for node click interaction
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // State for zoom level to dynamically size nodes (for initial render only)
-  const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(DEFAULT_TRANSFORM_SCALE);
-
-  // State to track current transform (to make it persistent)
-  const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
-
   // Ref to avoid dependency issues in useEffect
   const selectedNodeIdRef = useRef<string | null>(null);
-  
-  // Ref to track if initial transform has been applied
-  const initialTransformApplied = useRef<boolean>(false);
   
   // Update ref when selectedNodeId changes
   useEffect(() => {
     selectedNodeIdRef.current = selectedNodeId;
   }, [selectedNodeId]);
 
-  // Helper function to map period ID to month index
-  // Since visualization starts from Jan 2021 (index 0 = Jan 2021)
-  const mapPeriodToMonthIndex = (periodId: string): number => {
-    switch (periodId) {
-      case '2020-q1': return 0; // Jan 2021 (closest available)
-      case '2020-q2': return 3; // Apr 2021  
-      case '2020-q3': return 6; // Jul 2021
-      case '2020-q4': return 9; // Oct 2021
-      case '2020-all': return 0; // Default to first month for "All"
-      default: return 0;
-    }
-  };
 
-  // Helper function to map month index to period ID
-  const mapMonthIndexToPeriod = (monthIndex: number): string => {
-    if (monthIndex >= 0 && monthIndex <= 2) return '2020-q1';
-    if (monthIndex >= 3 && monthIndex <= 5) return '2020-q2';
-    if (monthIndex >= 6 && monthIndex <= 8) return '2020-q3';
-    if (monthIndex >= 9 && monthIndex <= 11) return '2020-q4';
-    return '2020-all';
-  };
-
-  // Month slider state (single month selection)
-  // Initialize from selectedPeriod prop if provided
-  const [selectedMonth, setSelectedMonth] = useState<number>(() => {
-    return selectedPeriod ? mapPeriodToMonthIndex(selectedPeriod) : 0;
-  });
-  
-  // Debounced month state for period changes
-  const [debouncedMonth, setDebouncedMonth] = useState<number>(selectedMonth);
-  
-  // Track if this is the initial render to avoid unnecessary callback calls
-  const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
-  
-  // Track the last period that was sent to the callback to prevent unnecessary calls
-  const [lastCallbackPeriod, setLastCallbackPeriod] = useState<string | null>(() => {
-    return selectedPeriod || null;
-  });
-  
-  // Citation and sharing state
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   // Load administrative data on component mount
   useEffect(() => {
@@ -187,75 +132,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     loadData();
   }, []);
 
-  // Generate monthly labels (spanning 24 months for flexibility)
-  const generateMonthlyLabels = (): string[] => {
-    const labels: string[] = [];
-    const startDate = new Date(2021, 0, 1); // Start from Jan 2021
-    
-    for (let i = 0; i < 24; i++) {
-      const currentDate = new Date(startDate);
-      currentDate.setMonth(startDate.getMonth() + i);
-      
-      const monthName = currentDate.toLocaleDateString('en-US', { month: 'short' });
-      const year = currentDate.getFullYear();
-      labels.push(`${monthName} ${year}`);
-    }
-    
-    return labels;
-  };
-
-  const monthlyLabels = generateMonthlyLabels();
-
-  // Debounce effect: Update debouncedMonth after 1 second delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedMonth(selectedMonth);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [selectedMonth]);
-
-  // Sync selectedMonth when selectedPeriod prop changes
-  useEffect(() => {
-    if (selectedPeriod) {
-      const monthIndex = mapPeriodToMonthIndex(selectedPeriod);
-      setSelectedMonth(monthIndex);
-      setDebouncedMonth(monthIndex); // Also update debounced state immediately for external changes
-      setLastCallbackPeriod(selectedPeriod); // Track the external period change
-    }
-  }, [selectedPeriod]);
-
-  // Effect to mark end of initial render
-  useEffect(() => {
-    setIsInitialRender(false);
-  }, []);
-
-  // Handle debounced month changes - call callbacks only when period has actually changed
-  useEffect(() => {
-    if (isInitialRender) return;
-    
-    const periodId = mapMonthIndexToPeriod(debouncedMonth);
-    
-    // Only call onPeriodChange if the period has actually changed
-    if (onPeriodChange && periodId !== lastCallbackPeriod) {
-      onPeriodChange(periodId);
-      setLastCallbackPeriod(periodId);
-    }
-    
-    if (onMonthRangeChange) {
-      onMonthRangeChange({
-        start: debouncedMonth,
-        end: debouncedMonth // Single month, so start and end are the same
-      });
-    }
-  }, [debouncedMonth, onPeriodChange, onMonthRangeChange, isInitialRender, lastCallbackPeriod]);
-
-  // Handle month change - only update visual state, callbacks handled by debounced effect
-  const handleMonthChange = (event: Event, newValue: number | number[]) => {
-    const month = newValue as number;
-    setSelectedMonth(month);
-    // Callbacks are now handled by the debounced effect above
-  };
 
 
   // Use container size if no width/height provided
@@ -313,19 +189,17 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       return node; // Keep original if no default position found
     });
   }, [nodes, defaultNodes]);
-  const activeConnections = connections || [];
+  
+  
 
-  // Helper function to determine if an edge should be visible based on selected node
-  const isEdgeVisible = (connection: Connection, selectedNodeId: string | null): boolean => {
-    if (!selectedNodeId) return true; // Show all edges when no node is selected
-    return connection.fromNodeId === selectedNodeId || connection.toNodeId === selectedNodeId;
-  };
 
   // Function to calculate dynamic node size based on zoom level
-  const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel: number): number => {
+  const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel?: number): number => {
+    // Use current zoom level if not provided
+    const currentZoom = zoomLevel ?? 2;
     // As zoom increases, make nodes smaller to prevent them from covering edges
     // Use more aggressive inverse relationship with a minimum size limit
-    const scaleFactor = Math.max(0.2, 1 / zoomLevel); // Minimum 20% of original size, more aggressive scaling
+    const scaleFactor = Math.max(0.2, 1 / currentZoom); // Minimum 20% of original size, more aggressive scaling
     return baseSize * scaleFactor;
   }, []);
 
@@ -367,6 +241,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     d3.select(svgRef.current).selectAll("*").remove();
 
     const svg = d3.select(svgRef.current);
+    const activeConnections = connections || [];
 
     // Create main container group for zoom functionality
     const mainContainer = svg.append('g')
@@ -374,19 +249,18 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
-      .translateExtent([[-500, -200], [width, height + 100]]) // Pan boundaries (with padding)
+      .scaleExtent([2, 4.25]) // Allow zoom from 70% to 1000% (prevents map from being too small)
+      .translateExtent([[0, -80], [500, 500]]) // Pan boundaries (with padding)
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
-        
-        // Save current transform to state (for persistence)
-        setCurrentTransform(event.transform);
-        
-        // Update node sizes directly without React state updates
         const zoomLevel = event.transform.k;
         
-        // Update node sizes based on zoom level with more aggressive scaling
+        // Create consistent scaling functions available in this scope
+        const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
+        const getDynamicSize = (baseSize: number) => baseSize * getScaleFactor(0.2);
+        
+        // Update node sizes based on zoom level using consistent scaling
         d3.selectAll('.node').attr('r', function() {
           const element = this as Element;
           const parentElement = element.parentNode as SVGGElement;
@@ -395,33 +269,32 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           const nodeId = nodeGroup.attr('data-node-id');
           const node = activeNodes.find(n => n.id === nodeId);
           if (!node) return 20; // fallback size
-          const scaleFactor = Math.max(0.2, 1 / zoomLevel); // More aggressive scaling, minimum 20%
-          return (node.size * 2) * scaleFactor;
+          return getDynamicSize(node.size * 2);
         });
 
-        // Update text size to scale more aggressively with zoom
+        // Update text size using consistent scaling
         d3.selectAll('.node-title').style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.4, 1 / zoomLevel); // More aggressive scaling, minimum 40%
+          const scaleFactor = getScaleFactor(0.4); // Minimum 40% scale
           return `${baseFontSize * scaleFactor}px`;
         });
 
-        // Update border thickness based on zoom level
+        // Update border thickness using consistent scaling
         d3.selectAll('.node').style('stroke-width', function() {
           const baseStrokeWidth = 3;
-          const scaleFactor = Math.max(0.3, 1 / zoomLevel); // Scale border thickness, minimum 30%
+          const scaleFactor = getScaleFactor(0.3); // Minimum 30% scale
           return `${baseStrokeWidth * scaleFactor}px`;
         });
 
-        // Update arrow line thickness based on zoom level
+        // Update arrow line thickness using consistent scaling
         d3.selectAll('.flowline-to, .flowline-from').style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = Math.max(0.3, 1 / zoomLevel); // Scale line thickness, minimum 30%
+          const scaleFactor = getScaleFactor(0.3); // Minimum 30% scale
           return `${baseStrokeWidth * scaleFactor}px`;
         });
 
-        // Update arrow marker sizes based on zoom level
-        const arrowScaleFactor = Math.max(0.3, 1 / zoomLevel);
+        // Update arrow marker sizes using consistent scaling
+        const arrowScaleFactor = getScaleFactor(0.3);
         d3.selectAll('#arrow-to, #arrow-from')
           .attr('markerWidth', 4 * arrowScaleFactor)
           .attr('markerHeight', 4 * arrowScaleFactor);
@@ -430,17 +303,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    // Map dimensions and centering (already calculated above for node generation)
-    
-    // Set initial zoom to use the specified default transform (only once)
-    if (!initialTransformApplied.current) {
-      const initialTransform = d3.zoomIdentity
-        .translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y)
-        .scale(DEFAULT_TRANSFORM_SCALE);
-
-      svg.call(zoom.transform, initialTransform);
-      initialTransformApplied.current = true;
-    }
+    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(0, 0));
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -459,8 +322,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       return `M${points.join('L')}Z`;
     };
     
-    // Define Thailand regions with colors
-    const regionColors = REGION_COLORS;
 
     // Generate ALL hexagons in the full grid for alignment purposes
     const allHexagons: Array<{row: number, col: number, x: number, y: number}> = [];
@@ -505,10 +366,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       })
       .attr('stroke-width', 1)
       .attr('opacity', 0.8);
-
-
-
-
 
     // Define arrow markers for direction indicators
     const defs = svg.append('defs');
@@ -626,7 +483,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         // Node circle
         nodeGroup.append('circle')
           .attr('class', 'node')
-          .attr('r', getDynamicNodeSize(node.size * 2, currentZoomLevel));
+          .attr('r', getDynamicNodeSize(node.size * 2, 2));
 
         // Node title
         nodeGroup.append('text')
@@ -651,7 +508,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 .style('stroke', '#6b7280')
                 .style('stroke-width', function() {
                   const baseStrokeWidth = 3;
-                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  const scaleFactor = Math.max(0.3, 1 / 2);
                   return `${baseStrokeWidth * scaleFactor}px`;
                 });
             } else {
@@ -664,7 +521,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 .style('stroke', '#6b7280')
                 .style('stroke-width', function() {
                   const baseStrokeWidth = 3;
-                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  const scaleFactor = Math.max(0.3, 1 / 2);
                   return `${baseStrokeWidth * scaleFactor}px`;
                 });
               
@@ -674,7 +531,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 .style('stroke', '#2563eb')
                 .style('stroke-width', function() {
                   const baseStrokeWidth = 3; // Same thickness as unselected nodes
-                  const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                  const scaleFactor = Math.max(0.3, 1 / 2);
                   return `${baseStrokeWidth * scaleFactor}px`;
                 });
             }
@@ -687,7 +544,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('stroke', '#6b7280')
         .style('stroke-width', function() {
           const baseStrokeWidth = 3;
-          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale border thickness, minimum 30%
+          const scaleFactor = Math.max(0.3, 1 / 2); // Scale border thickness, minimum 30%
           return `${baseStrokeWidth * scaleFactor}px`;
         });
 
@@ -695,7 +552,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-family', 'Arial, sans-serif')
         .style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.4, 1 / currentZoomLevel); // More aggressive scaling, minimum 40%
+          const scaleFactor = Math.max(0.4, 1 / 2); // More aggressive scaling, minimum 40%
           return `${baseFontSize * scaleFactor}px`;
         })
         .style('font-weight', 'bold')
@@ -709,7 +566,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale line thickness, minimum 30%
+          const scaleFactor = Math.max(0.3, 1 / 2); // Scale line thickness, minimum 30%
           return `${baseStrokeWidth * scaleFactor}px`;
         })
         .style('stroke-dasharray', '8, 4');
@@ -721,7 +578,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = Math.max(0.3, 1 / currentZoomLevel); // Scale line thickness, minimum 30%
+          const scaleFactor = Math.max(0.3, 1 / 2); // Scale line thickness, minimum 30%
           return `${baseStrokeWidth * scaleFactor}px`;
         })
         .style('stroke-dasharray', '8, 4');
@@ -838,8 +695,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height, activeNodes, activeConnections, curved, getDynamicNodeSize]);
+  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections]);
 
   // Separate useEffect for handling node selection changes (without resetting the visualization)
   useEffect(() => {
@@ -935,74 +791,16 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               overflowY: 'unset'
             }}
           >
-            {/* Month Slider - inside table container */}
-            <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
-              <h3 style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                marginBottom: '16px',
-                color: '#374151'
-              }}>
-                Migration Analysis Period
-              </h3>
-              
-              <p style={{ 
-                color: '#6b7280', 
-                marginBottom: '16px',
-                fontSize: '14px'
-              }}>
-                Select the month for migration data analysis
-              </p>
-              
-              <Slider
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                valueLabelDisplay="auto"
-                valueLabelFormat={(value) => monthlyLabels[value]}
-                min={0}
-                max={monthlyLabels.length - 1}
-                step={1}
-                marks={monthlyLabels.map((label, index) => ({
-                  value: index,
-                  label: index % 3 === 0 ? label : '' // Show every 3rd label to avoid crowding
-                }))}
-                sx={{
-                  '& .MuiSlider-thumb': {
-                    backgroundColor: '#2563eb',
-                  },
-                  '& .MuiSlider-track': {
-                    backgroundColor: '#2563eb',
-                  },
-                  '& .MuiSlider-rail': {
-                    backgroundColor: '#e2e8f0',
-                  },
-                  '& .MuiSlider-mark': {
-                    backgroundColor: '#94a3b8',
-                  },
-                  '& .MuiSlider-markLabel': {
-                    fontSize: '11px',
-                    color: '#64748b',
-                    transform: 'rotate(-45deg)',
-                    transformOrigin: 'top left',
-                    whiteSpace: 'nowrap',
-                    marginTop: '8px'
-                  },
-                  '& .MuiSlider-valueLabel': {
-                    fontSize: '12px',
-                    backgroundColor: '#1f2937',
-                  }
-                }}
-              />
-              
-              <p style={{ 
-                color: '#374151', 
-                marginTop: '16px',
-                fontWeight: '500',
-                fontSize: '14px'
-              }}>
-                Selected Month: {monthlyLabels[selectedMonth]}
-              </p>
-            </div>
+            {/* Migration Analysis Period Component */}
+            <MigrationAnalysisPeriod
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={(periodId, startDate, endDate) => {
+                console.log('Period changed:', { periodId, startDate, endDate });
+                if (onPeriodChange) {
+                  onPeriodChange(periodId, startDate, endDate);
+                }
+              }}
+            />
 
             {/* Migration Flow Data - Visual Diagrams */}
             {apiResponse && apiResponse.flows && (
@@ -1073,7 +871,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                               .style('stroke', '#6b7280')
                               .style('stroke-width', function() {
                                 const baseStrokeWidth = 3;
-                                const scaleFactor = Math.max(0.3, 1 / currentZoomLevel);
+                                const scaleFactor = Math.max(0.3, 1 / 2);
                                 return `${baseStrokeWidth * scaleFactor}px`;
                               });
                           }}
@@ -1193,7 +991,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         ...selfLoops
                       ];
 
-                      return allFlows.map((flowData, index) => (
+                      return allFlows.map((flowData) => (
                         <div 
                           key={flowData.key}
                           style={{
