@@ -25,6 +25,21 @@ export class MigrationAPIService {
         };
       }
 
+      // If no dates provided, get default date range from metadata
+      let effectiveStartDate = startDate;
+      let effectiveEndDate = endDate;
+      
+      if (!startDate || !endDate) {
+        const defaultRange = await metadataService.getDefaultDateRange();
+        effectiveStartDate = effectiveStartDate || defaultRange.startDate;
+        effectiveEndDate = effectiveEndDate || defaultRange.endDate;
+        
+        console.log('Using default date range from metadata:', {
+          startDate: effectiveStartDate,
+          endDate: effectiveEndDate
+        });
+      }
+
       // Group locations by type to determine the appropriate scale
       const provinces = locations.filter(loc => loc.type === 'province');
       const districts = locations.filter(loc => loc.type === 'district');
@@ -47,8 +62,8 @@ export class MigrationAPIService {
 
       const queryOptions: MigrationQueryOptions = {
         scale,
-        startDate,
-        endDate,
+        startDate: effectiveStartDate,
+        endDate: effectiveEndDate,
         locationIds,
         aggregation: 'monthly',
         includeFlows: true
@@ -64,7 +79,11 @@ export class MigrationAPIService {
           timestamp: new Date().toISOString(),
           results: `Migration data retrieved for ${locations.length} location${locations.length > 1 ? 's' : ''}`,
           apiResponse: response,
-          summary: migrationService.calculateSummaryStats(response.data)
+          summary: migrationService.calculateSummaryStats(response.data),
+          effectiveDateRange: {
+            startDate: effectiveStartDate,
+            endDate: effectiveEndDate
+          }
         }
       };
     } catch (error) {

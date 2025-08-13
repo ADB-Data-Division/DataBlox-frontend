@@ -23,7 +23,7 @@ const asap = Asap({
   variable: '--font-asap'
 });
 
-const NAVIGATION: Navigation = [
+export const NAVIGATION: Navigation = [
   {
     kind: 'header',
     title: 'Visualizations',
@@ -32,6 +32,11 @@ const NAVIGATION: Navigation = [
     segment: '',
     title: 'Overview',
     icon: <ChartScatterIcon />,
+  },
+  {
+    segment: 'migration-analysis',
+    title: 'Migration Analysis',
+    icon: <ChartBarIcon />,
   },
   // {
   //   segment: 'map',

@@ -172,6 +172,50 @@ export class MetadataService {
     return this.cachedMetadata !== null && 
            (Date.now() - this.cacheTimestamp) < this.cacheExpiry;
   }
+
+  /**
+   * Get default date range for migration analysis based on available data
+   * Returns the last year of available data, or the full available range if less than a year
+   */
+  async getDefaultDateRange(forceRefresh: boolean = false): Promise<{ startDate: string; endDate: string }> {
+    const timePeriods = await this.getTimePeriods(forceRefresh);
+    
+    if (!timePeriods.available_periods || timePeriods.available_periods.length === 0) {
+      // Fallback to time_periods range if no individual periods available
+      return {
+        startDate: timePeriods.start_date,
+        endDate: timePeriods.end_date
+      };
+    }
+
+    // Sort periods by start date to get chronological order
+    const sortedPeriods = [...timePeriods.available_periods].sort((a, b) => 
+      new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+    );
+
+    const latestPeriod = sortedPeriods[sortedPeriods.length - 1];
+    const latestEndDate = new Date(latestPeriod.end_date);
+    
+    // Calculate one year before the latest end date
+    const oneYearBefore = new Date(latestEndDate);
+    oneYearBefore.setFullYear(oneYearBefore.getFullYear() - 1);
+    
+    // Find the period that starts closest to one year before, but not earlier
+    let startPeriod = sortedPeriods[0]; // fallback to earliest if no suitable period found
+    
+    for (const period of sortedPeriods) {
+      const periodStart = new Date(period.start_date);
+      if (periodStart >= oneYearBefore) {
+        startPeriod = period;
+        break;
+      }
+    }
+    
+    return {
+      startDate: startPeriod.start_date,
+      endDate: latestPeriod.end_date
+    };
+  }
 }
 
 // Export a default instance

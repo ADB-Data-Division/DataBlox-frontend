@@ -13,16 +13,23 @@ interface LocationChipsProps {
   selectedLocations: Location[];
   highlightedForDeletion: number | null;
   onLocationRemove: (locationId: number) => void;
+  maxLocations?: number; // Optional custom max locations limit
 }
 
 export function LocationChips({ 
   selectedLocations, 
   highlightedForDeletion, 
-  onLocationRemove 
+  onLocationRemove,
+  maxLocations 
 }: LocationChipsProps) {
   const theme = useTheme();
 
   if (selectedLocations.length === 0) return null;
+
+  // Use custom maxLocations or default to LOCATION_CONSTRAINTS
+  const effectiveMaxLocations = maxLocations || LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
+  const remainingSlots = Math.max(0, effectiveMaxLocations - selectedLocations.length);
+  const shouldWarn = selectedLocations.length >= effectiveMaxLocations - 3; // Warn when 3 or fewer slots remain
 
   const getLocationIcon = (type: Location['type']) => {
     switch (type) {
@@ -40,15 +47,15 @@ export function LocationChips({
         </Typography>
         <Typography 
           variant="caption" 
-          color={shouldShowWarning(selectedLocations.length) ? "warning.main" : "text.secondary"}
+          color={shouldWarn ? "warning.main" : "text.secondary"}
           sx={{ fontWeight: 'medium' }}
         >
-          {getRemainingSlots(selectedLocations.length)} remaining
+          {remainingSlots} remaining
         </Typography>
       </Box>
-      {shouldShowWarning(selectedLocations.length) && (
+      {shouldWarn && (
         <Typography variant="caption" color="warning.main" sx={{ display: 'block', mb: 1 }}>
-          ⚠️ Approaching limit of {LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations
+          ⚠️ Approaching limit of {effectiveMaxLocations} locations
         </Typography>
       )}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>

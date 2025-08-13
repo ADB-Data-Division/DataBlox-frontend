@@ -245,7 +245,7 @@ export default function PageContent() {
 
   return (
     <Box sx={containerStyles}>
-      <Header />
+      <Header subscript="migration flow" />
 
       <Paper 
         elevation={0} 
@@ -313,7 +313,10 @@ export default function PageContent() {
               onLocationSelect={handleLocationSelect}
             />
 
-            <NoResultsState searchQuery={state.searchQuery} />
+            <NoResultsState 
+              searchQuery={state.searchQuery} 
+              totalResults={searchResults.totalFilteredResults}
+            />
 
             <SearchPagination
               totalResults={searchResults.totalFilteredResults}
