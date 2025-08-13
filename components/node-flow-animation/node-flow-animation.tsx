@@ -589,10 +589,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
       // Individual animation function for each "to" path
       function animateToPath(pathElement: any) {
-        const flowRate = parseFloat(d3.select(pathElement).attr('data-flow-rate'));
+        const absoluteFlow = parseFloat(d3.select(pathElement).attr('data-absolute-flow'));
         
-        // Calculate speed based on flow rate (higher rate = faster animation)
-        const pixelsPerSecond = BASE_SPEED * (flowRate / 10); // Normalize to reasonable speed
+        // Calculate speed based on absolute flow value (higher flow = faster animation)
+        // Use square root scaling for more dramatic visual differences
+        const normalizedFlow = Math.sqrt(absoluteFlow / 100); // Normalize and apply square root
+        const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
+        const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
         // Calculate duration to move exactly one dash pattern cycle
         const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
@@ -616,10 +619,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
       // Individual animation function for each "from" path  
       function animateFromPath(pathElement: any) {
-        const flowRate = parseFloat(d3.select(pathElement).attr('data-flow-rate'));
+        const absoluteFlow = parseFloat(d3.select(pathElement).attr('data-absolute-flow'));
         
-        // Calculate speed based on flow rate (higher rate = faster animation)
-        const pixelsPerSecond = BASE_SPEED * (flowRate / 10); // Normalize to reasonable speed
+        // Calculate speed based on absolute flow value (higher flow = faster animation)
+        // Use square root scaling for more dramatic visual differences
+        const normalizedFlow = Math.sqrt(absoluteFlow / 100); // Normalize and apply square root
+        const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
+        const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
         // Calculate duration to move exactly one dash pattern cycle
         const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
