@@ -166,6 +166,7 @@ export default function PageContent() {
     };
     
     loadFromUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam]); // Only depend on getLocationsParam to avoid loops, other dependencies are stable within the effect
 
   const handleCloseShortcutsModal = useCallback(() => {
@@ -245,7 +246,7 @@ export default function PageContent() {
 
   return (
     <Box sx={containerStyles}>
-      <Header subscript="migration flow" />
+      <Header />
 
       <Paper 
         elevation={0} 
@@ -266,6 +267,7 @@ export default function PageContent() {
               selectedLocations={state.selectedLocations}
               highlightedForDeletion={state.highlightedForDeletion}
               isLoading={state.isLoading}
+              allowedType={searchResults.allowedType}
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}

@@ -39,11 +39,31 @@ export function LocationChips({
     }
   };
 
+  const getLocationTypeLabel = (locations: Location[]) => {
+    if (locations.length === 0) return 'location';
+    
+    // Get unique location types
+    const types = [...new Set(locations.map(loc => loc.type))];
+    
+    // If all locations are the same type, use that type's label
+    if (types.length === 1) {
+      const type = types[0];
+      switch (type) {
+        case 'province': return `province${locations.length > 1 ? 's' : ''}`;
+        case 'district': return `district${locations.length > 1 ? 's' : ''}`;
+        case 'subDistrict': return `sub-district${locations.length > 1 ? 's' : ''}`;
+      }
+    }
+    
+    // If mixed types, use generic "location" with plural if needed
+    return `location${locations.length > 1 ? 's' : ''}`;
+  };
+
   return (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'medium' }}>
-          Selected state{selectedLocations.length > 1 ? 's' : ''} ({selectedLocations.length})
+          Selected {getLocationTypeLabel(selectedLocations)} ({selectedLocations.length})
         </Typography>
         <Typography 
           variant="caption" 

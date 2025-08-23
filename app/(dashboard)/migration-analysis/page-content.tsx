@@ -825,7 +825,7 @@ export default function MigrationAnalysisPageContent() {
 
   return (
     <Box sx={containerStyles}>
-      <Header subscript="trend over time" />
+      <Header />
 
       <Paper elevation={0} sx={paperStyles}>
         {/* Location Search Interface */}
@@ -844,6 +844,7 @@ export default function MigrationAnalysisPageContent() {
               selectedLocations={selectedLocations}
               highlightedForDeletion={highlightedForDeletion}
               isLoading={false}
+              allowedType={searchResults.allowedType}
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}

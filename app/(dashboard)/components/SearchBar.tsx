@@ -18,6 +18,7 @@ interface SearchBarProps {
   selectedLocations: Location[];
   highlightedForDeletion: number | null;
   isLoading: boolean;
+  allowedType?: string | null;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
   onExecuteQuery: () => void;
@@ -29,18 +30,51 @@ export function SearchBar({
   selectedLocations,
   highlightedForDeletion,
   isLoading,
+  allowedType,
   onSearchChange,
   onKeyDown,
   onExecuteQuery
 }: SearchBarProps) {
   const theme = useTheme();
 
+  const getLocationTypeLabel = (locations: Location[]) => {
+    if (locations.length === 0) return 'location';
+    
+    // Get unique location types
+    const types = [...new Set(locations.map(loc => loc.type))];
+    
+    // If all locations are the same type, use that type's label
+    if (types.length === 1) {
+      const type = types[0];
+      switch (type) {
+        case 'province': return `province${locations.length > 1 ? 's' : ''}`;
+        case 'district': return `district${locations.length > 1 ? 's' : ''}`;
+        case 'subDistrict': return `sub-district${locations.length > 1 ? 's' : ''}`;
+      }
+    }
+    
+    // If mixed types, use generic "location" with plural if needed
+    return `location${locations.length > 1 ? 's' : ''}`;
+  };
+
+  const getSearchPlaceholder = () => {
+    if (allowedType) {
+      switch (allowedType) {
+        case 'province': return 'Search for provinces';
+        case 'district': return 'Search for districts';
+        case 'subDistrict': return 'Search for sub-districts';
+        default: return 'Search for locations';
+      }
+    }
+    return 'Search for provinces, districts, or sub-districts';
+  };
+
   return (
     <Box sx={{ display: 'flex', gap: 2, mb: 4, alignItems: 'flex-start' }}>
       <TextField
         inputRef={inputRef}
         fullWidth
-        placeholder="Search for provinces or districts"
+        placeholder={getSearchPlaceholder()}
         value={searchQuery}
         onChange={onSearchChange}
         onKeyDown={onKeyDown}
@@ -66,7 +100,7 @@ export function SearchBar({
             <span>Press Enter to select. {getCommandKey()}+/ for help.</span>
             {selectedLocations.length > 0 && (
               <span style={{ color: theme.palette.primary.main }}>
-                {selectedLocations.length} location{selectedLocations.length > 1 ? 's' : ''} selected
+                {selectedLocations.length} {getLocationTypeLabel(selectedLocations)} selected
                 {highlightedForDeletion && (
                   <span style={{ color: theme.palette.error.main, marginLeft: '8px' }}>
                     (Press Backspace again to delete)
