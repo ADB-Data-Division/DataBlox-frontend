@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Slider, CircularProgress, Typography as MuiTypography } from '@mui/material';
 import { metadataService } from '@/app/services/api';
 import type { TimePeriod } from '@/app/services/api/types';
+import { formatToMonthYear, formatDateRange } from '@/src/utils/date-formatter';
 
 interface MigrationAnalysisPeriodProps {
   selectedPeriod?: string;
@@ -115,19 +116,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   };
 
 
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
+
 
   // Loading state
   if (loading) {
@@ -170,7 +159,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   const periodLabels = timePeriods.map((period, index) => ({
     value: index,
     label: index % Math.max(1, Math.floor(timePeriods.length / 6)) === 0 
-      ? `${formatDate(period.start_date)}` 
+      ? formatToMonthYear(period.start_date)
       : ''
   }));
 
@@ -196,7 +185,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
             fontWeight: '500',
             marginLeft: '8px'
           }}>
-            Current data: {currentPeriod.id} ({formatDate(currentPeriod.start_date)} - {formatDate(currentPeriod.end_date)})
+            Current data: {formatDateRange(currentPeriod.start_date, currentPeriod.end_date)}
           </span>
         )}
       </p>
@@ -207,7 +196,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
         valueLabelDisplay="auto"
         valueLabelFormat={(value) => {
           const period = timePeriods[value];
-          return period ? `${formatDate(period.start_date)} - ${formatDate(period.end_date)}` : '';
+          return period ? formatDateRange(period.start_date, period.end_date) : '';
         }}
         min={0}
         max={timePeriods.length - 1}
@@ -216,15 +205,33 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
         sx={{
           '& .MuiSlider-thumb': {
             backgroundColor: '#2563eb',
+            width: 20,
+            height: 20,
+            '&:hover': {
+              boxShadow: '0 0 0 8px rgba(37, 99, 235, 0.16)',
+            },
           },
           '& .MuiSlider-track': {
-            backgroundColor: '#2563eb',
+            display: 'none', // Hide the blue track line from start to selected position
+          },
+          '& .MuiSlider-track::before': {
+            display: 'none', // Hide any pseudo-elements of the track
+          },
+          '& .MuiSlider-track::after': {
+            display: 'none', // Hide any pseudo-elements of the track
           },
           '& .MuiSlider-rail': {
-            backgroundColor: '#e2e8f0',
+            backgroundColor: '#e2e8f0 !important',
+            opacity: '1 !important',
+            height: 4,
           },
           '& .MuiSlider-mark': {
             backgroundColor: '#94a3b8',
+            height: 8,
+            width: 2,
+          },
+          '& .MuiSlider-markActive': {
+            backgroundColor: '#2563eb', // Highlight the mark at the selected position
           },
           '& .MuiSlider-markLabel': {
             fontSize: '11px',
@@ -237,6 +244,13 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
           '& .MuiSlider-valueLabel': {
             fontSize: '12px',
             backgroundColor: '#1f2937',
+          },
+          // Ensure no track elements show blue color anywhere
+          '& .MuiSlider-root': {
+            '& .MuiSlider-track': {
+              backgroundColor: 'transparent !important',
+              border: 'none !important',
+            }
           }
         }}
       />
