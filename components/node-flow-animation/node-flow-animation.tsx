@@ -13,6 +13,7 @@ import {
 import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
 import { MigrationAnalysisPeriod } from '@/components/migration-analysis-period';
+import { ColorPicker } from '@/components/color-picker';
 
 // // Default transform constants
 // const DEFAULT_TRANSFORM_SCALE = 2;
@@ -53,6 +54,12 @@ interface NodesVisualizationProps {
   selectedPeriod?: string;
   onPeriodChange?: (period: string, startDate: string, endDate: string) => void;
   apiResponse?: MigrationResponse | null; // Add apiResponse prop for table data
+  migrationThreshold?: number;
+  onThresholdChange?: (threshold: number) => void;
+  flowVisibility?: Record<string, { moveIn: boolean; moveOut: boolean }>;
+  onFlowVisibilityChange?: (visibility: Record<string, { moveIn: boolean; moveOut: boolean }>) => void;
+  edgeColors?: Record<string, string>;
+  onEdgeColorsChange?: (colors: Record<string, string>) => void;
 }
 
 // Custom hook to track container size
@@ -87,7 +94,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   curved = false,
   selectedPeriod,
   onPeriodChange,
-  apiResponse
+  apiResponse,
+  migrationThreshold = 0,
+  onThresholdChange,
+  flowVisibility = {},
+  onFlowVisibilityChange,
+  edgeColors = {},
+  onEdgeColorsChange
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,6 +123,101 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   useEffect(() => {
     selectedNodeIdRef.current = selectedNodeId;
   }, [selectedNodeId]);
+
+  // Default colors for edges
+  const DEFAULT_EDGE_COLORS = useMemo(() => [
+    '#2563eb', '#16a34a', '#dc2626', '#7c3aed', '#ea580c',
+    '#0891b2', '#c2410c', '#be185d', '#4338ca', '#059669'
+  ], []);
+
+  // Function to get edge color
+  const getEdgeColor = useCallback((edgeKey: string, index: number = 0): string => {
+    return edgeColors[edgeKey] || DEFAULT_EDGE_COLORS[index % DEFAULT_EDGE_COLORS.length];
+  }, [edgeColors, DEFAULT_EDGE_COLORS]);
+
+  // Helper function to check if visibility objects are deeply equal
+  const areVisibilityEqual = useCallback((a: Record<string, { moveIn: boolean; moveOut: boolean }>, b: Record<string, { moveIn: boolean; moveOut: boolean }>) => {
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    
+    if (keysA.length !== keysB.length) return false;
+    
+    return keysA.every(key => {
+      const itemA = a[key];
+      const itemB = b[key];
+      return itemA?.moveIn === itemB?.moveIn && itemA?.moveOut === itemB?.moveOut;
+    });
+  }, []);
+
+  // Initialize flow visibility when API response changes
+  useEffect(() => {
+    if (apiResponse?.flows && onFlowVisibilityChange) {
+      const newVisibility: Record<string, { moveIn: boolean; moveOut: boolean }> = {};
+      
+      // Process flows similar to how they're processed in the display
+      const filteredFlows = apiResponse.flows.filter(flow => 
+        flow.time_period_id === selectedPeriod || 
+        (selectedPeriod && !apiResponse.time_periods.find(tp => tp.id === selectedPeriod) && 
+         flow.time_period_id === apiResponse.time_periods[0]?.id)
+      );
+
+      // Group flows by bidirectional pairs
+      const flowPairs = new Map<string, { flows: typeof filteredFlows, key: string }>();
+      
+      filteredFlows.forEach(flow => {
+        const originId = flow.origin.id;
+        const destinationId = flow.destination.id;
+        
+        // Handle self-loops
+        if (originId === destinationId) {
+          const selfKey = `self-${originId}`;
+          const existingVis = flowVisibility[selfKey];
+          newVisibility[selfKey] = {
+            moveIn: existingVis?.moveIn !== undefined 
+              ? (existingVis.moveIn && flow.flow_count >= migrationThreshold)
+              : (flow.flow_count >= migrationThreshold),
+            moveOut: true // Self-loops only have one direction
+          };
+          return;
+        }
+        
+        // Handle bidirectional flows
+        const flowKey = [originId, destinationId].sort().join('-');
+        if (!flowPairs.has(flowKey)) {
+          flowPairs.set(flowKey, { flows: [], key: flowKey });
+        }
+        flowPairs.get(flowKey)?.flows.push(flow);
+      });
+
+      // Initialize visibility for bidirectional flows
+      flowPairs.forEach(({ flows, key }) => {
+        const moveInFlow = flows[0]?.flow_count || 0;
+        const moveOutFlow = flows[1]?.flow_count || 0;
+        
+        // Update visibility based on threshold, but preserve user-disabled settings
+        const existingVis = flowVisibility[key];
+        newVisibility[key] = {
+          moveIn: existingVis?.moveIn !== undefined 
+            ? (existingVis.moveIn && moveInFlow >= migrationThreshold)
+            : (moveInFlow >= migrationThreshold),
+          moveOut: existingVis?.moveOut !== undefined 
+            ? (existingVis.moveOut && moveOutFlow >= migrationThreshold)
+            : (moveOutFlow >= migrationThreshold)
+        };
+      });
+
+      // Only update visibility if there are actual changes
+      if (Object.keys(newVisibility).length > 0) {
+        const combinedVisibility = { ...flowVisibility, ...newVisibility };
+        
+        // Only call onFlowVisibilityChange if the combined visibility is actually different
+        if (!areVisibilityEqual(flowVisibility, combinedVisibility)) {
+          onFlowVisibilityChange(combinedVisibility);
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiResponse, selectedPeriod, migrationThreshold, onFlowVisibilityChange, areVisibilityEqual]); // Removed flowVisibility from dependencies to prevent infinite loop
 
 
 
@@ -190,8 +298,25 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     });
   }, [nodes, defaultNodes]);
   
-  
+  // Initialize edge colors when connections change
+  useEffect(() => {
+    if (connections && connections.length > 0 && onEdgeColorsChange) {
+      const newColors: Record<string, string> = { ...edgeColors };
+      let hasNewColors = false;
 
+      connections.forEach((conn, index) => {
+        const edgeKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        if (!newColors[edgeKey]) {
+          newColors[edgeKey] = DEFAULT_EDGE_COLORS[index % DEFAULT_EDGE_COLORS.length];
+          hasNewColors = true;
+        }
+      });
+
+      if (hasNewColors) {
+        onEdgeColorsChange(newColors);
+      }
+    }
+  }, [connections, edgeColors, onEdgeColorsChange, DEFAULT_EDGE_COLORS]);
 
   // Function to calculate dynamic node size based on zoom level
   const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel?: number): number => {
@@ -358,14 +483,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       .append('path')
       .attr('class', 'hex-shape')
       .attr('d', d => createHexagonPath(d.x, d.y, hexSize))
-      .attr('fill', 'transparent') // Blank fill
-      .attr('stroke', d => {
-        // Use blue stroke for Thailand hexagons, red for others
-        const isThailand = thailandCoordinates.has(`${d.row},${d.col}`);
-        return isThailand ? '#2563eb' : '#dc2626'; // Blue for Thailand, red for others
-      })
+      .attr('fill', 'transparent') // No fill
+      .attr('stroke', 'black') // Black borders for all hexagons
       .attr('stroke-width', 1)
-      .attr('opacity', 0.8);
+      .attr('opacity', 0.2);
 
     // Define arrow markers for direction indicators
     const defs = svg.append('defs');
@@ -425,8 +546,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       .attr('class', 'viz-group');
 
     // Migration flow visualization (always show)
-      // Draw "to" paths (blue, with negative flow rates)
-      activeConnections.forEach(conn => {
+      // Draw "to" paths with custom edge colors
+      activeConnections.forEach((conn, index) => {
         const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
         const toNode = activeNodes.find(n => n.id === conn.toNodeId);
         
@@ -436,7 +557,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           return;
         }
         
-        if (conn.toFlowRate !== 0) {
+        // Check if this flow should be visible based on threshold and individual flow visibility
+        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowVis = flowVisibility[flowKey];
+        const shouldShowMoveIn = flowVis?.moveIn ?? (conn.metadata.absoluteToFlow >= migrationThreshold);
+        
+        if (conn.toFlowRate !== 0 && shouldShowMoveIn) {
+          const edgeColor = getEdgeColor(flowKey, index);
           vizGroup.append('path')
             .attr('class', 'flowline-to')
             .attr('d', createOffsetPath(fromNode.x, fromNode.y, toNode.x, toNode.y, -8, curved))
@@ -445,12 +572,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-absolute-flow', conn.metadata.absoluteToFlow)
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', fromNode.title)
-            .attr('data-to-node', toNode.title);
+            .attr('data-to-node', toNode.title)
+            .attr('data-edge-color', edgeColor);
         }
       });
 
-      // Draw "from" paths (red, with positive flow rates)
-      activeConnections.forEach(conn => {
+      // Draw "from" paths with custom edge colors
+      activeConnections.forEach((conn, index) => {
         const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
         const toNode = activeNodes.find(n => n.id === conn.toNodeId);
         
@@ -459,7 +587,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           return;
         }
         
-        if (conn.fromFlowRate !== 0) {
+        // Check if this flow should be visible based on threshold and individual flow visibility
+        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowVis = flowVisibility[flowKey];
+        const shouldShowMoveOut = flowVis?.moveOut ?? (conn.metadata.absoluteFromFlow >= migrationThreshold);
+        
+        if (conn.fromFlowRate !== 0 && shouldShowMoveOut) {
+          const edgeColor = getEdgeColor(flowKey, index);
           vizGroup.append('path')
             .attr('class', 'flowline-from')
             .attr('d', createOffsetPath(toNode.x, toNode.y, fromNode.x, fromNode.y, -8, curved))
@@ -468,22 +602,26 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-absolute-flow', conn.metadata.absoluteFromFlow)
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', toNode.title)
-            .attr('data-to-node', fromNode.title);
+            .attr('data-to-node', fromNode.title)
+            .attr('data-edge-color', edgeColor);
         }
       });
 
-      // Draw nodes with dynamic sizes
-      activeNodes.forEach(node => {
+      // Draw nodes with dynamic sizes (colorless/neutral)
+      activeNodes.forEach((node, index) => {
         const nodeGroup = vizGroup.append('g')
           .attr('class', 'node-group')
           .attr('data-node-id', node.id)
           .attr('transform', `translate(${node.x}, ${node.y})`)
           .style('cursor', 'pointer');
 
-        // Node circle
+        // Node circle (neutral gray color)
         nodeGroup.append('circle')
           .attr('class', 'node')
-          .attr('r', getDynamicNodeSize(node.size * 2, 2));
+          .attr('r', getDynamicNodeSize(node.size * 2, 2))
+          .style('fill', '#e5e7eb')
+          .style('stroke', '#6b7280')
+          .style('stroke-width', '3px');
 
         // Node title
         nodeGroup.append('text')
@@ -502,51 +640,33 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               // Unselect if already selected
               setSelectedNodeId(null);
               
-              // Reset node appearance
+              // Reset node appearance to neutral color
               d3.select(this).select('.node')
-                .style('fill', '#f3f4f6')
+                .style('fill', '#e5e7eb')
                 .style('stroke', '#6b7280')
-                .style('stroke-width', function() {
-                  const baseStrokeWidth = 3;
-                  const scaleFactor = Math.max(0.3, 1 / 2);
-                  return `${baseStrokeWidth * scaleFactor}px`;
-                });
+                .style('stroke-width', '3px');
             } else {
               // Select new node
               setSelectedNodeId(node.id);
               
-              // Reset all other nodes first
-              d3.selectAll('.node')
-                .style('fill', '#f3f4f6')
-                .style('stroke', '#6b7280')
-                .style('stroke-width', function() {
-                  const baseStrokeWidth = 3;
-                  const scaleFactor = Math.max(0.3, 1 / 2);
-                  return `${baseStrokeWidth * scaleFactor}px`;
-                });
+              // Reset all other nodes first to neutral colors
+              activeNodes.forEach(() => {
+                d3.selectAll('[data-node-id] .node')
+                  .style('fill', '#e5e7eb')
+                  .style('stroke', '#6b7280')
+                  .style('stroke-width', '3px');
+              });
               
-              // Highlight the selected node
+              // Highlight the selected node with a blue outline
               d3.select(this).select('.node')
-                .style('fill', '#dbeafe')
+                .style('fill', '#e5e7eb')
                 .style('stroke', '#2563eb')
-                .style('stroke-width', function() {
-                  const baseStrokeWidth = 3; // Same thickness as unselected nodes
-                  const scaleFactor = Math.max(0.3, 1 / 2);
-                  return `${baseStrokeWidth * scaleFactor}px`;
-                });
+                .style('stroke-width', '5px');
             }
           });
       });
       
-      // Apply styles directly to D3 elements
-      d3.selectAll('.node')
-        .style('fill', '#f3f4f6')
-        .style('stroke', '#6b7280')
-        .style('stroke-width', function() {
-          const baseStrokeWidth = 3;
-          const scaleFactor = Math.max(0.3, 1 / 2); // Scale border thickness, minimum 30%
-          return `${baseStrokeWidth * scaleFactor}px`;
-        });
+      // Apply styles have been moved to individual node rendering above
 
       d3.selectAll('.node-title')
         .style('font-family', 'Arial, sans-serif')
@@ -559,10 +679,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('fill', '#374151')
         .style('pointer-events', 'none');
 
-      // Style "to" direction paths (blue)
+      // Style "to" direction paths with custom edge colors
       d3.selectAll('.flowline-to')
         .style('fill', 'none')
-        .style('stroke', '#2563eb')
+        .style('stroke', function() {
+          return d3.select(this).attr('data-edge-color') || '#2563eb';
+        })
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
@@ -571,10 +693,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         })
         .style('stroke-dasharray', '8, 4');
 
-      // Style "from" direction paths (red)
+      // Style "from" direction paths with custom edge colors  
       d3.selectAll('.flowline-from')
         .style('fill', 'none')
-        .style('stroke', '#888888')
+        .style('stroke', function() {
+          return d3.select(this).attr('data-edge-color') || '#888888';
+        })
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
@@ -701,7 +825,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections]);
+  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, flowVisibility, edgeColors, getEdgeColor]);
 
   // Separate useEffect for handling node selection changes (without resetting the visualization)
   useEffect(() => {
@@ -827,25 +951,62 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 Migration Flow Data
               </h3>
                     
-                    {/* Units Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '14px', color: '#6b7280' }}>Display as:</span>
-                      <select
-                        value={selectedUnits}
-                        onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
-                        style={{
-                          padding: '4px 8px',
-                fontSize: '14px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          backgroundColor: '#ffffff',
-                          color: '#374151',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="thousands">Thousands (K)</option>
-                        <option value="units">Raw Units</option>
-                      </select>
+                    {/* Controls Container */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                      {/* Threshold Control */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <label style={{ fontSize: '14px', color: '#6b7280' }}>Threshold:</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={migrationThreshold}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            if (onThresholdChange) {
+                              if (inputValue === '') {
+                                // Allow deletion by setting to 0
+                                onThresholdChange(0);
+                              } else {
+                                const value = parseInt(inputValue, 10);
+                                if (!isNaN(value) && value >= 0) {
+                                  onThresholdChange(value);
+                                }
+                              }
+                            }
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '14px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            backgroundColor: '#ffffff',
+                            color: '#374151',
+                            width: '80px'
+                          }}
+                        />
+                      </div>
+
+                      {/* Units Selector */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', color: '#6b7280' }}>Display as:</span>
+                        <select
+                          value={selectedUnits}
+                          onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
+                          style={{
+                            padding: '4px 8px',
+                  fontSize: '14px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            backgroundColor: '#ffffff',
+                            color: '#374151',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="thousands">Thousands (K)</option>
+                          <option value="units">Raw Units</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -871,15 +1032,11 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         <button
                           onClick={() => {
                             setSelectedNodeId(null);
-                            // Reset all node appearances
-                            d3.selectAll('.node')
-                              .style('fill', '#f3f4f6')
+                            // Reset all node appearances to neutral colors
+                            d3.selectAll('[data-node-id] .node')
+                              .style('fill', '#e5e7eb')
                               .style('stroke', '#6b7280')
-                              .style('stroke-width', function() {
-                                const baseStrokeWidth = 3;
-                                const scaleFactor = Math.max(0.3, 1 / 2);
-                                return `${baseStrokeWidth * scaleFactor}px`;
-                              });
+                              .style('stroke-width', '3px');
                           }}
                           style={{
                             background: 'none',
@@ -997,32 +1154,231 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         ...selfLoops
                       ];
 
-                      return allFlows.map((flowData) => (
-                        <div 
-                          key={flowData.key}
-                          style={{
-                            backgroundColor: '#ffffff',
-                            borderRadius: '8px',
-                            padding: '8px',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            border: '1px solid #e5e7eb',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <MigrationFlowDiagram
-                            fromLocation={flowData.isSelfLoop ? flowData.location : flowData.fromLocation}
-                            toLocation={flowData.isSelfLoop ? flowData.location : flowData.toLocation}
-                            flowCount={flowData.flowCount}
-                            returnFlowCount={flowData.isSelfLoop ? undefined : flowData.returnFlowCount}
-                            units={selectedUnits}
-                            width={450}
-                            height={90}
-                            isSelfLoop={flowData.isSelfLoop}
-                          />
-            </div>
-                      ));
+                      return allFlows.map((flowData) => {
+                        // Generate flow key for visibility tracking
+                        const flowKey = flowData.isSelfLoop 
+                          ? `self-${flowData.key}` 
+                          : flowData.key;
+                        
+                        // Get current visibility settings
+                        const visibility = flowVisibility[flowKey] || { moveIn: true, moveOut: true };
+                        
+                        // Check if flows meet threshold
+                        const moveInPassesThreshold = flowData.flowCount >= migrationThreshold;
+                        const moveOutPassesThreshold = flowData.isSelfLoop ? true : (flowData.returnFlowCount >= migrationThreshold);
+                        
+                        return (
+                          <div 
+                            key={flowData.key}
+                            style={{
+                              backgroundColor: '#ffffff',
+                              borderRadius: '8px',
+                              padding: '12px',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              border: '1px solid #e5e7eb',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px'
+                            }}
+                          >
+                            {/* Location Colors Header */}
+                            {!flowData.isSelfLoop ? (
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '4px 0',
+                                borderBottom: '1px solid #f3f4f6'
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}>
+                                  <ColorPicker
+                                    currentColor={getEdgeColor(flowData.key, 0)}
+                                    onColorChange={(color) => {
+                                      if (onEdgeColorsChange) {
+                                        onEdgeColorsChange({
+                                          ...edgeColors,
+                                          [flowData.key]: color
+                                        });
+                                      }
+                                    }}
+                                    label={`${flowData.fromLocation} → ${flowData.toLocation} Edge Color`}
+                                  />
+                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                                    {flowData.fromLocation}
+                                  </span>
+                                </div>
+                                
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}>
+                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                                    {flowData.toLocation}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '4px 0',
+                                borderBottom: '1px solid #f3f4f6'
+                              }}>
+                                <ColorPicker
+                                  currentColor={getEdgeColor(flowData.key, 0)}
+                                  onColorChange={(color) => {
+                                    if (onEdgeColorsChange) {
+                                      onEdgeColorsChange({
+                                        ...edgeColors,
+                                        [flowData.key]: color
+                                      });
+                                    }
+                                  }}
+                                  label={`${flowData.location} Internal Flow Color`}
+                                />
+                                <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                                  {flowData.location} (Internal Flow)
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* Checkbox Controls */}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '4px 0',
+                              borderBottom: '1px solid #f3f4f6'
+                            }}>
+                              <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280' }}>
+                                Show in Map:
+                              </div>
+                              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                {!flowData.isSelfLoop && (
+                                  <>
+                                    <label style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      fontSize: '12px',
+                                      color: moveInPassesThreshold ? '#374151' : '#9ca3af',
+                                      cursor: moveInPassesThreshold ? 'pointer' : 'not-allowed'
+                                    }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={visibility.moveIn}
+                                        disabled={!moveInPassesThreshold}
+                                        onChange={(e) => {
+                                          if (onFlowVisibilityChange) {
+                                            const newVisibility = {
+                                              ...flowVisibility,
+                                              [flowKey]: {
+                                                ...flowVisibility[flowKey],
+                                                moveIn: e.target.checked
+                                              }
+                                            };
+                                            onFlowVisibilityChange(newVisibility);
+                                          }
+                                        }}
+                                        style={{
+                                          cursor: moveInPassesThreshold ? 'pointer' : 'not-allowed'
+                                        }}
+                                      />
+                                      Move In ({flowData.flowCount.toLocaleString()})
+                                    </label>
+                                    <label style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      fontSize: '12px',
+                                      color: moveOutPassesThreshold ? '#374151' : '#9ca3af',
+                                      cursor: moveOutPassesThreshold ? 'pointer' : 'not-allowed'
+                                    }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={visibility.moveOut}
+                                        disabled={!moveOutPassesThreshold}
+                                        onChange={(e) => {
+                                          if (onFlowVisibilityChange) {
+                                            const newVisibility = {
+                                              ...flowVisibility,
+                                              [flowKey]: {
+                                                ...flowVisibility[flowKey],
+                                                moveOut: e.target.checked
+                                              }
+                                            };
+                                            onFlowVisibilityChange(newVisibility);
+                                          }
+                                        }}
+                                        style={{
+                                          cursor: moveOutPassesThreshold ? 'pointer' : 'not-allowed'
+                                        }}
+                                      />
+                                      Move Out ({flowData.returnFlowCount.toLocaleString()})
+                                    </label>
+                                  </>
+                                )}
+                                {flowData.isSelfLoop && (
+                                  <label style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '12px',
+                                    color: moveInPassesThreshold ? '#374151' : '#9ca3af',
+                                    cursor: moveInPassesThreshold ? 'pointer' : 'not-allowed'
+                                  }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={visibility.moveIn}
+                                      disabled={!moveInPassesThreshold}
+                                      onChange={(e) => {
+                                        if (onFlowVisibilityChange) {
+                                          const newVisibility = {
+                                            ...flowVisibility,
+                                            [flowKey]: {
+                                              ...flowVisibility[flowKey],
+                                              moveIn: e.target.checked
+                                            }
+                                          };
+                                          onFlowVisibilityChange(newVisibility);
+                                        }
+                                      }}
+                                      style={{
+                                        cursor: moveInPassesThreshold ? 'pointer' : 'not-allowed'
+                                      }}
+                                    />
+                                    Internal Flow ({flowData.flowCount.toLocaleString()})
+                                  </label>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Migration Flow Diagram */}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}>
+                              <MigrationFlowDiagram
+                                fromLocation={flowData.isSelfLoop ? flowData.location : flowData.fromLocation}
+                                toLocation={flowData.isSelfLoop ? flowData.location : flowData.toLocation}
+                                flowCount={flowData.flowCount}
+                                returnFlowCount={flowData.isSelfLoop ? undefined : flowData.returnFlowCount}
+                                units={selectedUnits}
+                                width={430}
+                                height={90}
+                                isSelfLoop={flowData.isSelfLoop}
+                              />
+                            </div>
+                          </div>
+                        );
+                      });
                     })()}
                   </div>
                 </div>

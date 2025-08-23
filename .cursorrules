@@ -1,3 +1,4 @@
 After reading cursor rules, you must say: "🤖 Cursor Rules acknowledged."
 
 - Never use `npm run build` to test changes. I will do the testing myself.
+- For date formatting: Use the date-formatter utility from `@/src/utils/date-formatter` to format ISO8601 dates consistently. Use `formatToMonthYear()` for "MMM YYYY" format (e.g., "Aug 2025") and `formatDateRange()` for date ranges.

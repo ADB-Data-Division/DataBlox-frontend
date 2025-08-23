@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Slider, CircularProgress, Typography as MuiTypography, Box } from '@mui/material';
 import { metadataService } from '@/app/services/api';
+import { formatToMonthYear, formatDateRange } from '@/src/utils/date-formatter';
 import type { TimePeriod } from '@/app/services/api/types';
 
 interface MigrationAnalysisDurationProps {
@@ -140,18 +141,9 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
     setSelectedRange(range);
   };
 
-  // Format date for display
+  // Format date for display - use the date-formatter utility
   const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
+    return formatToMonthYear(dateString);
   };
 
   // Loading state
@@ -223,7 +215,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
             color: '#374151', 
             fontWeight: '500'
           }}>
-            {formatDate(startPeriod.start_date)} - {formatDate(endPeriod.end_date)}
+            {formatDateRange(startPeriod.start_date, endPeriod.end_date)}
           </MuiTypography>
         )}
       </Box>

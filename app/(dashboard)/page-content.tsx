@@ -66,6 +66,15 @@ export default function PageContent() {
   // Store date range for API calls
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
+  // Store threshold for migration flow filtering
+  const [migrationThreshold, setMigrationThreshold] = useState<number>(0);
+
+  // Store individual flow visibility settings
+  const [flowVisibility, setFlowVisibility] = useState<Record<string, { moveIn: boolean; moveOut: boolean }>>({});
+
+  // Store edge colors (edgeKey -> color)
+  const [edgeColors, setEdgeColors] = useState<Record<string, string>>({});
+
   // Memoize Paper styles to prevent recreation
   const paperStyles = useMemo(() => ({
     p: 1,
@@ -293,6 +302,12 @@ export default function PageContent() {
             loading={migrationData.isLoading}
             error={migrationData.error}
             onRetry={handleRetryMigrationData}
+            migrationThreshold={migrationThreshold}
+            onThresholdChange={setMigrationThreshold}
+            flowVisibility={flowVisibility}
+            onFlowVisibilityChange={setFlowVisibility}
+            edgeColors={edgeColors}
+            onEdgeColorsChange={setEdgeColors}
           />
         )}
 

@@ -23,6 +23,7 @@ import { metadataService } from '@/app/services/api';
 import { useLocationSearch, useKeyboardShortcuts } from '../hooks';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
+import { formatDateRange } from '@/src/utils/date-formatter';
 
 // Custom constraints for migration analysis page
 const MIGRATION_ANALYSIS_CONSTRAINTS = {
@@ -140,14 +141,23 @@ const DivergingBarChart: React.FC<{
     // Add axes
     g.append("g")
       .attr("class", "x-axis")
-      .attr("transform", `translate(0,${yScale(0)})`)
+      .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale))
       .selectAll("text")
       .style("font-weight", "bold");
 
+    // Format y-axis values to thousands (k)
+    const formatYAxis = (d: d3.NumberValue) => {
+      const value = Math.abs(d.valueOf());
+      if (value >= 1000) {
+        return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'k';
+      }
+      return value.toString();
+    };
+
     g.append("g")
       .attr("class", "y-axis")
-      .call(d3.axisLeft(yScale).tickFormat(d => Math.abs(d.valueOf()).toLocaleString()))
+      .call(d3.axisLeft(yScale).tickFormat(formatYAxis))
       .selectAll("text")
       .style("font-weight", "bold");
 
@@ -160,7 +170,7 @@ const DivergingBarChart: React.FC<{
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
       .style("font-size", "16px")
-      .text("Number of People");
+      .text("Number of People (thousands)");
 
     // Add zero line
     g.append("line")
@@ -501,7 +511,9 @@ export default function MigrationAnalysisPageContent() {
           const periodDate = parseTimePeriodToDate(timePeriodId, apiResponse);
           console.log(`Parsing period ${timePeriodId}:`, periodDate, 'Selected range:', selectedStartDate, '-', selectedEndDate);
           
-          if (periodDate && periodDate >= selectedStartDate && periodDate <= selectedEndDate) {
+          // Use inclusive start date but exclusive end date to avoid off-by-one errors
+          // This ensures that if end date is "2025-01-01", we don't include January 2025 data
+          if (periodDate && periodDate >= selectedStartDate && periodDate < selectedEndDate) {
             allTimePeriods.add(timePeriodId);
           }
         });
@@ -891,7 +903,7 @@ export default function MigrationAnalysisPageContent() {
                     Multi-province comparison (diverging grouped bars): {chartData.locations.map(l => l.name).join(', ')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Period: {chartData.period.startDate} - {chartData.period.endDate}
+                    Period: {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
                   </Typography>
                   
                 </Box>

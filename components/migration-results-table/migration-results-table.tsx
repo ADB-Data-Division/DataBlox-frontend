@@ -35,6 +35,12 @@ interface MigrationResultsTableProps {
   loading: boolean;
   error: string | null;
   onRetry?: () => void;
+  migrationThreshold: number;
+  onThresholdChange: (threshold: number) => void;
+  flowVisibility: Record<string, { moveIn: boolean; moveOut: boolean }>;
+  onFlowVisibilityChange: (visibility: Record<string, { moveIn: boolean; moveOut: boolean }>) => void;
+  edgeColors: Record<string, string>;
+  onEdgeColorsChange: (colors: Record<string, string>) => void;
 }
 
 export default function MigrationResultsTable({ 
@@ -47,7 +53,13 @@ export default function MigrationResultsTable({
   apiResponse,
   loading,
   error,
-  onRetry
+  onRetry,
+  migrationThreshold,
+  onThresholdChange,
+  flowVisibility,
+  onFlowVisibilityChange,
+  edgeColors,
+  onEdgeColorsChange
 }: MigrationResultsTableProps) {
   const theme = useTheme();
 
@@ -60,6 +72,8 @@ export default function MigrationResultsTable({
       case 'mapPin': return <MapPinSimpleIcon size={16} />;
     }
   };
+
+
 
   return (
     <Box sx={{ py: 2 }}>
@@ -175,8 +189,15 @@ export default function MigrationResultsTable({
               selectedPeriod={selectedPeriod}
               onPeriodChange={onPeriodChange}
               apiResponse={apiResponse}
+              migrationThreshold={migrationThreshold}
+              onThresholdChange={onThresholdChange}
+              flowVisibility={flowVisibility}
+              onFlowVisibilityChange={onFlowVisibilityChange}
+              edgeColors={edgeColors}
+              onEdgeColorsChange={onEdgeColorsChange}
             />
             
+
 
           </Box>
         )}
