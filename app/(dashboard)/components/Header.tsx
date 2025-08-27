@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '' },
   { label: 'Trend Over Time', href: '/migration-analysis', segment: 'migration-analysis' },
-  { label: 'Sankey', href: '/sankey', segment: 'sankey' },
+  // { label: 'Sankey', href: '/sankey', segment: 'sankey' }, // Disabled for now
 ];
 
 export function Header() {

@@ -13,6 +13,7 @@ import { LocationList } from '../components/LocationList';
 import { SearchPagination } from '../components/SearchPagination';
 import { SearchResultsSummary } from '../components/SearchResultsSummary';
 import ChordDiagramContainer from '@/components/chord-diagram';
+import SankeyDiagram from '@/components/sankey-diagram';
 import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
 
 // Hooks and utils
@@ -50,6 +51,7 @@ export default function SankeyPageContent() {
   // Load migration data when locations change
   useEffect(() => {
     if (memoizedSelectedLocations.length > 0) {
+      console.log('🚀 Loading migration data for locations:', memoizedSelectedLocations.map(loc => ({ name: loc.name, type: loc.type, id: loc.id })));
       loadMigrationData(memoizedSelectedLocations, state.selectedPeriod);
     } else {
       resetMigrationData();
@@ -218,10 +220,33 @@ export default function SankeyPageContent() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Showing migration relationships between {memoizedSelectedLocations.length} selected location(s)
             </Typography>
-            {/* For now, display a simple message about the chord diagram */}
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Chord diagram visualization will be rendered here based on the migration data from the selected locations.
-            </Alert>
+            {/* Sankey Diagram */}
+            {migrationData.isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Loading migration flow data...
+                </Typography>
+              </Box>
+            ) : migrationData.apiResponse ? (
+              <>
+                {console.log('📊 Sankey Page: Rendering with data:', {
+                  apiResponse: !!migrationData.apiResponse,
+                  flows: migrationData.apiResponse.flows?.length || 0,
+                  data: migrationData.apiResponse.data?.length || 0,
+                  selectedPeriod: state.selectedPeriod
+                })}
+                <SankeyDiagram 
+                  migrationData={migrationData.apiResponse}
+                  selectedTimePeriod={state.selectedPeriod}
+                  width={900}
+                  height={600}
+                />
+              </>
+            ) : (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                No migration flow data available for the selected locations and time period.
+              </Alert>
+            )}
           </Box>
         )}
       </Container>

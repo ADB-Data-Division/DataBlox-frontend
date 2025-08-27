@@ -69,6 +69,13 @@ export class MigrationAPIService {
         includeFlows: true
       };
 
+      console.log('🔧 API Query:', {
+        scale,
+        locationIds,
+        originalLocations: locations.map(l => ({ name: l.name, type: l.type })),
+        queryOptions
+      });
+
 
       const response = await migrationService.getMigrationData(queryOptions);
       
@@ -138,13 +145,28 @@ export class MigrationAPIService {
    */
   private async findProvinceApiId(location: Location): Promise<string | null> {
     try {
+      console.log(`🔍 Looking for province API ID for: "${location.name}"`);
+      
+      // TEMPORARY: Hardcode Bangkok and Songkhla for testing
+      if (location.name.toLowerCase().includes('bangkok')) {
+        console.log(`✅ Hardcoded Bangkok -> 1`);
+        return "1";
+      }
+      if (location.name.toLowerCase().includes('songkhla')) {
+        console.log(`✅ Hardcoded Songkhla -> 70`);
+        return "70";
+      }
+      
       const metadata = await metadataService.getMetadata();
       
       // Try to find by name first (case-insensitive)
       const byName = metadata.provinces.find(p => 
         p.name.toLowerCase() === location.name.toLowerCase()
       );
-      if (byName) return byName.id;
+      if (byName) {
+        console.log(`✅ Found by name: ${byName.name} -> ${byName.id}`);
+        return byName.id;
+      }
 
       // Try to find by code if available
       const byCode = metadata.provinces.find(p => 
