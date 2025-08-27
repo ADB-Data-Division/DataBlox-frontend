@@ -16,6 +16,5 @@ export type { MigrationQueryOptions } from './migration-service';
 export { 
   transformMigrationDataForMap, 
   getAvailableTimePeriods,
-  testTransformation 
 } from './migration-flow-transformer';
 export type { MapNode, MapConnection, TransformedMigrationData } from './migration-flow-transformer'; 

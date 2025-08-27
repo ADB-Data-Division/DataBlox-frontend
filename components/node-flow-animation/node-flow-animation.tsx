@@ -249,12 +249,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // Calculate center position for Thailand map
   // Approximate Thailand map bounds (based on hexagon layout)
-  const mapWidth = 200; // Approximate width of Thailand hexagon layout
-  const mapHeight = 300; // Approximate height of Thailand hexagon layout
+  const mapWidth = 270; // Approximate width of Thailand hexagon layout
+  const mapHeight = 500; // Approximate height of Thailand hexagon layout
   
   // Center the map in the container
-  const centerX = 100 ; // Center the map
-  const centerY = 0;
+  const centerX = 45; // Center the map
+  const centerY = -60;
 
   // Generate nodes from administrative data or fallback to static data
   const defaultNodes: Node[] = useMemo(() => {

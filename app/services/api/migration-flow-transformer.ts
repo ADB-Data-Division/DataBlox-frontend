@@ -1,4 +1,18 @@
-import { MigrationResponse, MigrationFlow, LocationMigrationData } from './types';
+import { MigrationResponse, MigrationFlow } from './types';
+import { mapProvinceToXY } from '../../../components/node-flow-animation/thailand-map-utils';
+
+// Import administrative units data for coordinates
+import thailandAdministrativeUnits from '../../../public/datasets/thailand_administrative_units.json';
+
+// Interface for administrative unit data (matches actual JSON structure)
+interface AdministrativeUnit {
+  id: string;
+  name_en: string;
+  name_th: string;
+  type: string;
+  latitude: number;
+  longitude: number;
+}
 
 // Node interface expected by the map visualization
 export interface MapNode {
@@ -28,22 +42,61 @@ export interface TransformedMigrationData {
   connections: MapConnection[];
 }
 
-// Province coordinate mapping for Thailand (approximate positions)
-const PROVINCE_COORDINATES: Record<string, { x: number; y: number }> = {
-  'TH-03': { x: 180, y: 140 }, // Bangkok - Central Thailand
-  'TH-10': { x: 110, y: 50 },  // Chiang Mai - Northern Thailand
-  'TH-27': { x: 220, y: 90 },  // Khon Kaen - Northeastern Thailand
-  'TH-64': { x: 130, y: 290 }, // Songkhla - Southern Thailand
-  'TH-23': { x: 150, y: 170 }, // Kanchanaburi - Western Thailand
-  'TH-25': { x: 280, y: 180 }, // Ubon Ratchathani - Eastern Thailand
-  'TH-52': { x: 100, y: 200 }, // Prachuap Khiri Khan - Southern Thailand
-  'TH-42': { x: 250, y: 120 }, // Nong Khai - Northeastern Thailand
-  // Default position for "Other Provinces"
-  'OTH-00': { x: 300, y: 300 }, // Other Provinces - positioned separately
-};
+// Thailand map dimensions (consistent with node-flow-animation component)
+const MAP_WIDTH = 270; // Approximate width of Thailand hexagon layout
+const MAP_HEIGHT = 500; // Approximate height of Thailand hexagon layout
 
-// Default coordinates for unmapped provinces
-const DEFAULT_COORDINATES = { x: 200, y: 200 };
+// Origin points for coordinate transformation (adjustable)
+export const ORIGIN_X = 45; // Center the map (centerX from node-flow-animation)
+export const ORIGIN_Y = -70; // Center the map (centerY from node-flow-animation)
+
+/**
+ * Get coordinates for a location ID from the administrative units data
+ * @param locationId - The location ID to look up
+ * @returns - Object with lat, lng, and transformed SVG x, y coordinates
+ */
+function getLocationCoordinates(locationId: string): { lat: number, lng: number, x: number; y: number } {
+  // Cast the imported data to the correct type
+  const units = thailandAdministrativeUnits as AdministrativeUnit[];
+  
+  // Find the unit by ID
+  const unit = units.find(u => u.id === locationId);
+  
+  if (unit) {
+    // Use the existing coordinate transformation from thailand-map-utils.ts
+    const svgCoords = mapProvinceToXY(
+      unit.latitude,
+      unit.longitude,
+      MAP_WIDTH,
+      MAP_HEIGHT,
+      ORIGIN_X,
+      ORIGIN_Y
+    );
+    return {
+      lat: unit.latitude,
+      lng: unit.longitude,
+      x: svgCoords.x,
+      y: svgCoords.y
+    };
+  }
+  
+  // Default coordinates (center of Thailand approximately)
+  console.warn(`No coordinates found for location ID: ${locationId}, using default coordinates`);
+  const defaultSvg = mapProvinceToXY(
+    13.7563, // Bangkok latitude
+    100.5018, // Bangkok longitude
+    MAP_WIDTH,
+    MAP_HEIGHT,
+    ORIGIN_X,
+    ORIGIN_Y
+  );
+  return {
+    lat: 13.7563,
+    lng: 100.5018,
+    x: defaultSvg.x,
+    y: defaultSvg.y
+  };
+}
 
 /**
  * Calculate node size based on migration volume
@@ -116,7 +169,7 @@ export function transformMigrationDataForMap(
     const timeSeriesData = locationData.time_series[timePeriodId];
     
     // Get coordinates for this location
-    const coordinates = PROVINCE_COORDINATES[location.id] || DEFAULT_COORDINATES;
+    const coordinates = getLocationCoordinates(location.id);
     
     // Calculate node size based on migration volume
     const moveIn = timeSeriesData?.move_in || 0;
@@ -169,7 +222,7 @@ export function transformMigrationDataForMap(
   // Create a set of available node IDs for quick lookup
   const availableNodeIds = new Set(nodes.map(node => node.id));
 
-  flowPairs.forEach((pair, pairKey) => {
+  flowPairs.forEach((pair) => {
     const primaryFlow = pair.originToDestFlow;
     const returnFlow = pair.destToOriginFlow;
     
@@ -210,8 +263,8 @@ export function transformMigrationDataForMap(
   });
 
   console.log('✅ Transformation complete:', {
-    nodes: nodes.length,
-    nodeIds: nodes.map(n => `${n.id}:${n.title}`),
+    nodeCount: nodes.length,
+    nodes: nodes,
     connections: connections.length,
     connectionDetails: connections.map(c => `${c.fromNodeId}→${c.toNodeId} (to:${c.toFlowRate.toFixed(1)}, from:${c.fromFlowRate.toFixed(1)})`)
   });
@@ -257,100 +310,4 @@ function formatTimePeriodLabel(startDate: string, endDate: string): string {
   const endLabel = end.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   
   return `${startLabel} - ${endLabel}`;
-}
-
-/**
- * Example usage and test with the provided API response
- */
-export function testTransformation() {
-  const sampleApiResponse: MigrationResponse = {
-    "metadata": {
-      "scale": "province",
-      "start_date": "2024-12-01T00:00:00",
-      "end_date": "2024-12-31T23:59:59",
-      "total_records": 2,
-      "aggregation": "monthly"
-    },
-    "time_periods": [
-      {
-        "id": "dec24",
-        "start_date": "2024-12-01T00:00:00",
-        "end_date": "2025-01-01T00:00:00"
-      }
-    ],
-    "data": [
-      {
-        "location": {
-          "id": "TH-03",
-          "name": "Bangkok",
-          "code": "BAN",
-          "parent_id": undefined
-        },
-        "time_series": {
-          "dec24": {
-            "move_in": 37360,
-            "move_out": 23380,
-            "net_migration": 13980
-          }
-        }
-      },
-      {
-        "location": {
-          "id": "TH-10",
-          "name": "Chiang Mai",
-          "code": "CHI",
-          "parent_id": undefined
-        },
-        "time_series": {
-          "dec24": {
-            "move_in": 7191,
-            "move_out": 5617,
-            "net_migration": 1574
-          }
-        }
-      }
-    ],
-    "flows": [
-      {
-        "origin": {
-          "id": "TH-03",
-          "name": "Bangkok",
-          "code": "BAN",
-          "parent_id": undefined
-        },
-        "destination": {
-          "id": "TH-10",
-          "name": "Chiang Mai",
-          "code": "CHI",
-          "parent_id": undefined
-        },
-        "time_period_id": "dec24",
-        "flow_count": 21433,
-        "flow_rate": 214330000.0,
-        "return_flow_count": -5317,
-        "return_flow_rate": -53170000.0
-      },
-      {
-        "origin": {
-          "id": "TH-10",
-          "name": "Chiang Mai",
-          "code": "CHI",
-          "parent_id": undefined
-        },
-        "destination": {
-          "id": "TH-03",
-          "name": "Bangkok",
-          "code": "BAN",
-          "parent_id": undefined
-        },
-        "time_period_id": "dec24",
-        "flow_count": 5317,
-        "flow_rate": 53170000.0,
-        "return_flow_count": -21433,
-        "return_flow_rate": -214330000.0
-      }
-    ]
-  };
-
-  return transformMigrationDataForMap(sampleApiResponse, 'dec24');
 }
