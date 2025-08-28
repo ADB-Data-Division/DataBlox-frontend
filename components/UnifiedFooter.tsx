@@ -1,43 +1,43 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@mui/material';
 import { GearSix } from '@phosphor-icons/react';
-
-const USER_TYPE_STORAGE_KEY = 'datablox-user-type';
-const USER_TYPE_EXPIRY_KEY = 'datablox-user-type-expiry';
 
 interface SettingsButtonProps {
   openModal: () => void;
 }
 
 const SettingsButton = ({ openModal }: SettingsButtonProps) => {
-  const handleReconfigure = () => {
-    // Clear user type data from localStorage
-    localStorage.removeItem(USER_TYPE_STORAGE_KEY);
-    localStorage.removeItem(USER_TYPE_EXPIRY_KEY);
-    
-    // Open the user type modal
+  const handleOpenSettings = () => {
+    // Just open the modal without clearing user data
     openModal();
   };
 
   return (
-    <Button
-      size="small"
-      startIcon={<GearSix size={14} />}
-      onClick={handleReconfigure}
-      sx={{
-        fontSize: '11px',
-        textTransform: 'none',
-        color: '#666666',
-        '&:hover': {
-          backgroundColor: 'rgba(0, 119, 190, 0.1)',
-          color: '#0077BE'
-        }
+    <button
+      onClick={handleOpenSettings}
+      style={{
+        background: 'none',
+        border: 'none',
+        fontSize: '12px',
+        color: '#0077BE',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '0'
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.textDecoration = 'underline';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.textDecoration = 'none';
       }}
     >
+      <GearSix size={14} />
       User Settings
-    </Button>
+    </button>
   );
 };
 

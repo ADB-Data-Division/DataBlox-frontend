@@ -1,8 +1,13 @@
 import * as React from 'react';
-import Typography from '@mui/material/Typography';
 import { auth } from '../../auth';
-import { Box } from '@mui/material';
 import PageContent from './page-content';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Migration Analysis - Datablox',
+  description: 'Datablox is a platform for analyzing migration data'
+};
+
 
 export default async function HomePage() {
   const session = await auth();
