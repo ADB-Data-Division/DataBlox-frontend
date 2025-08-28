@@ -12,10 +12,9 @@ import './globals.css';
 import Script from 'next/script';
 import { UserTypeProvider } from './contexts/UserTypeContext';
 import FooterWrapper from '../components/FooterWrapper';
+import LogRocketInit from './components/LogRocketInit';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
-import { RootState } from './store';
-import { useAppSelector } from './store/hooks';
 
 // Configure Asap font with the weights we need
 const asap = Asap({
@@ -129,6 +128,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <ReduxProvider>
               <AppThemeProvider>
                 <UserTypeProvider>
+                  <LogRocketInit />
                   <ForceLightMode />
                   <div style={{ 
                     backgroundColor: '#FAFBFD', 
