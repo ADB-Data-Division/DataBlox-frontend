@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
           <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
             1. Information We Collect
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" >
             We collect limited information to improve your experience with Datablox:
           </Typography>
           <Box component="ul" sx={{ ml: 2, mb: 2 }}>
@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
           <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
             2. How We Use Your Information
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" >
             Your information helps us provide and improve our services:
           </Typography>
           <Box component="ul" sx={{ ml: 2, mb: 2 }}>
@@ -89,7 +89,7 @@ export default function PrivacyPolicyPage() {
           <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
             4. Data Sharing and Third Parties
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" >
             We do not sell or share your personal information with third parties for marketing purposes. 
             We only share data with:
           </Typography>
@@ -150,7 +150,7 @@ export default function PrivacyPolicyPage() {
           <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
             7. Changes to This Policy
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" >
             We may update this privacy policy from time to time. We will notify you of any material 
             changes by updating the &quot;Last updated&quot; date at the top of this policy.
           </Typography>
@@ -162,7 +162,7 @@ export default function PrivacyPolicyPage() {
           <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
             8. Contact Us
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" >
             If you have any questions about this privacy policy or our data practices, please contact us 
             through the platform or reach out to our support team.
           </Typography>

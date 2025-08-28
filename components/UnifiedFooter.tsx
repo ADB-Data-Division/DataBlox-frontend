@@ -65,6 +65,7 @@ export default function UnifiedFooter({ userTypeContext }: UnifiedFooterProps) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <a 
           href="/privacy-policy" 
+          target="_blank"
           style={{ 
             color: '#0077BE', 
             textDecoration: 'none'
