@@ -10,6 +10,8 @@ import ForceLightMode from '../components/force-light-mode';
 import { Asap } from 'next/font/google';
 import './globals.css';
 import Script from 'next/script';
+import { UserTypeProvider } from './contexts/UserTypeContext';
+import FooterWrapper from '../components/FooterWrapper';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { RootState } from './store';
@@ -126,22 +128,29 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <ReduxProvider>
               <AppThemeProvider>
-                <ForceLightMode />
-                <div style={{ 
-                  backgroundColor: '#FAFBFD', 
-                  color: '#1A1A1A',
-                  minHeight: '100vh'
-                }}>
-                  <NextAppProvider
-                    navigation={NAVIGATION}
-                    branding={BRANDING}
-                    session={session}
-                    authentication={AUTHENTICATION}
-                    
-                  >
-                    {props.children}
-                  </NextAppProvider>
-                </div>
+                <UserTypeProvider>
+                  <ForceLightMode />
+                  <div style={{ 
+                    backgroundColor: '#FAFBFD', 
+                    color: '#1A1A1A',
+                    minHeight: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <div style={{ flex: '1' }}>
+                      <NextAppProvider
+                        navigation={NAVIGATION}
+                        branding={BRANDING}
+                        session={session}
+                        authentication={AUTHENTICATION}
+                        
+                      >
+                        {props.children}
+                      </NextAppProvider>
+                    </div>
+                    <FooterWrapper />
+                  </div>
+                </UserTypeProvider>
               </AppThemeProvider>
             </ReduxProvider>
           </AppRouterCacheProvider>

@@ -117,6 +117,11 @@ export const trackMigrationEvent = {
   trackError: (errorType: string, errorMessage: string) => {
     trackEvent('error', 'system', `${errorType}:${errorMessage.substring(0, 100)}`);
   },
+
+  // User type tracking
+  selectUserType: (orgType: string, role: string, firmSize: string) => {
+    trackEvent('select_user_type', 'user_profile', `${orgType}|${role}|${firmSize}`);
+  },
 };
 
 /**

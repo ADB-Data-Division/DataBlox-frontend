@@ -6,6 +6,7 @@ import { Box, Paper, useTheme } from '@mui/material';
 // Components
 import MigrationResultsTable from '@/components/migration-results-table';
 import ShortcutsModal from '../../components/shortcuts-modal/shortcuts-modal';
+import UserTypeModalWrapper from '../../components/user-type-modal/UserTypeModalWrapper';
 import { Header } from './components/Header';
 import { LocationChips } from './components/LocationChips';
 import { SearchBar } from './components/SearchBar';
@@ -347,6 +348,7 @@ export default function PageContent() {
       </Paper>
 
       <ShortcutsModal open={state.showShortcutsModal} onClose={handleCloseShortcutsModal} />
+      <UserTypeModalWrapper />
     </Box>
   );
 }

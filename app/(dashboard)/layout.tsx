@@ -21,20 +21,20 @@ export default function Layout(props: { children: React.ReactNode }) {
   return (
     <ConnectivityProvider>
       <LocationProvider>
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              padding: 2,
-              bgcolor: isDarkMode ? 'background.default' : undefined,
-              color: isDarkMode ? 'text.primary' : undefined,
-            }}
-          >
-            {props.children}
-          </Box>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: 2,
+            bgcolor: isDarkMode ? 'background.default' : undefined,
+            color: isDarkMode ? 'text.primary' : undefined,
+          }}
+        >
+          {props.children}
+        </Box>
       </LocationProvider>
     </ConnectivityProvider>
   );
