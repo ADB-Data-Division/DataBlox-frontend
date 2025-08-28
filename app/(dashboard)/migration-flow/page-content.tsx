@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Container } from '@mui/material';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
 import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
@@ -261,6 +262,11 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
               height="800px"
             />
           </Box>
+        )}
+        
+        {/* Citation Footer - only show when visualizations are rendered */}
+        {!isEmpty && (
+          <CitationFooter />
         )}
       </Container>
     </Box>

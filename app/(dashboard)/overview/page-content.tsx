@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 import Scorecard from '../../../components/score-card/score-card';
 import { 
   ChartBar,
@@ -247,6 +248,10 @@ export default function PageContent() {
           Data last updated: {new Date().toLocaleDateString()}
         </Typography>
       </Box>
+
+      {!loading && data && (
+        <CitationFooter />
+      )}
     </Box>
   );
 }

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Box } from '@mui/material';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
 import MigrationContent from '../migration/migration-content';
@@ -104,6 +105,10 @@ const chartSetting = {
   return (
     <Box sx={{ width: '100%' }}>
 		<MigrationContent />
+		{/* Citation Footer - only show when visualizations are rendered */}
+		{!isEmpty && !isLoading && (
+		  <CitationFooter />
+		)}
 	</Box>
   );
 }

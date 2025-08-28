@@ -8,6 +8,7 @@ import * as d3 from 'd3';
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 import { Header } from '../components/Header';
 import { LocationChips } from '../components/LocationChips';
 import { SearchBar } from '../components/SearchBar';
@@ -935,6 +936,9 @@ export default function MigrationAnalysisPageContent() {
                 height={chartHeight}
               />
             </Box>
+            
+            {/* Citation Footer - only show when visualizations are rendered */}
+            <CitationFooter />
           </>
         )}
 

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Box, Typography } from '@mui/material';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
@@ -321,6 +322,9 @@ export default function InterProvincePageContent() {
             series={getFilteredSeries}
             {...chartSetting}
           />
+          
+          {/* Citation Footer - only show when visualizations are rendered */}
+          <CitationFooter />
         </Box>
         )}
       </Box>

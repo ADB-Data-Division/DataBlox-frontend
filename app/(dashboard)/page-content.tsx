@@ -15,6 +15,7 @@ import { LocationList } from './components/LocationList';
 import { SearchPagination } from './components/SearchPagination';
 import { SearchResultsSummary } from './components/SearchResultsSummary';
 import { ApiDisconnectedPage } from './components/ApiDisconnectedPage';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Hooks
 import { 
@@ -301,24 +302,29 @@ export default function PageContent() {
 
         {/* Success State with Results - Show when successful AND not loading migration data */}
         {state.queryExecutionState === 'success' && !migrationData.isLoading && (
-          <MigrationResultsTable
-            selectedLocations={state.selectedLocations}
-            selectedPeriod={state.selectedPeriod}
-            onNewSearch={handleReset}
-            onPeriodChange={handlePeriodChange}
-            mapNodes={migrationData.mapNodes}
-            mapConnections={migrationData.mapConnections}
-            apiResponse={migrationData.apiResponse}
-            loading={migrationData.isLoading}
-            error={migrationData.error}
-            onRetry={handleRetryMigrationData}
-            migrationThreshold={migrationThreshold}
-            onThresholdChange={setMigrationThreshold}
-            flowVisibility={flowVisibility}
-            onFlowVisibilityChange={setFlowVisibility}
-            edgeColors={edgeColors}
-            onEdgeColorsChange={setEdgeColors}
-          />
+          <>
+            <MigrationResultsTable
+              selectedLocations={state.selectedLocations}
+              selectedPeriod={state.selectedPeriod}
+              onNewSearch={handleReset}
+              onPeriodChange={handlePeriodChange}
+              mapNodes={migrationData.mapNodes}
+              mapConnections={migrationData.mapConnections}
+              apiResponse={migrationData.apiResponse}
+              loading={migrationData.isLoading}
+              error={migrationData.error}
+              onRetry={handleRetryMigrationData}
+              migrationThreshold={migrationThreshold}
+              onThresholdChange={setMigrationThreshold}
+              flowVisibility={flowVisibility}
+              onFlowVisibilityChange={setFlowVisibility}
+              edgeColors={edgeColors}
+              onEdgeColorsChange={setEdgeColors}
+            />
+            
+            {/* Citation Footer - only show when visualizations are rendered */}
+            <CitationFooter />
+          </>
         )}
 
         {/* Search Results - Only show when not in loading or success state */}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Button, Snackbar, Alert, Typography } from '@mui/material';
 import { ContentCopy } from '@mui/icons-material';
 
-const APA_CITATION = "Cordel, M., Smith, J., & Brown, A. (2025). Datablox: Thailand migration flow visualization. Asian Development Bank. Retrieved from " + (typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com');
+const APA_CITATION = "Data Division, Asian Development Bank. (2025). Enhancing Migration and Tourism Statistics using Mobile GPS Data [Dashboard]. Japan Fund for Prosperous and Resilient Asia and the Pacific (Technical Assistance 6856). Retrieved from " + (typeof window !== 'undefined' ? window.location.href : 'https://your-domain.com');
 
 const CitationFooter: React.FC = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -30,9 +30,9 @@ const CitationFooter: React.FC = () => {
   return (
     <Box
       sx={{
-        mt: 4,
+        mt: 2,
         py: 2,
-        px: 3,
+        px: 2,
         backgroundColor: '#f3f4f6',
         borderTop: '1px solid #e5e7eb',
         display: 'flex',
@@ -40,11 +40,12 @@ const CitationFooter: React.FC = () => {
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: 2,
+        borderRadius: 2,
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
-          variant="body2"
+          variant="caption"
           sx={{
             color: '#374151',
             fontSize: '14px',
