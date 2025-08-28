@@ -1,5 +1,5 @@
 /**
- * Main export file for Capacity Building Engine Migrations API models.
+ * Main export file for Datablox Engine Migrations API models.
  * This file provides a single entry point for all API types and utilities.
  */
 

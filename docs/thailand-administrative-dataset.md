@@ -1,6 +1,6 @@
 # Thailand Administrative Dataset Schema
 
-This document describes the JSON dataset schema for Thailand provinces and districts used in the capacity building visualization application.
+This document describes the JSON dataset schema for Thailand provinces and districts used in the Datablox visualization application.
 
 ## Overview
 

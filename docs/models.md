@@ -1,6 +1,6 @@
 # TypeScript Data Models
 
-This file contains TypeScript data models generated from the OpenAPI specification for the Capacity Building Engine Migrations API.
+This file contains TypeScript data models generated from the OpenAPI specification for the Datablox Engine Migrations API.
 
 ## Type Aliases
 

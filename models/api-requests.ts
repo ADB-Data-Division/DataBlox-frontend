@@ -1,5 +1,5 @@
 /**
- * Request and Response models for the Capacity Building Engine Migrations API.
+ * Request and Response models for the Datablox Engine Migrations API.
  */
 
 import { 

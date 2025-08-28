@@ -1,6 +1,6 @@
 /**
  * TypeScript data models generated from the OpenAPI specification 
- * for the Capacity Building Engine Migrations API.
+ * for the Datablox Engine Migrations API.
  */
 
 // ============================================================================

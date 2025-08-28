@@ -9,7 +9,7 @@ import {
 } from './types';
 
 /**
- * API Client for the Capacity Building Engine - Migrations API
+ * API Client for the Datablox Engine - Migrations API
  * Implements the OpenAPI 3.0.3 specification
  */
 export class MigrationAPIClient {

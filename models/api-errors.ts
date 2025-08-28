@@ -1,5 +1,5 @@
 /**
- * Error models for the Capacity Building Engine Migrations API.
+ * Error models for the Datablox Engine Migrations API.
  */
 
 // ============================================================================

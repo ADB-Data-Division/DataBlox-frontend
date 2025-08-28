@@ -1,6 +1,6 @@
 # Migration API TypeScript Models
 
-This directory contains TypeScript data models and utilities for the Capacity Building Engine Migrations API, generated from the OpenAPI specification.
+This directory contains TypeScript data models and utilities for the Datablox Engine Migrations API, generated from the OpenAPI specification.
 
 ## Overview
 

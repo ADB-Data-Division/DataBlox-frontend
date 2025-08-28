@@ -1,5 +1,5 @@
 /**
- * Utility functions and examples for the Capacity Building Engine Migrations API.
+ * Utility functions and examples for the Datablox Engine Migrations API.
  */
 
 import { 
