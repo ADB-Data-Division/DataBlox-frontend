@@ -13,6 +13,7 @@ import Script from 'next/script';
 import { UserTypeProvider } from './contexts/UserTypeContext';
 import FooterWrapper from '../components/FooterWrapper';
 import LogRocketInit from './components/LogRocketInit';
+import UserTypeModalWrapper from '../components/user-type-modal/UserTypeModalWrapper';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 
@@ -130,6 +131,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 <UserTypeProvider>
                   <LogRocketInit />
                   <ForceLightMode />
+                  <UserTypeModalWrapper />
                   <div style={{ 
                     backgroundColor: '#FAFBFD', 
                     color: '#1A1A1A',
