@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { filterItems } from '../../../src/utils/search';
-import { Location, getAllLocations } from '../helper';
+import { Location } from '../helper';
 import { LOCATION_CONSTRAINTS } from '../constraints';
 import { trackMigrationEvent, trackUserInteraction } from '../../../src/utils/analytics';
+import { useLocationContext } from '../../contexts';
 
 interface SearchPagination {
   currentPage: number;
@@ -16,32 +17,12 @@ export function useLocationSearch(
   selectedLocations: Location[],
   searchQuery: string
 ) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [allLocations, setAllLocations] = useState<Location[]>([]);
+  const { allLocations, isLoading, error } = useLocationContext();
   const [searchPagination, setSearchPagination] = useState<SearchPagination>({
     currentPage: 1,
     pageSize: 10,
     totalResults: 0
   });
-
-  // Load all locations on mount
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        setIsLoading(true);
-        const locations = await getAllLocations();
-        setAllLocations(locations);
-      } catch (error) {
-        console.error('Failed to load locations:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load locations');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadLocations();
-  }, []);
 
   const selectedIds = useMemo(() => 
     selectedLocations.map(loc => loc.id), 
@@ -149,7 +130,7 @@ export function useLocationSearch(
     filteredSubDistricts: paginatedResults.filter(item => item.category === 'subDistrict')
   }), [paginatedResults]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
     setSearchPagination(prev => ({ ...prev, currentPage: page }));
     trackMigrationEvent.changePage(page, totalFilteredResults);
   };
@@ -180,6 +161,7 @@ export function useLocationSearch(
     handlePageSizeChange,
     getFirstAvailableResult,
     isLoading,
-    error
+    error,
+    allLocations
   };
 }

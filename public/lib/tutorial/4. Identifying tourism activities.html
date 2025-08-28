@@ -1,0 +1,1477 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Identifying tourism activities &#8212; DataBlox-OD</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorial/4. Identifying tourism activities';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Annotating tourism activities" href="4.1.%20Annotating%20tourism%20activities.html" />
+    <link rel="prev" title="Identifying internal migration" href="3.%20Identifying%20internal%20migration.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Aug 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the documentation..."
+         aria-label="Search the documentation..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="DataBlox-OD - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="DataBlox-OD - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="1.%20Mapping%20pings%20to%20areas%20of%20interest.html">Mapping pings to areas of interest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2.%20Inferring%20device%20residence.html">Inferring device residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3.%20Identifying%20internal%20migration.html">Identifying internal migration</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Identifying tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4.1.%20Annotating%20tourism%20activities.html">Annotating tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5.%20Adjusting%20GPS%20counts.html">Adjusting GPS counts</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Case Studies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../case_study/1.%20Community%20tourism.html">Community tourism</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://datablox-ai.vercel.app/">DataBlox dashboard</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.display.html">datablox_od.display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.migration.html">datablox_od.migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.preprocessing.html">datablox_od.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.residence.html">datablox_od.residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.scaling.html">datablox_od.scaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.shared.html">datablox_od.shared</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.tourism.html">datablox_od.tourism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.trajectory.html">datablox_od.trajectory</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/tutorial/4. Identifying tourism activities.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Identifying tourism activities</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-detecting-staypoints">I. Detecting staypoints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ii-identifying-staypoints-in-the-districts-of-residence">II. Identifying staypoints in the districts of residence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iii-identifying-trips">III. Identifying trips</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iv-identifying-tourism-trips">IV. Identifying tourism trips</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="identifying-tourism-activities">
+<h1>Identifying tourism activities<a class="headerlink" href="#identifying-tourism-activities" title="Link to this heading">#</a></h1>
+<p>Load the necessary libraries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datablox_od</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+</pre></div>
+</div>
+</div>
+</div>
+<p>Folder names</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">SAMPLE_DATA_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_data&quot;</span><span class="p">)</span>
+<span class="n">SAMPLE_OUTPUT_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_output&quot;</span><span class="p">)</span>
+
+<span class="n">STAYPOINTS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;staypoints&quot;</span><span class="p">)</span>
+<span class="n">TRIPS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;trips&quot;</span><span class="p">)</span>
+<span class="n">TOURISM_TRIPS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;tourism_trips&quot;</span>
+<span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr><section id="i-detecting-staypoints">
+<h2>I. Detecting staypoints<a class="headerlink" href="#i-detecting-staypoints" title="Link to this heading">#</a></h2>
+<p>We start by first identifying staypoints (locations where a person stayed for some period of time). Examples of staypoints include one’s place of residence, workplace, and visited tourist attractions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">PINGS_FOR_TOURISM_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;pings_per_device&quot;</span>
+<span class="p">)</span>
+<span class="n">h3_to_area</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;h3_to_area.parquet&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We write utility functions for:</p>
+<ul class="simple">
+<li><p>Identifying staypoints using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.trajectory.detect_staypoints()</span></code></p></li>
+<li><p>Mapping these staypoints to Thailand’s administrative boundaries using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.preprocessing.map_pings_to_areas()</span></code></p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">detect_staypoints_and_map_to_administrative_regions</span><span class="p">(</span>
+    <span class="n">pings_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">skip_if_staypoints_file_exists</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If no staypoints are detected, no output file is written and nothing is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">skip_if_staypoints_file_exists</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">pings_file</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">pings</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PINGS_FOR_TOURISM_DIRECTORY</span><span class="p">,</span> <span class="n">pings_file</span><span class="p">))</span>
+    <span class="n">staypoints</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">detect_staypoints</span><span class="p">(</span>
+        <span class="n">pings</span><span class="p">,</span>
+        <span class="n">coordinates_column</span><span class="o">=</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+        <span class="n">timestamp_column</span><span class="o">=</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+        <span class="n">max_distance_between_pings_in_km</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">min_length_of_stay_in_minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">max_days_between_two_consecutive_pings</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">staypoints</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;device_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">pings_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+        <span class="n">staypoints</span> <span class="o">=</span> <span class="n">map_to_administrative_regions</span><span class="p">(</span><span class="n">staypoints</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="n">staypoints</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">pings_file</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">staypoints</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">map_to_administrative_regions</span><span class="p">(</span><span class="n">staypoints</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="n">staypoints</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">map_pings_to_areas</span><span class="p">(</span>
+        <span class="n">staypoints</span><span class="p">,</span>
+        <span class="n">h3_to_area</span><span class="p">,</span>
+        <span class="n">spatial_index_column</span><span class="o">=</span><span class="s2">&quot;h3_cell&quot;</span><span class="p">,</span>
+        <span class="n">device_id_column</span><span class="o">=</span><span class="s2">&quot;device_id&quot;</span><span class="p">,</span>
+        <span class="n">coordinates_column</span><span class="o">=</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+        <span class="n">timestamp_column</span><span class="o">=</span><span class="s2">&quot;time_arrive&quot;</span><span class="p">,</span>
+        <span class="n">spatial_indexing_system</span><span class="o">=</span><span class="s2">&quot;h3&quot;</span><span class="p">,</span>
+        <span class="n">spatial_index_resolution</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM1_EN&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span>
+    <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM3_EN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM3_EN&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">staypoints</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Just for illustrative purposes, consider the pings from the device with ID <code class="docutils literal notranslate"><span class="pre">B79C7F07-A0EC-4568-A5E3-1FFB061AA679</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pings</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">PINGS_FOR_TOURISM_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;B79C7F07-A0EC-4568-A5E3-1FFB061AA679.parquet&quot;</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">pings</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>device_id</th>
+      <th>timestamp</th>
+      <th>h3</th>
+      <th>ADM3_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM1_EN</th>
+      <th>geometry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>491316</th>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>2024-05-01 07:20:41</td>
+      <td>88658aaad1fffff</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong</td>
+      <td>POINT (101.19907 13.05344)</td>
+    </tr>
+    <tr>
+      <th>410932</th>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>2024-05-01 07:20:46</td>
+      <td>88658aaad1fffff</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong</td>
+      <td>POINT (101.19908 13.05342)</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2110360</th>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>2024-12-01 06:23:20</td>
+      <td>88658aaad1fffff</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong</td>
+      <td>POINT (101.19767 13.05416)</td>
+    </tr>
+    <tr>
+      <th>95195</th>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>2024-12-01 06:43:18</td>
+      <td>88658aaad1fffff</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong</td>
+      <td>POINT (101.19766 13.05416)</td>
+    </tr>
+  </tbody>
+</table>
+<p>37075 rows × 7 columns</p>
+</div></div></div>
+</div>
+<p>From these pings, we identify the staypoints.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">detect_staypoints_and_map_to_administrative_regions</span><span class="p">(</span>
+    <span class="s2">&quot;B79C7F07-A0EC-4568-A5E3-1FFB061AA679.parquet&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">skip_if_staypoints_file_exists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2024-05-01 07:20:41</td>
+      <td>2024-05-01 17:16:14</td>
+      <td>108</td>
+      <td>595.550000</td>
+      <td>POINT (101.19328 13.04791)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aaadbfffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2024-05-01 17:27:25</td>
+      <td>2024-05-01 19:25:08</td>
+      <td>40</td>
+      <td>117.716667</td>
+      <td>POINT (101.20227 13.01753)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa113fffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Pluak Daeng</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>704</th>
+      <td>2024-11-30 15:26:48</td>
+      <td>2024-11-30 16:11:41</td>
+      <td>26</td>
+      <td>44.883333</td>
+      <td>POINT (100.61187 14.31917)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a408ddfffff</td>
+      <td>Phra Nakhon Si Ayutthaya</td>
+      <td>Phra Nakhon Si Ayutthaya#Bang Pa-In</td>
+      <td>Phra Nakhon Si Ayutthaya#Bang Pa-In#Ban Krot</td>
+    </tr>
+    <tr>
+      <th>705</th>
+      <td>2024-11-30 20:04:50</td>
+      <td>2024-11-30 22:49:16</td>
+      <td>10</td>
+      <td>164.433333</td>
+      <td>POINT (100.47945 13.94505)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a4ab5dfffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Pak Kret</td>
+      <td>Nonthaburi#Pak Kret#Khlong Khoi</td>
+    </tr>
+  </tbody>
+</table>
+<p>706 rows × 10 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to identify the staypoints of all the devices in our dataset. To speed this up, we employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">detect_staypoints_and_map_to_administrative_regions</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">PINGS_FOR_TOURISM_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr></section>
+<section id="ii-identifying-staypoints-in-the-districts-of-residence">
+<h2>II. Identifying staypoints in the districts of residence<a class="headerlink" href="#ii-identifying-staypoints-in-the-districts-of-residence" title="Link to this heading">#</a></h2>
+<p>The importance of staypoints is in their semantic labels, that is, they can be a person’s place of residence, workplace, or visited tourist attractions, among others.</p>
+<p>For now, we are interested in identifying which staypoints fall inside each device’s district of residence. This information will be used later on to identify trips.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">RESIDENCE_FOR_TOURISM_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;residence&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">identify_staypoints_in_residence</span><span class="p">(</span><span class="n">staypoints_file</span><span class="p">,</span> <span class="n">skip_if_staypoints_labeled</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">skip_if_staypoints_labeled</span>
+        <span class="ow">and</span> <span class="s2">&quot;is_staypoint_in_district_of_residence&quot;</span>
+        <span class="ow">in</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">names</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">staypoints</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">))</span>
+
+    <span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;is_staypoint_in_district_of_residence&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">staypoints_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+
+    <span class="k">for</span> <span class="n">residence_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">RESIDENCE_FOR_TOURISM_DIRECTORY</span><span class="p">):</span>
+        <span class="n">year</span><span class="p">,</span> <span class="n">month</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">residence_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">))</span>
+        <span class="n">residence</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">RESIDENCE_FOR_TOURISM_DIRECTORY</span><span class="p">,</span> <span class="n">residence_file</span><span class="p">),</span>
+            <span class="n">filters</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;device_id&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">device</span><span class="p">)],</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">residence</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">residence</span> <span class="o">=</span> <span class="n">residence</span><span class="p">[</span><span class="s2">&quot;residence&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">staypoints</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                <span class="p">(</span><span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;time_arrive&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="n">year</span><span class="p">)</span>
+                <span class="o">&amp;</span> <span class="p">(</span><span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;time_arrive&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">month</span><span class="p">)</span>
+                <span class="o">&amp;</span> <span class="p">(</span><span class="n">staypoints</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">residence</span><span class="p">),</span>
+                <span class="s2">&quot;is_staypoint_in_district_of_residence&quot;</span><span class="p">,</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">staypoints</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">staypoints</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Just for illustrative purposes, we identify which staypoints of the device with ID <code class="docutils literal notranslate"><span class="pre">B79C7F07-A0EC-4568-A5E3-1FFB061AA679</span></code> fall inside its distrct of residence.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">identify_staypoints_in_residence</span><span class="p">(</span>
+    <span class="s2">&quot;B79C7F07-A0EC-4568-A5E3-1FFB061AA679.parquet&quot;</span><span class="p">,</span>
+    <span class="n">skip_if_staypoints_labeled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>is_staypoint_in_district_of_residence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2024-05-01 07:20:41</td>
+      <td>2024-05-01 17:16:14</td>
+      <td>108</td>
+      <td>595.550000</td>
+      <td>POINT (101.19328 13.04791)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aaadbfffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2024-05-01 17:27:25</td>
+      <td>2024-05-01 19:25:08</td>
+      <td>40</td>
+      <td>117.716667</td>
+      <td>POINT (101.20227 13.01753)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa113fffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Pluak Daeng</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>704</th>
+      <td>2024-11-30 15:26:48</td>
+      <td>2024-11-30 16:11:41</td>
+      <td>26</td>
+      <td>44.883333</td>
+      <td>POINT (100.61187 14.31917)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a408ddfffff</td>
+      <td>Phra Nakhon Si Ayutthaya</td>
+      <td>Phra Nakhon Si Ayutthaya#Bang Pa-In</td>
+      <td>Phra Nakhon Si Ayutthaya#Bang Pa-In#Ban Krot</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>705</th>
+      <td>2024-11-30 20:04:50</td>
+      <td>2024-11-30 22:49:16</td>
+      <td>10</td>
+      <td>164.433333</td>
+      <td>POINT (100.47945 13.94505)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a4ab5dfffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Pak Kret</td>
+      <td>Nonthaburi#Pak Kret#Khlong Khoi</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+<p>706 rows × 11 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to perform this step for all the devices in our dataset. To speed this up, we again employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">identify_staypoints_in_residence</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr></section>
+<section id="iii-identifying-trips">
+<h2>III. Identifying trips<a class="headerlink" href="#iii-identifying-trips" title="Link to this heading">#</a></h2>
+<p>The United Nations’ <a class="reference external" href="https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf"><em>International Recommendation for Tourism Statistics 2008</em></a> defines a trip as a “travel by a person from the time of departure from his usual residence until he/she returns” (paragraph 2.7).</p>
+<p>In this tutorial, we equate a device’s usual residence to its district of residence.</p>
+<p>We write a utility function using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.tourism.identify_trips()</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">identify_trips</span><span class="p">(</span><span class="n">staypoints_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">skip_if_trips_file_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If no trips are identified, no output file is written and nothing is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">skip_if_trips_file_exists</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">staypoints</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">))</span>
+    <span class="n">trips</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">tourism</span><span class="o">.</span><span class="n">identify_trips</span><span class="p">(</span>
+        <span class="n">staypoints</span><span class="p">,</span>
+        <span class="n">arrival_time_column</span><span class="o">=</span><span class="s2">&quot;time_arrive&quot;</span><span class="p">,</span>
+        <span class="n">departure_time_column</span><span class="o">=</span><span class="s2">&quot;time_depart&quot;</span><span class="p">,</span>
+        <span class="n">residence_column</span><span class="o">=</span><span class="s2">&quot;is_staypoint_in_district_of_residence&quot;</span><span class="p">,</span>
+        <span class="n">max_days_between_two_consecutive_staypoints</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">trips</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">trips</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">staypoints_file</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">trips</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Just for illustrative purposes, we identify the trips taken by the device with ID <code class="docutils literal notranslate"><span class="pre">B79C7F07-A0EC-4568-A5E3-1FFB061AA679</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">identify_trips</span><span class="p">(</span>
+    <span class="s2">&quot;B79C7F07-A0EC-4568-A5E3-1FFB061AA679.parquet&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">skip_if_trips_file_exists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>is_staypoint_in_district_of_residence</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2024-05-01 17:27:25</td>
+      <td>2024-05-01 19:25:08</td>
+      <td>40</td>
+      <td>117.716667</td>
+      <td>POINT (101.20227 13.01753)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa113fffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Pluak Daeng</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>2024-05-01 19:28:46</td>
+      <td>2024-05-02 11:54:36</td>
+      <td>118</td>
+      <td>985.833333</td>
+      <td>POINT (101.19361 13.05194)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aaad3fffff</td>
+      <td>Chon Buri</td>
+      <td>Chon Buri#Si Racha</td>
+      <td>Chon Buri#Si Racha#Khao Khan Song</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>2024-11-29 14:41:42</td>
+      <td>2024-11-29 15:28:03</td>
+      <td>10</td>
+      <td>46.350000</td>
+      <td>POINT (100.67193 14.35126)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a4082bfffff</td>
+      <td>Phra Nakhon Si Ayutthaya</td>
+      <td>Phra Nakhon Si Ayutthaya#Uthai</td>
+      <td>Phra Nakhon Si Ayutthaya#Uthai#Uthai</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>2024-11-29 19:46:17</td>
+      <td>2024-11-29 23:07:14</td>
+      <td>28</td>
+      <td>200.950000</td>
+      <td>POINT (101.26586 12.96887)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa305fffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Pluak Daeng</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+<p>610 rows × 11 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to identify the trips taken by all the devices in our dataset. To speed this up, we again employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">identify_trips</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">STAYPOINTS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr></section>
+<section id="iv-identifying-tourism-trips">
+<h2>IV. Identifying tourism trips<a class="headerlink" href="#iv-identifying-tourism-trips" title="Link to this heading">#</a></h2>
+<p>Finally, we now identify which among our trips are tourism trips.</p>
+<p>We write a utility function using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.tourism.identify_tourism_trips()</span></code>. Note that this function returns two data frames: the trips and the statistics on each of them (for example, trip duration).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">identify_tourism_trips</span><span class="p">(</span><span class="n">trips_file</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">skip_if_tourism_trips_file_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If no trips are identified, no output file is written and nothing is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">skip_if_tourism_trips_file_exists</span>
+        <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">trips_file</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">trips_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">-statistics.parquet&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">trips</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">trips_file</span><span class="p">))</span>
+    <span class="n">tourism_trips</span><span class="p">,</span> <span class="n">statistics</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">tourism</span><span class="o">.</span><span class="n">identify_tourism_trips</span><span class="p">(</span>
+        <span class="n">trips</span><span class="p">,</span>
+        <span class="n">coordinates_column</span><span class="o">=</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+        <span class="n">arrival_time_column</span><span class="o">=</span><span class="s2">&quot;time_arrive&quot;</span><span class="p">,</span>
+        <span class="n">departure_time_column</span><span class="o">=</span><span class="s2">&quot;time_depart&quot;</span><span class="p">,</span>
+        <span class="c1"># Tourism trips should involve visiting another province</span>
+        <span class="n">administrative_region_column</span><span class="o">=</span><span class="s2">&quot;ADM1_EN&quot;</span><span class="p">,</span>
+        <span class="n">trip_history_length_in_months</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">max_frequency_in_trip_history</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">max_trip_duration_in_days</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">min_distance_from_origin_in_km</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tourism_trips</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">tourism_trips</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">trips_file</span><span class="p">))</span>
+        <span class="n">statistics</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">trips_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">-statistics.parquet&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tourism_trips</span><span class="p">,</span> <span class="n">statistics</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Just for illustrative purposes, we identify the tourism trips taken by the device with ID <code class="docutils literal notranslate"><span class="pre">B79C7F07-A0EC-4568-A5E3-1FFB061AA679</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tourism_trips</span><span class="p">,</span> <span class="n">tourism_trip_statistics</span> <span class="o">=</span> <span class="n">identify_tourism_trips</span><span class="p">(</span>
+    <span class="s2">&quot;B79C7F07-A0EC-4568-A5E3-1FFB061AA679.parquet&quot;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">skip_if_tourism_trips_file_exists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tourism_trips</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>is_staypoint_in_district_of_residence</th>
+      <th>distance_from_origin_in_km</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2024-05-07 14:38:10</td>
+      <td>2024-05-07 19:14:35</td>
+      <td>27</td>
+      <td>276.416667</td>
+      <td>POINT (101.19222 13.04789)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aaadbfffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Ta Sit</td>
+      <td>True</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2024-05-07 19:40:13</td>
+      <td>2024-05-07 21:28:49</td>
+      <td>12</td>
+      <td>108.600000</td>
+      <td>POINT (101.18386 13.0519)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa1a5fffff</td>
+      <td>Chon Buri</td>
+      <td>Chon Buri#Si Racha</td>
+      <td>Chon Buri#Si Racha#Khao Khan Song</td>
+      <td>False</td>
+      <td>1.008752</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>2024-11-29 14:41:42</td>
+      <td>2024-11-29 15:28:03</td>
+      <td>10</td>
+      <td>46.350000</td>
+      <td>POINT (100.67193 14.35126)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>8864a4082bfffff</td>
+      <td>Phra Nakhon Si Ayutthaya</td>
+      <td>Phra Nakhon Si Ayutthaya#Uthai</td>
+      <td>Phra Nakhon Si Ayutthaya#Uthai#Uthai</td>
+      <td>False</td>
+      <td>154.362889</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>2024-11-29 19:46:17</td>
+      <td>2024-11-29 23:07:14</td>
+      <td>28</td>
+      <td>200.950000</td>
+      <td>POINT (101.26586 12.96887)</td>
+      <td>B79C7F07-A0EC-4568-A5E3-1FFB061AA679</td>
+      <td>88658aa305fffff</td>
+      <td>Rayong</td>
+      <td>Rayong#Pluak Daeng</td>
+      <td>Rayong#Pluak Daeng#Pluak Daeng</td>
+      <td>True</td>
+      <td>11.990752</td>
+    </tr>
+  </tbody>
+</table>
+<p>300 rows × 12 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tourism_trip_statistics</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>num_administrative_regions_visited</th>
+      <th>trip_duration_in_days</th>
+      <th>farthest_distance_from_origin_in_km</th>
+      <th>trip_frequency</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2</td>
+      <td>1.326979</td>
+      <td>155.872766</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>3</td>
+      <td>0.471389</td>
+      <td>153.863722</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>111</th>
+      <td>2</td>
+      <td>0.606065</td>
+      <td>153.861290</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>4</td>
+      <td>6.537083</td>
+      <td>156.356792</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>35 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to identify the tourism trips taken by all the devices in our dataset. To speed this up, we again employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">identify_tourism_trips</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>In summary, identifying tourism trips from raw GPS pings involves four steps:</p>
+<ol class="arabic simple">
+<li><p>Detect staypoints (locations where a device stayed for some period of time)</p></li>
+<li><p>Identify which staypoints are associated with the device’s usual residence</p></li>
+<li><p>Identify trips (travels that start and end at the device’s usual residence)</p></li>
+<li><p>Identify which trips are tourism trips</p></li>
+</ol>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./tutorial"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="3.%20Identifying%20internal%20migration.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Identifying internal migration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="4.1.%20Annotating%20tourism%20activities.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Annotating tourism activities</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-detecting-staypoints">I. Detecting staypoints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ii-identifying-staypoints-in-the-districts-of-residence">II. Identifying staypoints in the districts of residence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iii-identifying-trips">III. Identifying trips</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iv-identifying-tourism-trips">IV. Identifying tourism trips</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Data Division, Economic Research and Development Impact Department, Asian Development Bank
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Aug 26, 2025.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

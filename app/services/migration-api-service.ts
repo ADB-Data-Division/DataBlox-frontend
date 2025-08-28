@@ -247,6 +247,7 @@ export class MigrationAPIService {
    * Get metadata and convert to Location objects for backward compatibility
    */
   async getAvailableLocations(): Promise<{
+    isHealthy: boolean;
     provinces: Location[];
     districts: Location[];
     subDistricts: Location[];
@@ -279,6 +280,7 @@ export class MigrationAPIService {
       }));
 
       return {
+        isHealthy: true,
         provinces,
         districts,
         subDistricts
@@ -288,23 +290,11 @@ export class MigrationAPIService {
       
       // Return empty arrays if API fails
       return {
+        isHealthy: false,
         provinces: [],
         districts: [],
         subDistricts: []
       };
-    }
-  }
-
-  /**
-   * Health check for the API
-   */
-  async isAPIHealthy(): Promise<boolean> {
-    try {
-      await metadataService.getMetadata();
-      return true;
-    } catch (error) {
-      console.error('API health check failed:', error);
-      return false;
     }
   }
 }

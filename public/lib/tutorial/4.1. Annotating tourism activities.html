@@ -1,0 +1,3069 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Annotating tourism activities &#8212; DataBlox-OD</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorial/4.1. Annotating tourism activities';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Adjusting GPS counts" href="5.%20Adjusting%20GPS%20counts.html" />
+    <link rel="prev" title="Identifying tourism activities" href="4.%20Identifying%20tourism%20activities.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Aug 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the documentation..."
+         aria-label="Search the documentation..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="DataBlox-OD - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="DataBlox-OD - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="1.%20Mapping%20pings%20to%20areas%20of%20interest.html">Mapping pings to areas of interest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2.%20Inferring%20device%20residence.html">Inferring device residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3.%20Identifying%20internal%20migration.html">Identifying internal migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4.%20Identifying%20tourism%20activities.html">Identifying tourism activities</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Annotating tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5.%20Adjusting%20GPS%20counts.html">Adjusting GPS counts</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Case Studies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../case_study/1.%20Community%20tourism.html">Community tourism</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://datablox-ai.vercel.app/">DataBlox dashboard</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.display.html">datablox_od.display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.migration.html">datablox_od.migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.preprocessing.html">datablox_od.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.residence.html">datablox_od.residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.scaling.html">datablox_od.scaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.shared.html">datablox_od.shared</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.tourism.html">datablox_od.tourism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.trajectory.html">datablox_od.trajectory</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/tutorial/4.1. Annotating tourism activities.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Annotating tourism activities</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-main-tourist-attractions">I. Main tourist attractions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ii-communities">II. Communities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iii-tourism-industries">III. Tourism industries</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transportation">Transportation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#accommodation">Accommodation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#food-and-beverages">Food and beverages</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="annotating-tourism-activities">
+<h1>Annotating tourism activities<a class="headerlink" href="#annotating-tourism-activities" title="Link to this heading">#</a></h1>
+<p>Load the necessary libraries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datablox_od</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+</pre></div>
+</div>
+</div>
+</div>
+<p>Folder names</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">SAMPLE_DATA_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_data&quot;</span><span class="p">)</span>
+<span class="n">SAMPLE_OUTPUT_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_output&quot;</span><span class="p">)</span>
+
+<span class="n">STAYPOINTS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;staypoints&quot;</span><span class="p">)</span>
+<span class="n">TOURISM_TRIPS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;tourism_trips&quot;</span>
+<span class="p">)</span>
+<span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">SAMPLE_OUTPUT_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;annotated_tourism_trips&quot;</span>
+<span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Constants</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">PROJECTED_CRS</span> <span class="o">=</span> <span class="mi">32647</span>
+<span class="n">WGS84_EPSG</span> <span class="o">=</span> <span class="mi">4326</span>
+
+<span class="c1"># We define &quot;nearby&quot; as being within a 2-km radius</span>
+<span class="n">NEARBY_IN_METERS</span> <span class="o">=</span> <span class="mi">2000</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Throughout this tutorial, we will be using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.preprocessing.get_nearby_places()</span></code> to associate the staypoints in each tourism trip with nearby main tourist attractions, communities, and tourism industries.</p>
+<hr><section id="i-main-tourist-attractions">
+<h2>I. Main tourist attractions<a class="headerlink" href="#i-main-tourist-attractions" title="Link to this heading">#</a></h2>
+<p>We refer to the list of tourist attractions from the <a class="reference external" href="https://www.tourismthailand.org/Destinations">website of the Tourism Authority of Thailand</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;tourist_attraction_categories.json&quot;</span><span class="p">)</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">typology</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">classify_tourist_attraction</span><span class="p">(</span><span class="n">tourist_attraction_types</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classify the tourist attractions into four categories: entertainment, nature, cultural, and services.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attraction_categories</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">tourist_attraction_type</span> <span class="ow">in</span> <span class="n">tourist_attraction_types</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">tourist_attraction_type</span> <span class="o">=</span> <span class="n">tourist_attraction_type</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tourist_attraction_type</span> <span class="ow">in</span> <span class="n">typology</span><span class="p">:</span>
+            <span class="n">attraction_categories</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">typology</span><span class="p">[</span><span class="n">tourist_attraction_type</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">attraction_categories</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_main_tourist_attractions</span><span class="p">():</span>
+    <span class="n">main_tourist_attractions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;thailand_tourist_attractions.parquet&quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">main_tourist_attractions</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span>
+            <span class="n">main_tourist_attractions</span><span class="p">,</span>
+            <span class="n">geometry</span><span class="o">=</span><span class="n">gpd</span><span class="o">.</span><span class="n">points_from_xy</span><span class="p">(</span>
+                <span class="n">main_tourist_attractions</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">],</span>
+                <span class="n">main_tourist_attractions</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">crs</span><span class="o">=</span><span class="n">WGS84_EPSG</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="c1"># For the purposes of this tutorial, we exclude tourist attractions with type &quot;Other&quot;</span>
+    <span class="c1"># We also exclude those with type &quot;Suburban Living&quot; since we are handling communities separately</span>
+    <span class="n">main_tourist_attractions</span> <span class="o">=</span> <span class="n">main_tourist_attractions</span><span class="p">[</span>
+        <span class="o">~</span><span class="n">main_tourist_attractions</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">&quot;Other&quot;</span><span class="p">,</span> <span class="s2">&quot;Suburban Living&quot;</span><span class="p">])</span>
+    <span class="p">]</span>
+    <span class="n">main_tourist_attractions</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">main_tourist_attractions</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="n">classify_tourist_attraction</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">main_tourist_attractions</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_main_tourist_attractions</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">main_tourist_attractions</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">main_tourist_attractions</span> <span class="o">=</span> <span class="n">main_tourist_attractions</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;attraction&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;attraction&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_main_tourist_attractions&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_main_tourist_attraction_types&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_main_tourist_attraction_categories&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">main_tourist_attractions</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">main_tourist_attractions</span> <span class="o">=</span> <span class="n">process_main_tourist_attractions</span><span class="p">()</span>
+<span class="n">main_tourist_attractions</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>attraction</th>
+      <th>url</th>
+      <th>address</th>
+      <th>type</th>
+      <th>geometry</th>
+      <th>category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>The Grand Palace</td>
+      <td>https://www.tourismthailand.org/Attraction/the...</td>
+      <td>Phra Borom Maha Ratchawang Phra Nakhon Bangkok...</td>
+      <td>Historical Sites &amp; Monuments/Royal Palace/Temple</td>
+      <td>POINT (100.49129 13.74983)</td>
+      <td>{Cultural}</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Mon Cham</td>
+      <td>https://www.tourismthailand.org/Attraction/mon...</td>
+      <td>Mae Raem Mae Rim Chiang Mai 50180</td>
+      <td>Mountain (Doi)</td>
+      <td>POINT (98.8228 18.93591)</td>
+      <td>{Nature}</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3457</th>
+      <td>Phu Sang National Park</td>
+      <td>https://www.tourismthailand.org/Attraction/phu...</td>
+      <td>Moo 10 Thung Kluai Phu Sang Phayao 56110</td>
+      <td>National Parks &amp; Marine Reserves/Green Travel</td>
+      <td>POINT (100.41191 19.61597)</td>
+      <td>{Nature}</td>
+    </tr>
+    <tr>
+      <th>3460</th>
+      <td>Wat Wang Khanai Thayikaram Hot Well</td>
+      <td>https://www.tourismthailand.org/Attraction/wat...</td>
+      <td>Wang Khanai Tha Muang Kanchanaburi 71110</td>
+      <td>Hot Spring</td>
+      <td>POINT (99.64955 13.95123)</td>
+      <td>{Nature}</td>
+    </tr>
+  </tbody>
+</table>
+<p>3245 rows × 6 columns</p>
+</div></div></div>
+</div>
+<p>Just for illustrative purposes, we annotate the tourism trips of the device with ID <code class="docutils literal notranslate"><span class="pre">C8AF1957-7F70-421E-AB7D-817C5F9BA71E</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_main_tourist_attractions</span><span class="p">(</span>
+    <span class="s2">&quot;C8AF1957-7F70-421E-AB7D-817C5F9BA71E.parquet&quot;</span><span class="p">,</span>
+    <span class="n">main_tourist_attractions</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span>
+    <span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_main_tourist_attractions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">!=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">!=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>is_staypoint_in_district_of_residence</th>
+      <th>distance_from_origin_in_km</th>
+      <th>nearby_main_tourist_attractions</th>
+      <th>nearby_main_tourist_attraction_types</th>
+      <th>nearby_main_tourist_attraction_categories</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2023-08-08 17:57:47</td>
+      <td>2023-08-10 06:57:52</td>
+      <td>219</td>
+      <td>2220.083333</td>
+      <td>POINT (100.32378 13.81158)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>True</td>
+      <td>0.000000</td>
+      <td>[The Salaya, Kanchanapisek Non-Formal Educatio...</td>
+      <td>[Shopping/Museums/Art &amp; Craft Centres/River, C...</td>
+      <td>[{Entertainment, Services, Nature, Cultural}, ...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2023-08-10 07:02:37</td>
+      <td>2023-08-10 08:30:55</td>
+      <td>16</td>
+      <td>88.300000</td>
+      <td>POINT (100.58301 13.72792)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a48489fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Vadhana</td>
+      <td>Bangkok#Vadhana#Khlong Tan Nuea</td>
+      <td>False</td>
+      <td>29.522016</td>
+      <td>[Stanley Mini Venture, Science Center For Educ...</td>
+      <td>[Art Galleries , Educational museums, Sports V...</td>
+      <td>[{Cultural}, {Cultural}, {Nature, Entertainmen...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 10:25:04</td>
+      <td>2024-01-22 15:52:16</td>
+      <td>33</td>
+      <td>327.200000</td>
+      <td>POINT (100.32374 13.81153)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>True</td>
+      <td>0.000000</td>
+      <td>[The Salaya, Kanchanapisek Non-Formal Educatio...</td>
+      <td>[Shopping/Museums/Art &amp; Craft Centres/River, C...</td>
+      <td>[{Entertainment, Services, Nature, Cultural}, ...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 21:40:43</td>
+      <td>2024-01-23 09:15:34</td>
+      <td>34</td>
+      <td>694.850000</td>
+      <td>POINT (100.32376 13.81156)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>True</td>
+      <td>0.003369</td>
+      <td>[The Salaya, Kanchanapisek Non-Formal Educatio...</td>
+      <td>[Shopping/Museums/Art &amp; Craft Centres/River, C...</td>
+      <td>[{Entertainment, Services, Nature, Cultural}, ...</td>
+    </tr>
+  </tbody>
+</table>
+<p>95 rows × 15 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to annotate the tourism trips taken by all the devices in our dataset. To speed this up, we employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_main_tourist_attractions</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">main_tourist_attractions</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr></section>
+<section id="ii-communities">
+<h2>II. Communities<a class="headerlink" href="#ii-communities" title="Link to this heading">#</a></h2>
+<p>We refer to the list of communities from the Tourism Authority of Thailand.</p>
+<p>Since we do not have the exact coordinates of the communities, we associate the staypoints with the communities in their respective subdistricts.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_communities</span><span class="p">():</span>
+    <span class="n">communities</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;thailand_communities.csv&quot;</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;Subdistrict&quot;</span><span class="p">:</span> <span class="s2">&quot;ADM3_EN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;District&quot;</span><span class="p">:</span> <span class="s2">&quot;ADM2_EN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Province&quot;</span><span class="p">:</span> <span class="s2">&quot;ADM1_EN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Community&quot;</span><span class="p">:</span> <span class="s2">&quot;community&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM1_EN&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span>
+    <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM3_EN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM2_EN&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">communities</span><span class="p">[</span><span class="s2">&quot;ADM3_EN&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">communities</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_communities</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">communities</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">communities</span> <span class="o">=</span> <span class="n">communities</span><span class="p">[[</span><span class="s2">&quot;community&quot;</span><span class="p">,</span> <span class="s2">&quot;ADM3_EN&quot;</span><span class="p">]]</span>
+
+    <span class="c1"># Create a unique index for each staypoint</span>
+    <span class="n">tourism_trip_orig</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">tourism_trip_orig</span><span class="p">,</span> <span class="n">communities</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;community&quot;</span><span class="p">:</span> <span class="s2">&quot;communities_in_subdistrict&quot;</span><span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">tourism_trip</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tourism_trip</span><span class="o">.</span><span class="n">index</span><span class="p">)[</span>
+        <span class="p">[</span><span class="s2">&quot;communities_in_subdistrict&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">tourism_trip_orig</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tourism_trip</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;trip_id&quot;</span><span class="p">)</span>
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">communities</span> <span class="o">=</span> <span class="n">process_communities</span><span class="p">()</span>
+<span class="n">communities</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Region</th>
+      <th>community</th>
+      <th>ADM3_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM1_EN</th>
+      <th>Reference</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Northern</td>
+      <td>Ontai Community</td>
+      <td>Chiang Mai#San Kamphaeng#On Tai</td>
+      <td>Chiang Mai#San Kamphaeng</td>
+      <td>Chiang Mai</td>
+      <td>https://www.businesseventsthailand.com/en/supp...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Northern</td>
+      <td>Ban Rai Kong Khing community</td>
+      <td>Chiang Mai#Hang Dong#Nong Khwai</td>
+      <td>Chiang Mai#Hang Dong</td>
+      <td>Chiang Mai</td>
+      <td>https://7greens.tourismthailand.org/en/2020/08...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>41</th>
+      <td>Southern</td>
+      <td>Bang Rong Community</td>
+      <td>Phuket#Thalang#Pa Khlok</td>
+      <td>Phuket#Thalang</td>
+      <td>Phuket</td>
+      <td>https://visitandamanlocal.com/provinces/destin...</td>
+    </tr>
+    <tr>
+      <th>42</th>
+      <td>Southern</td>
+      <td>Ban Wang Hon Community</td>
+      <td>Nakhon Si Thammarat#Cha-Uat#Wang Ang</td>
+      <td>Nakhon Si Thammarat#Cha-Uat</td>
+      <td>Nakhon Si Thammarat</td>
+      <td>https://www.tourismthailand.org/Attraction/ban...</td>
+    </tr>
+  </tbody>
+</table>
+<p>43 rows × 6 columns</p>
+</div></div></div>
+</div>
+<p>Just for illustrative purposes, we annotate the tourism trips of the device with ID <code class="docutils literal notranslate"><span class="pre">C8AF1957-7F70-421E-AB7D-817C5F9BA71E</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_communities</span><span class="p">(</span>
+    <span class="s2">&quot;C8AF1957-7F70-421E-AB7D-817C5F9BA71E.parquet&quot;</span><span class="p">,</span>
+    <span class="n">communities</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span>
+    <span class="n">sample</span><span class="p">[</span><span class="s2">&quot;communities_in_subdistrict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">!=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">!=</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>is_staypoint_in_district_of_residence</th>
+      <th>distance_from_origin_in_km</th>
+      <th>nearby_main_tourist_attractions</th>
+      <th>nearby_main_tourist_attraction_types</th>
+      <th>nearby_main_tourist_attraction_categories</th>
+      <th>communities_in_subdistrict</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>28</th>
+      <td>2023-10-06 08:30:42</td>
+      <td>2023-10-06 09:07:07</td>
+      <td>22</td>
+      <td>36.416667</td>
+      <td>POINT (99.99068 13.4223)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>88658b673dfffff</td>
+      <td>Samut Songkhram</td>
+      <td>Samut Songkhram#Mueang Samut Songkhram</td>
+      <td>Samut Songkhram#Mueang Samut Songkhram#Ban Prok</td>
+      <td>False</td>
+      <td>56.157152</td>
+      <td>[Wat Ban Laem (Wat Phet Samut Worawihan)]</td>
+      <td>[Temple]</td>
+      <td>[[Cultural]]</td>
+      <td>[Ban Rim Klong Homestay]</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>2023-10-08 11:00:29</td>
+      <td>2023-10-08 11:42:49</td>
+      <td>10</td>
+      <td>42.333333</td>
+      <td>POINT (99.6978 12.92731)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>88658b3491fffff</td>
+      <td>Phetchaburi</td>
+      <td>Phetchaburi#Kaeng Krachan</td>
+      <td>Phetchaburi#Kaeng Krachan#Kaeng Krachan</td>
+      <td>False</td>
+      <td>119.025993</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[Ban Thamsua Community]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>2023-10-09 09:11:17</td>
+      <td>2023-10-09 10:08:00</td>
+      <td>53</td>
+      <td>56.716667</td>
+      <td>POINT (99.64734 12.90825)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>886416c95bfffff</td>
+      <td>Phetchaburi</td>
+      <td>Phetchaburi#Kaeng Krachan</td>
+      <td>Phetchaburi#Kaeng Krachan#Kaeng Krachan</td>
+      <td>False</td>
+      <td>123.918340</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[Ban Thamsua Community]</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>2023-10-10 06:18:10</td>
+      <td>2023-10-10 06:49:47</td>
+      <td>4</td>
+      <td>31.616667</td>
+      <td>POINT (99.65283 12.89677)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>886416c865fffff</td>
+      <td>Phetchaburi</td>
+      <td>Phetchaburi#Kaeng Krachan</td>
+      <td>Phetchaburi#Kaeng Krachan#Kaeng Krachan</td>
+      <td>False</td>
+      <td>124.598334</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[Ban Thamsua Community]</td>
+    </tr>
+  </tbody>
+</table>
+<p>7 rows × 16 columns</p>
+</div></div></div>
+</div>
+<p>For the actual tutorial, we are going to annotate the tourism trips taken by all the devices in our dataset. To speed this up, we again employ multithreading using Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html"><code class="docutils literal notranslate"><span class="pre">ThreadPoolExecutor</span></code></a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_communities</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">communities</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<hr></section>
+<section id="iii-tourism-industries">
+<h2>III. Tourism industries<a class="headerlink" href="#iii-tourism-industries" title="Link to this heading">#</a></h2>
+<p>We identify nearby tourism-related infrastructures and establishments, based on a subset of the tourism industries listed in Annex 3 of the United Nations’ <a class="reference external" href="https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf"><em>International Recommendation for Tourism Statistics 2008</em></a>.</p>
+<p>To this end, we refer to maps from the <a class="reference external" href="https://data.humdata.org/organization/hot">Humanitarian OpenStreetMap Team</a>. For the purposes of this tutorial, we forgo preprocessing the maps and performing data quality checks; we use the maps as is.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_openstreetmap</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="n">osm</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">,</span> <span class="s2">&quot;openstreetmap&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">osm</span><span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">osm</span><span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">osm</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="transportation">
+<h3>Transportation<a class="headerlink" href="#transportation" title="Link to this heading">#</a></h3>
+<p>First, we identify nearby sea ports based on this <a class="reference external" href="https://data.humdata.org/dataset/hotosm_tha_sea_ports">map</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_seaports</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">seaports</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">seaports</span> <span class="o">=</span> <span class="n">seaports</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;name:en&quot;</span><span class="p">,</span> <span class="s2">&quot;name:th&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;amenity&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;osm_id&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_seaport_osm_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_seaport_names&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:en&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_seaport_names_en&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:th&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_seaport_names_th&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;amenity&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_seaport_types&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">seaports</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">seaports</span> <span class="o">=</span> <span class="n">process_openstreetmap</span><span class="p">(</span><span class="s2">&quot;hotosm_tha_sea_ports_polygons_geojson.geojson&quot;</span><span class="p">)</span>
+<span class="n">seaports</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>name:en</th>
+      <th>amenity</th>
+      <th>building</th>
+      <th>port</th>
+      <th>operator:type</th>
+      <th>addr:full</th>
+      <th>addr:city</th>
+      <th>source</th>
+      <th>name:th</th>
+      <th>osm_id</th>
+      <th>osm_type</th>
+      <th>geometry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Chiang Sean</td>
+      <td>None</td>
+      <td>ferry_terminal</td>
+      <td>yes</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>1010325033</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((100.09004 20.2673, 100.0901 20.2672,...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Din Deng Noi FERRY</td>
+      <td>None</td>
+      <td>ferry_terminal</td>
+      <td>yes</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>686512115</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((98.74882 8.122, 98.74883 8.1218, 98....</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Chedi Pier</td>
+      <td>None</td>
+      <td>ferry_terminal</td>
+      <td>yes</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>29976999</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((100.58677 13.59921, 100.5868 13.5992...</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>ທ່າເຮືອສາມຫຼ່ຽມຄຳ 金三角码头</td>
+      <td>Golden Triangle Port</td>
+      <td>ferry_terminal</td>
+      <td>yes</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>1350362672</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((100.08605 20.35466, 100.08605 20.354...</td>
+    </tr>
+  </tbody>
+</table>
+<p>11 rows × 13 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_seaports</span><span class="p">(</span>
+    <span class="s2">&quot;24920418-326B-4091-A94B-C3C726B3771F.parquet&quot;</span><span class="p">,</span>
+    <span class="n">seaports</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_seaport_osm_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>...</th>
+      <th>distance_from_origin_in_km</th>
+      <th>nearby_main_tourist_attractions</th>
+      <th>nearby_main_tourist_attraction_types</th>
+      <th>nearby_main_tourist_attraction_categories</th>
+      <th>communities_in_subdistrict</th>
+      <th>nearby_seaport_osm_ids</th>
+      <th>nearby_seaport_names</th>
+      <th>nearby_seaport_names_en</th>
+      <th>nearby_seaport_names_th</th>
+      <th>nearby_seaport_types</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>6</th>
+      <td>2023-12-06 13:25:18</td>
+      <td>2023-12-06 16:53:45</td>
+      <td>42</td>
+      <td>208.450000</td>
+      <td>POINT (100.59712 13.59933)</td>
+      <td>24920418-326B-4091-A94B-C3C726B3771F</td>
+      <td>88658b4823fffff</td>
+      <td>Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan#Pak Nam</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>[Phi Suea Samut Fortress, Wat Phichai Songkhra...</td>
+      <td>[Museums, Historical Sites &amp; Monuments/Temple,...</td>
+      <td>[[Cultural], [Cultural], [Cultural], [Cultural...</td>
+      <td>[None]</td>
+      <td>[29976999]</td>
+      <td>[Chedi Pier]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[ferry_terminal]</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2023-12-07 14:37:32</td>
+      <td>2023-12-07 17:12:53</td>
+      <td>15</td>
+      <td>155.350000</td>
+      <td>POINT (100.59677 13.60096)</td>
+      <td>24920418-326B-4091-A94B-C3C726B3771F</td>
+      <td>88658b49c9fffff</td>
+      <td>Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan#Pak Nam</td>
+      <td>...</td>
+      <td>0.184793</td>
+      <td>[Phi Suea Samut Fortress, Wat Phichai Songkhra...</td>
+      <td>[Museums, Historical Sites &amp; Monuments/Temple,...</td>
+      <td>[[Cultural], [Cultural], [Cultural], [Cultural...</td>
+      <td>[None]</td>
+      <td>[29976999]</td>
+      <td>[Chedi Pier]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[ferry_terminal]</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>2024-01-28 15:35:17</td>
+      <td>2024-01-28 16:10:31</td>
+      <td>5</td>
+      <td>35.233333</td>
+      <td>POINT (100.59705 13.60097)</td>
+      <td>24920418-326B-4091-A94B-C3C726B3771F</td>
+      <td>88658b49c9fffff</td>
+      <td>Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan</td>
+      <td>Samut Prakan#Mueang Samut Prakan#Pak Nam</td>
+      <td>...</td>
+      <td>2.514819</td>
+      <td>[Phi Suea Samut Fortress, Wat Phichai Songkhra...</td>
+      <td>[Museums, Historical Sites &amp; Monuments/Temple,...</td>
+      <td>[[Cultural], [Cultural], [Cultural], [Cultural...</td>
+      <td>[None]</td>
+      <td>[29976999]</td>
+      <td>[Chedi Pier]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[ferry_terminal]</td>
+    </tr>
+  </tbody>
+</table>
+<p>3 rows × 21 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_seaports</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">seaports</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Next, we identify nearby airports based on this <a class="reference external" href="https://data.humdata.org/dataset/hotosm_tha_airports">map</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">airports</span> <span class="o">=</span> <span class="n">process_openstreetmap</span><span class="p">(</span><span class="s2">&quot;hotosm_tha_airports_polygons_geojson.geojson&quot;</span><span class="p">)</span>
+<span class="n">airports</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>name:en</th>
+      <th>aeroway</th>
+      <th>building</th>
+      <th>emergency</th>
+      <th>emergency:helipad</th>
+      <th>operator:type</th>
+      <th>capacity:persons</th>
+      <th>addr:full</th>
+      <th>addr:city</th>
+      <th>source</th>
+      <th>name:th</th>
+      <th>osm_id</th>
+      <th>osm_type</th>
+      <th>geometry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>None</td>
+      <td>None</td>
+      <td>terminal</td>
+      <td>yes</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>310109679</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((99.10216 18.67672, 99.10216 18.67665...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>None</td>
+      <td>None</td>
+      <td>apron</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>564448340</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((99.94036 8.53438, 99.94109 8.5343, 9...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>668</th>
+      <td>ลานบินเกาะช้าง</td>
+      <td>Airfield Ko Chang</td>
+      <td>aerodrome</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>ลานบินเกาะช้าง</td>
+      <td>7061956</td>
+      <td>relations</td>
+      <td>POLYGON ((102.29464 12.05044, 102.29517 12.050...</td>
+    </tr>
+    <tr>
+      <th>669</th>
+      <td>ท่าอากาศยานขอนแก่น</td>
+      <td>Khon Kaen Airport</td>
+      <td>aerodrome</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>ท่าอากาศยานขอนแก่น</td>
+      <td>1442532</td>
+      <td>relations</td>
+      <td>POLYGON ((102.77448 16.45496, 102.77525 16.454...</td>
+    </tr>
+  </tbody>
+</table>
+<p>670 rows × 15 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_airports</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">airports</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">airports</span> <span class="o">=</span> <span class="n">airports</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;name:en&quot;</span><span class="p">,</span> <span class="s2">&quot;name:th&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;aeroway&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;osm_id&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_airport_osm_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_airport_names&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:en&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_airport_names_en&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:th&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_airport_names_th&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;aeroway&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_airport_types&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">airports</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_airports</span><span class="p">(</span>
+    <span class="s2">&quot;02D5C053-F289-42BF-82CE-BB585958ABB3.parquet&quot;</span><span class="p">,</span>
+    <span class="n">airports</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_airport_osm_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>...</th>
+      <th>nearby_seaport_osm_ids</th>
+      <th>nearby_seaport_names</th>
+      <th>nearby_seaport_names_en</th>
+      <th>nearby_seaport_names_th</th>
+      <th>nearby_seaport_types</th>
+      <th>nearby_airport_osm_ids</th>
+      <th>nearby_airport_names</th>
+      <th>nearby_airport_names_en</th>
+      <th>nearby_airport_names_th</th>
+      <th>nearby_airport_types</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>2023-10-12 04:57:50</td>
+      <td>2023-10-12 06:40:59</td>
+      <td>35</td>
+      <td>103.150000</td>
+      <td>POINT (100.7549 13.6909)</td>
+      <td>02D5C053-F289-42BF-82CE-BB585958ABB3</td>
+      <td>8864a495adfffff</td>
+      <td>Samut Prakan</td>
+      <td>Samut Prakan#Bang Phli</td>
+      <td>Samut Prakan#Bang Phli#Nong Prue</td>
+      <td>...</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[388844064, 1253121854, 763466015, 90990291, 1...</td>
+      <td>[None, None, อาคารเทียบเครื่องบินรองหลังที่ 1,...</td>
+      <td>[None, None, Satellite Terminal 1, None, None,...</td>
+      <td>[None, None, อาคารเทียบเครื่องบินรองหลังที่ 1,...</td>
+      <td>[helipad, apron, terminal, apron, runway, apro...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2023-10-12 08:31:40</td>
+      <td>2023-10-12 09:02:17</td>
+      <td>14</td>
+      <td>30.616667</td>
+      <td>POINT (100.3941 6.93655)</td>
+      <td>02D5C053-F289-42BF-82CE-BB585958ABB3</td>
+      <td>8865183951fffff</td>
+      <td>Songkhla</td>
+      <td>Songkhla#Hat Yai</td>
+      <td>Songkhla#Hat Yai#Thung Tam Sao</td>
+      <td>...</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[1041194858, 206157754, 1041192243, 814830511,...</td>
+      <td>[ท่าอากาศยานนานาชาติหาดใหญ่, None, None, HATYA...</td>
+      <td>[Hat Yai International Airport, None, None, No...</td>
+      <td>[ท่าอากาศยานนานาชาติหาดใหญ่, None, None, None,...</td>
+      <td>[aerodrome, apron, apron, navigationaid, apron...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2023-10-13 18:05:25</td>
+      <td>2023-10-13 18:46:56</td>
+      <td>55</td>
+      <td>41.516667</td>
+      <td>POINT (100.5908 7.2017)</td>
+      <td>02D5C053-F289-42BF-82CE-BB585958ABB3</td>
+      <td>8865187ac3fffff</td>
+      <td>Songkhla</td>
+      <td>Songkhla#Mueang Songkhla</td>
+      <td>Songkhla#Mueang Songkhla#Bo Yang</td>
+      <td>...</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[988784908, 86055088, 530317963]</td>
+      <td>[ท่าอากาศยานสงขลา, None, None]</td>
+      <td>[Songkhla Airport, None, None]</td>
+      <td>[ท่าอากาศยานสงขลา, None, None]</td>
+      <td>[aerodrome, runway, apron]</td>
+    </tr>
+  </tbody>
+</table>
+<p>3 rows × 26 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_airports</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">airports</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Lastly, we identify railways based on this <a class="reference external" href="https://data.humdata.org/dataset/hotosm_tha_railways">map</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_railways</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">railways</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">railways</span> <span class="o">=</span> <span class="n">railways</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;name:en&quot;</span><span class="p">,</span> <span class="s2">&quot;name:th&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;railway&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;osm_id&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_railway_osm_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_railway_names&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:en&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_railway_names_en&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:th&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_railway_names_th&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;railway&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_railway_types&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">railways</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">railways</span> <span class="o">=</span> <span class="n">process_openstreetmap</span><span class="p">(</span><span class="s2">&quot;hotosm_tha_railways_lines_geojson.geojson&quot;</span><span class="p">)</span>
+<span class="n">railways</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>name:en</th>
+      <th>railway</th>
+      <th>ele</th>
+      <th>operator:type</th>
+      <th>layer</th>
+      <th>addr:full</th>
+      <th>addr:city</th>
+      <th>source</th>
+      <th>name:th</th>
+      <th>osm_id</th>
+      <th>osm_type</th>
+      <th>geometry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>None</td>
+      <td>None</td>
+      <td>rail</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>952687468</td>
+      <td>ways_line</td>
+      <td>LINESTRING (99.95995 8.43732, 99.9599 8.43803,...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>None</td>
+      <td>None</td>
+      <td>rail</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>952687470</td>
+      <td>ways_line</td>
+      <td>LINESTRING (99.95997 8.43717, 99.95988 8.43758...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3209</th>
+      <td>None</td>
+      <td>None</td>
+      <td>rail</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>1210513275</td>
+      <td>ways_line</td>
+      <td>LINESTRING (100.60227 13.98916, 100.60198 13.9...</td>
+    </tr>
+    <tr>
+      <th>3210</th>
+      <td>ทางรถไฟสายเหนือ/ตะวันออกเฉียงเหนือ</td>
+      <td>None</td>
+      <td>rail</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>GPS</td>
+      <td>None</td>
+      <td>1210513282</td>
+      <td>ways_line</td>
+      <td>LINESTRING (100.60203 13.99192, 100.60209 13.9...</td>
+    </tr>
+  </tbody>
+</table>
+<p>3211 rows × 13 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_railways</span><span class="p">(</span>
+    <span class="s2">&quot;C8AF1957-7F70-421E-AB7D-817C5F9BA71E.parquet&quot;</span><span class="p">,</span>
+    <span class="n">railways</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_railway_osm_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>...</th>
+      <th>nearby_airport_osm_ids</th>
+      <th>nearby_airport_names</th>
+      <th>nearby_airport_names_en</th>
+      <th>nearby_airport_names_th</th>
+      <th>nearby_airport_types</th>
+      <th>nearby_railway_osm_ids</th>
+      <th>nearby_railway_names</th>
+      <th>nearby_railway_names_en</th>
+      <th>nearby_railway_names_th</th>
+      <th>nearby_railway_types</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2023-08-08 17:57:47</td>
+      <td>2023-08-10 06:57:52</td>
+      <td>219</td>
+      <td>2220.083333</td>
+      <td>POINT (100.32378 13.81158)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[nan]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[891436025, 869051522, 891436021, 891436023, 8...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[Southern Line, Southern Line, Southern Line, ...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2023-08-10 07:02:37</td>
+      <td>2023-08-10 08:30:55</td>
+      <td>16</td>
+      <td>88.300000</td>
+      <td>POINT (100.58301 13.72792)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a48489fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Vadhana</td>
+      <td>Bangkok#Vadhana#Khlong Tan Nuea</td>
+      <td>...</td>
+      <td>[326785809.0, 324275286.0]</td>
+      <td>[None, None]</td>
+      <td>[None, None]</td>
+      <td>[None, None]</td>
+      <td>[helipad, helipad]</td>
+      <td>[156966523, 210643824, 210645284, 210643840, 2...</td>
+      <td>[สายท่าเรือ, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[สายท่าเรือ, None, None, None, None, None, Non...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 16:15:58</td>
+      <td>2024-01-22 16:46:47</td>
+      <td>18</td>
+      <td>30.816667</td>
+      <td>POINT (100.48246 13.78123)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4bad1fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Bang Phlat</td>
+      <td>Bangkok#Bang Phlat#Bang Bamru</td>
+      <td>...</td>
+      <td>[nan]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[971385290, 199808433, 971385293, 199808436, 1...</td>
+      <td>[None, สายใต้เดิม, None, สายใต้เดิม, สายใต้เดิ...</td>
+      <td>[None, Former Southern Line, None, Former Sout...</td>
+      <td>[None, สายใต้เดิม, None, สายใต้เดิม, สายใต้เดิ...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 21:40:43</td>
+      <td>2024-01-23 09:15:34</td>
+      <td>34</td>
+      <td>694.850000</td>
+      <td>POINT (100.32376 13.81156)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[nan]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[891436025, 869051522, 891436021, 891436023, 8...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[Southern Line, Southern Line, Southern Line, ...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+    </tr>
+  </tbody>
+</table>
+<p>68 rows × 31 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_railways</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">railways</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="accommodation">
+<h3>Accommodation<a class="headerlink" href="#accommodation" title="Link to this heading">#</a></h3>
+<p>We filter the <a class="reference external" href="https://data.humdata.org/dataset/hotosm_tha_points_of_interest">points of interest</a> to include only those with tags with key <code class="docutils literal notranslate"><span class="pre">tourism</span></code> and value <code class="docutils literal notranslate"><span class="pre">hotel</span></code>, <code class="docutils literal notranslate"><span class="pre">motel</span></code>, <code class="docutils literal notranslate"><span class="pre">guest_house</span></code>, <code class="docutils literal notranslate"><span class="pre">hostel</span></code>, <code class="docutils literal notranslate"><span class="pre">alpine_hut</span></code>, <code class="docutils literal notranslate"><span class="pre">chalet</span></code>, <code class="docutils literal notranslate"><span class="pre">camp_site</span></code>, <code class="docutils literal notranslate"><span class="pre">caravan_site</span></code>, <code class="docutils literal notranslate"><span class="pre">apartment</span></code>, or <code class="docutils literal notranslate"><span class="pre">bed_and_breakfast</span></code>. Note that this is a non-exhaustive list of possible establishments that provide accommodation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ACCOMMODATION</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;hotel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;motel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;guest_house&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hostel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;alpine_hut&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;chalet&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;camp_site&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;caravan_site&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;apartment&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bed_and_breakfast&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_accommodation</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">points_of_interest</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Include only related points of interest</span>
+    <span class="n">accommodation</span> <span class="o">=</span> <span class="n">points_of_interest</span><span class="p">[</span>
+        <span class="n">points_of_interest</span><span class="p">[</span><span class="s2">&quot;tourism&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">ACCOMMODATION</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">accommodation</span> <span class="o">=</span> <span class="n">accommodation</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;name:en&quot;</span><span class="p">,</span> <span class="s2">&quot;name:th&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;tourism&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;osm_id&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_accommodation_osm_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_accommodation_names&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:en&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_accommodation_names_en&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:th&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_accommodation_names_th&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tourism&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_accommodation_types&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">accommodation</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">points_of_interest</span> <span class="o">=</span> <span class="n">process_openstreetmap</span><span class="p">(</span>
+    <span class="s2">&quot;hotosm_tha_points_of_interest_polygons_geojson.geojson&quot;</span>
+<span class="p">)</span>
+<span class="n">points_of_interest</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>name:en</th>
+      <th>amenity</th>
+      <th>man_made</th>
+      <th>shop</th>
+      <th>tourism</th>
+      <th>opening_hours</th>
+      <th>beds</th>
+      <th>rooms</th>
+      <th>addr:full</th>
+      <th>addr:housenumber</th>
+      <th>addr:street</th>
+      <th>addr:city</th>
+      <th>source</th>
+      <th>name:th</th>
+      <th>osm_id</th>
+      <th>osm_type</th>
+      <th>geometry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Fuel Station</td>
+      <td>None</td>
+      <td>fuel</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>Bing</td>
+      <td>None</td>
+      <td>1028295046</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((99.7086 14.48278, 99.70864 14.48268,...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>None</td>
+      <td>Fuel Station</td>
+      <td>fuel</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>Bing</td>
+      <td>None</td>
+      <td>1028295071</td>
+      <td>ways_poly</td>
+      <td>POLYGON ((99.71662 14.63935, 99.71677 14.63928...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>62487</th>
+      <td>พิพิธภัณฑ์สถานแห่งชาติราชบุรี</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>museum</td>
+      <td>We-Su 09:00-16:00</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>12906115</td>
+      <td>relations</td>
+      <td>POLYGON ((99.81736 13.54094, 99.8179 13.54082,...</td>
+    </tr>
+    <tr>
+      <th>62488</th>
+      <td>มณีจันท์ รีสอร์ท</td>
+      <td>Maneechan Resort</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>hotel</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>มณีจันท์ รีสอร์ท</td>
+      <td>7887772</td>
+      <td>relations</td>
+      <td>POLYGON ((102.13189 12.60664, 102.1319 12.6060...</td>
+    </tr>
+  </tbody>
+</table>
+<p>62489 rows × 18 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_accommodation</span><span class="p">(</span>
+    <span class="s2">&quot;C8AF1957-7F70-421E-AB7D-817C5F9BA71E.parquet&quot;</span><span class="p">,</span>
+    <span class="n">points_of_interest</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_accommodation_osm_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>...</th>
+      <th>nearby_railway_osm_ids</th>
+      <th>nearby_railway_names</th>
+      <th>nearby_railway_names_en</th>
+      <th>nearby_railway_names_th</th>
+      <th>nearby_railway_types</th>
+      <th>nearby_accommodation_osm_ids</th>
+      <th>nearby_accommodation_names</th>
+      <th>nearby_accommodation_names_en</th>
+      <th>nearby_accommodation_names_th</th>
+      <th>nearby_accommodation_types</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2023-08-08 17:57:47</td>
+      <td>2023-08-10 06:57:52</td>
+      <td>219</td>
+      <td>2220.083333</td>
+      <td>POINT (100.32378 13.81158)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[891436025.0, 869051522.0, 891436021.0, 891436...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[Southern Line, Southern Line, Southern Line, ...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+      <td>[1049501436]</td>
+      <td>[MWIT guest house (หอ 14)]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[hostel]</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2023-08-10 07:02:37</td>
+      <td>2023-08-10 08:30:55</td>
+      <td>16</td>
+      <td>88.300000</td>
+      <td>POINT (100.58301 13.72792)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a48489fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Vadhana</td>
+      <td>Bangkok#Vadhana#Khlong Tan Nuea</td>
+      <td>...</td>
+      <td>[156966523.0, 210643824.0, 210645284.0, 210643...</td>
+      <td>[สายท่าเรือ, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[สายท่าเรือ, None, None, None, None, None, Non...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+      <td>[318748790, 325030906, 318728683, 318728681, 1...</td>
+      <td>[Hope Land Executive Residence, Beat Hotel, Li...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[hotel, hotel, hotel, hotel, hotel, hotel, hot...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 18:00:28</td>
+      <td>2024-01-22 20:16:21</td>
+      <td>13</td>
+      <td>135.883333</td>
+      <td>POINT (100.65025 13.62046)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>88658b490dfffff</td>
+      <td>Samut Prakan</td>
+      <td>Samut Prakan#Bang Phli</td>
+      <td>Samut Prakan#Bang Phli#Bang Kaeo</td>
+      <td>...</td>
+      <td>[nan]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[221578618]</td>
+      <td>[Yamato Hotel]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[hotel]</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 21:40:43</td>
+      <td>2024-01-23 09:15:34</td>
+      <td>34</td>
+      <td>694.850000</td>
+      <td>POINT (100.32376 13.81156)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[891436025.0, 869051522.0, 891436021.0, 891436...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[Southern Line, Southern Line, Southern Line, ...</td>
+      <td>[สายใต้, สายใต้, สายใต้, สายใต้, สายใต้, สายใต...</td>
+      <td>[rail, rail, rail, rail, rail, rail, rail, rai...</td>
+      <td>[1049501436]</td>
+      <td>[MWIT guest house (หอ 14)]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[hostel]</td>
+    </tr>
+  </tbody>
+</table>
+<p>93 rows × 36 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_accommodation</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">points_of_interest</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="food-and-beverages">
+<h3>Food and beverages<a class="headerlink" href="#food-and-beverages" title="Link to this heading">#</a></h3>
+<p>We filter the <a class="reference external" href="https://data.humdata.org/dataset/hotosm_tha_points_of_interest">points of interest</a> to include only those with tags with key <code class="docutils literal notranslate"><span class="pre">amenity</span></code> and value <code class="docutils literal notranslate"><span class="pre">restaurant</span></code>, <code class="docutils literal notranslate"><span class="pre">fast_food</span></code>, <code class="docutils literal notranslate"><span class="pre">cafe</span></code>, <code class="docutils literal notranslate"><span class="pre">bar</span></code>, <code class="docutils literal notranslate"><span class="pre">pub</span></code>, <code class="docutils literal notranslate"><span class="pre">canteen</span></code>, <code class="docutils literal notranslate"><span class="pre">food_court</span></code>, <code class="docutils literal notranslate"><span class="pre">ice_cream</span></code>, or <code class="docutils literal notranslate"><span class="pre">biergarten</span></code>. Note that this is a non-exhaustive list of possible establishments that provide food and beverages.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">FOOD_AND_BEVERAGES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;restaurant&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fast_food&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cafe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bar&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pub&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;canteen&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;food_court&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ice_cream&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;biergarten&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">annotate_tourism_trips_with_food_and_beverages</span><span class="p">(</span>
+    <span class="n">tourism_trips_file</span><span class="p">,</span>
+    <span class="n">points_of_interest</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Skip statistics files</span>
+    <span class="k">if</span> <span class="s2">&quot;statistics&quot;</span> <span class="ow">in</span> <span class="n">tourism_trips_file</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Include only related points of interest</span>
+    <span class="n">food_and_beverages</span> <span class="o">=</span> <span class="n">points_of_interest</span><span class="p">[</span>
+        <span class="n">points_of_interest</span><span class="p">[</span><span class="s2">&quot;amenity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">FOOD_AND_BEVERAGES</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">food_and_beverages</span> <span class="o">=</span> <span class="n">food_and_beverages</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;osm_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;name:en&quot;</span><span class="p">,</span> <span class="s2">&quot;name:th&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;amenity&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;osm_id&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_food_and_beverages_osm_ids&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_food_and_beverages_names&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:en&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_food_and_beverages_names_en&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name:th&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_food_and_beverages_names_th&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;amenity&quot;</span><span class="p">:</span> <span class="s2">&quot;nearby_food_and_beverages_types&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">get_nearby_places</span><span class="p">(</span>
+        <span class="n">tourism_trip</span><span class="p">,</span>
+        <span class="n">food_and_beverages</span><span class="p">,</span>
+        <span class="n">distance_threshold</span><span class="o">=</span><span class="n">NEARBY_IN_METERS</span><span class="p">,</span>
+        <span class="n">projected_crs</span><span class="o">=</span><span class="n">PROJECTED_CRS</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tourism_trip</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">,</span> <span class="n">tourism_trips_file</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tourism_trip</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span> <span class="o">=</span> <span class="n">annotate_tourism_trips_with_food_and_beverages</span><span class="p">(</span>
+    <span class="s2">&quot;C8AF1957-7F70-421E-AB7D-817C5F9BA71E.parquet&quot;</span><span class="p">,</span>
+    <span class="n">points_of_interest</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sample</span><span class="p">[</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;nearby_food_and_beverages_osm_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time_arrive</th>
+      <th>time_depart</th>
+      <th>num_pings_in_staypoint</th>
+      <th>num_minutes_stayed</th>
+      <th>geometry</th>
+      <th>device_id</th>
+      <th>h3_cell</th>
+      <th>ADM1_EN</th>
+      <th>ADM2_EN</th>
+      <th>ADM3_EN</th>
+      <th>...</th>
+      <th>nearby_accommodation_osm_ids</th>
+      <th>nearby_accommodation_names</th>
+      <th>nearby_accommodation_names_en</th>
+      <th>nearby_accommodation_names_th</th>
+      <th>nearby_accommodation_types</th>
+      <th>nearby_food_and_beverages_osm_ids</th>
+      <th>nearby_food_and_beverages_names</th>
+      <th>nearby_food_and_beverages_names_en</th>
+      <th>nearby_food_and_beverages_names_th</th>
+      <th>nearby_food_and_beverages_types</th>
+    </tr>
+    <tr>
+      <th>trip_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>5</th>
+      <td>2023-08-08 17:57:47</td>
+      <td>2023-08-10 06:57:52</td>
+      <td>219</td>
+      <td>2220.083333</td>
+      <td>POINT (100.32378 13.81158)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[1049501436.0]</td>
+      <td>[MWIT guest house (หอ 14)]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[hostel]</td>
+      <td>[1144432327, 1144432326, 1144432329, 114443233...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[restaurant, restaurant, restaurant, restauran...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2023-08-10 07:02:37</td>
+      <td>2023-08-10 08:30:55</td>
+      <td>16</td>
+      <td>88.300000</td>
+      <td>POINT (100.58301 13.72792)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a48489fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Vadhana</td>
+      <td>Bangkok#Vadhana#Khlong Tan Nuea</td>
+      <td>...</td>
+      <td>[318748790.0, 325030906.0, 318728683.0, 318728...</td>
+      <td>[Hope Land Executive Residence, Beat Hotel, Li...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[hotel, hotel, hotel, hotel, hotel, hotel, hot...</td>
+      <td>[824392602, 317966604, 1391250730, 575459596, ...</td>
+      <td>[T-REX BBQ ทีเร็กซ์ย่างมันส์, W Market, None, ...</td>
+      <td>[None, None, None, None, An An Lao, Savoey Sea...</td>
+      <td>[None, None, None, None, อันอันเหลา, เสวย, Non...</td>
+      <td>[restaurant, biergarten, cafe, cafe, restauran...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 16:15:58</td>
+      <td>2024-01-22 16:46:47</td>
+      <td>18</td>
+      <td>30.816667</td>
+      <td>POINT (100.48246 13.78123)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4bad1fffff</td>
+      <td>Bangkok</td>
+      <td>Bangkok#Bang Phlat</td>
+      <td>Bangkok#Bang Phlat#Bang Bamru</td>
+      <td>...</td>
+      <td>[1343838845.0, 1273993729.0, 376303742.0, 3425...</td>
+      <td>[โรงแรมธำรงค์อิน, Sunset Residence Pinklao, Ro...</td>
+      <td>[Thamrongin Hotel, None, Rose Town Hotel, None...</td>
+      <td>[None, None, โรสทาวน์ โฮเต็ล, None, None, None...</td>
+      <td>[hotel, hotel, hotel, hotel, hotel, hotel, hotel]</td>
+      <td>[630829443, 630831418, 630890934, 630984546, 3...</td>
+      <td>[ต้นตำรับไทย, รอยัล ปาร์ค, พรชัย, อินทนิล, Non...</td>
+      <td>[None, Royal Park, None, Inthanin, None, None,...</td>
+      <td>[ต้นตำรับไทย, รอยัล ปาร์ค, พรชัย, อินทนิล, Non...</td>
+      <td>[restaurant, restaurant, restaurant, cafe, res...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>2024-01-22 21:40:43</td>
+      <td>2024-01-23 09:15:34</td>
+      <td>34</td>
+      <td>694.850000</td>
+      <td>POINT (100.32376 13.81156)</td>
+      <td>C8AF1957-7F70-421E-AB7D-817C5F9BA71E</td>
+      <td>8864a4a013fffff</td>
+      <td>Nonthaburi</td>
+      <td>Nonthaburi#Bang Kruai</td>
+      <td>Nonthaburi#Bang Kruai#Sala Klang</td>
+      <td>...</td>
+      <td>[1049501436.0]</td>
+      <td>[MWIT guest house (หอ 14)]</td>
+      <td>[None]</td>
+      <td>[None]</td>
+      <td>[hostel]</td>
+      <td>[1144432328, 1144432327, 1144432326, 114443232...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[None, None, None, None, None, None, None, Non...</td>
+      <td>[restaurant, restaurant, restaurant, restauran...</td>
+    </tr>
+  </tbody>
+</table>
+<p>95 rows × 41 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust max_workers depending on your machine&#39;s available resources</span>
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">annotate_tourism_trips_with_food_and_beverages</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">points_of_interest</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ANNOTATED_TOURISM_TRIPS_DIRECTORY</span><span class="p">)</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./tutorial"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="4.%20Identifying%20tourism%20activities.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Identifying tourism activities</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="5.%20Adjusting%20GPS%20counts.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Adjusting GPS counts</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-main-tourist-attractions">I. Main tourist attractions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ii-communities">II. Communities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iii-tourism-industries">III. Tourism industries</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transportation">Transportation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#accommodation">Accommodation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#food-and-beverages">Food and beverages</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Data Division, Economic Research and Development Impact Department, Asian Development Bank
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Aug 26, 2025.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

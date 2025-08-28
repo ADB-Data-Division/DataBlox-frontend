@@ -16,6 +16,7 @@ export class MigrationAPIClient {
   private baseURL: string;
   private timeout: number;
   private defaultHeaders: Record<string, string>;
+  private connectivityCallback?: (connected: boolean) => void;
 
   constructor(config: APIConfig) {
     this.baseURL = config.baseURL.replace(/\/$/, ''); // Remove trailing slash
@@ -25,6 +26,13 @@ export class MigrationAPIClient {
       'Accept': 'application/json',
       ...config.headers
     };
+  }
+
+  /**
+   * Set callback function to update connectivity status
+   */
+  setConnectivityCallback(callback: (connected: boolean) => void) {
+    this.connectivityCallback = callback;
   }
 
   /**
@@ -70,6 +78,9 @@ export class MigrationAPIClient {
         );
       }
 
+      // Update connectivity status on successful response
+      this.connectivityCallback?.(true);
+
       return {
         data,
         status: response.status,
@@ -77,6 +88,9 @@ export class MigrationAPIClient {
       };
     } catch (error) {
       clearTimeout(timeoutId);
+      
+      // Update connectivity status on error
+      this.connectivityCallback?.(false);
       
       if (error instanceof APIError) {
         throw error;

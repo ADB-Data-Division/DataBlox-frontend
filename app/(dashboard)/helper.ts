@@ -95,28 +95,19 @@ export function getLocationColor(type: Location['type']): "primary" | "secondary
  * @returns Array of all locations
  */
 export async function getAllLocations(): Promise<Location[]> {
-  try {
-    // Try to get locations from API first
-    const { migrationAPIService } = await import('../services/migration-api-service');
-    const isHealthy = await migrationAPIService.isAPIHealthy();
-    
-    if (isHealthy) {
-      const apiLocations = await migrationAPIService.getAvailableLocations();
-      return [
-        ...apiLocations.provinces,
-        ...apiLocations.districts,
-        ...apiLocations.subDistricts
-      ];
-    }
-  } catch (error) {
-    console.warn('Failed to load locations from API, using mock data:', error);
+  const { migrationAPIService } = await import('../services/migration-api-service');
+  const apiLocations = await migrationAPIService.getAvailableLocations();
+
+  if (!apiLocations.isHealthy) {
+    const { trackMigrationEvent } = await import('../../src/utils/analytics');
+    trackMigrationEvent.trackError('metadata_api_unhealthy', 'Metadata API health check failed');
+    throw new Error('metadata API is not healthy');
   }
-  
-  // Fallback to mock data
+
   return [
-    ...locationData.provinces,
-    ...locationData.districts,
-    ...locationData.subDistricts
+    ...apiLocations.provinces,
+    ...apiLocations.districts,
+    ...apiLocations.subDistricts
   ];
 }
 

@@ -121,7 +121,7 @@ export default function PageContent() {
   // Load locations from URL parameters on mount - using useEffect for legitimate side effect
   useEffect(() => {
     const loadFromUrl = async () => {
-      if (isResettingRef.current) return;
+      if (isResettingRef.current || searchResults.isLoading || searchResults.allLocations.length === 0) return;
       
       const locationsParam = getLocationsParam();
       
@@ -131,10 +131,10 @@ export default function PageContent() {
           const decodedParam = decodeURIComponent(locationsParam);
           const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
           
-          // Get all locations from API and find matches
-          const allLocations = await getAllLocations();
+          // Use locations from the search hook instead of making another API call
+          console.log('Loading locations from URL...');
           const locations = uniqueIds
-            .map(uniqueId => allLocations.find(loc => loc.uniqueId === uniqueId))
+            .map(uniqueId => searchResults.allLocations.find(loc => loc.uniqueId === uniqueId))
             .filter((location): location is Location => location !== undefined);
           
           const currentUniqueIds = state.selectedLocations.map(loc => loc.uniqueId).sort();
@@ -176,7 +176,7 @@ export default function PageContent() {
     
     loadFromUrl();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getLocationsParam]); // Only depend on getLocationsParam to avoid loops, other dependencies are stable within the effect
+  }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations]); // Wait for locations to load before processing URL
 
   const handleCloseShortcutsModal = useCallback(() => {
     dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false });

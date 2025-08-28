@@ -1,0 +1,645 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>datablox_od.tourism &#8212; DataBlox-OD</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/datablox_od.tourism';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="datablox_od.trajectory" href="datablox_od.trajectory.html" />
+    <link rel="prev" title="datablox_od.shared" href="datablox_od.shared.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Aug 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the documentation..."
+         aria-label="Search the documentation..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="DataBlox-OD - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="DataBlox-OD - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/1.%20Mapping%20pings%20to%20areas%20of%20interest.html">Mapping pings to areas of interest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/2.%20Inferring%20device%20residence.html">Inferring device residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/3.%20Identifying%20internal%20migration.html">Identifying internal migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/4.%20Identifying%20tourism%20activities.html">Identifying tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/4.1.%20Annotating%20tourism%20activities.html">Annotating tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/5.%20Adjusting%20GPS%20counts.html">Adjusting GPS counts</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Case Studies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../case_study/1.%20Community%20tourism.html">Community tourism</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://datablox-ai.vercel.app/">DataBlox dashboard</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.display.html">datablox_od.display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.migration.html">datablox_od.migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.preprocessing.html">datablox_od.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.residence.html">datablox_od.residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.scaling.html">datablox_od.scaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.shared.html">datablox_od.shared</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">datablox_od.tourism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.trajectory.html">datablox_od.trajectory</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/api/datablox_od.tourism.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>datablox_od.tourism</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-datablox_od.tourism">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.tourism.identify_tourism_trips"><code class="docutils literal notranslate"><span class="pre">identify_tourism_trips()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.tourism.identify_trips"><code class="docutils literal notranslate"><span class="pre">identify_trips()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="datablox-od-tourism">
+<h1>datablox_od.tourism<a class="headerlink" href="#datablox-od-tourism" title="Link to this heading">#</a></h1>
+<section id="module-datablox_od.tourism">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-datablox_od.tourism" title="Link to this heading">#</a></h2>
+<p>Provides functions for inferring tourism activities.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.tourism.identify_tourism_trips">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.tourism.</span></span><span class="sig-name descname"><span class="pre">identify_tourism_trips</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trips</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrival_time_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">departure_time_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">administrative_region_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trip_history_length_in_months</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency_in_trip_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trip_duration_in_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance_from_origin_in_km</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.tourism.identify_tourism_trips" title="Link to this definition">#</a></dt>
+<dd><p>Identifies which trips are tourism trips.</p>
+<p><strong>Important: This function assumes that the trips come from only a single device.</strong></p>
+<p>We refer to the United Nations’ <em>International Recommendations for Tourism Statistics 2008</em> <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>
+for the elements in defining a tourism trip (paragraphs 2.52 and 2.53):</p>
+<ul>
+<li><p>It should not be a frequently made trip.</p>
+<p>To this end, we consider the device’s history of past trips.
+We construct an observation window consisting of <code class="docutils literal notranslate"><span class="pre">trip_history_length_in_months</span></code> months
+up to and including the trip’s start date.
+If the administrative regions (based on <code class="docutils literal notranslate"><span class="pre">administrative_region_column</span></code>)
+visited in the trip of interest form a subset of the administrative regions visited in more than <code class="docutils literal notranslate"><span class="pre">max_frequency_in_trip_history</span></code> other
+trips that started within the observation window, then the trip of interest is not considered a tourism trip.</p>
+<p>To illustrate, suppose the trip of interest started on May 1, 2020, and consists of visits to
+administrative regions A, B, and C.
+Let <code class="docutils literal notranslate"><span class="pre">trip_history_length_in_months</span></code> be 2; this means that the observation window is from
+March 1, 2020, to May 1, 2020. If there exist more than <code class="docutils literal notranslate"><span class="pre">max_frequency_in_trip_history</span></code> other trips that started within this observation window
+and also involve visiting A, B, and C (and possibly more regions), then the trip of interest is not considered
+a tourism trip.</p>
+</li>
+<li><p>Its duration should be at most <code class="docutils literal notranslate"><span class="pre">max_trip_duration_in_days</span></code>.</p>
+<p>A trip’s start time is the time when the device departed from its usual residence.
+A trip’s end time is the time when the device arrived back at its usual residence.</p>
+</li>
+<li><p>It should involve crossing administrative borders.</p>
+<p>In other words, under the <code class="docutils literal notranslate"><span class="pre">administrative_region_column</span></code>, there should be the administrative region
+of the device’s usual residence and at least one other administrative region.</p>
+</li>
+<li><p>It should involve traveling at least <code class="docutils literal notranslate"><span class="pre">min_distance_from_origin_in_km</span></code> from the device’s
+usual place of residence.
+This distance requirement can be useful in filtering the trips of devices residing very close to administrative borders.</p>
+<p>We treat the starting point of the trip as a proxy for the usual place of residence.</p>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trips</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – <p>Contains the trips from the device of interest.
+<strong>The trips should come from only a single device.</strong>
+At the minimum, this data frame should have columns for the:</p>
+<ul>
+<li><p>Coordinates of the staypoints.
+The coordinates of each staypoint</p></li>
+<li><p>Arrival times at the staypoints.
+The arrival time at each staypoint should be stored as a <code class="docutils literal notranslate"><span class="pre">numpy.datetime64</span></code> object,
+which is the return type when <code class="docutils literal notranslate"><span class="pre">pandas.to_datetime()</span></code> is used.</p></li>
+<li><p>Departure times at the staypoints.
+The departure time from each staypoint should be stored as a <code class="docutils literal notranslate"><span class="pre">numpy.datetime64</span></code> object,
+which is the return type when <code class="docutils literal notranslate"><span class="pre">pandas.to_datetime()</span></code> is used.</p></li>
+<li><p>Administrative regions where the staypoints are located.</p></li>
+</ul>
+</p></li>
+<li><p><strong>coordinates_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the coordinates.</p></li>
+<li><p><strong>arrival_time_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the arrival times.</p></li>
+<li><p><strong>departure_time_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the departure times.</p></li>
+<li><p><strong>administrative_region_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the administrative regions.</p></li>
+<li><p><strong>trip_history_length_in_months</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of past months to be considered in computing the trip frequency.</p></li>
+<li><p><strong>max_frequency_in_trip_history</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Maximum trip frequency to be considered a tourism trip.</p></li>
+<li><p><strong>max_trip_duration_in_days</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum trip duration (in days) to be considered a tourism trip.</p></li>
+<li><p><strong>min_distance_from_origin_in_km</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Minimum traveled distance (in km) from the trip’s starting point to be considered
+a tourism trip.</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to print progress messages to the standard output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>The first return value contains the tourism trips.</p>
+<p>The second return value contains statistics on each tourism trip:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">num_administrative_regions_visited</span></code> – Number of distinct administrative regions visited.
+This count does not include the administrative region of the device’s usual residence.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trip_duration_in_days</span></code> – Trip duration (in days).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">farthest_distance_from_origin_in_km</span></code> – Distance (in km) of the farthest staypoint from the trip’s starting point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trip_frequency</span></code> – Trip frequency.
+For example, a value of 2 means that, in the past <code class="docutils literal notranslate"><span class="pre">trip_history_length_in_months</span></code> months, the device made two other trips
+that involved visiting the same set of administrative regions visited in the tourism trip of interest
+(or a superset thereof).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h3>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>United Nations. International recommendations for tourism statistics 2008. <a class="reference external" href="https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf">https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf</a>. 2010.</p>
+</aside>
+</aside>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.tourism.identify_trips">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.tourism.</span></span><span class="sig-name descname"><span class="pre">identify_trips</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">staypoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrival_time_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">departure_time_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residence_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_days_between_two_consecutive_staypoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.tourism.identify_trips" title="Link to this definition">#</a></dt>
+<dd><p>Identifies trips given a series of staypoints.</p>
+<p><strong>Important: This function assumes that the staypoints come from only a single device.</strong></p>
+<p>We refer to the United Nations’ <em>International Recommendations for Tourism Statistics 2008</em> <a class="footnote-reference brackets" href="#id5" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>
+for the definition of a trip (paragraph 2.7):
+“travel by a person from the time of departure from his usual residence until he/she returns”.</p>
+<p>We introduce the additional criterion that
+every pair of (temporally) consecutive staypoints should be at most <code class="docutils literal notranslate"><span class="pre">max_days_between_two_consecutive_staypoints</span></code> apart.
+This is to parameterize the assumption that the device is still in the same trip
+when no pings were recorded for a possibly extended period of time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>staypoints</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span>) – <p>Contains the staypoints from the device of interest.
+<strong>The staypoints should come from only a single device.</strong>
+At the minimum, this data frame should have columns for the:</p>
+<ul>
+<li><p>Arrival times at the staypoints.
+The arrival time at each staypoint should be stored as a <code class="docutils literal notranslate"><span class="pre">numpy.datetime64</span></code> object,
+which is the return type when <code class="docutils literal notranslate"><span class="pre">pandas.to_datetime()</span></code> is used.</p></li>
+<li><p>Departure times from the staypoints.
+The departure time from each staypoint should be stored as a <code class="docutils literal notranslate"><span class="pre">numpy.datetime64</span></code> object,
+which is the return type when <code class="docutils literal notranslate"><span class="pre">pandas.to_datetime()</span></code> is used.</p></li>
+<li><p>Whether the staypoints correspond to the device’s usual residence.
+This information should be stored as a Boolean value.</p></li>
+</ul>
+</p></li>
+<li><p><strong>arrival_time_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the arrival times.</p></li>
+<li><p><strong>departure_time_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the departure times.</p></li>
+<li><p><strong>residence_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing information on whether the staypoints correspond
+to the device’s usual residence.</p></li>
+<li><p><strong>max_days_between_two_consecutive_staypoints</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum number of days between every pair of (temporally)
+consecutive staypoints in a trip.</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to print progress messages to the standard output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Trips.</p>
+</dd>
+</dl>
+<section id="id4">
+<h3>References<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id5" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<p>United Nations. International recommendations for tourism statistics 2008. <a class="reference external" href="https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf">https://unstats.un.org/unsd/publication/seriesm/seriesm_83rev1e.pdf</a>. 2010.</p>
+</aside>
+</aside>
+</section>
+</dd></dl>
+
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="datablox_od.shared.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">datablox_od.shared</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="datablox_od.trajectory.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">datablox_od.trajectory</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-datablox_od.tourism">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.tourism.identify_tourism_trips"><code class="docutils literal notranslate"><span class="pre">identify_tourism_trips()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.tourism.identify_trips"><code class="docutils literal notranslate"><span class="pre">identify_trips()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Data Division, Economic Research and Development Impact Department, Asian Development Bank
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Aug 26, 2025.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

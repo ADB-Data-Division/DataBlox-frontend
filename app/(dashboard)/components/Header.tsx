@@ -3,11 +3,15 @@
 import { Typography, Box, Stack } from '@mui/material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ConnectivityStatus } from './ConnectivityStatus';
 
 const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '' },
   { label: 'Trend Over Time', href: '/migration-analysis', segment: 'migration-analysis' },
+  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism' },
+  { label: 'Tourism Trend Over Time', href: '/tourism-trend', segment: 'tourism-trend' },
   // { label: 'Sankey', href: '/sankey', segment: 'sankey' }, // Disabled for now
+  { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about' },
 ];
 
 export function Header() {
@@ -18,32 +22,40 @@ export function Header() {
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        sx={{ 
-          fontSize: '36px',
-          fontFamily: 'var(--font-asap), sans-serif',
-          fontWeight: '900',
-          color: '#000000',
-          letterSpacing: '-0.5px',
-          mb: 0
-        }}
+      <Stack 
+        direction="row" 
+        alignItems="center" 
+        justifyContent="space-between"
+        sx={{ mb: 0 }}
       >
-        Datablo<Box 
-          component="span" 
-          sx={{
-            backgroundColor: '#0077BE',
-            color: '#ffffff',
-            padding: '0px 2px',
-            borderRadius: '4px',
-            marginLeft: '1px',
-            display: 'inline-block'
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          sx={{ 
+            fontSize: '36px',
+            fontFamily: 'var(--font-asap), sans-serif',
+            fontWeight: '900',
+            color: '#000000',
+            letterSpacing: '-0.5px',
+            mb: 0
           }}
         >
-          x
-        </Box>
-      </Typography>
+          Datablo<Box 
+            component="span" 
+            sx={{
+              backgroundColor: '#0077BE',
+              color: '#ffffff',
+              padding: '0px 2px',
+              borderRadius: '4px',
+              marginLeft: '1px',
+              display: 'inline-block'
+            }}
+          >
+            x
+          </Box>
+        </Typography>
+        <ConnectivityStatus />
+      </Stack>
       
       {/* Navigation Links */}
       <Stack 

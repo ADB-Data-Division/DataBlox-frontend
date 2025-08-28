@@ -1,0 +1,691 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>datablox_od.preprocessing &#8212; DataBlox-OD</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/datablox_od.preprocessing';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="datablox_od.residence" href="datablox_od.residence.html" />
+    <link rel="prev" title="datablox_od.migration" href="datablox_od.migration.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Aug 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the documentation..."
+         aria-label="Search the documentation..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="DataBlox-OD - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="DataBlox-OD - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/1.%20Mapping%20pings%20to%20areas%20of%20interest.html">Mapping pings to areas of interest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/2.%20Inferring%20device%20residence.html">Inferring device residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/3.%20Identifying%20internal%20migration.html">Identifying internal migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/4.%20Identifying%20tourism%20activities.html">Identifying tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/4.1.%20Annotating%20tourism%20activities.html">Annotating tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/5.%20Adjusting%20GPS%20counts.html">Adjusting GPS counts</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Case Studies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../case_study/1.%20Community%20tourism.html">Community tourism</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://datablox-ai.vercel.app/">DataBlox dashboard</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.display.html">datablox_od.display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.migration.html">datablox_od.migration</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">datablox_od.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.residence.html">datablox_od.residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.scaling.html">datablox_od.scaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.shared.html">datablox_od.shared</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.tourism.html">datablox_od.tourism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datablox_od.trajectory.html">datablox_od.trajectory</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/api/datablox_od.preprocessing.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>datablox_od.preprocessing</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-datablox_od.preprocessing">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.filter_pings_based_on_timestamp"><code class="docutils literal notranslate"><span class="pre">filter_pings_based_on_timestamp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.get_nearby_places"><code class="docutils literal notranslate"><span class="pre">get_nearby_places()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.map_pings_to_areas"><code class="docutils literal notranslate"><span class="pre">map_pings_to_areas()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.map_points_to_areas"><code class="docutils literal notranslate"><span class="pre">map_points_to_areas()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.perform_geospatial_indexing"><code class="docutils literal notranslate"><span class="pre">perform_geospatial_indexing()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="datablox-od-preprocessing">
+<h1>datablox_od.preprocessing<a class="headerlink" href="#datablox-od-preprocessing" title="Link to this heading">#</a></h1>
+<section id="module-datablox_od.preprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-datablox_od.preprocessing" title="Link to this heading">#</a></h2>
+<p>Provides functions for preprocessing GPS data.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.preprocessing.filter_pings_based_on_timestamp">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.preprocessing.</span></span><span class="sig-name descname"><span class="pre">filter_pings_based_on_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.preprocessing.filter_pings_based_on_timestamp" title="Link to this definition">#</a></dt>
+<dd><p>Filters pings to include only those from the specified start time to before the specified end time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pings</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span>) – Contains the pings. At the minimum, this data frame should have a column
+for the timestamps of the pings.</p></li>
+<li><p><strong>timestamp_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the timestamps.</p></li>
+<li><p><strong>start_time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Only pings from <code class="docutils literal notranslate"><span class="pre">start_time</span></code> to before <code class="docutils literal notranslate"><span class="pre">end_time</span></code> will be retained.
+Pings at exactly <code class="docutils literal notranslate"><span class="pre">start_nighttime</span></code> will be retained.
+The time should be given in 24-hour <code class="docutils literal notranslate"><span class="pre">HH:MM</span></code> format
+(for example, 7:00 p.m. should be encoded as <code class="docutils literal notranslate"><span class="pre">19:00</span></code>).</p></li>
+<li><p><strong>end_time</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Only pings from <code class="docutils literal notranslate"><span class="pre">start_time</span></code> to before <code class="docutils literal notranslate"><span class="pre">end_time</span></code> will be retained.
+Pings at exactly <code class="docutils literal notranslate"><span class="pre">end_nighttime</span></code> will <em>not</em> be retained.
+The time should be given in 24-hour <code class="docutils literal notranslate"><span class="pre">HH:MM</span></code> format
+(for example, 7:00 a.m. should be encoded as <code class="docutils literal notranslate"><span class="pre">07:00</span></code>, not <code class="docutils literal notranslate"><span class="pre">7:00</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pings from the specified start time to before the specified end time.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.preprocessing.get_nearby_places">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.preprocessing.</span></span><span class="sig-name descname"><span class="pre">get_nearby_places</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">places</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projected_crs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'intersects'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.preprocessing.get_nearby_places" title="Link to this definition">#</a></dt>
+<dd><p>Identifies nearby places.</p>
+<p>Formally, <em>X</em> is considered near <em>Y</em> if <em>X</em> is located within <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code> of <em>Y</em>.
+Whether the entirety of <em>X</em> or only a part of it should be within <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code>
+is determined by the <code class="docutils literal notranslate"><span class="pre">predicate</span></code> parameter. If <code class="docutils literal notranslate"><span class="pre">predicate</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;intersects&quot;</span></code>, then a part of <em>X</em> is sufficient;
+if <code class="docutils literal notranslate"><span class="pre">predicate</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;contains&quot;</span></code>, then the entirety of <em>X</em> should be within <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – For each row in <code class="docutils literal notranslate"><span class="pre">cordinates</span></code>, nearby entries among <code class="docutils literal notranslate"><span class="pre">places</span></code> will be identified.
+The coordinates should be stored as a <code class="docutils literal notranslate"><span class="pre">shapely.Point</span></code> object.</p></li>
+<li><p><strong>places</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – For each row in <code class="docutils literal notranslate"><span class="pre">cordinates</span></code>, nearby entries among <code class="docutils literal notranslate"><span class="pre">places</span></code> will be identified.
+The coordinates should be stored as a <code class="docutils literal notranslate"><span class="pre">shapely.Point</span></code> object.</p></li>
+<li><p><strong>distance_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum distance for a place to be considered nearby.
+The unit of measure of <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code> is dependent on <code class="docutils literal notranslate"><span class="pre">projected_crs</span></code>.</p></li>
+<li><p><strong>projected_crs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyproj.crs.crs.CRS</span></code></span>) – Projected coordinate system.</p></li>
+<li><p><strong>predicate</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – If <code class="docutils literal notranslate"><span class="pre">predicate</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;intersects&quot;</span></code>, then it suffices for only a part of the place
+to be within <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">predicate</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;contains&quot;</span></code>, then the entirety of the place should be within <code class="docutils literal notranslate"><span class="pre">distance_threshold</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Nearby places.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.preprocessing.map_pings_to_areas">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.preprocessing.</span></span><span class="sig-name descname"><span class="pre">map_pings_to_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_to_area_mapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust_timezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_duplicate_pings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_indexing_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h3'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.preprocessing.map_pings_to_areas" title="Link to this definition">#</a></dt>
+<dd><p>Maps pings to the areas where they were recorded.
+A ping has three attributes:
+(1) the identifier of the device that issued it, (2) its coordinates, and (3) its timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pings</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – <p>Contains the pings. At the minimum, this data frame should have columns for the:</p>
+<ul>
+<li><p>Identifiers of the devices that issued the pings.</p></li>
+<li><p>Coordinates of the pings.
+The coordinates of each ping should be stored as a <code class="docutils literal notranslate"><span class="pre">shapely.Point</span></code> object.</p></li>
+<li><p>Timestamps of the pings.
+The timestamp of each ping should be stored as a <code class="docutils literal notranslate"><span class="pre">numpy.datetime64</span></code> object,
+which is the return type when <code class="docutils literal notranslate"><span class="pre">pandas.to_datetime()</span></code> is used.</p></li>
+</ul>
+</p></li>
+<li><p><strong>cell_to_area_mapping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span>) – Maps the cells (from the spatial index) to the areas.
+To prevent confusion, <code class="docutils literal notranslate"><span class="pre">pings</span></code> and <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code> should not have any common
+column names.</p></li>
+<li><p><strong>spatial_index_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column in <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>
+that stores the identifiers of the cells (from the spatial index).</p></li>
+<li><p><strong>device_id_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the device identifiers.</p></li>
+<li><p><strong>coordinates_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the coordinates.</p></li>
+<li><p><strong>timestamp_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the timestamps.</p></li>
+<li><p><strong>adjust_timezone</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Number of hours by which the timestamp is to be adjusted.</p></li>
+<li><p><strong>drop_duplicate_pings</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to drop pings with the same device identifier and timestamp.</p></li>
+<li><p><strong>spatial_indexing_system</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Spatial indexing system. For now, the only accepted value is <code class="docutils literal notranslate"><span class="pre">&quot;h3&quot;</span></code>
+(for <a class="reference external" href="https://h3geo.org/">Uber’s hexagonal hierarchical geospatial indexing system</a>).
+This should match the spatial indexing system used to generate <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>.</p></li>
+<li><p><strong>spatial_index_resolution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Spatial index resolution at which spatial indexing will be performed.
+For H3, refer to this <a class="reference external" href="https://h3geo.org/docs/core-library/restable/">documentation</a>.
+This should match the spatial resolution used to generate <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to print progress messages to the standard output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping between pings and the areas where they were recorded.
+This mapping is many-to-one, that is, multiple pings can map to the same area.
+Pings that do not map to any of the areas are dropped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.preprocessing.map_points_to_areas">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.preprocessing.</span></span><span class="sig-name descname"><span class="pre">map_points_to_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_to_area_mapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_indexing_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h3'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.preprocessing.map_points_to_areas" title="Link to this definition">#</a></dt>
+<dd><p>Maps points to the areas where they are located.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – Contains the points. At the minimum, this data frame should have a column
+for the coordinates of the points.</p></li>
+<li><p><strong>cell_to_area_mapping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span>) – Maps the cells (from the spatial index) to the areas.
+To prevent confusion, <code class="docutils literal notranslate"><span class="pre">points</span></code> and <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code> should not have any common
+column names.</p></li>
+<li><p><strong>spatial_index_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column in <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>
+that stores the identifiers of the cells (from the spatial index).</p></li>
+<li><p><strong>coordinates_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column containing the coordinates.</p></li>
+<li><p><strong>spatial_indexing_system</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – <p>Spatial indexing system. For now, the only accepted value is <code class="docutils literal notranslate"><span class="pre">&quot;h3&quot;</span></code>
+(for <a class="reference external" href="https://h3geo.org/">Uber’s hexagonal hierarchical geospatial indexing system</a>).
+This should match the spatial indexing system used to generate <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>.</p>
+</p></li>
+<li><p><strong>spatial_index_resolution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – <p>Spatial index resolution at which spatial indexing will be performed.
+For H3, refer to this <a class="reference external" href="https://h3geo.org/docs/core-library/restable/">documentation</a>.
+This should match the spatial resolution used to generate <code class="docutils literal notranslate"><span class="pre">cell_to_area_mapping</span></code>.</p>
+</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to print progress messages to the standard output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping between points and the areas where they are located.
+This mapping is many-to-one, that is, multiple points can map to the same area.
+Points that do not map to any of the areas are dropped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="datablox_od.preprocessing.perform_geospatial_indexing">
+<span class="sig-prename descclassname"><span class="pre">datablox_od.preprocessing.</span></span><span class="sig-name descname"><span class="pre">perform_geospatial_indexing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bounding_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">areas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_indexing_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h3'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_index_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualization_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualization_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualization_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#datablox_od.preprocessing.perform_geospatial_indexing" title="Link to this definition">#</a></dt>
+<dd><p>Performs geospatial indexing. In particular, this function maps cells (from the spatial index) to the
+given areas of interest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bounding_area</strong> (Any class that implements <code class="docutils literal notranslate"><span class="pre">__geo_interface__</span></code>,
+as discussed <a class="reference external" href="https://gist.github.com/sgillies/2217756">here</a>) – Entire area to be indexed (that is, it should cover all the areas of interest
+in <code class="docutils literal notranslate"><span class="pre">areas</span></code>). For example, if the areas of interest are subnational areas,
+then this should specify the national boundaries.
+<strong>The coordinates should be in EPSG:4326.</strong></p></li>
+<li><p><strong>areas</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.geodataframe.GeoDataFrame</span></code></span>) – Contains the boundaries of the areas of interest.
+areas with boundaries outside <code class="docutils literal notranslate"><span class="pre">bounding_area</span></code> will not be indexed.</p></li>
+<li><p><strong>spatial_index_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Name of the column that will store the identifiers of the cells (from the spatial index).
+To prevent confusion, no column in <code class="docutils literal notranslate"><span class="pre">areas</span></code> should have this name.</p></li>
+<li><p><strong>spatial_indexing_system</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – <p>Spatial indexing system. For now, the only accepted value is <code class="docutils literal notranslate"><span class="pre">&quot;h3&quot;</span></code>
+(for <a class="reference external" href="https://h3geo.org/">Uber’s hexagonal hierarchical geospatial indexing system</a>).</p>
+</p></li>
+<li><p><strong>spatial_index_resolution</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – <p>Spatial index resolution at which spatial indexing will be performed.
+For H3, refer to this <a class="reference external" href="https://h3geo.org/docs/core-library/restable/">documentation</a>.</p>
+</p></li>
+<li><p><strong>visualize</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to plot the grid corresponding to the spatial index.
+Setting this to <code class="docutils literal notranslate"><span class="pre">True</span></code> can be helpful in verifying
+whether the cells indeed cover all the areas of interest
+or whether the specified resolution is sufficiently fine-grained.</p></li>
+<li><p><strong>visualization_column</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Name of the column containing the categories to be considered when plotting the grid.
+The colors in the plot correspond to the unique values in this column.
+Ignored if <code class="docutils literal notranslate"><span class="pre">visualize</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>visualization_width</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Width of the plot. Ignored if <code class="docutils literal notranslate"><span class="pre">visualize</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>visualization_height</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Height of the plot. Ignored if <code class="docutils literal notranslate"><span class="pre">visualize</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Whether to print progress messages to the standard output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.core.frame.DataFrame</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping between cells (from the spatial index) and the areas of interest.
+This mapping is many-to-one, that is, multiple cells can map to the same area of interest.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="datablox_od.migration.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">datablox_od.migration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="datablox_od.residence.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">datablox_od.residence</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-datablox_od.preprocessing">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.filter_pings_based_on_timestamp"><code class="docutils literal notranslate"><span class="pre">filter_pings_based_on_timestamp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.get_nearby_places"><code class="docutils literal notranslate"><span class="pre">get_nearby_places()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.map_pings_to_areas"><code class="docutils literal notranslate"><span class="pre">map_pings_to_areas()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.map_points_to_areas"><code class="docutils literal notranslate"><span class="pre">map_points_to_areas()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datablox_od.preprocessing.perform_geospatial_indexing"><code class="docutils literal notranslate"><span class="pre">perform_geospatial_indexing()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Data Division, Economic Research and Development Impact Department, Asian Development Bank
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Aug 26, 2025.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,755 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Adjusting GPS counts &#8212; DataBlox-OD</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorial/5. Adjusting GPS counts';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Community tourism" href="../case_study/1.%20Community%20tourism.html" />
+    <link rel="prev" title="Annotating tourism activities" href="4.1.%20Annotating%20tourism%20activities.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+    <meta name="docbuild:last-update" content="Aug 26, 2025"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the documentation..."
+         aria-label="Search the documentation..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="DataBlox-OD - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="DataBlox-OD - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="1.%20Mapping%20pings%20to%20areas%20of%20interest.html">Mapping pings to areas of interest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2.%20Inferring%20device%20residence.html">Inferring device residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3.%20Identifying%20internal%20migration.html">Identifying internal migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4.%20Identifying%20tourism%20activities.html">Identifying tourism activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4.1.%20Annotating%20tourism%20activities.html">Annotating tourism activities</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Adjusting GPS counts</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Case Studies</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../case_study/1.%20Community%20tourism.html">Community tourism</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://datablox-ai.vercel.app/">DataBlox dashboard</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.display.html">datablox_od.display</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.migration.html">datablox_od.migration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.preprocessing.html">datablox_od.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.residence.html">datablox_od.residence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.scaling.html">datablox_od.scaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.shared.html">datablox_od.shared</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.tourism.html">datablox_od.tourism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/datablox_od.trajectory.html">datablox_od.trajectory</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/tutorial/5. Adjusting GPS counts.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Adjusting GPS counts</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="adjusting-gps-counts">
+<h1>Adjusting GPS counts<a class="headerlink" href="#adjusting-gps-counts" title="Link to this heading">#</a></h1>
+<p>Load the necessary libraries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datablox_od</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+</pre></div>
+</div>
+</div>
+</div>
+<p>Folder names</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">SAMPLE_DATA_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_data&quot;</span><span class="p">)</span>
+<span class="n">SCALING_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SAMPLE_DATA_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;scaling&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Load the dataset for training the GPS count adjustment model. This dataset should be a panel dataset (that is, there are observations for each entity/location across different time periods).</p>
+<p>The columns of our training dataset are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ADM1_EN</span></code>: Location (entity, in panel dataset terminology)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">month</span></code>: Month (time period, in panel dataset terminology)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ground_truth_moveout_count</span></code>: Ground-truth move-out count (obtained via the API service provided by Thailand’s <a class="reference external" href="https://www.bora.dopa.go.th/">Bureau of Registration Administration</a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gps_moveout_count</span></code> Estimated move-out count based on the GPS data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimated_population</span></code>: Estimated population based on the GPS data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_appid</span></code>: Number of unique application IDs in the GPS dataset for the month of interest</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_deviceid</span></code>: Number of unique device IDs in the GPS dataset for the month of interest</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">ADM1_EN</span></code>, <code class="docutils literal notranslate"><span class="pre">gps_moveout_count</span></code>, <code class="docutils literal notranslate"><span class="pre">estimated_population</span></code>, <code class="docutils literal notranslate"><span class="pre">num_appid</span></code>, and <code class="docutils literal notranslate"><span class="pre">num_deviceid</span></code> comprise our feature set, and <code class="docutils literal notranslate"><span class="pre">ground_truth_moveout_count</span></code> is our target variable.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SCALING_DIRECTORY</span><span class="p">,</span> <span class="s2">&quot;training_data.parquet&quot;</span><span class="p">))</span>
+<span class="n">dataset</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ADM1_EN</th>
+      <th>month</th>
+      <th>ground_truth_moveout_count</th>
+      <th>gps_moveout_count</th>
+      <th>estimated_population</th>
+      <th>num_appid</th>
+      <th>num_deviceid</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Amnat Charoen</td>
+      <td>Apr 2020</td>
+      <td>752</td>
+      <td>2</td>
+      <td>242</td>
+      <td>400</td>
+      <td>1802808</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Amnat Charoen</td>
+      <td>Apr 2021</td>
+      <td>1163</td>
+      <td>9</td>
+      <td>1564</td>
+      <td>487279</td>
+      <td>2640291</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>5080</th>
+      <td>Yasothon</td>
+      <td>Sep 2023</td>
+      <td>1450</td>
+      <td>21</td>
+      <td>4706</td>
+      <td>230218</td>
+      <td>21113546</td>
+    </tr>
+    <tr>
+      <th>5081</th>
+      <td>Yasothon</td>
+      <td>Sep 2024</td>
+      <td>1073</td>
+      <td>28</td>
+      <td>5645</td>
+      <td>4039</td>
+      <td>11669267</td>
+    </tr>
+  </tbody>
+</table>
+<p>5082 rows × 7 columns</p>
+</div></div></div>
+</div>
+<p>It is required to preprocess the training dataset using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.preprocess_dataset_for_gps_count_adjustment()</span></code>, as this function also records important metadata that will be relevant later on for training and GPS count adjustment.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">scaling</span><span class="o">.</span><span class="n">preprocess_dataset_for_gps_count_adjustment</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="p">,</span>
+    <span class="n">entity_column</span><span class="o">=</span><span class="s2">&quot;ADM1_EN&quot;</span><span class="p">,</span>
+    <span class="n">time_column</span><span class="o">=</span><span class="s2">&quot;month&quot;</span><span class="p">,</span>
+    <span class="n">ground_truth_count_column</span><span class="o">=</span><span class="s2">&quot;ground_truth_moveout_count&quot;</span><span class="p">,</span>
+    <span class="n">gps_count_column</span><span class="o">=</span><span class="s2">&quot;gps_moveout_count&quot;</span><span class="p">,</span>
+    <span class="n">add_one_to_gps_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_only_ground_truth_greater_than_gps_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">log_normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_zero_gps_count_zero_ground_truth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">dataset</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;entity_column&#39;: &#39;ADM1_EN&#39;, &#39;time_column&#39;: &#39;month&#39;, &#39;ground_truth_count_column&#39;: &#39;ground_truth_moveout_count&#39;, &#39;gps_count_column&#39;: &#39;gps_moveout_count&#39;, &#39;add_one_to_gps_counts&#39;: True, &#39;log_normalize&#39;: True}
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ADM1_EN</th>
+      <th>month</th>
+      <th>ground_truth_moveout_count</th>
+      <th>gps_moveout_count</th>
+      <th>estimated_population</th>
+      <th>num_appid</th>
+      <th>num_deviceid</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Amnat Charoen</td>
+      <td>Apr 2020</td>
+      <td>6.624065</td>
+      <td>1.386294</td>
+      <td>5.493061</td>
+      <td>5.993961</td>
+      <td>14.404857</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Amnat Charoen</td>
+      <td>Apr 2021</td>
+      <td>7.059618</td>
+      <td>2.397895</td>
+      <td>7.355641</td>
+      <td>13.096594</td>
+      <td>14.786400</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>10162</th>
+      <td>Yasothon</td>
+      <td>Sep 2023</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>8.456806</td>
+      <td>12.346786</td>
+      <td>16.865425</td>
+    </tr>
+    <tr>
+      <th>10163</th>
+      <td>Yasothon</td>
+      <td>Sep 2024</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>8.638703</td>
+      <td>8.304000</td>
+      <td>16.272469</td>
+    </tr>
+  </tbody>
+</table>
+<p>10164 rows × 7 columns</p>
+</div></div></div>
+</div>
+<p>Initialize the GPS count adjustment model using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.build_model()</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">scaling</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span>
+    <span class="n">gps_count_column</span><span class="o">=</span><span class="s2">&quot;gps_moveout_count&quot;</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;xgboost&quot;</span><span class="p">,</span>
+    <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">min_child_weight</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">eta</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">n_estimators</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">max_bin</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Train the model using DataBlox-OD’s <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.train_model()</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">datablox_od</span><span class="o">.</span><span class="n">scaling</span><span class="o">.</span><span class="n">train_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, we can obtain the adjusted counts using <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.adjust_gps_counts()</span></code>.</p>
+<p>When using this function, we only need to provide the entity/location, time/month, and GPS count since the other features (namely, the number of unique application IDs and the number of unique device IDs) are automatically retrieved from the training dataset based on the specified month.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>When using <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.adjust_gps_counts()</span></code>, the passed GPS counts are automatically preprocessed based on how the training dataset was preprocessed. This is why we require it to be preprocessed via <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.preprocess_dataset_for_gps_count_adjustment()</span></code>, as this function records metadata on the preprocessing steps.</p>
+<p>To reiterate, <code class="docutils literal notranslate"><span class="pre">datablox_od.scaling.adjust_gps_counts()</span></code> expects a <strong>raw GPS count</strong> — without any form of preprocessing. Likewise, the adjusted count it returns should be taken as is. Other than maybe rounding it to the nearest integer, no postprocessing is needed.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Place, time: GPS count -&gt; adjusted count&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;========================================&quot;</span><span class="p">)</span>
+
+<span class="n">provinces</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Phuket&quot;</span><span class="p">,</span> <span class="s2">&quot;Bangkok&quot;</span><span class="p">]</span>
+<span class="n">time_periods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Jun 2024&quot;</span><span class="p">,</span> <span class="s2">&quot;Dec 2024&quot;</span><span class="p">]</span>
+<span class="n">gps_count</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="k">for</span> <span class="n">province</span> <span class="ow">in</span> <span class="n">provinces</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">time_periods</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">province</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">gps_count</span><span class="si">}</span><span class="s2"> -&gt; &quot;</span><span class="p">,</span>
+            <span class="n">datablox_od</span><span class="o">.</span><span class="n">scaling</span><span class="o">.</span><span class="n">adjust_gps_counts</span><span class="p">(</span>
+                <span class="n">model</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">province</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">gps_count</span><span class="o">=</span><span class="n">gps_count</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Place, time: GPS count -&gt; adjusted count
+========================================
+Phuket, Jun 2024: 500 -&gt;  2882.494579990721
+Phuket, Dec 2024: 500 -&gt;  2749.484316807332
+Bangkok, Jun 2024: 500 -&gt;  23711.196156458893
+Bangkok, Dec 2024: 500 -&gt;  22952.297476200405
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./tutorial"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="4.1.%20Annotating%20tourism%20activities.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Annotating tourism activities</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../case_study/1.%20Community%20tourism.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Community tourism</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Data Division, Economic Research and Development Impact Department, Asian Development Bank
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="last-updated">
+  Last updated on Aug 26, 2025.
+  <br/>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

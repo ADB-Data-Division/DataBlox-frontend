@@ -27,11 +27,7 @@ export class MetadataService {
       this.cacheTimestamp = now;
       return this.cachedMetadata;
     } catch (error) {
-      console.error('Failed to fetch metadata:', error);
-      
-      // Return cached data if available, even if expired
       if (this.cachedMetadata) {
-        console.warn('Using expired cached metadata due to API error');
         return this.cachedMetadata;
       }
       
