@@ -14,6 +14,8 @@ import { NoResultsState } from '@/app/(dashboard)/components/NoResultsState';
 import { LocationList } from '@/app/(dashboard)/components/LocationList';
 import { SearchPagination } from '@/app/(dashboard)/components/SearchPagination';
 import { SearchResultsSummary } from '@/app/(dashboard)/components/SearchResultsSummary';
+import { ApiDisconnectedPage } from '@/app/(dashboard)/components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 
 // Hooks
 import { 
@@ -36,6 +38,7 @@ const containerStyles = { width: '100%' };
 export default function PageContent() {
   
   const theme = useTheme();
+  const { isConnected } = useConnectivity();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -252,6 +255,15 @@ export default function PageContent() {
       }
     }
   }, [handleExecuteQuery, searchResults, handleLocationSelect, state.searchQuery, memoizedSelectedLocations.length, state.highlightedForDeletion]);
+
+  if (!isConnected) {
+    return (
+      <Box sx={containerStyles}>
+        <Header />
+        <ApiDisconnectedPage />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={containerStyles}>

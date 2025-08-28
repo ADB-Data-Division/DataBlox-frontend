@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { Box, Typography } from '@mui/material';
+import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
@@ -23,6 +25,7 @@ function valueFormatter(value: number | null) {
 }
 
 export default function InterProvincePageContent() {
+  const { isConnected } = useConnectivity();
   const [activeDataset, setActiveDataset] = React.useState<MoveInDataset>(moveInSampleDataset as MoveInDataset);
   const [subAction, setSubAction] = React.useState<'movein' | 'moveout' | 'net'>('movein');
   const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
@@ -271,6 +274,10 @@ export default function InterProvincePageContent() {
     setActiveDataset(transformedData);
     setIsLoading(false);
     setIsEmpty(false);
+  }
+
+  if (!isConnected) {
+    return <ApiDisconnectedPage />;
   }
 
   return (

@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { Box } from '@mui/material';
+import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import { axisClasses } from '@mui/x-charts';
 import moveInSampleDataset from '../../../public/move-in-sample-dataset.json';
 import MigrationContent from '../migration/migration-content';
@@ -17,6 +19,7 @@ function valueFormatter(value: number | null) {
   }
   
 export default function IntraProvincePageContent() {
+	const { isConnected } = useConnectivity();
 	const [activeDataset, setActiveDataset] = React.useState(moveInSampleDataset);
   const [subAction, setSubAction] = React.useState<Subaction>('movein');
   const [selectedProvinces, setSelectedProvinces] = React.useState<string[]>([]);
@@ -93,6 +96,10 @@ const chartSetting = {
       selectedProvinces.includes(series.dataKey)
     );
   };
+
+  if (!isConnected) {
+    return <ApiDisconnectedPage />;
+  }
 
   return (
     <Box sx={{ width: '100%' }}>

@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Box, Typography, Container } from '@mui/material';
+import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
 import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
@@ -21,6 +23,7 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
   
 }) => {
   const title = "Migration Flow Visualization"
+  const { isConnected } = useConnectivity();
   const { themeMode } = useAppSelector(state => state.userPreferences);
   const darkMode = themeMode === 'dark';
 
@@ -167,6 +170,10 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
     visualizationType: 'chord',
     subaction: 'raw',
   };
+
+  if (!isConnected) {
+    return <ApiDisconnectedPage />;
+  }
 
   return (
     <Box sx={{ 

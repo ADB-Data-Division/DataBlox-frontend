@@ -9,6 +9,8 @@ import {
   Divider,
   useTheme
 } from '@mui/material';
+import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import Scorecard from '../../../components/score-card/score-card';
 import { 
   ChartBar,
@@ -57,6 +59,7 @@ const mockData = {
 
 export default function PageContent() {
   const theme = useTheme();
+  const { isConnected } = useConnectivity();
   const [data, setData] = useState<typeof mockData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,6 +79,10 @@ export default function PageContent() {
   const formatNumber = (num: number) => {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+
+  if (!isConnected) {
+    return <ApiDisconnectedPage />;
+  }
 
   return (
     <Box sx={{ width: '100%' }}>

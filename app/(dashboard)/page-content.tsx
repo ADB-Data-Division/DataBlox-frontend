@@ -15,6 +15,7 @@ import { NoResultsState } from './components/NoResultsState';
 import { LocationList } from './components/LocationList';
 import { SearchPagination } from './components/SearchPagination';
 import { SearchResultsSummary } from './components/SearchResultsSummary';
+import { ApiDisconnectedPage } from './components/ApiDisconnectedPage';
 
 // Hooks
 import { 
@@ -23,6 +24,9 @@ import {
   useUrlParams, 
   useKeyboardShortcuts 
 } from './hooks';
+
+// Contexts
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 
 // Utils and helpers
 import { trackMigrationEvent, trackUserInteraction } from '../../src/utils/analytics';
@@ -39,6 +43,7 @@ export default function PageContent() {
   const theme = useTheme();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isConnected } = useConnectivity();
   
   
   // Track when we're resetting to prevent URL effect interference
@@ -258,10 +263,15 @@ export default function PageContent() {
     <Box sx={containerStyles}>
       <Header />
 
-      <Paper 
-        elevation={0} 
-        sx={paperStyles}
-      >
+      {/* Show API disconnected page when not connected */}
+      {!isConnected && <ApiDisconnectedPage />}
+
+      {/* Main content - only show when connected */}
+      {isConnected && (
+        <Paper 
+          elevation={0} 
+          sx={paperStyles}
+        >
         {/* Search Interface - Hidden in success state */}
         {state.queryExecutionState !== 'success' && (
           <>
@@ -345,7 +355,8 @@ export default function PageContent() {
             />
           </>
         )}
-      </Paper>
+        </Paper>
+      )}
 
       <ShortcutsModal open={state.showShortcutsModal} onClose={handleCloseShortcutsModal} />
       <UserTypeModalWrapper />

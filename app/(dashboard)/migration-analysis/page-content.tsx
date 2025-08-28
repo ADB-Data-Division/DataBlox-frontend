@@ -6,6 +6,8 @@ import * as d3 from 'd3';
 
 // Components
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
+import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
+import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import { Header } from '../components/Header';
 import { LocationChips } from '../components/LocationChips';
 import { SearchBar } from '../components/SearchBar';
@@ -402,6 +404,7 @@ const DivergingBarChart: React.FC<{
 
 export default function MigrationAnalysisPageContent() {
   const theme = useTheme();
+  const { isConnected } = useConnectivity();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Search and location state
@@ -834,6 +837,15 @@ export default function MigrationAnalysisPageContent() {
   }, [handleExecuteQuery, searchResults, handleLocationSelect, searchQuery, selectedLocations, highlightedForDeletion, handleLocationRemove]);
 
   const showSearchResults = searchQuery.trim() !== '' || selectedLocations.length === 0 || !chartData;
+
+  if (!isConnected) {
+    return (
+      <Box sx={containerStyles}>
+        <Header />
+        <ApiDisconnectedPage />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={containerStyles}>
