@@ -324,7 +324,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     const currentZoom = zoomLevel ?? 2;
     // As zoom increases, make nodes smaller to prevent them from covering edges
     // Use more aggressive inverse relationship with a minimum size limit
-    const scaleFactor = Math.max(0.2, 1 / currentZoom); // Minimum 20% of original size, more aggressive scaling
+    const scaleFactor = Math.max(0.05, 1 / currentZoom); // Minimum 20% of original size, more aggressive scaling
     return baseSize * scaleFactor;
   }, []);
 
@@ -374,7 +374,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([2, 4.25]) // Allow zoom from 70% to 1000% (prevents map from being too small)
+      .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
       .translateExtent([[0, -80], [500, 500]]) // Pan boundaries (with padding)
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
@@ -400,26 +400,26 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         // Update text size using consistent scaling
         d3.selectAll('.node-title').style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = getScaleFactor(0.4); // Minimum 40% scale
+          const scaleFactor = getScaleFactor(0.05); // Minimum 40% scale
           return `${baseFontSize * scaleFactor}px`;
         });
 
         // Update border thickness using consistent scaling
         d3.selectAll('.node').style('stroke-width', function() {
           const baseStrokeWidth = 3;
-          const scaleFactor = getScaleFactor(0.3); // Minimum 30% scale
+          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
           return `${baseStrokeWidth * scaleFactor}px`;
         });
 
         // Update arrow line thickness using consistent scaling
         d3.selectAll('.flowline-to, .flowline-from').style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = getScaleFactor(0.3); // Minimum 30% scale
+          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
           return `${baseStrokeWidth * scaleFactor}px`;
         });
 
         // Update arrow marker sizes using consistent scaling
-        const arrowScaleFactor = getScaleFactor(0.3);
+        const arrowScaleFactor = getScaleFactor(0.05);
         d3.selectAll('#arrow-to, #arrow-from')
           .attr('markerWidth', 4 * arrowScaleFactor)
           .attr('markerHeight', 4 * arrowScaleFactor);
@@ -621,7 +621,12 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           .attr('r', getDynamicNodeSize(node.size * 2, 2))
           .style('fill', '#e5e7eb')
           .style('stroke', '#6b7280')
-          .style('stroke-width', '3px');
+          .style('stroke-width', (() => {
+            const baseStrokeWidth = 3;
+            const zoomLevel = 2; // Initial zoom level
+            const scaleFactor = Math.max(0.05, 1 / zoomLevel);
+            return `${baseStrokeWidth * scaleFactor}px`;
+          })());
 
         // Node title
         nodeGroup.append('text')
@@ -644,7 +649,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               d3.select(this).select('.node')
                 .style('fill', '#e5e7eb')
                 .style('stroke', '#6b7280')
-                .style('stroke-width', '3px');
+                .style('stroke-width', function() {
+                  const baseStrokeWidth = 3;
+                  const currentTransform = d3.zoomTransform(svgRef.current!);
+                  const zoomLevel = currentTransform.k;
+                  const scaleFactor = Math.max(0.05, 1 / zoomLevel);
+                  return `${baseStrokeWidth * scaleFactor}px`;
+                });
             } else {
               // Select new node
               setSelectedNodeId(node.id);
@@ -654,14 +665,26 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 d3.selectAll('[data-node-id] .node')
                   .style('fill', '#e5e7eb')
                   .style('stroke', '#6b7280')
-                  .style('stroke-width', '3px');
+                  .style('stroke-width', function() {
+                    const baseStrokeWidth = 3;
+                    const currentTransform = d3.zoomTransform(svgRef.current!);
+                    const zoomLevel = currentTransform.k;
+                    const scaleFactor = Math.max(0.05, 1 / zoomLevel);
+                    return `${baseStrokeWidth * scaleFactor}px`;
+                  });
               });
               
               // Highlight the selected node with a blue outline
               d3.select(this).select('.node')
                 .style('fill', '#e5e7eb')
                 .style('stroke', '#2563eb')
-                .style('stroke-width', '5px');
+                .style('stroke-width', function() {
+                  const baseStrokeWidth = 5; // Thicker for selected state
+                  const currentTransform = d3.zoomTransform(svgRef.current!);
+                  const zoomLevel = currentTransform.k;
+                  const scaleFactor = Math.max(0.05, 1 / zoomLevel);
+                  return `${baseStrokeWidth * scaleFactor}px`;
+                });
             }
           });
       });
@@ -688,7 +711,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = Math.max(0.3, 1 / 2); // Scale line thickness, minimum 30%
+          const zoomLevel = 2; // Initial zoom level
+          const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
         .style('stroke-dasharray', '8, 4');
@@ -702,7 +726,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = Math.max(0.3, 1 / 2); // Scale line thickness, minimum 30%
+          const zoomLevel = 2; // Initial zoom level
+          const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
         .style('stroke-dasharray', '8, 4');
@@ -1036,7 +1061,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                             d3.selectAll('[data-node-id] .node')
                               .style('fill', '#e5e7eb')
                               .style('stroke', '#6b7280')
-                              .style('stroke-width', '3px');
+                              .style('stroke-width', function() {
+                                const baseStrokeWidth = 3;
+                                const currentTransform = d3.zoomTransform(svgRef.current!);
+                                const zoomLevel = currentTransform.k;
+                                const scaleFactor = Math.max(0.05, 1 / zoomLevel);
+                                return `${baseStrokeWidth * scaleFactor}px`;
+                              });
                           }}
                           style={{
                             background: 'none',
