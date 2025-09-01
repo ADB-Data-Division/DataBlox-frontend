@@ -4,7 +4,7 @@ import { Typography, Box, Stack } from '@mui/material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConnectivityStatus } from './ConnectivityStatus';
-
+import Image from 'next/image';
 const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '' },
   { label: 'Trend Over Time', href: '/migration-analysis', segment: 'migration-analysis' },
@@ -28,6 +28,7 @@ export function Header() {
         justifyContent="space-between"
         sx={{ mb: 0 }}
       >
+        
         <Typography 
           variant="h3" 
           component="h1" 
@@ -40,6 +41,7 @@ export function Header() {
             mb: 0
           }}
         >
+          <Image src="/images/adb-jfpr-japan.webp" alt="ADB-JFPR Japan" width={774} height={198} style={{ maxWidth: '200px', maxHeight: '54px', transform: 'translateY(13px)', marginRight: '1rem' }} />
           Datablo<Box 
             component="span" 
             sx={{

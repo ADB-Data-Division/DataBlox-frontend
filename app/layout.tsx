@@ -14,7 +14,7 @@ import { UserTypeProvider } from './contexts/UserTypeContext';
 import FooterWrapper from '../components/FooterWrapper';
 import LogRocketInit from './components/LogRocketInit';
 import UserTypeModalWrapper from '../components/user-type-modal/UserTypeModalWrapper';
-
+import Image from 'next/image';
 import type { Navigation } from '@toolpad/core/AppProvider';
 
 // Configure Asap font with the weights we need
