@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { authenticatedApiClient } from './authenticated-client';
 import { 
   MigrationRequest, 
   MigrationResponse, 
@@ -59,7 +60,8 @@ export class MigrationService {
     }
 
     try {
-      return await apiClient.getMigrations(request);
+      // Use authenticated client for migration requests
+      return await authenticatedApiClient.getMigrations(request);
     } catch (error) {
       console.error('Failed to fetch migration data:', error);
       throw error;

@@ -134,6 +134,7 @@ export interface APIConfig {
   baseURL: string;
   timeout?: number;
   headers?: Record<string, string>;
+  getAccessToken?: () => Promise<string | null>;
 }
 
 // API response wrapper
