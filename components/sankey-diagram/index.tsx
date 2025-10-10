@@ -404,9 +404,22 @@ export default function SankeyDiagram({
         
         // Show tooltip
         const [mouseX, mouseY] = d3.pointer(event, g.node());
+        
+        // Calculate tooltip position to keep it within bounds
+        // Reserve more space for edge cases
+        const tooltipMaxWidth = 280;
+        let tooltipX = mouseX + 10;
+        let tooltipY = Math.max(mouseY - 40, 20);
+        
+        // Adjust X position if too close to right edge
+        if (tooltipX + tooltipMaxWidth > innerWidth) {
+          tooltipX = mouseX - tooltipMaxWidth - 10;
+        }
+        
         const tooltip = g.append('g')
           .attr('class', 'tooltip')
-          .attr('transform', `translate(${Math.min(mouseX + 10, innerWidth - 280)}, ${Math.max(mouseY - 40, 20)})`);
+          .attr('pointer-events', 'none') // Prevent tooltip from interfering with mouse events
+          .attr('transform', `translate(${tooltipX}, ${tooltipY})`);
         
         const tooltipRect = tooltip.append('rect')
           .style('fill', 'rgba(0, 0, 0, 0.92)')
@@ -414,8 +427,9 @@ export default function SankeyDiagram({
           .style('filter', 'drop-shadow(3px 3px 6px rgba(0,0,0,0.4))');
         
         const tooltipForeignObject = tooltip.append('foreignObject')
-          .attr('width', 260)
-          .attr('height', 300);
+          .attr('width', tooltipMaxWidth)
+          .attr('height', 300)
+          .attr('pointer-events', 'none'); // Prevent pointer events on foreign object
         
         const tooltipDiv = tooltipForeignObject.append('xhtml:div')
           .style('color', 'white')
@@ -423,22 +437,26 @@ export default function SankeyDiagram({
           .style('font-family', 'sans-serif')
           .style('padding', '10px 12px')
           .style('line-height', '1.4')
+          .style('pointer-events', 'none') // Prevent pointer events on div
+          .style('background', 'transparent') // Ensure background is transparent
           .html(tooltipHtml);
         
         // Adjust tooltip size based on content
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           const divElement = tooltipDiv.node() as HTMLElement;
           if (divElement) {
             const height = divElement.offsetHeight;
-            const width = divElement.offsetWidth;
-            tooltipForeignObject.attr('height', height + 4).attr('width', width + 4);
+            const width = Math.min(divElement.offsetWidth, tooltipMaxWidth - 24);
+            tooltipForeignObject
+              .attr('height', height + 4)
+              .attr('width', width + 24);
             tooltipRect
               .attr('width', width + 24)
               .attr('height', height + 20)
               .attr('x', 0)
               .attr('y', 0);
           }
-        }, 0);
+        });
       })
       .on('mouseout', function(event: MouseEvent, d: any) {
         // Restore link styles
@@ -491,16 +509,28 @@ export default function SankeyDiagram({
         const inFlow = links.filter((l: any) => l.target.id === d.id).reduce((sum: number, l: any) => sum + l.flowCount, 0);
         const outFlow = links.filter((l: any) => l.source.id === d.id).reduce((sum: number, l: any) => sum + l.flowCount, 0);
         
+        // Calculate tooltip position to keep it within bounds
+        const tooltipMaxWidth = 200;
+        let tooltipX = mouseX + 10;
+        let tooltipY = Math.max(mouseY - 50, 20);
+        
+        // Adjust X position if too close to right edge
+        if (tooltipX + tooltipMaxWidth > innerWidth) {
+          tooltipX = mouseX - tooltipMaxWidth - 10;
+        }
+        
         const tooltip = g.append('g')
           .attr('class', 'tooltip')
-          .attr('transform', `translate(${Math.min(mouseX, innerWidth - 200)}, ${Math.max(mouseY - 50, 20)})`);
+          .attr('pointer-events', 'none') // Prevent tooltip from interfering with mouse events
+          .attr('transform', `translate(${tooltipX}, ${tooltipY})`);
         
         const tooltipRect = tooltip.append('rect')
-          .style('fill', 'rgba(0, 0, 0, 0.9)')
+          .style('fill', 'rgba(0, 0, 0, 0.92)')
           .style('rx', 6)
           .style('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))');
         
-        const tooltipGroup = tooltip.append('g');
+        const tooltipGroup = tooltip.append('g')
+          .attr('pointer-events', 'none'); // Prevent pointer events on group
         
         tooltipGroup.append('text')
           .style('fill', 'white')
@@ -527,14 +557,17 @@ export default function SankeyDiagram({
           .attr('y', 50)
           .text(`Out: ${outFlow.toLocaleString()} people`);
         
-        const bbox = tooltipGroup.node()?.getBBox();
-        if (bbox) {
-          tooltipRect
-            .attr('width', bbox.width + 24)
-            .attr('height', bbox.height + 16)
-            .attr('x', 0)
-            .attr('y', 4);
-        }
+        // Use requestAnimationFrame for smooth rendering
+        requestAnimationFrame(() => {
+          const bbox = tooltipGroup.node()?.getBBox();
+          if (bbox) {
+            tooltipRect
+              .attr('width', bbox.width + 24)
+              .attr('height', bbox.height + 16)
+              .attr('x', 0)
+              .attr('y', 4);
+          }
+        });
       })
       .on('mouseout', function() {
         // Restore node styles
