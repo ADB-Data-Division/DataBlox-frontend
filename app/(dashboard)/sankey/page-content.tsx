@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
-import { Box, Container, Typography, Alert } from '@mui/material';
+import React, { useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
+import { Box, Container, Paper, useTheme } from '@mui/material';
 
 // Components
 import { Header } from '../components/Header';
@@ -12,22 +12,27 @@ import { NoResultsState } from '../components/NoResultsState';
 import { LocationList } from '../components/LocationList';
 import { SearchPagination } from '../components/SearchPagination';
 import { SearchResultsSummary } from '../components/SearchResultsSummary';
-import ChordDiagramContainer from '@/components/chord-diagram';
+import { MigrationTabNavigation } from '../components/MigrationTabNavigation';
 import SankeyDiagram from '@/components/sankey-diagram';
 import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Hooks and utils
-import { useLocationSearch, useKeyboardShortcuts, useMigrationData } from '../hooks';
+import { useLocationSearch, useKeyboardShortcuts, useMigrationData, useSharedLocationState } from '../hooks';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { mapViewReducer, initialState } from '../reducer';
 
+// Results component
+import SankeyResults from './components/SankeyResults';
+
 // Custom constraints for sankey page
 const SANKEY_CONSTRAINTS = {
-  MAX_TOTAL_LOCATIONS: 10 // Allow more locations for sankey visualization
+  MAX_TOTAL_LOCATIONS: 5 // Limit to 5 locations for sankey visualization
 };
 
 export default function SankeyPageContent() {
+  const theme = useTheme();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +45,40 @@ export default function SankeyPageContent() {
   // Migration data hook
   const { migrationData, loadMigrationData, resetMigrationData } = useMigrationData();
 
+  // Shared location state for cross-tab navigation
+  const { initializeFromUrl, updateUrlWithLocations, clearUrlParams } = useSharedLocationState();
+
+  // Auto-load locations from URL on mount
+  useEffect(() => {
+    initializeFromUrl(
+      searchResults.allLocations,
+      memoizedSelectedLocations,
+      (locations) => {
+        // Clear existing locations first
+        dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
+        
+        // Add locations from URL
+        locations.forEach(location => {
+          dispatch({ type: 'ADD_LOCATION', payload: location });
+        });
+
+        // Auto-execute query if we have locations
+        if (locations.length > 0) {
+          setTimeout(async () => {
+            dispatch({ type: 'START_QUERY_EXECUTION' });
+            try {
+              await loadMigrationData(locations, '2020-all', '2019-01-01', '2024-12-31');
+              dispatch({ type: 'SET_QUERY_SUCCESS' });
+            } catch (error) {
+              console.error('Auto-query failed:', error);
+              dispatch({ type: 'SET_QUERY_ERROR' });
+            }
+          }, 100);
+        }
+      }
+    );
+  }, [searchResults.allLocations, initializeFromUrl, loadMigrationData, memoizedSelectedLocations]);
+
   // Keyboard shortcuts configuration
   const keyboardShortcutsConfig = useMemo(() => ({
     inputRef,
@@ -48,34 +87,43 @@ export default function SankeyPageContent() {
 
   useKeyboardShortcuts(keyboardShortcutsConfig);
 
-  // Load migration data when locations change
-  useEffect(() => {
-    if (memoizedSelectedLocations.length > 0) {
-      console.log('🚀 Loading migration data for locations:', memoizedSelectedLocations.map(loc => ({ name: loc.name, type: loc.type, id: loc.id })));
-      loadMigrationData(memoizedSelectedLocations, state.selectedPeriod);
-    } else {
-      resetMigrationData();
-    }
-  }, [memoizedSelectedLocations, loadMigrationData, resetMigrationData, state.selectedPeriod]);
-
-  // Computed values (need to be before handlers that use them)
+  // Computed values
   const isLoading = searchResults.isLoading || migrationData.isLoading;
   const hasSearchResults = searchResults.filteredProvinces.length > 0 || 
                           searchResults.filteredDistricts.length > 0 || 
                           searchResults.filteredSubDistricts.length > 0;
-  const hasSelectedLocations = memoizedSelectedLocations.length > 0;
-  const isEmpty = !isLoading && !hasSelectedLocations;
+
+  // Paper styles
+  const paperStyles = useMemo(() => ({
+    p: 1,
+    backgroundColor: theme.palette.background.paper,
+    minHeight: '70vh'
+  }), [theme.palette.background.paper]);
+
+  const handleReset = useCallback(() => {
+    migrationData.apiResponse && resetMigrationData();
+    dispatch({ type: 'RESET_QUERY_STATE' });
+    dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
+    dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
+    clearUrlParams();
+  }, [resetMigrationData, migrationData.apiResponse, clearUrlParams]);
 
   // Handlers  
   const handleLocationSelect = useCallback((location: Location) => {
     if (canAddMoreLocations(memoizedSelectedLocations.length, SANKEY_CONSTRAINTS.MAX_TOTAL_LOCATIONS)) {
       dispatch({ type: 'ADD_LOCATION', payload: location });
+      // Update URL when locations change
+      const newLocations = [...memoizedSelectedLocations, location];
+      updateUrlWithLocations(newLocations);
     }
-  }, [memoizedSelectedLocations.length]);
+  }, [memoizedSelectedLocations, updateUrlWithLocations]);
 
   const handleLocationRemove = useCallback((locationId: number) => {
     dispatch({ type: 'REMOVE_LOCATION', payload: locationId });
-  }, []);
+    // Update URL when locations change
+    const newLocations = memoizedSelectedLocations.filter(loc => loc.id !== locationId);
+    updateUrlWithLocations(newLocations);
+  }, [memoizedSelectedLocations, updateUrlWithLocations]);
 
   const handleClearAll = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
@@ -85,25 +133,50 @@ export default function SankeyPageContent() {
     dispatch({ type: 'SET_SEARCH_QUERY', payload: event.target.value });
   }, []);
 
-  const handleExecuteQuery = useCallback(() => {
-    // This will trigger the useEffect that loads migration data
-    if (memoizedSelectedLocations.length > 0) {
-      loadMigrationData(memoizedSelectedLocations, state.selectedPeriod);
+  const handleExecuteQuery = useCallback(async () => {
+    if (memoizedSelectedLocations.length === 0) return;
+    
+    dispatch({ type: 'START_QUERY_EXECUTION' });
+    
+    try {
+      // Load all historical data from 2019 to end of 2024 for Sankey visualization
+      // Pass '2020-all' as period parameter (required by useMigrationData)
+      await loadMigrationData(
+        memoizedSelectedLocations,
+        '2020-all', // Period parameter (required, though we override with custom dates)
+        '2019-01-01', // Start from 2019
+        '2024-12-31'  // End at December 2024
+      );
+      dispatch({ type: 'SET_QUERY_SUCCESS' });
+      // Update URL to ensure consistency
+      updateUrlWithLocations(memoizedSelectedLocations);
+    } catch (error) {
+      console.error('Query execution error:', error);
+      dispatch({ type: 'SET_QUERY_ERROR' });
     }
-  }, [memoizedSelectedLocations, loadMigrationData, state.selectedPeriod]);
+  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-    // Handle Enter key to select first result
-    if (event.key === 'Enter' && hasSearchResults) {
-      const firstResult = searchResults.getFirstAvailableResult();
-      if (firstResult && canAddMoreLocations(memoizedSelectedLocations.length, SANKEY_CONSTRAINTS.MAX_TOTAL_LOCATIONS)) {
-        handleLocationSelect(firstResult);
-        dispatch({ type: 'CLEAR_SEARCH' });
+    // Handle Enter key
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        // Shift+Enter executes the query
+        handleExecuteQuery();
+      } else if (hasSearchResults) {
+        // Enter alone selects first result
+        event.preventDefault();
+        const firstResult = searchResults.getFirstAvailableResult();
+        if (firstResult && canAddMoreLocations(memoizedSelectedLocations.length, SANKEY_CONSTRAINTS.MAX_TOTAL_LOCATIONS)) {
+          handleLocationSelect(firstResult);
+          dispatch({ type: 'CLEAR_SEARCH' });
+        }
       }
     }
     
     // Handle Backspace to remove last location
     if (event.key === 'Backspace' && state.searchQuery === '' && memoizedSelectedLocations.length > 0) {
+      event.preventDefault();
+      
       if (state.highlightedForDeletion === null) {
         // First backspace: highlight last location
         const lastLocationId = memoizedSelectedLocations[memoizedSelectedLocations.length - 1].id;
@@ -113,145 +186,98 @@ export default function SankeyPageContent() {
         dispatch({ type: 'REMOVE_HIGHLIGHTED_LOCATION' });
       }
     }
-  }, [hasSearchResults, searchResults, memoizedSelectedLocations, state.searchQuery, state.highlightedForDeletion, handleLocationSelect]);
+  }, [handleExecuteQuery, hasSearchResults, searchResults, memoizedSelectedLocations, state.searchQuery, state.highlightedForDeletion, handleLocationSelect]);
 
   return (
-    <Box>
-      {/* Header */}
-      <Container sx={{ px: 2, py: 2 }}>
-        <Header />
-        
-        {/* Info Alert */}
-        <Alert severity="info" sx={{ mb: 3 }}>
-          Select provinces and districts to visualize migration flows between them using chord diagrams. 
-          This Sankey-style visualization shows the relationships and flow volumes between different locations.
-        </Alert>
+    <Box sx={{ width: '100%' }}>
+      <Header />
 
-        {/* Search Section */}
-        <Box sx={{ mb: 3 }}>
-          <SearchBar 
-            inputRef={inputRef}
-            searchQuery={state.searchQuery}
-            selectedLocations={memoizedSelectedLocations}
-            highlightedForDeletion={state.highlightedForDeletion}
-            isLoading={isLoading}
-            allowedType={searchResults.allowedType}
-            onSearchChange={handleSearchQueryChange}
-            onKeyDown={handleKeyDown}
-            onExecuteQuery={handleExecuteQuery}
-          />
-          
-          {/* Selected Locations */}
-          {hasSelectedLocations && (
+      <Paper elevation={0} sx={paperStyles}>
+        {/* Search Interface - Hidden in success state */}
+        {state.queryExecutionState !== 'success' && (
+          <>
             <LocationChips
-              selectedLocations={memoizedSelectedLocations}
+              selectedLocations={state.selectedLocations}
               highlightedForDeletion={state.highlightedForDeletion}
               onLocationRemove={handleLocationRemove}
-              maxLocations={SANKEY_CONSTRAINTS.MAX_TOTAL_LOCATIONS}
             />
-          )}
-          
-          {/* Search Results */}
-          {state.searchQuery && (
-            <Box sx={{ mt: 2 }}>
-              {searchResults.isLoading ? (
-                <LoadingState selectedLocations={memoizedSelectedLocations} />
-              ) : hasSearchResults ? (
-                <>
-                  <SearchResultsSummary 
-                    totalResults={searchResults.totalFilteredResults}
-                    startIndex={searchResults.startIndex}
-                    endIndex={searchResults.endIndex}
-                    searchQuery={state.searchQuery}
-                    allowedType={searchResults.allowedType}
-                  />
-                  <LocationList
-                    filteredProvinces={searchResults.filteredProvinces}
-                    filteredDistricts={searchResults.filteredDistricts}
-                    filteredSubDistricts={searchResults.filteredSubDistricts}
-                    selectedLocationsCount={memoizedSelectedLocations.length}
-                    onLocationSelect={handleLocationSelect}
-                  />
-                  <SearchPagination
-                    totalResults={searchResults.totalFilteredResults}
-                    currentPage={searchResults.searchPagination.currentPage}
-                    pageSize={searchResults.searchPagination.pageSize}
-                    onPageChange={searchResults.handlePageChange}
-                    onPageSizeChange={searchResults.handlePageSizeChange}
-                  />
-                </>
-              ) : (
-                <NoResultsState searchQuery={state.searchQuery} />
-              )}
-            </Box>
-          )}
-        </Box>
-      </Container>
-      
-      {/* Visualization Container */}
-      <Container sx={{ px: 2, py: 2, height: 'fit-content' }}>
-        {migrationData.error ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Error loading migration data: {migrationData.error}
-          </Alert>
-        ) : isEmpty ? (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              minHeight: 400,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              No Locations Selected
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Search and select provinces or districts above to see their migration flow relationships
-            </Typography>
-          </Box>
-        ) : (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Migration Flow Sankey Diagram
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Showing migration relationships between {memoizedSelectedLocations.length} selected location(s)
-            </Typography>
-            {/* Sankey Diagram */}
-            {migrationData.isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Loading migration flow data...
-                </Typography>
-              </Box>
-            ) : migrationData.apiResponse ? (
-              <>
-                {console.log('📊 Sankey Page: Rendering with data:', {
-                  apiResponse: !!migrationData.apiResponse,
-                  flows: migrationData.apiResponse.flows?.length || 0,
-                  data: migrationData.apiResponse.data?.length || 0,
-                  selectedPeriod: state.selectedPeriod
-                })}
-                <SankeyDiagram 
-                  migrationData={migrationData.apiResponse}
-                  selectedTimePeriod={state.selectedPeriod}
-                  width={900}
-                  height={600}
-                />
-              </>
-            ) : (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                No migration flow data available for the selected locations and time period.
-              </Alert>
-            )}
-          </Box>
-        )}
-      </Container>
 
-      {/* Shortcuts Modal */}
+            <SearchBar
+              inputRef={inputRef}
+              searchQuery={state.searchQuery}
+              selectedLocations={state.selectedLocations}
+              highlightedForDeletion={state.highlightedForDeletion}
+              isLoading={isLoading}
+              allowedType={searchResults.allowedType}
+              onSearchChange={handleSearchQueryChange}
+              onKeyDown={handleKeyDown}
+              onExecuteQuery={handleExecuteQuery}
+            />
+
+            {/* Migration Tab Navigation - Show when locations are selected */}
+            <MigrationTabNavigation selectedLocations={state.selectedLocations} />
+          </>
+        )}
+
+        {/* Loading State */}
+        {(state.queryExecutionState === 'loading' || migrationData.isLoading) && (
+          <LoadingState selectedLocations={state.selectedLocations} />
+        )}
+
+        {/* Success State with Results */}
+        {state.queryExecutionState === 'success' && !migrationData.isLoading && (
+          <>
+            {/* Migration Tab Navigation - Show in results view too */}
+            <MigrationTabNavigation selectedLocations={state.selectedLocations} />
+
+            <SankeyResults
+              selectedLocations={state.selectedLocations}
+              startDate={migrationData.apiResponse?.metadata.start_date || ''}
+              endDate={migrationData.apiResponse?.metadata.end_date || ''}
+              onNewSearch={handleReset}
+              apiResponse={migrationData.apiResponse}
+              loading={migrationData.isLoading}
+              error={migrationData.error}
+            />
+            <CitationFooter />
+          </>
+        )}
+
+        {/* Search Results - Only show when not in loading or success state */}
+        {state.showSearchResults && state.queryExecutionState === 'idle' && (
+          <>
+            <SearchResultsSummary
+              totalResults={searchResults.totalFilteredResults}
+              startIndex={searchResults.startIndex}
+              endIndex={searchResults.endIndex}
+              searchQuery={state.searchQuery}
+              allowedType={searchResults.allowedType}
+            />
+
+            <LocationList
+              filteredProvinces={searchResults.filteredProvinces}
+              filteredDistricts={searchResults.filteredDistricts}
+              filteredSubDistricts={searchResults.filteredSubDistricts}
+              selectedLocationsCount={state.selectedLocations.length}
+              onLocationSelect={handleLocationSelect}
+            />
+
+            <NoResultsState 
+              searchQuery={state.searchQuery}
+              totalResults={searchResults.totalFilteredResults}
+            />
+
+            <SearchPagination
+              totalResults={searchResults.totalFilteredResults}
+              currentPage={searchResults.searchPagination.currentPage}
+              pageSize={searchResults.searchPagination.pageSize}
+              onPageChange={searchResults.handlePageChange}
+              onPageSizeChange={searchResults.handlePageSizeChange}
+            />
+          </>
+        )}
+      </Paper>
+
       <ShortcutsModal
         open={state.showShortcutsModal}
         onClose={() => dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false })}
