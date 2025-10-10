@@ -7,10 +7,10 @@ import { ConnectivityStatus } from './ConnectivityStatus';
 import Image from 'next/image';
 const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '' },
-  { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis' },
+  { label: 'Trend Over Time', href: '/migration-analysis', segment: 'migration-analysis' },
   { label: 'Tourism Flow', href: '/tourism', segment: 'tourism' },
-  { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend' },
-  { label: 'Migration Sankey', href: '/sankey', segment: 'sankey' },
+  { label: 'Tourism Trend Over Time', href: '/tourism-trend', segment: 'tourism-trend' },
+  // { label: 'Sankey', href: '/sankey', segment: 'sankey' }, // Disabled for now
   { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about' },
 ];
 

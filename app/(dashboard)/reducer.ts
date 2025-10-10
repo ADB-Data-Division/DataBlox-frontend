@@ -22,7 +22,6 @@ export interface MapViewState {
   showSearchResults: boolean;
   selectedPeriod: string; // Migration analysis period (e.g., "2020-q1", "2020-q2", etc.)
   searchPagination: SearchPagination;
-  showYearMonth: boolean; // Toggle for showing year-month in Sankey diagram
 }
 
 /**
@@ -48,8 +47,7 @@ export type MapViewAction =
   | { type: 'SET_SEARCH_PAGE'; payload: number }
   | { type: 'UPDATE_TOTAL_RESULTS'; payload: number }
   | { type: 'RESET_PAGINATION' }
-  | { type: 'SET_PAGE_SIZE'; payload: number }
-  | { type: 'TOGGLE_YEAR_MONTH'; payload: boolean };
+  | { type: 'SET_PAGE_SIZE'; payload: number };
 
 /**
  * Initial state for the reducer
@@ -67,8 +65,7 @@ export const initialState: MapViewState = {
     currentPage: 1,
     pageSize: 5, // Reduced for better visibility of pagination
     totalResults: 0
-  },
-  showYearMonth: true // Default to showing year-month in Sankey diagram
+  }
 };
 
 /**
@@ -243,14 +240,8 @@ export function mapViewReducer(state: MapViewState, action: MapViewAction): MapV
           currentPage: 1 // Reset to first page when changing page size
         }
       };
-      
-    case 'TOGGLE_YEAR_MONTH':
-      return {
-        ...state,
-        showYearMonth: action.payload
-      };
 
     default:
       return state;
   }
-}
+} 

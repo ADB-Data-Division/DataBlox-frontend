@@ -25,113 +25,20 @@ export class MigrationAPIService {
         };
       }
 
-      // For Sankey visualization, query each year separately to work around backend limitations
-      if (startDate && endDate) {
-        const startYear = new Date(startDate).getFullYear();
-        const endYear = new Date(endDate).getFullYear();
+      // If no dates provided, get default date range from metadata
+      let effectiveStartDate = startDate;
+      let effectiveEndDate = endDate;
+      
+      if (!startDate || !endDate) {
+        const defaultRange = await metadataService.getDefaultDateRange();
+        effectiveStartDate = effectiveStartDate || defaultRange.startDate;
+        effectiveEndDate = effectiveEndDate || defaultRange.endDate;
         
-        if (endYear > startYear) {
-          console.log(`🔄 Multi-year query detected (${startYear}-${endYear}), querying each year separately...`);
-          return await this.executeMultiYearQuery(locations, startYear, endYear);
-        }
+        console.log('Using default date range from metadata:', {
+          startDate: effectiveStartDate,
+          endDate: effectiveEndDate
+        });
       }
-
-      // Single year query (original logic)
-      return await this.executeSingleQuery(locations, startDate, endDate);
-    } catch (error) {
-      console.error('Migration API query failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred during API query'
-      };
-    }
-  }
-
-  /**
-   * Execute multiple year queries and combine results
-   */
-  private async executeMultiYearQuery(
-    locations: Location[], 
-    startYear: number, 
-    endYear: number
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
-    try {
-      const yearPromises: Promise<any>[] = [];
-      
-      // Query each year separately
-      for (let year = startYear; year <= endYear; year++) {
-        const yearStartDate = `${year}-01-01`;
-        const yearEndDate = `${year}-12-31`;
-        
-        console.log(`📅 Querying year ${year}: ${yearStartDate} to ${yearEndDate}`);
-        yearPromises.push(this.executeSingleQuery(locations, yearStartDate, yearEndDate));
-      }
-      
-      const yearResults = await Promise.all(yearPromises);
-      
-      // Check if any queries failed
-      const failedResults = yearResults.filter(result => !result.success);
-      if (failedResults.length > 0) {
-        console.warn(`⚠️ ${failedResults.length} year queries failed`);
-        return {
-          success: false,
-          error: `Failed to load data for ${failedResults.length} year(s)`
-        };
-      }
-      
-      // Combine all successful results
-      const combinedResponse = this.combineApiResponses(
-        yearResults.map(result => result.data.apiResponse)
-      );
-      
-      console.log(`✅ Combined data from ${yearResults.length} years:`, {
-        totalTimePeriods: combinedResponse.time_periods.length,
-        totalFlows: combinedResponse.flows?.length || 0,
-        years: Array.from(new Set(combinedResponse.time_periods.map((p: any) =>
-          new Date(p.start_date).getFullYear()
-        ))).sort()
-      });
-      
-      // Return combined result in same format as single query
-      const firstResult = yearResults[0];
-      return {
-        success: true,
-        data: {
-          ...firstResult.data,
-          apiResponse: combinedResponse
-        }
-      };
-    } catch (error) {
-      console.error('Multi-year query failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to load multi-year data'
-      };
-    }
-  }
-
-  /**
-   * Execute a single query (original logic)
-   */
-  private async executeSingleQuery(
-    locations: Location[], 
-    startDate?: string, 
-    endDate?: string
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
-    // If no dates provided, get default date range from metadata
-    let effectiveStartDate = startDate;
-    let effectiveEndDate = endDate;
-    
-    if (!startDate || !endDate) {
-      const defaultRange = await metadataService.getDefaultDateRange();
-      effectiveStartDate = effectiveStartDate || defaultRange.startDate;
-      effectiveEndDate = effectiveEndDate || defaultRange.endDate;
-      
-      console.log('Using default date range from metadata:', {
-        startDate: effectiveStartDate,
-        endDate: effectiveEndDate
-      });
-    }
 
       // Group locations by type to determine the appropriate scale
       const provinces = locations.filter(loc => loc.type === 'province');
@@ -162,14 +69,11 @@ export class MigrationAPIService {
         includeFlows: true
       };
 
-      console.log('🔧 API Query Options:', {
+      console.log('🔧 API Query:', {
         scale,
         locationIds,
-        startDate: effectiveStartDate,
-        endDate: effectiveEndDate,
-        aggregation: 'monthly',
-        includeFlows: true,
-        originalLocations: locations.map(l => ({ name: l.name, type: l.type }))
+        originalLocations: locations.map(l => ({ name: l.name, type: l.type })),
+        queryOptions
       });
 
 
@@ -189,55 +93,13 @@ export class MigrationAPIService {
           }
         }
       };
-  }
-
-  /**
-   * Combine multiple API responses into a single response
-   */
-  private combineApiResponses(responses: any[]): any {
-    if (responses.length === 0) {
-      throw new Error('No responses to combine');
+    } catch (error) {
+      console.error('Migration API query failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred during API query'
+      };
     }
-    
-    if (responses.length === 1) {
-      return responses[0];
-    }
-    
-    const combined = {
-      ...responses[0],
-      time_periods: [],
-      flows: [],
-      data: responses[0].data // Use data from first response (locations should be same)
-    };
-    
-    // Combine time_periods from all responses
-    const allTimePeriods = new Map();
-    responses.forEach(response => {
-      response.time_periods.forEach((period: any) => {
-        allTimePeriods.set(period.id, period);
-      });
-    });
-    combined.time_periods = Array.from(allTimePeriods.values())
-      .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
-    
-    // Combine flows from all responses
-    const allFlows = new Map();
-    responses.forEach(response => {
-      if (response.flows) {
-        response.flows.forEach((flow: any) => {
-          const key = `${flow.origin.id}-${flow.destination.id}-${flow.time_period_id}`;
-          if (allFlows.has(key)) {
-            // If duplicate flow exists, sum the counts
-            allFlows.get(key).flow_count += flow.flow_count;
-          } else {
-            allFlows.set(key, { ...flow });
-          }
-        });
-      }
-    });
-    combined.flows = Array.from(allFlows.values());
-    
-    return combined;
   }
 
   /**
