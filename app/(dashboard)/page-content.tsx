@@ -15,6 +15,7 @@ import { LocationList } from './components/LocationList';
 import { SearchPagination } from './components/SearchPagination';
 import { SearchResultsSummary } from './components/SearchResultsSummary';
 import { ApiDisconnectedPage } from './components/ApiDisconnectedPage';
+import { MigrationTabNavigation } from './components/MigrationTabNavigation';
 import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Hooks
@@ -22,7 +23,8 @@ import {
   useMigrationData, 
   useLocationSearch, 
   useUrlParams, 
-  useKeyboardShortcuts 
+  useKeyboardShortcuts,
+  useSharedLocationState
 } from './hooks';
 
 // Contexts
@@ -292,6 +294,9 @@ export default function PageContent() {
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
             />
+
+            {/* Migration Tab Navigation - Show when locations are selected */}
+            <MigrationTabNavigation selectedLocations={state.selectedLocations} />
           </>
         )}
 
@@ -303,6 +308,9 @@ export default function PageContent() {
         {/* Success State with Results - Show when successful AND not loading migration data */}
         {state.queryExecutionState === 'success' && !migrationData.isLoading && (
           <>
+            {/* Migration Tab Navigation - Show in results view too */}
+            <MigrationTabNavigation selectedLocations={state.selectedLocations} />
+
             <MigrationResultsTable
               selectedLocations={state.selectedLocations}
               selectedPeriod={state.selectedPeriod}
