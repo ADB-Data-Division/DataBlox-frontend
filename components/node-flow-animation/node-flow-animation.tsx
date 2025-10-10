@@ -375,7 +375,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
-      .translateExtent([[0, -80], [500, 500]]) // Pan boundaries (with padding)
+      .translateExtent([[-300, -300], [800, 800]]) // Expanded pan boundaries for better UX
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
