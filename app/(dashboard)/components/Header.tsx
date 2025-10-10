@@ -8,9 +8,9 @@ import Image from 'next/image';
 const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '' },
   { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis' },
+  { label: 'Migration Sankey', href: '/sankey', segment: 'sankey' },
   { label: 'Tourism Flow', href: '/tourism', segment: 'tourism' },
   { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend' },
-  { label: 'Migration Sankey', href: '/sankey', segment: 'sankey' },
   { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about' },
 ];
 
