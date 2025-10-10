@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
 import { 
   generateThailandHexagonsFromCoordinates} from './thailand-map-data';
 import { 
@@ -942,100 +942,111 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             className="table-container"
             style={{
               flex: '1',
-              height  : '700px',
-              overflowY: 'unset'
+              height: '700px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
             }}
           >
-            {/* Migration Analysis Period Component */}
-            <MigrationAnalysisPeriod
-              selectedPeriod={selectedPeriod}
-              onPeriodChange={(periodId, startDate, endDate) => {
-                console.log('Period changed:', { periodId, startDate, endDate });
-                if (onPeriodChange) {
-                  onPeriodChange(periodId, startDate, endDate);
-                }
+            {/* Timeline Period Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                p: 2.5,
+                flexShrink: 0
               }}
-            />
+            >
+              <MigrationAnalysisPeriod
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={(periodId, startDate, endDate) => {
+                  console.log('Period changed:', { periodId, startDate, endDate });
+                  if (onPeriodChange) {
+                    onPeriodChange(periodId, startDate, endDate);
+                  }
+                }}
+              />
+            </Paper>
 
-            {/* Migration Flow Data - Visual Diagrams */}
+            {/* Controls Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                p: 2.5,
+                flexShrink: 0
+              }}
+            >
+              <Typography 
+                variant="overline" 
+                sx={{ 
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  color: 'text.secondary',
+                  display: 'block',
+                  mb: 2
+                }}
+              >
+                Controls
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                <TextField
+                  label="Threshold"
+                  type="number"
+                  size="small"
+                  value={migrationThreshold}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    if (onThresholdChange) {
+                      if (inputValue === '') {
+                        onThresholdChange(0);
+                      } else {
+                        const value = parseInt(inputValue, 10);
+                        if (!isNaN(value) && value >= 0) {
+                          onThresholdChange(value);
+                        }
+                      }
+                    }
+                  }}
+                  InputProps={{
+                    inputProps: { min: 0, step: 1 }
+                  }}
+                  sx={{ width: 140 }}
+                />
+
+                <FormControl size="small" sx={{ width: 180 }}>
+                  <InputLabel>Display Format</InputLabel>
+                  <Select
+                    value={selectedUnits}
+                    label="Display Format"
+                    onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
+                  >
+                    <MenuItem value="thousands">Thousands (K)</MenuItem>
+                    <MenuItem value="units">Raw Units</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Paper>
+
+            {/* Flow Details Card */}
             {apiResponse && apiResponse.flows && (
-              <>
-            <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-              <h3 style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                      margin: 0,
-                color: '#374151'
-              }}>
-                Migration Flow Data
-              </h3>
-                    
-                    {/* Controls Container */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                      {/* Threshold Control */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <label style={{ fontSize: '14px', color: '#6b7280' }}>Threshold:</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={migrationThreshold}
-                          onChange={(e) => {
-                            const inputValue = e.target.value;
-                            if (onThresholdChange) {
-                              if (inputValue === '') {
-                                // Allow deletion by setting to 0
-                                onThresholdChange(0);
-                              } else {
-                                const value = parseInt(inputValue, 10);
-                                if (!isNaN(value) && value >= 0) {
-                                  onThresholdChange(value);
-                                }
-                              }
-                            }
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '14px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '4px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            width: '80px'
-                          }}
-                        />
-                      </div>
-
-                      {/* Units Selector */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '14px', color: '#6b7280' }}>Display as:</span>
-                        <select
-                          value={selectedUnits}
-                          onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
-                          style={{
-                            padding: '4px 8px',
-                  fontSize: '14px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '4px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <option value="thousands">Thousands (K)</option>
-                          <option value="units">Raw Units</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 2,
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0
+                }}
+              >
+                <Box sx={{ p: 2.5, flexShrink: 0 }}>
                   {/* Filter indicator */}
                   {selectedNodeId && (() => {
                     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
@@ -1085,17 +1096,24 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                       </div>
                     ) : null;
                   })()}
+                  </Box>
                   
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(470px, 100%), 1fr))',
-                    gap: '12px',
-                    padding: '16px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    height: '400px',
-                    overflowY: 'auto'
+                  {/* Scrollable Flow Cards Container */}
+                  <Box sx={{ 
+                    flex: 1,
+                    overflowY: 'auto',
+                    px: 2.5,
+                    pb: 2.5,
+                    minHeight: 0
                   }}>
+                    <Box sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(470px, 100%), 1fr))',
+                      gap: 1.5,
+                      p: 2,
+                      backgroundColor: '#f9fafb',
+                      borderRadius: 1
+                    }}>
                     {(() => {
                       // Filter flows for the selected period
                       let filteredFlows = apiResponse.flows
@@ -1205,8 +1223,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                               backgroundColor: '#ffffff',
                               borderRadius: '8px',
                               padding: '12px',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                              border: '1px solid #e5e7eb',
+                              border: '1.5px solid #d1d5db',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '8px'
@@ -1411,9 +1428,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         );
                       });
                     })()}
-                  </div>
-                </div>
-              </>
+                    </Box>
+                  </Box>
+              </Paper>
             )}
           </div>
       </div>

@@ -36,7 +36,7 @@ import { LOCATION_CONSTRAINTS, canAddMoreLocations } from './constraints';
 
 
 // Style objects - defined outside component to prevent recreation
-const containerStyles = { width: '100%' };
+const containerStyles = { width: '90%' };
 
 export default function PageContent() {
   

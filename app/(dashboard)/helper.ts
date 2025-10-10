@@ -7,6 +7,8 @@ export interface Location {
   name: string;
   description: string;
   type: 'province' | 'district' | 'subDistrict';
+  province_id?: string; // For districts: enables smart filtering by province
+  district_id?: string; // For sub-districts: enables filtering by district
 }
 
 /**
@@ -91,24 +93,21 @@ export function getLocationColor(type: Location['type']): "primary" | "secondary
 
 /**
  * Gets all locations as a flattened array
- * First tries to load from API, falls back to mock data if API is unavailable
- * @returns Array of all locations
+ * First tries to load from API with enhanced metadata (province names, parent IDs)
+ * Falls back to error if API is unavailable
+ * @returns Array of all locations with enhanced metadata
  */
 export async function getAllLocations(): Promise<Location[]> {
-  const { migrationAPIService } = await import('../services/migration-api-service');
-  const apiLocations = await migrationAPIService.getAvailableLocations();
-
-  if (!apiLocations.isHealthy) {
+  const { enhancedLocationService } = await import('../services/enhanced-location-service');
+  
+  try {
+    const locations = await enhancedLocationService.getEnhancedLocations();
+    return locations;
+  } catch (error) {
     const { trackMigrationEvent } = await import('../../src/utils/analytics');
-    trackMigrationEvent.trackError('metadata_api_unhealthy', 'Metadata API health check failed');
-    throw new Error('metadata API is not healthy');
+    trackMigrationEvent.trackError('enhanced_location_service_failed', 'Enhanced location service failed');
+    throw new Error('Failed to load location data');
   }
-
-  return [
-    ...apiLocations.provinces,
-    ...apiLocations.districts,
-    ...apiLocations.subDistricts
-  ];
 }
 
 /**

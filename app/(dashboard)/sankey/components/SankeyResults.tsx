@@ -3,7 +3,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { 
   Box, Typography, Chip, Button, Paper, CircularProgress, Alert, useTheme,
-  FormControl, FormLabel, RadioGroup, FormControlLabel, Radio
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import HomeWorkIcon from '@mui/icons-material/HomeWork';
@@ -104,50 +104,77 @@ export default function SankeyResults({
   return (
     <Box>
       {/* Header Section */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start',
-        mb: 3,
-        gap: 2
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="h6" color="text.primary" sx={{ mr: 1 }}>
-            Query Results for
-          </Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3.5,
+          mb: 3,
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          color="text.secondary" 
+          sx={{ 
+            textTransform: 'uppercase', 
+            letterSpacing: 0.5,
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            mb: 1.5
+          }}
+        >
+          Selected Locations
+        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
           {selectedLocations.map((location, index) => (
-            <React.Fragment key={location.id}>
-              <Chip
-                icon={getLocationIcon(location.type)}
-                label={location.name}
-                color={getLocationColor(location.type)}
-                size="medium"
-                sx={{ fontWeight: 'medium' }}
-              />
-              {index < selectedLocations.length - 1 && (
-                <Typography variant="h6" color="text.secondary" sx={{ mx: 0.5 }}>
-                  ,
-                </Typography>
-              )}
-            </React.Fragment>
+            <Chip
+              key={location.id}
+              icon={getLocationIcon(location.type)}
+              label={location.name}
+              color={getLocationColor(location.type)}
+              size="medium"
+              sx={{ 
+                fontWeight: 600,
+                fontSize: '0.875rem'
+              }}
+            />
           ))}
+          <Chip
+            label={`${selectedLocations.length} location${selectedLocations.length > 1 ? 's' : ''}`}
+            size="small"
+            variant="outlined"
+            sx={{ 
+              fontWeight: 500,
+              fontSize: '0.75rem',
+              borderStyle: 'dashed'
+            }}
+          />
         </Box>
+
         <Button 
           variant="outlined" 
           size="small"
           onClick={onNewSearch}
-          sx={{ flexShrink: 0 }}
+          sx={{ 
+            borderRadius: 1.5,
+            textTransform: 'none',
+            fontWeight: 600,
+          }}
         >
-          New search
+          New Search
         </Button>
-      </Box>
+      </Paper>
       
       {/* Results Container */}
       <Paper 
-        elevation={1}
+        elevation={0}
         sx={{ 
           p: 3,
           backgroundColor: theme.palette.background.default,
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 2,
           minHeight: '50vh'
         }}
@@ -197,27 +224,23 @@ export default function SankeyResults({
                 )}
               </Typography>
 
-              {/* Year Filter */}
+              {/* Year Filter Dropdown */}
               {availableYears.length > 1 && (
-                <FormControl component="fieldset" size="small">
-                  <FormLabel component="legend" sx={{ fontSize: '0.875rem', mb: 1 }}>
-                    Select Year
-                  </FormLabel>
-                  <RadioGroup
-                    row
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel id="year-select-label">Select Year</InputLabel>
+                  <Select
+                    labelId="year-select-label"
+                    id="year-select"
                     value={selectedYear}
+                    label="Select Year"
                     onChange={(e) => setSelectedYear(e.target.value)}
                   >
                     {availableYears.map(year => (
-                      <FormControlLabel
-                        key={year}
-                        value={String(year)}
-                        control={<Radio size="small" />}
-                        label={String(year)}
-                        sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
-                      />
+                      <MenuItem key={year} value={String(year)}>
+                        {year}
+                      </MenuItem>
                     ))}
-                  </RadioGroup>
+                  </Select>
                 </FormControl>
               )}
             </Box>
