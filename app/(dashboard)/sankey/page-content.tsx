@@ -16,7 +16,7 @@ import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
 import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Hooks and utils
-import { useLocationSearch, useKeyboardShortcuts, useMigrationData, } from '../hooks';
+import { useLocationSearch, useKeyboardShortcuts, useSankeyMigrationData } from '../hooks';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { mapViewReducer, initialState } from '../reducer';
@@ -40,8 +40,8 @@ export default function SankeyPageContent() {
   // Location search hook
   const searchResults = useLocationSearch(memoizedSelectedLocations, state.searchQuery);
 
-  // Migration data hook
-  const { migrationData, loadMigrationData, resetMigrationData } = useMigrationData();
+  // Sankey-specific migration data hook (uses multi-year query workaround)
+  const { migrationData, loadMigrationData, resetMigrationData } = useSankeyMigrationData();
 
 
   // Keyboard shortcuts configuration
@@ -98,10 +98,9 @@ export default function SankeyPageContent() {
     
     try {
       // Load all historical data from 2019 to end of 2024 for Sankey visualization
-      // Pass '2020-all' as period parameter (required by useMigrationData)
+      // The useSankeyMigrationData hook will automatically split this into yearly queries
       await loadMigrationData(
         memoizedSelectedLocations,
-        '2020-all', // Period parameter (required, though we override with custom dates)
         '2019-01-01', // Start from 2019
         '2024-12-31'  // End at December 2024
       );
