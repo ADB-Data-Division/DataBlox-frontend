@@ -17,6 +17,7 @@ import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts, useSankeyMigrationData } from '../hooks';
+import { useUrlParams } from '../hooks/useUrlParams';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { mapViewReducer, initialState } from '../reducer';
@@ -33,6 +34,7 @@ export default function SankeyPageContent() {
   const theme = useTheme();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isResettingRef = useRef(false);
 
   // Memoize selectedLocations to prevent unnecessary callback recreations
   const memoizedSelectedLocations = useMemo(() => state.selectedLocations, [state.selectedLocations]);
@@ -42,6 +44,9 @@ export default function SankeyPageContent() {
 
   // Sankey-specific migration data hook (uses multi-year query workaround)
   const { migrationData, loadMigrationData, resetMigrationData } = useSankeyMigrationData();
+
+  // URL params hook for shareable URLs
+  const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
 
 
   // Keyboard shortcuts configuration
@@ -70,7 +75,68 @@ export default function SankeyPageContent() {
     dispatch({ type: 'RESET_QUERY_STATE' });
     dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
     dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
-  }, [resetMigrationData, migrationData.apiResponse]);
+    clearUrlParams(); // Clear URL params on reset
+  }, [resetMigrationData, migrationData.apiResponse, clearUrlParams]);
+
+  // Load locations from URL on mount
+  useEffect(() => {
+    const loadFromUrl = async () => {
+      if (isResettingRef.current || searchResults.isLoading || searchResults.allLocations.length === 0) return;
+      
+      const locationsParam = getLocationsParam();
+      
+      if (locationsParam) {
+        try {
+          const decodedParam = decodeURIComponent(locationsParam);
+          const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
+          
+          console.log('Sankey: Loading locations from URL...', uniqueIds);
+          const locations = uniqueIds
+            .map(uniqueId => searchResults.allLocations.find(loc => loc.uniqueId === uniqueId))
+            .filter((location): location is Location => location !== undefined);
+          
+          const currentUniqueIds = state.selectedLocations.map(loc => loc.uniqueId).sort();
+          const urlUniqueIds = uniqueIds.sort();
+          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length && 
+                                currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
+          
+          if (locations.length > 0 && !locationsMatch) {
+            isResettingRef.current = true;
+            
+            dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
+            locations.forEach(location => {
+              dispatch({ type: 'ADD_LOCATION', payload: location });
+            });
+            
+            // Auto-execute query with loaded locations
+            dispatch({ type: 'START_QUERY_EXECUTION' });
+            
+            try {
+              await loadMigrationData(
+                locations,
+                '2019-01-01',
+                '2024-12-31'
+              );
+              updateUrlWithLocations(locations);
+              dispatch({ type: 'SET_QUERY_SUCCESS' });
+            } catch (error) {
+              console.error('Sankey query failed after URL load:', error);
+              dispatch({ type: 'SET_QUERY_ERROR' });
+            }
+            
+            setTimeout(() => {
+              isResettingRef.current = false;
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Failed to parse locations from URL:', error);
+        }
+      }
+    };
+    
+    loadFromUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations]);
 
   // Handlers  
   const handleLocationSelect = useCallback((location: Location) => {
@@ -104,12 +170,13 @@ export default function SankeyPageContent() {
         '2019-01-01', // Start from 2019
         '2024-12-31'  // End at December 2024
       );
+      updateUrlWithLocations(memoizedSelectedLocations); // Update URL for sharing
       dispatch({ type: 'SET_QUERY_SUCCESS' });
     } catch (error) {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
     }
-  }, [memoizedSelectedLocations, loadMigrationData]);
+  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     // Handle Enter key

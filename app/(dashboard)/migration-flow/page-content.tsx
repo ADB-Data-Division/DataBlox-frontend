@@ -23,7 +23,7 @@ interface MigrationTrendsProps {
 const MigrationTrends: React.FC<MigrationTrendsProps> = ({ 
   
 }) => {
-  const title = "Migration Flow"
+  const title = "Migration Flow Visualization"
   const { isConnected } = useConnectivity();
   const { themeMode } = useAppSelector(state => state.userPreferences);
   const darkMode = themeMode === 'dark';

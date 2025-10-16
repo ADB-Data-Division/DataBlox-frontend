@@ -24,6 +24,7 @@ import { metadataService } from '@/app/services/api';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts } from '../hooks';
+import { useUrlParams } from '../hooks/useUrlParams';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
@@ -407,6 +408,7 @@ export default function MigrationAnalysisPageContent() {
   const theme = useTheme();
   const { isConnected } = useConnectivity();
   const inputRef = useRef<HTMLInputElement>(null);
+  const isResettingRef = useRef(false);
 
   // Search and location state
   const [selectedLocations, setSelectedLocations] = useState<Location[]>([]);
@@ -423,6 +425,9 @@ export default function MigrationAnalysisPageContent() {
   const [defaultDateRangeInitialized, setDefaultDateRangeInitialized] = useState(false);
 
   const searchResults = useLocationSearch(selectedLocations, searchQuery);
+
+  // URL params hook for shareable URLs
+  const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
 
   // Chart dimensions
   const chartWidth = 1200;
@@ -460,6 +465,62 @@ export default function MigrationAnalysisPageContent() {
 
     initializeDefaultDateRange();
   }, [defaultDateRangeInitialized]);
+
+  // Load locations from URL on mount
+  useEffect(() => {
+    const loadFromUrl = async () => {
+      if (isResettingRef.current || searchResults.isLoading || searchResults.allLocations.length === 0 || !defaultDateRangeInitialized) return;
+      
+      const locationsParam = getLocationsParam();
+      
+      if (locationsParam) {
+        try {
+          const decodedParam = decodeURIComponent(locationsParam);
+          const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
+          
+          console.log('Migration Analysis: Loading locations from URL...', uniqueIds);
+          const locations = uniqueIds
+            .map(uniqueId => searchResults.allLocations.find(loc => loc.uniqueId === uniqueId))
+            .filter((location): location is Location => location !== undefined);
+          
+          const currentUniqueIds = selectedLocations.map(loc => loc.uniqueId).sort();
+          const urlUniqueIds = uniqueIds.sort();
+          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length && 
+                                currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
+          
+          if (locations.length > 0 && !locationsMatch && dateRange.startDate && dateRange.endDate) {
+            isResettingRef.current = true;
+            
+            setSelectedLocations(locations);
+            setSearchQuery('');
+            
+            // Auto-execute query with loaded locations
+            setIsLoading(true);
+            setError(null);
+            
+            try {
+              await loadMigrationData(locations, dateRange.startDate, dateRange.endDate);
+              updateUrlWithLocations(locations);
+            } catch (error) {
+              console.error('Migration Analysis query failed after URL load:', error);
+              setError(error instanceof Error ? error.message : 'Failed to load migration data');
+            } finally {
+              setIsLoading(false);
+            }
+            
+            setTimeout(() => {
+              isResettingRef.current = false;
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Failed to parse locations from URL:', error);
+        }
+      }
+    };
+    
+    loadFromUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations, defaultDateRangeInitialized, dateRange.startDate, dateRange.endDate]);
 
   // Paper styles
   const paperStyles = useMemo(() => ({
@@ -792,7 +853,8 @@ export default function MigrationAnalysisPageContent() {
     if (selectedLocations.length === 0) return;
     
     await loadMigrationData(selectedLocations, dateRange.startDate, dateRange.endDate);
-  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadMigrationData]);
+    updateUrlWithLocations(selectedLocations); // Update URL for sharing
+  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
 
   // Handle new search
   const handleNewSearch = useCallback(() => {
@@ -801,11 +863,12 @@ export default function MigrationAnalysisPageContent() {
     setSearchQuery('');
     setHighlightedForDeletion(null);
     setError(null);
+    clearUrlParams(); // Clear URL params on reset
     
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  }, []);
+  }, [clearUrlParams]);
 
   // Handle key down events
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
