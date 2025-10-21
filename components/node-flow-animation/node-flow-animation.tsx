@@ -16,10 +16,14 @@ import MigrationFlowDiagram from '@/components/migration-flow-diagram';
 import { MigrationAnalysisPeriod } from '@/components/migration-analysis-period';
 import { ColorPicker } from '@/components/color-picker';
 
-// // Default transform constants
-// const DEFAULT_TRANSFORM_SCALE = 2;
-// const DEFAULT_TRANSFORM_X = 175.8644263369394;
-// const DEFAULT_TRANSFORM_Y = 147.29254719698156;
+// Default transform constants
+const DEFAULT_TRANSFORM_SCALE = 1.5;
+const DEFAULT_TRANSFORM_X = 160;
+const DEFAULT_TRANSFORM_Y = 90;
+
+// Zoom configuration constants
+const DEFAULT_MIN_ZOOM = 1;
+const DEFAULT_MAX_ZOOM = 10;
 
 interface Node {
   id: string;
@@ -380,7 +384,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
+      .scaleExtent([DEFAULT_MIN_ZOOM, DEFAULT_MAX_ZOOM]) // Allow zoom from 70% to 1000% (prevents map from being too small)
       .translateExtent([[-300, -300], [800, 800]]) // Expanded pan boundaries for better UX
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
@@ -388,7 +392,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const zoomLevel = event.transform.k;
         
         // Check if transform is different from default (scale 2, translate 100,20)
-        const defaultTransform = d3.zoomIdentity.scale(2).translate(100, 20);
+        const defaultTransform = d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
         const isAtDefault = event.transform.k === defaultTransform.k && 
                           event.transform.x === defaultTransform.x && 
                           event.transform.y === defaultTransform.y;
@@ -444,7 +448,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+    svg.call(zoom.transform, d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y));
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -952,7 +956,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           ref={containerRef}
           className="svg-container"
           style={{
-            flex: '1',
+            flex: '8',
             height: '700px',
             width: '100%',
             border: '1px solid #e5e7eb',
@@ -969,7 +973,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                   const svg = d3.select(svgRef.current);
                   svg.transition()
                     .duration(750)
-                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y));
                   // The zoom event handler will automatically update showResetButton
                 }
               }}
@@ -1014,7 +1018,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             id="table-container"  
             className="table-container"
             style={{
-              flex: '1',
+              flex: '5',
               height: '700px',
               display: 'flex',
               flexDirection: 'column',
@@ -1042,7 +1046,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               />
             </Paper>
 
-            {/* Controls Card */}
+            {/* Controls Card - Temporarily Hidden */}
+            {/*
             <Paper
               elevation={0}
               sx={{
@@ -1052,9 +1057,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 flexShrink: 0
               }}
             >
-              <Typography 
-                variant="overline" 
-                sx={{ 
+              <Typography
+                variant="overline"
+                sx={{
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   letterSpacing: 1,
@@ -1065,7 +1070,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               >
                 Controls
               </Typography>
-              
+
               <Box sx={{ display: 'flex', gap: 3 }}>
                 <TextField
                   label="Threshold"
@@ -1104,6 +1109,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 </FormControl>
               </Box>
             </Paper>
+            */}
 
             {/* Flow Details Card */}
             {apiResponse && apiResponse.flows && (
@@ -1120,6 +1126,23 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 }}
               >
                 <Box sx={{ p: 2.5, flexShrink: 0 }}>
+                  <h3 style={{ 
+                    fontSize: '18px', 
+                    fontWeight: 'bold', 
+                    marginBottom: '8px',
+                    color: '#374151',
+                  }}>
+                    Flow Details
+                  </h3>
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    fontStyle: 'italic',
+                    marginBottom: '16px'
+                  }}>
+                    * {selectedUnits === 'thousands' ? 'thousands people/month' : 'people/month'}
+                  </div>
+                  
                   {/* Filter indicator */}
                   {selectedNodeId && (() => {
                     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
@@ -1296,7 +1319,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                               backgroundColor: '#ffffff',
                               borderRadius: '8px',
                               padding: '12px',
-                              border: '1.5px solid #d1d5db',
+                              border: '1px solid #e5e7eb',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '8px'
@@ -1306,42 +1329,31 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                             {!flowData.isSelfLoop ? (
                               <div style={{
                                 display: 'flex',
-                                justifyContent: 'space-between',
+                                justifyContent: 'flex-start',
                                 alignItems: 'center',
                                 padding: '4px 0',
                                 borderBottom: '1px solid #f3f4f6'
                               }}>
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
+                                <ColorPicker
+                                  currentColor={getEdgeColor(flowData.key, 0)}
+                                  onColorChange={(color) => {
+                                    if (onEdgeColorsChange) {
+                                      onEdgeColorsChange({
+                                        ...edgeColors,
+                                        [flowData.key]: color
+                                      });
+                                    }
+                                  }}
+                                  label={`${flowData.fromLocation} → ${flowData.toLocation} Edge Color`}
+                                />
+                                <span style={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#374151',
+                                  marginLeft: '8px'
                                 }}>
-                                  <ColorPicker
-                                    currentColor={getEdgeColor(flowData.key, 0)}
-                                    onColorChange={(color) => {
-                                      if (onEdgeColorsChange) {
-                                        onEdgeColorsChange({
-                                          ...edgeColors,
-                                          [flowData.key]: color
-                                        });
-                                      }
-                                    }}
-                                    label={`${flowData.fromLocation} → ${flowData.toLocation} Edge Color`}
-                                  />
-                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                                    {flowData.fromLocation}
-                                  </span>
-                                </div>
-                                
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
-                                }}>
-                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                                    {flowData.toLocation}
-                                  </span>
-                                </div>
+                                  {flowData.fromLocation} ↔ {flowData.toLocation}
+                                </span>
                               </div>
                             ) : (
                               <div style={{

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Slider, CircularProgress, Typography as MuiTypography } from '@mui/material';
+import { Box, CircularProgress, Typography as MuiTypography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { metadataService } from '@/app/services/api';
 import type { TimePeriod } from '@/app/services/api/types';
 import { formatToMonthYear, formatDateRange } from '@/src/utils/date-formatter';
@@ -20,17 +20,64 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Current selected period index
-  const [selectedPeriodIndex, setSelectedPeriodIndex] = useState<number>(0);
-  
-  // Debounced period index for API calls
-  const [debouncedPeriodIndex, setDebouncedPeriodIndex] = useState<number>(0);
+  // Year and month selection state
+  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   
   // Track if this is the initial render to avoid unnecessary callback calls
   const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
   
   // Track the last period that was sent to the callback
   const [lastCallbackPeriodId, setLastCallbackPeriodId] = useState<string | null>(selectedPeriod || null);
+
+  // Extract available years from the time periods
+  const availableYears = React.useMemo(() => {
+    if (!timePeriods.length) return [];
+    
+    const years = new Set<number>();
+    timePeriods.forEach(period => {
+      const year = new Date(period.start_date).getFullYear();
+      years.add(year);
+    });
+    
+    const sortedYears = Array.from(years).sort();
+    console.log('📅 Available years in migration data:', sortedYears);
+    
+    return sortedYears;
+  }, [timePeriods]);
+
+  // Extract available months for the selected year
+  const availableMonths = React.useMemo(() => {
+    if (!timePeriods.length || !selectedYear) return [];
+    
+    const yearNum = parseInt(selectedYear);
+    const yearPeriods = timePeriods.filter(period => {
+      const year = new Date(period.start_date).getFullYear();
+      return year === yearNum;
+    });
+    
+    const months = new Set<number>();
+    yearPeriods.forEach(period => {
+      const month = new Date(period.start_date).getMonth(); // 0-11
+      months.add(month);
+    });
+    
+    const sortedMonths = Array.from(months).sort((a, b) => a - b); // Sort chronologically (0=Jan, 11=Dec)
+    console.log('📅 Available months for year', selectedYear, ':', sortedMonths.map(m => new Date(2000, m).toLocaleString('default', { month: 'short' })));
+    
+    return sortedMonths;
+  }, [timePeriods, selectedYear]);
+
+  // Get current selected period for display
+  const currentPeriod = React.useMemo(() => {
+    if (!timePeriods.length || !selectedYear || !selectedMonth) return null;
+    
+    return timePeriods.find(period => {
+      const year = new Date(period.start_date).getFullYear();
+      const month = new Date(period.start_date).getMonth();
+      return year === parseInt(selectedYear) && month === parseInt(selectedMonth);
+    });
+  }, [timePeriods, selectedYear, selectedMonth]);
 
   // Load time periods from metadata API
   useEffect(() => {
@@ -43,15 +90,6 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
         
         if (metadata.available_periods && metadata.available_periods.length > 0) {
           setTimePeriods(metadata.available_periods);
-          
-          // Find initial selected period index
-          if (selectedPeriod) {
-            const foundIndex = metadata.available_periods.findIndex(p => p.id === selectedPeriod);
-            if (foundIndex !== -1) {
-              setSelectedPeriodIndex(foundIndex);
-              setDebouncedPeriodIndex(foundIndex);
-            }
-          }
         } else {
           setError('No time periods available');
         }
@@ -64,24 +102,31 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
     };
 
     loadTimePeriods();
-  }, [selectedPeriod]);
+  }, []);
 
-  // Debounce effect: Update debouncedPeriodIndex after 1 second delay
+  // Auto-select first available period when data loads (similar to original behavior)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedPeriodIndex(selectedPeriodIndex);
-    }, 1000);
+    if (timePeriods.length > 0 && !selectedYear && !selectedMonth) {
+      // Select the first period (like Jul 2019 in the original)
+      const firstPeriod = timePeriods[0];
+      const year = new Date(firstPeriod.start_date).getFullYear().toString();
+      const month = new Date(firstPeriod.start_date).getMonth().toString();
+      
+      setSelectedYear(year);
+      setSelectedMonth(month);
+    }
+  }, [timePeriods, selectedYear, selectedMonth]);
 
-    return () => clearTimeout(timer);
-  }, [selectedPeriodIndex]);
-
-  // Sync selectedPeriodIndex when selectedPeriod prop changes
+  // Sync with selectedPeriod prop when it changes
   useEffect(() => {
     if (selectedPeriod && timePeriods.length > 0) {
-      const foundIndex = timePeriods.findIndex(p => p.id === selectedPeriod);
-      if (foundIndex !== -1) {
-        setSelectedPeriodIndex(foundIndex);
-        setDebouncedPeriodIndex(foundIndex);
+      const period = timePeriods.find(p => p.id === selectedPeriod);
+      if (period) {
+        const year = new Date(period.start_date).getFullYear().toString();
+        const month = new Date(period.start_date).getMonth().toString();
+        
+        setSelectedYear(year);
+        setSelectedMonth(month);
         setLastCallbackPeriodId(selectedPeriod);
       }
     }
@@ -92,28 +137,24 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
     setIsInitialRender(false);
   }, []);
 
-  // Handle debounced period changes - call callbacks only when period has actually changed
+  // Handle period changes based on year/month selection
   useEffect(() => {
-    if (isInitialRender || timePeriods.length === 0) return;
+    if (isInitialRender || timePeriods.length === 0 || !selectedYear || !selectedMonth) return;
     
-    const currentPeriod = timePeriods[debouncedPeriodIndex];
-    if (!currentPeriod) return;
+    const targetPeriod = timePeriods.find(period => {
+      const year = new Date(period.start_date).getFullYear();
+      const month = new Date(period.start_date).getMonth();
+      return year === parseInt(selectedYear) && month === parseInt(selectedMonth);
+    });
     
-    // Only call callbacks if the period has actually changed
-    if (currentPeriod.id !== lastCallbackPeriodId) {
+    if (targetPeriod && targetPeriod.id !== lastCallbackPeriodId) {
       if (onPeriodChange) {
-        onPeriodChange(currentPeriod.id, currentPeriod.start_date, currentPeriod.end_date);
+        onPeriodChange(targetPeriod.id, targetPeriod.start_date, targetPeriod.end_date);
       }
       
-      setLastCallbackPeriodId(currentPeriod.id);
+      setLastCallbackPeriodId(targetPeriod.id);
     }
-  }, [debouncedPeriodIndex, timePeriods, onPeriodChange, isInitialRender, lastCallbackPeriodId]);
-
-  // Handle period selection change
-  const handlePeriodChange = (event: Event, newValue: number | number[]) => {
-    const index = newValue as number;
-    setSelectedPeriodIndex(index);
-  };
+  }, [selectedYear, selectedMonth, timePeriods, onPeriodChange, isInitialRender, lastCallbackPeriodId]);
 
 
 
@@ -121,7 +162,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   // Loading state
   if (loading) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px', textAlign: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
         <CircularProgress size={24} />
         <MuiTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Loading available time periods...
@@ -133,7 +174,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   // Error state
   if (error) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+      <div>
         <MuiTypography variant="h6" color="error">
           Error loading time periods
         </MuiTypography>
@@ -147,7 +188,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
   // No periods available
   if (timePeriods.length === 0) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+      <div>
         <MuiTypography variant="body2" color="text.secondary">
           No time periods available
         </MuiTypography>
@@ -155,28 +196,18 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
     );
   }
 
-  const currentPeriod = timePeriods[selectedPeriodIndex];
-  const periodLabels = timePeriods.map((period, index) => ({
-    value: index,
-    label: index % Math.max(1, Math.floor(timePeriods.length / 6)) === 0 
-      ? formatToMonthYear(period.start_date)
-      : ''
-  }));
-
   return (
-    <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+    <div>
       <h3 style={{ 
         fontSize: '18px', 
         fontWeight: 'bold', 
-        marginBottom: '16px',
         color: '#374151'
       }}>
         Migration Analysis Period
       </h3>
-      
-      <p style={{ 
-        color: '#6b7280', 
-        marginBottom: '16px',
+
+      <p style={{
+        color: '#6b7280',
         fontSize: '14px'
       }}>
         {currentPeriod && (
@@ -190,70 +221,47 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
         )}
       </p>
       
-      <Slider
-        value={selectedPeriodIndex}
-        onChange={handlePeriodChange}
-        valueLabelDisplay="auto"
-        valueLabelFormat={(value) => {
-          const period = timePeriods[value];
-          return period ? formatDateRange(period.start_date, period.end_date) : '';
-        }}
-        min={0}
-        max={timePeriods.length - 1}
-        step={1}
-        marks={periodLabels}
-        sx={{
-          '& .MuiSlider-thumb': {
-            backgroundColor: '#2563eb',
-            width: 20,
-            height: 20,
-            '&:hover': {
-              boxShadow: '0 0 0 8px rgba(37, 99, 235, 0.16)',
-            },
-          },
-          '& .MuiSlider-track': {
-            display: 'none', // Hide the blue track line from start to selected position
-          },
-          '& .MuiSlider-track::before': {
-            display: 'none', // Hide any pseudo-elements of the track
-          },
-          '& .MuiSlider-track::after': {
-            display: 'none', // Hide any pseudo-elements of the track
-          },
-          '& .MuiSlider-rail': {
-            backgroundColor: '#e2e8f0 !important',
-            opacity: '1 !important',
-            height: 4,
-          },
-          '& .MuiSlider-mark': {
-            backgroundColor: '#94a3b8',
-            height: 8,
-            width: 2,
-          },
-          '& .MuiSlider-markActive': {
-            backgroundColor: '#2563eb', // Highlight the mark at the selected position
-          },
-          '& .MuiSlider-markLabel': {
-            fontSize: '11px',
-            color: '#64748b',
-            transform: 'rotate(-45deg)',
-            transformOrigin: 'top left',
-            whiteSpace: 'nowrap',
-            marginTop: '8px'
-          },
-          '& .MuiSlider-valueLabel': {
-            fontSize: '12px',
-            backgroundColor: '#1f2937',
-          },
-          // Ensure no track elements show blue color anywhere
-          '& .MuiSlider-root': {
-            '& .MuiSlider-track': {
-              backgroundColor: 'transparent !important',
-              border: 'none !important',
-            }
-          }
-        }}
-      />
+      {/* Year and Month Filter Dropdowns */}
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        {availableYears.length > 1 && (
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="year-select-label">Select Year</InputLabel>
+            <Select
+              labelId="year-select-label"
+              id="year-select"
+              value={selectedYear}
+              label="Select Year"
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              {availableYears.map(year => (
+                <MenuItem key={year} value={String(year)}>
+                  {year}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {/* Month Filter Dropdown - only show when a specific year is selected */}
+        {selectedYear && availableMonths.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel id="month-select-label">Select Month</InputLabel>
+            <Select
+              labelId="month-select-label"
+              id="month-select"
+              value={selectedMonth}
+              label="Select Month"
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              {availableMonths.map(month => (
+                <MenuItem key={month} value={String(month)}>
+                  {new Date(2000, month).toLocaleString('default', { month: 'long' })}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+      </Box>
     </div>
   );
 };

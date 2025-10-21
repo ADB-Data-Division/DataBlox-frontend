@@ -67,16 +67,14 @@ export default function MigrationFlowDiagram({
           </marker>
         </defs>
 
-        {/* Location box */}
-        <rect
-          x={boxX}
-          y={boxY}
-          width={boxWidth}
-          height={boxHeight}
-          rx="8"
-          fill="#f8fafc"
-          stroke="#e2e8f0"
-          strokeWidth="2"
+        {/* Location circle */}
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r="16"
+          fill="#e5e7eb"
+          stroke="#6b7280"
+          strokeWidth="1"
         />
 
         {/* Location name */}
@@ -85,17 +83,17 @@ export default function MigrationFlowDiagram({
           y={centerY}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="12"
-          fontWeight="500"
-          fill="#1f2937"
+          fontSize="10"
+          fontWeight="bold"
+          fill="#374151"
         >
-          {fromLocation.length > 18 ? `${fromLocation.substring(0, 16)}...` : fromLocation}
+          {(fromLocation.length > 3 ? fromLocation.substring(0, 3) : fromLocation).toUpperCase()}
         </text>
 
         {/* Circular arrow */}
         <path
-          d={`M ${centerX + 40} ${centerY - 10} 
-              A 25 25 0 1 1 ${centerX + 40} ${centerY + 10}`}
+          d={`M ${centerX +15} ${centerY - 10} 
+              A 18 18 0 1 1 ${centerX + 15} ${centerY + 10}`}
           stroke="#2563eb"
           strokeWidth="2"
           fill="none"
@@ -104,8 +102,8 @@ export default function MigrationFlowDiagram({
         
         {/* Flow count label */}
         <text
-          x={centerX + 70}
-          y={centerY}
+          x={centerX + 60}
+          y={centerY - 10}
           textAnchor="middle"
           fontSize="14"
           fontWeight="600"
@@ -113,26 +111,14 @@ export default function MigrationFlowDiagram({
         >
           {formatNumber(flowCount)}
         </text>
-
-        {/* Units label */}
-        <text
-          x={centerX}
-          y={height - 4}
-          textAnchor="middle"
-          fontSize="10"
-          fill="#6b7280"
-          fontStyle="italic"
-        >
-          * {units === 'thousands' ? 'thousands people/month' : 'people/month'}
-        </text>
       </svg>
     );
   }
 
   // Regular bidirectional flow design
-  const padding = 20;
-  const boxWidth = 120;
-  const boxHeight = 32;
+  const padding = 120;
+  const boxWidth = 40;
+  const boxHeight = 10;
   const leftBoxX = padding;
   const rightBoxX = width - boxWidth - padding;
   const boxY = (height - boxHeight) / 2;
@@ -182,26 +168,22 @@ export default function MigrationFlowDiagram({
         </marker>
       </defs>
 
-      {/* Location boxes */}
-      <rect
-        x={leftBoxX}
-        y={boxY}
-        width={boxWidth}
-        height={boxHeight}
-        rx="8"
-        fill="#f8fafc"
-        stroke="#e2e8f0"
-        strokeWidth="2"
+      {/* Location circles */}
+      <circle
+        cx={leftBoxX + boxWidth / 2}
+        cy={boxY + boxHeight / 2}
+        r="16"
+        fill="#e5e7eb"
+        stroke="#6b7280"
+        strokeWidth="1"
       />
-      <rect
-        x={rightBoxX}
-        y={boxY}
-        width={boxWidth}
-        height={boxHeight}
-        rx="8"
-        fill="#f8fafc"
-        stroke="#e2e8f0"
-        strokeWidth="2"
+      <circle
+        cx={rightBoxX + boxWidth / 2}
+        cy={boxY + boxHeight / 2}
+        r="16"
+        fill="#e5e7eb"
+        stroke="#6b7280"
+        strokeWidth="1"
       />
 
       {/* Location names */}
@@ -210,22 +192,22 @@ export default function MigrationFlowDiagram({
         y={boxY + boxHeight / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="12"
-        fontWeight="500"
-        fill="#1f2937"
+        fontSize="10"
+        fontWeight="bold"
+        fill="#374151"
       >
-        {fromLocation.length > 15 ? `${fromLocation.substring(0, 13)}...` : fromLocation}
+        {(fromLocation.length > 3 ? fromLocation.substring(0, 3) : fromLocation).toUpperCase()}
       </text>
       <text
         x={rightBoxX + boxWidth / 2}
         y={boxY + boxHeight / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="12"
-        fontWeight="500"
-        fill="#1f2937"
+        fontSize="10"
+        fontWeight="bold"
+        fill="#374151"
       >
-        {toLocation.length > 15 ? `${toLocation.substring(0, 13)}...` : toLocation}
+        {(toLocation.length > 3 ? toLocation.substring(0, 3) : toLocation).toUpperCase()}
       </text>
 
       {/* Flow arrows */}
@@ -234,8 +216,8 @@ export default function MigrationFlowDiagram({
           {/* Forward flow arrow */}
           <path
             d={createArrowPath(
-              leftBoxX + boxWidth + 5,
-              rightBoxX - 5,
+              leftBoxX + boxWidth + 2,
+              rightBoxX - 2,
               returnFlowCount ? arrowY - 10 : arrowY,
               returnFlowCount ? -12 : 0
             )}
@@ -264,8 +246,8 @@ export default function MigrationFlowDiagram({
         <>
           <path
             d={createArrowPath(
-              rightBoxX - 5,
-              leftBoxX + boxWidth + 5,
+              rightBoxX - 2,
+              leftBoxX + boxWidth + 2,
               arrowY + 10,
               12
             )}
@@ -289,17 +271,6 @@ export default function MigrationFlowDiagram({
         </>
       )}
 
-      {/* Units label */}
-      <text
-        x={width / 2}
-        y={height - 4}
-        textAnchor="middle"
-        fontSize="10"
-        fill="#6b7280"
-        fontStyle="italic"
-      >
-        * {units === 'thousands' ? 'thousands people/month' : 'people/month'}
-      </text>
     </svg>
   );
 }
