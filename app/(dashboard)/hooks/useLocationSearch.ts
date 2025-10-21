@@ -6,6 +6,7 @@ import { Location } from '../helper';
 import { LOCATION_CONSTRAINTS } from '../constraints';
 import { trackMigrationEvent, trackUserInteraction } from '../../../src/utils/analytics';
 import { useLocationContext } from '../../contexts';
+import { enhancedLocationService } from '../../services/enhanced-location-service';
 
 interface SearchPagination {
   currentPage: number;
@@ -44,6 +45,27 @@ export function useLocationSearch(
     }
     return null;
   }, [selectedLocations]);
+
+  // Resolve province name for display in filtering message
+  const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const resolveProvinceName = async () => {
+      if (selectedProvinceId) {
+        try {
+          const provinceName = await enhancedLocationService.getProvinceName(selectedProvinceId);
+          setSelectedProvinceName(provinceName);
+        } catch (error) {
+          console.error('Failed to resolve province name:', error);
+          setSelectedProvinceName(null);
+        }
+      } else {
+        setSelectedProvinceName(null);
+      }
+    };
+
+    resolveProvinceName();
+  }, [selectedProvinceId]);
 
   // Separate locations by type
   const { provinces, districts, subDistricts } = useMemo(() => ({
@@ -181,6 +203,7 @@ export function useLocationSearch(
     handlePageChange,
     handlePageSizeChange,
     getFirstAvailableResult,
+    selectedProvinceName,
     isLoading,
     error,
     allLocations

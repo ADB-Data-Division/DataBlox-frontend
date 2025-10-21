@@ -36,7 +36,7 @@ import { LOCATION_CONSTRAINTS, canAddMoreLocations } from './constraints';
 
 
 // Style objects - defined outside component to prevent recreation
-const containerStyles = { width: '90%' };
+const containerStyles = { width: '100%' };
 
 export default function PageContent() {
   
@@ -338,6 +338,7 @@ export default function PageContent() {
               endIndex={searchResults.endIndex}
               searchQuery={state.searchQuery}
               allowedType={searchResults.allowedType}
+              selectedProvinceName={searchResults.selectedProvinceName}
             />
 
             <LocationList

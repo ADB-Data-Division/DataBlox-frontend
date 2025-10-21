@@ -270,6 +270,7 @@ export default function SankeyPageContent() {
               endIndex={searchResults.endIndex}
               searchQuery={state.searchQuery}
               allowedType={searchResults.allowedType}
+              selectedProvinceName={searchResults.selectedProvinceName}
             />
 
             <LocationList
