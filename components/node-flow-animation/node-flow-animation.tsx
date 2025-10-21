@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Box, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
+import { ArrowCounterClockwise } from '@phosphor-icons/react/dist/ssr';
 import { 
   generateThailandHexagonsFromCoordinates} from './thailand-map-data';
 import { 
@@ -105,6 +106,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   
   // State for administrative data
   const [administrativeData, setAdministrativeData] = useState<ProcessedAdministrativeData | null>(null);
@@ -116,6 +118,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // State for node click interaction
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // State for map reset button visibility
+  const [showResetButton, setShowResetButton] = useState<boolean>(false);
 
   // Ref to avoid dependency issues in useEffect
   const selectedNodeIdRef = useRef<string | null>(null);
@@ -382,6 +387,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         console.log("zoom: ", event.transform);
         const zoomLevel = event.transform.k;
         
+        // Check if transform is different from default (scale 2, translate 100,20)
+        const defaultTransform = d3.zoomIdentity.scale(2).translate(100, 20);
+        const isAtDefault = event.transform.k === defaultTransform.k && 
+                          event.transform.x === defaultTransform.x && 
+                          event.transform.y === defaultTransform.y;
+        setShowResetButton(!isAtDefault);
+        
         // Create consistent scaling functions available in this scope
         const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
         const getDynamicSize = (baseSize: number) => baseSize * getScaleFactor(0.2);
@@ -426,10 +438,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           .attr('markerHeight', 4 * arrowScaleFactor);
       });
 
+    // Store zoom behavior in ref for reset functionality
+    zoomRef.current = zoom;
+
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(0, 0));
+    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(100, 20));
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -853,15 +868,15 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           tooltip.transition().duration(500).style('opacity', 0);
         });
 
-    // Add zoom instructions
-    svg.append('text')
-      .attr('class', 'zoom-instructions')
-      .attr('x', 20)
-      .attr('y', height - 20)
-      .attr('font-size', '12px')
-      .attr('font-family', 'Arial, sans-serif')
-      .attr('fill', '#6b7280')
-      .text('Use scroll wheel to zoom • Drag to pan');
+    // // Add zoom instructions
+    // svg.append('text')
+    //   .attr('class', 'zoom-instructions')
+    //   .attr('x', 20)
+    //   .attr('y', height - 20)
+    //   .attr('font-size', '12px')
+    //   .attr('font-family', 'Arial, sans-serif')
+    //   .attr('fill', '#6b7280')
+    //   .text('Use scroll wheel to zoom • Drag to pan');
 
     // Cleanup function
     return () => {
@@ -942,9 +957,48 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             width: '100%',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative'
           }}
         >
+          {/* Reset Button */}
+          {showResetButton && (
+            <Button
+              onClick={() => {
+                if (svgRef.current && zoomRef.current) {
+                  const svg = d3.select(svgRef.current);
+                  svg.transition()
+                    .duration(750)
+                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+                  // The zoom event handler will automatically update showResetButton
+                }
+              }}
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowCounterClockwise size={16} />}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 10,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                },
+                minWidth: 'auto',
+                px: 1.5,
+                py: 0.5,
+                fontSize: '0.75rem',
+                textTransform: 'none'
+              }}
+            >
+              Reset Map
+            </Button>
+          )}
+          
           <svg
             ref={svgRef}
             width="100%"

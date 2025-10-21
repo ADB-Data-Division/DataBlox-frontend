@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
-import { Box, Container, Paper, useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 
 // Components
 import { Header } from '../components/Header';
@@ -62,13 +62,6 @@ export default function SankeyPageContent() {
   const hasSearchResults = searchResults.filteredProvinces.length > 0 || 
                           searchResults.filteredDistricts.length > 0 || 
                           searchResults.filteredSubDistricts.length > 0;
-
-  // Paper styles
-  const paperStyles = useMemo(() => ({
-    p: 1,
-    backgroundColor: theme.palette.background.paper,
-    minHeight: '70vh'
-  }), [theme.palette.background.paper]);
 
   const handleReset = useCallback(() => {
     migrationData.apiResponse && resetMigrationData();
@@ -214,10 +207,9 @@ export default function SankeyPageContent() {
     <Box sx={{ width: '100%' }}>
       <Header />
 
-      <Paper elevation={0} sx={paperStyles}>
-        {/* Search Interface - Hidden in success state */}
+      {/* Search Interface - Hidden in success state */}
         {state.queryExecutionState !== 'success' && (
-          <>
+          <Box sx={{ px: 2, py: 1 }}>
             <LocationChips
               selectedLocations={state.selectedLocations}
               highlightedForDeletion={state.highlightedForDeletion}
@@ -235,18 +227,19 @@ export default function SankeyPageContent() {
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
             />
-
-          </>
+          </Box>
         )}
 
         {/* Loading State */}
         {(state.queryExecutionState === 'loading' || migrationData.isLoading) && (
-          <LoadingState selectedLocations={state.selectedLocations} />
+          <Box sx={{ px: 2, py: 2 }}>
+            <LoadingState selectedLocations={state.selectedLocations} />
+          </Box>
         )}
 
         {/* Success State with Results */}
         {state.queryExecutionState === 'success' && !migrationData.isLoading && (
-          <>
+          <Box sx={{ px: 2, py: 2 }}>
 
             <SankeyResults
               selectedLocations={state.selectedLocations}
@@ -258,12 +251,12 @@ export default function SankeyPageContent() {
               error={migrationData.error}
             />
             <CitationFooter />
-          </>
+          </Box>
         )}
 
         {/* Search Results - Only show when not in loading or success state */}
         {state.showSearchResults && state.queryExecutionState === 'idle' && (
-          <>
+          <Box sx={{ px: 2, py: 2 }}>
             <SearchResultsSummary
               totalResults={searchResults.totalFilteredResults}
               startIndex={searchResults.startIndex}
@@ -293,9 +286,8 @@ export default function SankeyPageContent() {
               onPageChange={searchResults.handlePageChange}
               onPageSizeChange={searchResults.handlePageSizeChange}
             />
-          </>
+          </Box>
         )}
-      </Paper>
 
       <ShortcutsModal
         open={state.showShortcutsModal}

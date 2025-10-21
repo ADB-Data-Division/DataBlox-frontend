@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Container } from '@mui/material';
+import { Box, Typography, Container, useTheme } from '@mui/material';
 import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import CitationFooter from '@/components/citation-footer/citation-footer';
@@ -26,6 +26,7 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
   const title = "Migration Flow Visualization"
   const { isConnected } = useConnectivity();
   const { themeMode } = useAppSelector(state => state.userPreferences);
+  const theme = useTheme();
   const darkMode = themeMode === 'dark';
 
   // State for chord diagram data (legacy)
@@ -177,98 +178,93 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
   }
 
   return (
-    <Box sx={{ 
-      bgcolor: darkMode ? 'background.paper' : 'transparent',
-      color: darkMode ? 'text.primary' : 'inherit',
-      width: '100%',
-      height: 'fit-content'
-    }}>
+    <Box sx={{ width: '100%' }}>
       <VisualizationToolbar 
-        onVisualize={handleVisualize}
-        onFileUpload={(file) => console.log('File uploaded:', file.name)}
-        darkMode={darkMode}
-        subActionsAllowed={['raw']}
-        initialFilters={initialFilters}
-        datasetsAllowed={['migration-2020', 'premium-1', 'premium-2']}
-        visualizationTypesAllowed={['chord']}
-      />
-      
-      {/* API Toggle */}
-      <Container sx={{ px: 2, py: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Data Source:
-          </Typography>
-          <Box 
-            component="button"
-            onClick={() => setUseRealAPI(!useRealAPI)}
-            sx={{
-              px: 2,
-              py: 1,
-              border: 1,
-              borderColor: useRealAPI ? 'primary.main' : 'grey.300',
-              borderRadius: 1,
-              bgcolor: useRealAPI ? 'primary.main' : 'transparent',
-              color: useRealAPI ? 'primary.contrastText' : 'text.primary',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              '&:hover': {
-                bgcolor: useRealAPI ? 'primary.dark' : 'grey.100'
-              }
-            }}
-          >
-            {useRealAPI ? 'Migration API (Live)' : 'Legacy Data (Static)'}
-          </Box>
-          {useRealAPI && apiResponse && (
-            <Typography variant="caption" color="success.main">
-              ✓ API Connected ({apiResponse.data.length} locations, {apiResponse.flows?.length || 0} flows)
-            </Typography>
-          )}
-        </Box>
-      </Container>
-      
-      {/* Visualization Container */}
-      <Container sx={{ px: 2, py: 2, height: 'fit-content' }}>
-        {useRealAPI && !isEmpty ? (
-          // Map Visualization (New API Data)
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Migration Flow Map - {selectedTimePeriod ? 
-                getAvailableTimePeriods(apiResponse!).find(p => p.id === selectedTimePeriod)?.label || selectedTimePeriod
-                : 'Loading...'}
-            </Typography>
-            <NodeFlowAnimation
-              nodes={mapNodes}
-              connections={mapConnections}
-              curved={true}
-              width={720}
-              height={600}
-              selectedPeriod={selectedTimePeriod}
-              onPeriodChange={handleTimePeriodChange}
-            />
-          </Box>
-        ) : (
-          // Chord Diagram (Legacy Data or Fallback)
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              {useRealAPI ? 'Migration Flow Visualization (Loading...)' : 'Migration Flow Visualization (Legacy)'}
-            </Typography>
-            <ChordDiagramContainer
-              migrationData={migrationData}
-              darkMode={darkMode}
-              title={title}
-              isLoading={loading}
-              isEmpty={isEmpty}
-              height="800px"
-            />
-          </Box>
-        )}
+          onVisualize={handleVisualize}
+          onFileUpload={(file) => console.log('File uploaded:', file.name)}
+          darkMode={darkMode}
+          subActionsAllowed={['raw']}
+          initialFilters={initialFilters}
+          datasetsAllowed={['migration-2020', 'premium-1', 'premium-2']}
+          visualizationTypesAllowed={['chord']}
+        />
         
-        {/* Citation Footer - only show when visualizations are rendered */}
-        {!isEmpty && (
-          <CitationFooter />
-        )}
-      </Container>
+        {/* API Toggle */}
+        <Container sx={{ px: 2, py: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Data Source:
+            </Typography>
+            <Box 
+              component="button"
+              onClick={() => setUseRealAPI(!useRealAPI)}
+              sx={{
+                px: 2,
+                py: 1,
+                border: 1,
+                borderColor: useRealAPI ? 'primary.main' : 'grey.300',
+                borderRadius: 1,
+                bgcolor: useRealAPI ? 'primary.main' : 'transparent',
+                color: useRealAPI ? 'primary.contrastText' : 'text.primary',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                '&:hover': {
+                  bgcolor: useRealAPI ? 'primary.dark' : 'grey.100'
+                }
+              }}
+            >
+              {useRealAPI ? 'Migration API (Live)' : 'Legacy Data (Static)'}
+            </Box>
+            {useRealAPI && apiResponse && (
+              <Typography variant="caption" color="success.main">
+                ✓ API Connected ({apiResponse.data.length} locations, {apiResponse.flows?.length || 0} flows)
+              </Typography>
+            )}
+          </Box>
+        </Container>
+        
+        {/* Visualization Container */}
+        <Container sx={{ px: 2, py: 2, height: 'fit-content' }}>
+          {useRealAPI && !isEmpty ? (
+            // Map Visualization (New API Data)
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Migration Flow Map - {selectedTimePeriod ? 
+                  getAvailableTimePeriods(apiResponse!).find(p => p.id === selectedTimePeriod)?.label || selectedTimePeriod
+                  : 'Loading...'}
+              </Typography>
+              <NodeFlowAnimation
+                nodes={mapNodes}
+                connections={mapConnections}
+                curved={true}
+                width={720}
+                height={600}
+                selectedPeriod={selectedTimePeriod}
+                onPeriodChange={handleTimePeriodChange}
+              />
+            </Box>
+          ) : (
+            // Chord Diagram (Legacy Data or Fallback)
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {useRealAPI ? 'Migration Flow Visualization (Loading...)' : 'Migration Flow Visualization (Legacy)'}
+              </Typography>
+              <ChordDiagramContainer
+                migrationData={migrationData}
+                darkMode={darkMode}
+                title={title}
+                isLoading={loading}
+                isEmpty={isEmpty}
+                height="800px"
+              />
+            </Box>
+          )}
+          
+          {/* Citation Footer - only show when visualizations are rendered */}
+          {!isEmpty && (
+            <CitationFooter />
+          )}
+        </Container>
     </Box>
   );
 };

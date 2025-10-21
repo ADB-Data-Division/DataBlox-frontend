@@ -532,16 +532,6 @@ export default function MigrationAnalysisPageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations, defaultDateRangeInitialized, dateRange.startDate, dateRange.endDate]);
 
-  // Paper styles
-  const paperStyles = useMemo(() => ({
-    p: 3.5,
-    mb: 3,
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: 2,
-    minHeight: '70vh'
-  }), [theme.palette.mode, theme.palette.divider]);
-
   // Transform API response to chart format for D3.js diverging bars
   const transformAPIResponseToChartData = useCallback((
     apiResponse: any, 
@@ -928,10 +918,9 @@ export default function MigrationAnalysisPageContent() {
     <Box sx={containerStyles}>
       <Header />
 
-      <Paper elevation={0} sx={paperStyles}>
-        {/* Location Search Interface */}
+      {/* Location Search Interface */}
         {!chartData && (
-          <>
+          <Box sx={{ px: 2, py: 1 }}>
             <LocationChips
               selectedLocations={selectedLocations}
               highlightedForDeletion={highlightedForDeletion}
@@ -950,34 +939,38 @@ export default function MigrationAnalysisPageContent() {
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
             />
-          </>
+          </Box>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={4}>
-            <CircularProgress size={40} />
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              Loading migration data...
-            </Typography>
+          <Box sx={{ px: 2, py: 2 }}>
+            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={4}>
+              <CircularProgress size={40} />
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                Loading migration data...
+              </Typography>
+            </Box>
           </Box>
         )}
 
         {/* Error State */}
         {error && !isLoading && (
-          <Box py={4}>
-            <Typography variant="h6" color="error" gutterBottom>
-              Error Loading Data
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {error}
-            </Typography>
+          <Box sx={{ px: 2, py: 2 }}>
+            <Box py={4}>
+              <Typography variant="h6" color="error" gutterBottom>
+                Error Loading Data
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {error}
+              </Typography>
+            </Box>
           </Box>
         )}
 
         {/* Chart Display */}
         {chartData && !isLoading && !error && (
-          <>
+          <Box sx={{ px: 2, py: 2 }}>
             {/* Title Card */}
             <Paper
               elevation={0}
@@ -1118,12 +1111,12 @@ export default function MigrationAnalysisPageContent() {
                 />
               </Paper>
             </Box>
-          </>
+          </Box>
         )}
 
         {/* Search Results - only show when no chart data */}
         {showSearchResults && !isLoading && !chartData && (
-          <>
+          <Box sx={{ px: 2, py: 2 }}>
             <SearchResultsSummary
               totalResults={searchResults.totalFilteredResults}
               startIndex={searchResults.startIndex}
@@ -1153,18 +1146,19 @@ export default function MigrationAnalysisPageContent() {
               onPageChange={searchResults.handlePageChange}
               onPageSizeChange={searchResults.handlePageSizeChange}
             />
-          </>
+          </Box>
         )}
 
         {/* Empty State */}
         {!chartData && !isLoading && !error && selectedLocations.length > 0 && (
-          <Box py={4} textAlign="center">
-            <Typography variant="body1" color="text.secondary">
-              Click &quot;Execute Query&quot; or press Shift+Enter to load migration data for the selected locations.
-            </Typography>
+          <Box sx={{ px: 2, py: 2 }}>
+            <Box py={4} textAlign="center">
+              <Typography variant="body1" color="text.secondary">
+                Click &quot;Execute Query&quot; or press Shift+Enter to load migration data for the selected locations.
+              </Typography>
+            </Box>
           </Box>
         )}
-      </Paper>
 
       {/* Citation Footer - only show when visualizations are rendered */}
       {chartData && !isLoading && !error && (
