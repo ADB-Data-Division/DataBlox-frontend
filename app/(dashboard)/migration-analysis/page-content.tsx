@@ -29,6 +29,96 @@ import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
 
+// Legend Component
+interface LegendProps {
+  locations: Location[];
+  getMoveInColor: (locationId: string) => string;
+  getMoveOutColor: (locationId: string) => string;
+}
+
+const Legend: React.FC<LegendProps> = ({ locations, getMoveInColor, getMoveOutColor }) => {
+  const theme = useTheme();
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+        Legend
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {locations.map((location) => (
+          <Box key={location.uniqueId} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {/* Province Name */}
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                mb: 1
+              }}
+            >
+              {location.name}
+            </Typography>
+
+            {/* Legend Items */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 1 }}>
+              {/* Move-in */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: getMoveInColor(location.uniqueId),
+                    borderRadius: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Move-in
+                </Typography>
+              </Box>
+
+              {/* Move-out */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: getMoveOutColor(location.uniqueId),
+                    borderRadius: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Move-out
+                </Typography>
+              </Box>
+
+              {/* Net Migration */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 2,
+                      backgroundColor: 'black',
+                      opacity: 0.8,
+                      borderRadius: 1,
+                    }}
+                  />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Net Migration
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 // Custom constraints for migration analysis page
 const MIGRATION_ANALYSIS_CONSTRAINTS = {
   MAX_TOTAL_LOCATIONS: 5
@@ -71,7 +161,9 @@ const DivergingBarChart: React.FC<{
   locations: Location[];
   width: number;
   height: number;
-}> = ({ data, locations, width, height }) => {
+  getMoveInColor: (locationId: string) => string;
+  getMoveOutColor: (locationId: string) => string;
+}> = ({ data, locations, width, height, getMoveInColor, getMoveOutColor }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -102,20 +194,6 @@ const DivergingBarChart: React.FC<{
     const g = svg
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Color scales - different colors per province
-    const locationColors = d3.scaleOrdinal(d3.schemeCategory10);
-    
-    // Function to get darker (move-in) and lighter (move-out) versions of location colors
-    const getMoveInColor = (locationId: string) => {
-      const baseColor = locationColors(locationId);
-      return d3.color(baseColor)?.darker(0.3)?.toString() || baseColor;
-    };
-    
-    const getMoveOutColor = (locationId: string) => {
-      const baseColor = locationColors(locationId);
-      return d3.color(baseColor)?.brighter(0.5)?.toString() || baseColor;
-    };
 
     // Scales
     const xScale = d3
@@ -289,117 +367,11 @@ const DivergingBarChart: React.FC<{
       });
     });
 
-    // Add legend
-    const legend = svg
-      .append("g")
-      .attr("class", "legend")
-      .attr("transform", `translate(${width - margin.right + 10}, ${margin.top})`);
-
-    // Province-specific legends
-    locations.forEach((location, i) => {
-      const yOffset = i * 70; // Increased spacing between provinces
-      
-      // Create a group for this province's legend items
-      const provinceGroup = legend
-        .append("g")
-        .attr("class", `legend-province-${location.uniqueId}`)
-        .style("cursor", "pointer");
-
-      // Move-in legend for this province (darker color)
-      provinceGroup
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", yOffset)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", getMoveInColor(location.uniqueId));
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 12)
-        .text("Move-in")
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Move-out legend for this province (lighter color)
-      provinceGroup
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", yOffset + 20)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", getMoveOutColor(location.uniqueId));
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 32)
-        .text("Move-out")
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Net migration line for this province - black dashed
-      provinceGroup
-        .append("line")
-        .attr("x1", 0)
-        .attr("x2", 15)
-        .attr("y1", yOffset + 47)
-        .attr("y2", yOffset + 47)
-        .attr("stroke", "black")
-        .attr("stroke-width", 3)
-        .attr("stroke-dasharray", "3,3")
-        .attr("opacity", 0.8);
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 52)
-        .text(`Net: ${location.name}`)
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Add hover events to the entire province group
-      provinceGroup
-        .on("mouseover", function(event) {
-          // Calculate total stats for this province across all periods
-          let totalMoveIn = 0;
-          let totalMoveOut = 0;
-          let totalNet = 0;
-          
-          data.forEach(periodData => {
-            const locationStats = periodData.locations.find(l => l.locationId === location.uniqueId);
-            if (locationStats) {
-              totalMoveIn += locationStats.moveIn;
-              totalMoveOut += locationStats.moveOut;
-              totalNet += locationStats.netMigration;
-            }
-          });
-
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <strong>${location.name} - Total Summary</strong><br/>
-              Total Move In: ${totalMoveIn.toLocaleString()}<br/>
-              Total Move Out: ${totalMoveOut.toLocaleString()}<br/>
-              Total Net Migration: ${totalNet >= 0 ? '+' : ''}${totalNet.toLocaleString()}
-            `);
-        })
-        .on("mousemove", function(event) {
-          tooltip
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 10) + "px");
-        })
-        .on("mouseout", function() {
-          tooltip.style("opacity", 0);
-        });
-    });
-
     // Cleanup function to remove tooltip when component unmounts
     return () => {
       d3.selectAll(".migration-tooltip").remove();
     };
-  }, [data, locations, width, height]);
+  }, [data, locations, width, height, getMoveInColor, getMoveOutColor]);
 
   return <svg ref={svgRef} width={width} height={height}></svg>;
 };
@@ -409,6 +381,19 @@ export default function MigrationAnalysisPageContent() {
   const { isConnected } = useConnectivity();
   const inputRef = useRef<HTMLInputElement>(null);
   const isResettingRef = useRef(false);
+
+  // Shared color functions for chart and legend
+  const locationColors = d3.scaleOrdinal(d3.schemeCategory10);
+
+  const getMoveInColor = useCallback((locationId: string) => {
+    const baseColor = locationColors(locationId);
+    return d3.color(baseColor)?.darker(0.3)?.toString() || baseColor;
+  }, [locationColors]);
+
+  const getMoveOutColor = useCallback((locationId: string) => {
+    const baseColor = locationColors(locationId);
+    return d3.color(baseColor)?.brighter(0.5)?.toString() || baseColor;
+  }, [locationColors]);
 
   // Search and location state
   const [selectedLocations, setSelectedLocations] = useState<Location[]>([]);
@@ -430,7 +415,7 @@ export default function MigrationAnalysisPageContent() {
   const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
 
   // Chart dimensions
-  const chartWidth = 1200;
+  const chartWidth = 1000;
   const chartHeight = 500;
 
   // Keyboard shortcuts
@@ -524,10 +509,13 @@ export default function MigrationAnalysisPageContent() {
 
   // Paper styles
   const paperStyles = useMemo(() => ({
-    p: 3,
-    backgroundColor: theme.palette.background.paper,
+    p: 3.5,
+    mb: 3,
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 2,
     minHeight: '70vh'
-  }), [theme.palette.background.paper]);
+  }), [theme.palette.mode, theme.palette.divider]);
 
   // Transform API response to chart format for D3.js diverging bars
   const transformAPIResponseToChartData = useCallback((
@@ -966,42 +954,82 @@ export default function MigrationAnalysisPageContent() {
         {chartData && !isLoading && !error && (
           <>
             {/* Date Range Selector for changing periods after query execution */}
-            <MigrationAnalysisDuration
-              selectedStartDate={dateRange.startDate}
-              selectedEndDate={dateRange.endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-            
-            <Box mt={3}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                <Box>
-                  <Typography variant="h5" gutterBottom>
-                    Multi-province comparison (diverging grouped bars): {chartData.locations.map(l => l.name).join(', ')}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Period: {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
-                  </Typography>
-                  
-                </Box>
-                <Button 
-                  variant="outlined" 
-                  onClick={handleNewSearch}
-                  sx={{ mt: 1 }}
-                >
-                  New Search
-                </Button>
-              </Box>
-              
-              <DivergingBarChart
-                data={chartData.data}
-                locations={chartData.locations}
-                width={chartWidth}
-                height={chartHeight}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <MigrationAnalysisDuration
+                selectedStartDate={dateRange.startDate}
+                selectedEndDate={dateRange.endDate}
+                onDateRangeChange={handleDateRangeChange}
               />
+            </Paper>
+
+            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+              <Box>
+                <Typography variant="h5" gutterBottom>
+                  Multi-province comparison (diverging grouped bars): {chartData.locations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Period: {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
+                </Typography>
+
+              </Box>
+              <Button
+                variant="outlined"
+                onClick={handleNewSearch}
+                sx={{ mt: 1 }}
+              >
+                New Search
+              </Button>
             </Box>
-            
-            {/* Citation Footer - only show when visualizations are rendered */}
-            <CitationFooter />
+
+            <Box display="flex" gap={3} mb={3}>
+              {/* Chart Container */}
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: 1,
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
+                <DivergingBarChart
+                  data={chartData.data}
+                  locations={chartData.locations}
+                  width={chartWidth}
+                  height={chartHeight}
+                  getMoveInColor={getMoveInColor}
+                  getMoveOutColor={getMoveOutColor}
+                />
+              </Paper>
+
+              {/* Legend Container */}
+              <Paper
+                elevation={0}
+                sx={{
+                  width: '350px',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
+                <Legend
+                  locations={chartData.locations}
+                  getMoveInColor={getMoveInColor}
+                  getMoveOutColor={getMoveOutColor}
+                />
+              </Paper>
+            </Box>
           </>
         )}
 
@@ -1049,6 +1077,11 @@ export default function MigrationAnalysisPageContent() {
           </Box>
         )}
       </Paper>
+
+      {/* Citation Footer - only show when visualizations are rendered */}
+      {chartData && !isLoading && !error && (
+        <CitationFooter />
+      )}
     </Box>
   );
 }
