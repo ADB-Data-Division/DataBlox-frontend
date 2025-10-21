@@ -22,7 +22,7 @@ import {
   useMigrationData, 
   useLocationSearch, 
   useUrlParams, 
-  useKeyboardShortcuts 
+  useKeyboardShortcuts,
 } from './hooks';
 
 // Contexts
@@ -292,6 +292,7 @@ export default function PageContent() {
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
             />
+
           </>
         )}
 
@@ -303,6 +304,7 @@ export default function PageContent() {
         {/* Success State with Results - Show when successful AND not loading migration data */}
         {state.queryExecutionState === 'success' && !migrationData.isLoading && (
           <>
+
             <MigrationResultsTable
               selectedLocations={state.selectedLocations}
               selectedPeriod={state.selectedPeriod}
@@ -336,6 +338,7 @@ export default function PageContent() {
               endIndex={searchResults.endIndex}
               searchQuery={state.searchQuery}
               allowedType={searchResults.allowedType}
+              selectedProvinceName={searchResults.selectedProvinceName}
             />
 
             <LocationList

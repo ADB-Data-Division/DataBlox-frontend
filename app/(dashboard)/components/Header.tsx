@@ -2,23 +2,29 @@
 
 import { Typography, Box, Stack } from '@mui/material';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ConnectivityStatus } from './ConnectivityStatus';
 import Image from 'next/image';
+import { useMemo } from 'react';
+
 const navigationLinks = [
-  { label: 'Migration Flow', href: '/', segment: '' },
-  { label: 'Trend Over Time', href: '/migration-analysis', segment: 'migration-analysis' },
-  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism' },
-  { label: 'Tourism Trend Over Time', href: '/tourism-trend', segment: 'tourism-trend' },
-  // { label: 'Sankey', href: '/sankey', segment: 'sankey' }, // Disabled for now
-  { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about' },
+  { label: 'Migration Flow', href: '/', segment: '', preserveParams: true },
+  { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis', preserveParams: true },
+  { label: 'Migration Sankey', href: '/sankey', segment: 'sankey', preserveParams: true },
+  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: false },
+  { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend', preserveParams: false },
+  { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about', preserveParams: false },
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   
   // Extract the current segment from pathname
   const currentSegment = pathname.split('/').filter(Boolean)[0] || '';
+
+  // Get current location params
+  const locationsParam = useMemo(() => searchParams.get('locations'), [searchParams]);
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -71,10 +77,15 @@ export function Header() {
         {navigationLinks.map((link) => {
           const isActive = currentSegment === link.segment;
           
+          // Preserve location params when navigating between migration pages
+          const href = link.preserveParams && locationsParam 
+            ? `${link.href}?locations=${encodeURIComponent(locationsParam)}`
+            : link.href;
+          
           return (
             <Link 
               key={link.href}
-              href={link.href}
+              href={href}
               style={{ textDecoration: 'none' }}
             >
               <Typography

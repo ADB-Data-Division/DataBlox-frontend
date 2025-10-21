@@ -8,7 +8,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
+  Paper,
   useTheme
 } from '@mui/material';
 import {
@@ -39,58 +39,64 @@ function LocationSection({
   if (locations.length === 0) return null;
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 3 }}>
       <Typography 
-        variant="body2" 
-        color="text.secondary" 
+        variant="overline"
         sx={{ 
+          display: 'block',
           mb: 2, 
-          fontWeight: 'bold', 
-          textTransform: 'uppercase',
-          letterSpacing: 1
+          fontSize: '0.7rem',
+          fontWeight: 700,
+          color: 'text.secondary',
+          letterSpacing: 1.2
         }}
       >
         {title}
       </Typography>
-      <List disablePadding>
-        {locations.map((location, index) => (
-          <React.Fragment key={location.id}>
-            <ListItem
-              onClick={canAddMoreLocations(selectedLocationsCount) ? () => onLocationSelect(location) : undefined}
-              sx={{
-                px: 0,
-                py: 1.5,
-                cursor: canAddMoreLocations(selectedLocationsCount) ? 'pointer' : 'not-allowed',
-                opacity: canAddMoreLocations(selectedLocationsCount) ? 1 : 0.5,
-                backgroundColor: canAddMoreLocations(selectedLocationsCount) ? 'inherit' : theme.palette.action.disabled,
-                '&:hover': canAddMoreLocations(selectedLocationsCount) ? {
-                  backgroundColor: theme.palette.action.hover,
-                  borderRadius: 1
-                } : {},
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {locations.map((location) => (
+          <Paper
+            key={location.id}
+            elevation={0}
+            onClick={canAddMoreLocations(selectedLocationsCount) ? () => onLocationSelect(location) : undefined}
+            sx={{
+              p: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              cursor: canAddMoreLocations(selectedLocationsCount) ? 'pointer' : 'not-allowed',
+              opacity: canAddMoreLocations(selectedLocationsCount) ? 1 : 0.5,
+              backgroundColor: canAddMoreLocations(selectedLocationsCount) ? 'background.paper' : 'action.disabledBackground',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': canAddMoreLocations(selectedLocationsCount) ? {
+                backgroundColor: 'action.hover',
+                borderColor: 'primary.main',
+                transform: 'translateY(-2px)',
+                boxShadow: 2
+              } : {},
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+              <Box sx={{ 
+                mt: 0.5,
+                color: 'text.primary',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
                 {icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography variant="body1" fontWeight="medium">
-                    {location.name}
-                  </Typography>
-                }
-                secondary={
-                  <Typography variant="body2" color="text.secondary">
-                    {location.description}
-                  </Typography>
-                }
-              />
-            </ListItem>
-            {index < locations.length - 1 && (
-              <Divider sx={{ ml: 4.5 }} />
-            )}
-          </React.Fragment>
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5 }}>
+                  {location.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                  {location.description}
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
         ))}
-      </List>
+      </Box>
     </Box>
   );
 }

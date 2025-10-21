@@ -149,7 +149,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
   // Loading state
   if (loading) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px', textAlign: 'center' }}>
+      <div style={{ marginBottom: '16px', paddingLeft: '16px', paddingRight: '16px', textAlign: 'center' }}>
         <CircularProgress size={24} />
         <MuiTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Loading available time periods...
@@ -161,7 +161,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
   // Error state
   if (error) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+      <div style={{ marginBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }}>
         <MuiTypography variant="h6" color="error">
           Error loading time periods
         </MuiTypography>
@@ -175,7 +175,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
   // No periods available
   if (timePeriods.length === 0) {
     return (
-      <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+      <div style={{ marginBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }}>
         <MuiTypography variant="body2" color="text.secondary">
           No time periods available
         </MuiTypography>
@@ -196,18 +196,18 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
   }));
 
   return (
-    <div style={{ marginBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}>
+    <div style={{ marginBottom: '4px', paddingLeft: '16px', paddingRight: '16px' }}>
       <h3 style={{ 
         fontSize: '18px', 
         fontWeight: 'bold', 
-        marginBottom: '16px',
+        marginBottom: '8px',
         color: '#374151'
       }}>
         Migration Analysis Duration
       </h3>
       
-      <Box mb={2}>
-        <MuiTypography variant="body2" style={{ color: '#6b7280', marginBottom: '8px' }}>
+      <Box mb={1}>
+        <MuiTypography variant="body2" style={{ color: '#6b7280', marginBottom: '4px' }}>
           Selected Date Range:
         </MuiTypography>
         {startPeriod && endPeriod && (

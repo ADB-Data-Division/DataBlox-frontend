@@ -54,7 +54,6 @@ export default function UnifiedFooter({ userTypeContext }: UnifiedFooterProps) {
       textAlign: 'center',
       fontSize: '12px',
       color: '#666666',
-      borderTop: '1px solid #E5E7EB',
       backgroundColor: '#FAFBFD',
       display: 'flex',
       justifyContent: 'center',

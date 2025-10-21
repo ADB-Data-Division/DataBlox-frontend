@@ -8,6 +8,7 @@ interface SearchResultsSummaryProps {
   endIndex: number;
   searchQuery: string;
   allowedType: string | null;
+  selectedProvinceName?: string | null;
 }
 
 export function SearchResultsSummary({
@@ -15,7 +16,8 @@ export function SearchResultsSummary({
   startIndex,
   endIndex,
   searchQuery,
-  allowedType
+  allowedType,
+  selectedProvinceName
 }: SearchResultsSummaryProps) {
   const theme = useTheme();
 
@@ -29,6 +31,11 @@ export function SearchResultsSummary({
           {allowedType && (
             <span style={{ marginLeft: '8px', color: theme.palette.primary.main }}>
               • Filtered to {allowedType}s only
+            </span>
+          )}
+          {selectedProvinceName && (
+            <span style={{ marginLeft: '8px', color: theme.palette.primary.main }}>
+             in {selectedProvinceName}
             </span>
           )}
         </Typography>

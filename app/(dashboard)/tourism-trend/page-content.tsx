@@ -951,6 +951,7 @@ export default function MigrationAnalysisPageContent() {
               endIndex={searchResults.endIndex}
               searchQuery={searchQuery}
               allowedType={searchResults.allowedType}
+              selectedProvinceName={searchResults.selectedProvinceName}
             />
 
             <LocationList

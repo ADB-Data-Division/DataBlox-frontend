@@ -1,7 +1,8 @@
 "use client"
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, TextField, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
+import { ArrowCounterClockwise } from '@phosphor-icons/react/dist/ssr';
 import { 
   generateThailandHexagonsFromCoordinates} from './thailand-map-data';
 import { 
@@ -23,6 +24,7 @@ import { ColorPicker } from '@/components/color-picker';
 interface Node {
   id: string;
   title: string;
+  tooltip: string;
   x: number;
   y: number;
   size: number; // radius of the circle
@@ -104,6 +106,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   
   // State for administrative data
   const [administrativeData, setAdministrativeData] = useState<ProcessedAdministrativeData | null>(null);
@@ -115,6 +118,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // State for node click interaction
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // State for map reset button visibility
+  const [showResetButton, setShowResetButton] = useState<boolean>(false);
 
   // Ref to avoid dependency issues in useEffect
   const selectedNodeIdRef = useRef<string | null>(null);
@@ -344,7 +350,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     d3.selectAll('.flowline-to').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
       return isRelated ? 0.7 : 0.1;
     });
 
@@ -352,7 +358,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     d3.selectAll('.flowline-from').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
       return isRelated ? 0.7 : 0.1;
     });
   }, [activeNodes]);
@@ -375,11 +381,18 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
-      .translateExtent([[0, -80], [500, 500]]) // Pan boundaries (with padding)
+      .translateExtent([[-300, -300], [800, 800]]) // Expanded pan boundaries for better UX
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
         const zoomLevel = event.transform.k;
+        
+        // Check if transform is different from default (scale 2, translate 100,20)
+        const defaultTransform = d3.zoomIdentity.scale(2).translate(100, 20);
+        const isAtDefault = event.transform.k === defaultTransform.k && 
+                          event.transform.x === defaultTransform.x && 
+                          event.transform.y === defaultTransform.y;
+        setShowResetButton(!isAtDefault);
         
         // Create consistent scaling functions available in this scope
         const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
@@ -425,10 +438,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           .attr('markerHeight', 4 * arrowScaleFactor);
       });
 
+    // Store zoom behavior in ref for reset functionality
+    zoomRef.current = zoom;
+
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(0, 0));
+    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(100, 20));
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -571,8 +587,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-flow-rate', Math.abs(conn.toFlowRate))
             .attr('data-absolute-flow', conn.metadata.absoluteToFlow)
             .attr('data-units', conn.metadata.units || '')
-            .attr('data-from-node', fromNode.title)
-            .attr('data-to-node', toNode.title)
+            .attr('data-from-node', fromNode.tooltip)
+            .attr('data-to-node', toNode.tooltip)
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -601,8 +617,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-flow-rate', Math.abs(conn.fromFlowRate))
             .attr('data-absolute-flow', conn.metadata.absoluteFromFlow)
             .attr('data-units', conn.metadata.units || '')
-            .attr('data-from-node', toNode.title)
-            .attr('data-to-node', fromNode.title)
+            .attr('data-from-node', toNode.tooltip)
+            .attr('data-to-node', fromNode.tooltip)
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -612,6 +628,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const nodeGroup = vizGroup.append('g')
           .attr('class', 'node-group')
           .attr('data-node-id', node.id)
+          .attr('data-tooltip', node.tooltip)
           .attr('transform', `translate(${node.x}, ${node.y})`)
           .style('cursor', 'pointer');
 
@@ -817,9 +834,25 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-size', '12px')
         .style('pointer-events', 'none');
 
-      // Add A events to paths
+      // Add tooltip events to nodes
+      d3.selectAll('.node-group')
+        .on('mouseover', function(event) {
+          event.stopPropagation();
+          const tooltipText = d3.select(this).attr('data-tooltip');
+          tooltip.transition().duration(200).style('opacity', .9);
+          tooltip.html(tooltipText)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function(event) {
+          event.stopPropagation();
+          tooltip.transition().duration(500).style('opacity', 0);
+        });
+
+      // Add tooltip events to paths
       d3.selectAll('.flowline-to, .flowline-from')
         .on('mouseover', function(event) {
+          event.stopPropagation();
           const absoluteFlow = d3.select(this).attr('data-absolute-flow');
           const units = d3.select(this).attr('data-units');
           const fromNode = d3.select(this).attr('data-from-node');
@@ -830,19 +863,20 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 28) + 'px');
         })
-        .on('mouseout', function() {
+        .on('mouseout', function(event) {
+          event.stopPropagation();
           tooltip.transition().duration(500).style('opacity', 0);
         });
 
-    // Add zoom instructions
-    svg.append('text')
-      .attr('class', 'zoom-instructions')
-      .attr('x', 20)
-      .attr('y', height - 20)
-      .attr('font-size', '12px')
-      .attr('font-family', 'Arial, sans-serif')
-      .attr('fill', '#6b7280')
-      .text('Use scroll wheel to zoom • Drag to pan');
+    // // Add zoom instructions
+    // svg.append('text')
+    //   .attr('class', 'zoom-instructions')
+    //   .attr('x', 20)
+    //   .attr('y', height - 20)
+    //   .attr('font-size', '12px')
+    //   .attr('font-family', 'Arial, sans-serif')
+    //   .attr('fill', '#6b7280')
+    //   .text('Use scroll wheel to zoom • Drag to pan');
 
     // Cleanup function
     return () => {
@@ -923,9 +957,48 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             width: '100%',
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative'
           }}
         >
+          {/* Reset Button */}
+          {showResetButton && (
+            <Button
+              onClick={() => {
+                if (svgRef.current && zoomRef.current) {
+                  const svg = d3.select(svgRef.current);
+                  svg.transition()
+                    .duration(750)
+                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+                  // The zoom event handler will automatically update showResetButton
+                }
+              }}
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowCounterClockwise size={16} />}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 10,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                },
+                minWidth: 'auto',
+                px: 1.5,
+                py: 0.5,
+                fontSize: '0.75rem',
+                textTransform: 'none'
+              }}
+            >
+              Reset Map
+            </Button>
+          )}
+          
           <svg
             ref={svgRef}
             width="100%"
@@ -942,100 +1015,111 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             className="table-container"
             style={{
               flex: '1',
-              height  : '700px',
-              overflowY: 'unset'
+              height: '700px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
             }}
           >
-            {/* Migration Analysis Period Component */}
-            <MigrationAnalysisPeriod
-              selectedPeriod={selectedPeriod}
-              onPeriodChange={(periodId, startDate, endDate) => {
-                console.log('Period changed:', { periodId, startDate, endDate });
-                if (onPeriodChange) {
-                  onPeriodChange(periodId, startDate, endDate);
-                }
+            {/* Timeline Period Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                p: 2.5,
+                flexShrink: 0
               }}
-            />
+            >
+              <MigrationAnalysisPeriod
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={(periodId, startDate, endDate) => {
+                  console.log('Period changed:', { periodId, startDate, endDate });
+                  if (onPeriodChange) {
+                    onPeriodChange(periodId, startDate, endDate);
+                  }
+                }}
+              />
+            </Paper>
 
-            {/* Migration Flow Data - Visual Diagrams */}
+            {/* Controls Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                p: 2.5,
+                flexShrink: 0
+              }}
+            >
+              <Typography 
+                variant="overline" 
+                sx={{ 
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  color: 'text.secondary',
+                  display: 'block',
+                  mb: 2
+                }}
+              >
+                Controls
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                <TextField
+                  label="Threshold"
+                  type="number"
+                  size="small"
+                  value={migrationThreshold}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    if (onThresholdChange) {
+                      if (inputValue === '') {
+                        onThresholdChange(0);
+                      } else {
+                        const value = parseInt(inputValue, 10);
+                        if (!isNaN(value) && value >= 0) {
+                          onThresholdChange(value);
+                        }
+                      }
+                    }
+                  }}
+                  InputProps={{
+                    inputProps: { min: 0, step: 1 }
+                  }}
+                  sx={{ width: 140 }}
+                />
+
+                <FormControl size="small" sx={{ width: 180 }}>
+                  <InputLabel>Display Format</InputLabel>
+                  <Select
+                    value={selectedUnits}
+                    label="Display Format"
+                    onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
+                  >
+                    <MenuItem value="thousands">Thousands (K)</MenuItem>
+                    <MenuItem value="units">Raw Units</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Paper>
+
+            {/* Flow Details Card */}
             {apiResponse && apiResponse.flows && (
-              <>
-            <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-              <h3 style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                      margin: 0,
-                color: '#374151'
-              }}>
-                Migration Flow Data
-              </h3>
-                    
-                    {/* Controls Container */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                      {/* Threshold Control */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <label style={{ fontSize: '14px', color: '#6b7280' }}>Threshold:</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={migrationThreshold}
-                          onChange={(e) => {
-                            const inputValue = e.target.value;
-                            if (onThresholdChange) {
-                              if (inputValue === '') {
-                                // Allow deletion by setting to 0
-                                onThresholdChange(0);
-                              } else {
-                                const value = parseInt(inputValue, 10);
-                                if (!isNaN(value) && value >= 0) {
-                                  onThresholdChange(value);
-                                }
-                              }
-                            }
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '14px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '4px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            width: '80px'
-                          }}
-                        />
-                      </div>
-
-                      {/* Units Selector */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '14px', color: '#6b7280' }}>Display as:</span>
-                        <select
-                          value={selectedUnits}
-                          onChange={(e) => setSelectedUnits(e.target.value as 'thousands' | 'units')}
-                          style={{
-                            padding: '4px 8px',
-                  fontSize: '14px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '4px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <option value="thousands">Thousands (K)</option>
-                          <option value="units">Raw Units</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 2,
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: 0
+                }}
+              >
+                <Box sx={{ p: 2.5, flexShrink: 0 }}>
                   {/* Filter indicator */}
                   {selectedNodeId && (() => {
                     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
@@ -1053,7 +1137,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         justifyContent: 'space-between',
                         alignItems: 'center'
                       }}>
-                        <span>📍 Showing flows involving: <strong>{selectedNode.title}</strong></span>
+                        <span>📍 Showing flows involving: <strong>{selectedNode.tooltip}</strong></span>
                         <button
                           onClick={() => {
                             setSelectedNodeId(null);
@@ -1085,17 +1169,24 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                       </div>
                     ) : null;
                   })()}
+                  </Box>
                   
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(470px, 100%), 1fr))',
-                    gap: '12px',
-                    padding: '16px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    height: '400px',
-                    overflowY: 'auto'
+                  {/* Scrollable Flow Cards Container */}
+                  <Box sx={{ 
+                    flex: 1,
+                    overflowY: 'auto',
+                    px: 2.5,
+                    pb: 2.5,
+                    minHeight: 0
                   }}>
+                    <Box sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(470px, 100%), 1fr))',
+                      gap: 1.5,
+                      p: 2,
+                      backgroundColor: '#f9fafb',
+                      borderRadius: 1
+                    }}>
                     {(() => {
                       // Filter flows for the selected period
                       let filteredFlows = apiResponse.flows
@@ -1108,8 +1199,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
                         if (selectedNode) {
                           filteredFlows = filteredFlows.filter(flow => 
-                            flow.origin.name === selectedNode.title || 
-                            flow.destination.name === selectedNode.title
+                            flow.origin.name === selectedNode.tooltip || 
+                            flow.destination.name === selectedNode.tooltip
                           );
                         }
                       }
@@ -1205,8 +1296,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                               backgroundColor: '#ffffff',
                               borderRadius: '8px',
                               padding: '12px',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                              border: '1px solid #e5e7eb',
+                              border: '1.5px solid #d1d5db',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '8px'
@@ -1411,9 +1501,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         );
                       });
                     })()}
-                  </div>
-                </div>
-              </>
+                    </Box>
+                  </Box>
+              </Paper>
             )}
           </div>
       </div>

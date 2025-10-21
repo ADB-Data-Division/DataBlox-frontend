@@ -6,6 +6,7 @@ import { Location } from '../helper';
 import { LOCATION_CONSTRAINTS } from '../constraints';
 import { trackMigrationEvent, trackUserInteraction } from '../../../src/utils/analytics';
 import { useLocationContext } from '../../contexts';
+import { enhancedLocationService } from '../../services/enhanced-location-service';
 
 interface SearchPagination {
   currentPage: number;
@@ -37,6 +38,35 @@ export function useLocationSearch(
       : null;
   }, [selectedLocations]);
 
+  // Smart filtering: if a district is selected, get its province_id for filtering
+  const selectedProvinceId = useMemo(() => {
+    if (selectedLocations.length > 0 && selectedLocations[0].type === 'district') {
+      return selectedLocations[0].province_id;
+    }
+    return null;
+  }, [selectedLocations]);
+
+  // Resolve province name for display in filtering message
+  const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const resolveProvinceName = async () => {
+      if (selectedProvinceId) {
+        try {
+          const provinceName = await enhancedLocationService.getProvinceName(selectedProvinceId);
+          setSelectedProvinceName(provinceName);
+        } catch (error) {
+          console.error('Failed to resolve province name:', error);
+          setSelectedProvinceName(null);
+        }
+      } else {
+        setSelectedProvinceName(null);
+      }
+    };
+
+    resolveProvinceName();
+  }, [selectedProvinceId]);
+
   // Separate locations by type
   const { provinces, districts, subDistricts } = useMemo(() => ({
     provinces: allLocations.filter(loc => loc.type === 'province'),
@@ -52,6 +82,15 @@ export function useLocationSearch(
   } = useMemo(() => {
     const majorProvinceNames = ['Bangkok', 'Chiang Mai', 'Nakhon Ratchasima'];
 
+    // Helper function to apply province filtering to districts
+    const applyProvinceFilter = (districtList: Location[]) => {
+      if (selectedProvinceId) {
+        // Smart filtering: only show districts from the same province
+        return districtList.filter(d => d.province_id === selectedProvinceId);
+      }
+      return districtList;
+    };
+
     if (!searchQuery.trim()) {
       // No search query: show defaults based on allowed type
       return {
@@ -61,7 +100,9 @@ export function useLocationSearch(
             )
           : [],
         allFilteredDistricts: allowedType === 'district' 
-          ? districts.slice(0, 5).filter(district => !selectedIds.includes(district.id))
+          ? applyProvinceFilter(
+              districts.slice(0, 5).filter(district => !selectedIds.includes(district.id))
+            )
           : [],
         allFilteredSubDistricts: allowedType === 'subDistrict' 
           ? subDistricts.slice(0, 5).filter(subDistrict => !selectedIds.includes(subDistrict.id))
@@ -74,14 +115,16 @@ export function useLocationSearch(
           ? filterItems(provinces, searchQuery, ['name', 'description'], selectedIds)
           : [],
         allFilteredDistricts: (!allowedType || allowedType === 'district') 
-          ? filterItems(districts, searchQuery, ['name', 'description'], selectedIds)
+          ? applyProvinceFilter(
+              filterItems(districts, searchQuery, ['name', 'description'], selectedIds)
+            )
           : [],
         allFilteredSubDistricts: (!allowedType || allowedType === 'subDistrict') 
           ? filterItems(subDistricts, searchQuery, ['name', 'description'], selectedIds)
           : []
       };
     }
-  }, [searchQuery, allowedType, provinces, districts, subDistricts, selectedIds]);
+  }, [searchQuery, allowedType, provinces, districts, subDistricts, selectedIds, selectedProvinceId]);
 
   const totalFilteredResults = useMemo(() => 
     allFilteredProvinces.length + allFilteredDistricts.length + allFilteredSubDistricts.length,
@@ -160,6 +203,7 @@ export function useLocationSearch(
     handlePageChange,
     handlePageSizeChange,
     getFirstAvailableResult,
+    selectedProvinceName,
     isLoading,
     error,
     allLocations

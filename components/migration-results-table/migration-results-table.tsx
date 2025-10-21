@@ -78,50 +78,83 @@ export default function MigrationResultsTable({
   return (
     <Box sx={{ py: 2 }}>
       {/* Header Section */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start',
-        mb: 3,
-        gap: 2
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="h6" color="text.primary" sx={{ mr: 1 }}>
-            Query Results for
-          </Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3.5,
+          mb: 3,
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          color="text.secondary" 
+          sx={{ 
+            textTransform: 'uppercase', 
+            letterSpacing: 0.5,
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            mb: 1.5
+          }}
+        >
+          Selected Locations
+        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
           {selectedLocations.map((location, index) => (
-            <React.Fragment key={location.id}>
-              <Chip
-                icon={getLocationIcon(location.type)}
-                label={location.name}
-                color={getLocationColor(location.type)}
-                size="medium"
-                sx={{ fontWeight: 'medium' }}
-              />
-              {index < selectedLocations.length - 1 && (
-                <Typography variant="h6" color="text.secondary" sx={{ mx: 0.5 }}>
-                  ,
-                </Typography>
-              )}
-            </React.Fragment>
+            <Chip
+              key={location.id}
+              icon={getLocationIcon(location.type)}
+              label={location.name}
+              color={getLocationColor(location.type)}
+              size="medium"
+              sx={{ 
+                fontWeight: 600,
+                fontSize: '0.875rem'
+              }}
+            />
           ))}
+          {/* Migration Flow
+              {apiResponse && (
+                <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 2 }}>
+                  {apiResponse.data.length} locations • {apiResponse.flows?.length || 0} flows
+                </Typography>
+              )} */}
+          <Chip
+            label={`${selectedLocations.length} location${selectedLocations.length > 1 ? 's' : ''} • ${apiResponse?.flows?.length || 0} flows`}
+            size="small"
+            variant="outlined"
+            sx={{ 
+              fontWeight: 500,
+              fontSize: '0.75rem',
+              borderStyle: 'dashed'
+            }}
+          />
         </Box>
+
         <Button 
           variant="outlined" 
           size="small"
           onClick={onNewSearch}
-          sx={{ flexShrink: 0 }}
+          sx={{ 
+            borderRadius: 1.5,
+            textTransform: 'none',
+            fontWeight: 600,
+          }}
         >
-          New search
+          New Search
         </Button>
-      </Box>
+      </Paper>
       
       {/* Results Container */}
       <Paper 
-        elevation={1}
+        elevation={0}
         sx={{ 
           p: 3,
           backgroundColor: theme.palette.background.default,
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 2,
           minHeight: '50vh'
         }}
@@ -171,13 +204,8 @@ export default function MigrationResultsTable({
         {/* Success State - Migration Data Visualization */}
         {!loading && !error && mapNodes.length > 0 && (
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-              Migration Flow Visualization
-              {apiResponse && (
-                <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 2 }}>
-                  {apiResponse.data.length} locations • {apiResponse.flows?.length || 0} flows
-                </Typography>
-              )}
+            <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
+              Migration Flow
             </Typography>
             
             <NodeFlowAnimation 

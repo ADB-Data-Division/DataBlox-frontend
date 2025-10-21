@@ -133,7 +133,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                   <ForceLightMode />
                   <UserTypeModalWrapper />
                   <div style={{ 
-                    backgroundColor: '#FAFBFD', 
+                    backgroundColor: '#FFFFFF', 
                     color: '#1A1A1A',
                     minHeight: '100vh',
                     display: 'flex',
