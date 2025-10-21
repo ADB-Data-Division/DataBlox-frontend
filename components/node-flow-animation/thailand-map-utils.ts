@@ -117,7 +117,7 @@ export function generateNodesFromAdministrativeUnits(
   mapHeight: number = 400,
   offsetX: number = 0,
   offsetY: number = 0
-): Array<{ id: string; title: string; x: number; y: number; size: number; type: 'province' | 'district' }> {
+): Array<{ id: string; title: string; tooltip: string; x: number; y: number; size: number; type: 'province' | 'district' }> {
   return administrativeUnits.map(unit => {
     const { x, y } = mapProvinceToXY(
       unit.latitude, 
@@ -134,6 +134,7 @@ export function generateNodesFromAdministrativeUnits(
     return {
       id: unit.id,
       title: unit.name,
+      tooltip: unit.name, // Full name for tooltip
       x: Math.round(x),
       y: Math.round(y),
       size: Math.round(size),
