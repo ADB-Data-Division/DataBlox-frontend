@@ -55,6 +55,7 @@ export default function SankeyResults({
 }: SankeyResultsProps) {
   const theme = useTheme();
   const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
   // Extract available years from the API response
   const availableYears = useMemo(() => {
@@ -72,6 +73,28 @@ export default function SankeyResults({
     return sortedYears;
   }, [apiResponse]);
 
+  // Extract available months for the selected year
+  const availableMonths = useMemo(() => {
+    if (!apiResponse?.time_periods || !selectedYear) return [];
+    
+    const yearNum = parseInt(selectedYear);
+    const yearPeriods = apiResponse.time_periods.filter(period => {
+      const year = new Date(period.start_date).getFullYear();
+      return year === yearNum;
+    });
+    
+    const months = new Set<number>();
+    yearPeriods.forEach(period => {
+      const month = new Date(period.start_date).getMonth(); // 0-11
+      months.add(month);
+    });
+    
+    const sortedMonths = Array.from(months).sort((a, b) => a - b); // Sort chronologically (0=Jan, 11=Dec)
+    console.log('📅 Available months for year', selectedYear, ':', sortedMonths.map(m => new Date(2000, m).toLocaleString('default', { month: 'short' })));
+    
+    return sortedMonths;
+  }, [apiResponse, selectedYear]);
+
   // Auto-select first year when data loads
   useEffect(() => {
     if (availableYears.length > 0 && (!selectedYear || !availableYears.map(String).includes(selectedYear))) {
@@ -79,15 +102,29 @@ export default function SankeyResults({
     }
   }, [availableYears, selectedYear]);
 
-  // Filter API response based on selected year
+  // Reset month selection when year changes
+  useEffect(() => {
+    setSelectedMonth('all');
+  }, [selectedYear]);
+
+  // Filter API response based on selected year and month
   const filteredApiResponse = useMemo(() => {
     if (!apiResponse || !selectedYear) return apiResponse;
     
     const yearNum = parseInt(selectedYear);
-    const filteredPeriods = apiResponse.time_periods.filter(period => {
+    let filteredPeriods = apiResponse.time_periods.filter(period => {
       const year = new Date(period.start_date).getFullYear();
       return year === yearNum;
     });
+    
+    // Further filter by month if a specific month is selected
+    if (selectedMonth !== 'all') {
+      const monthNum = parseInt(selectedMonth);
+      filteredPeriods = filteredPeriods.filter(period => {
+        const month = new Date(period.start_date).getMonth();
+        return month === monthNum;
+      });
+    }
     
     const periodIds = new Set(filteredPeriods.map(p => p.id));
     const filteredFlows = apiResponse.flows?.filter(flow => 
@@ -99,7 +136,7 @@ export default function SankeyResults({
       time_periods: filteredPeriods,
       flows: filteredFlows || []
     };
-  }, [apiResponse, selectedYear]);
+  }, [apiResponse, selectedYear, selectedMonth]);
 
   return (
     <Box>
@@ -224,25 +261,48 @@ export default function SankeyResults({
                 )}
               </Typography>
 
-              {/* Year Filter Dropdown */}
-              {availableYears.length > 1 && (
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel id="year-select-label">Select Year</InputLabel>
-                  <Select
-                    labelId="year-select-label"
-                    id="year-select"
-                    value={selectedYear}
-                    label="Select Year"
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                  >
-                    {availableYears.map(year => (
-                      <MenuItem key={year} value={String(year)}>
-                        {year}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
+              {/* Year and Month Filter Dropdowns */}
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                {availableYears.length > 1 && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel id="year-select-label">Select Year</InputLabel>
+                    <Select
+                      labelId="year-select-label"
+                      id="year-select"
+                      value={selectedYear}
+                      label="Select Year"
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                    >
+                      {availableYears.map(year => (
+                        <MenuItem key={year} value={String(year)}>
+                          {year}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
+                {/* Month Filter Dropdown - only show when a specific year is selected */}
+                {selectedYear && availableMonths.length > 1 && (
+                  <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <InputLabel id="month-select-label">Select Month</InputLabel>
+                    <Select
+                      labelId="month-select-label"
+                      id="month-select"
+                      value={selectedMonth}
+                      label="Select Month"
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                    >
+                      <MenuItem value="all">All Months</MenuItem>
+                      {availableMonths.map(month => (
+                        <MenuItem key={month} value={String(month)}>
+                          {new Date(2000, month).toLocaleString('default', { month: 'long' })}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
             </Box>
 
             {/* Full Width Diagram */}
@@ -260,8 +320,10 @@ export default function SankeyResults({
               />
 
               <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block', textAlign: 'center', maxWidth: 900, mx: 'auto' }}>
-                Showing migration flows for {selectedYear || 'selected year'}. 
-                Hover over flows to see monthly breakdown. Flow thickness represents total migration volume across all months.
+                {selectedMonth !== 'all' 
+                  ? `Showing migration flows for ${new Date(parseInt(selectedYear), parseInt(selectedMonth)).toLocaleString('default', { month: 'long', year: 'numeric' })}. Flow thickness represents monthly migration volume.`
+                  : `Showing migration flows for ${selectedYear || 'selected year'}. Hover over flows to see monthly breakdown. Flow thickness represents total migration volume across all months.`
+                }
               </Typography>
             </Paper>
           </Box>
