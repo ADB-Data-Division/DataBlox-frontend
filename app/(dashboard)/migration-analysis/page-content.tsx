@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Box, Paper, Typography, useTheme, CircularProgress, Button } from '@mui/material';
+import { Box, Paper, Typography, useTheme, CircularProgress, Button, Chip } from '@mui/material';
 import * as d3 from 'd3';
 
 // Components
@@ -253,6 +253,27 @@ const DivergingBarChart: React.FC<{
       .style("font-weight", "bold")
       .style("font-size", "16px")
       .text("Number of People (thousands)");
+
+    // Add directional labels
+    g.append("text")
+      .attr("x", -margin.left + 10)
+      .attr("y", -margin.top / 2)
+      .attr("dy", "0.5em")
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .style("font-size", "14px")
+      .style("fill", "#000")
+      .text("Move In");
+
+    g.append("text")
+      .attr("x", -margin.left + 10)
+      .attr("y", innerHeight + margin.bottom - 20)
+      .attr("dy", "0.5em")
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .style("font-size", "14px")
+      .style("fill", "#000")
+      .text("Move Out");
 
     // Add zero line
     g.append("line")
@@ -953,6 +974,88 @@ export default function MigrationAnalysisPageContent() {
         {/* Chart Display */}
         {chartData && !isLoading && !error && (
           <>
+            {/* Title Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Multi-province Migration Analysis
+                </Typography>
+                <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                  Diverging Grouped Bars Comparison
+                </Typography>
+
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  sx={{
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    mb: 1.5
+                  }}
+                >
+                  Selected Locations
+                </Typography>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  {chartData.locations.map((location) => (
+                    <Chip
+                      key={location.uniqueId}
+                      label={location.name}
+                      color={location.type === 'province' ? 'primary' : location.type === 'district' ? 'secondary' : 'default'}
+                      size="medium"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  ))}
+                  <Chip
+                    label={`${chartData.locations.length} location${chartData.locations.length > 1 ? 's' : ''}`}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '0.75rem',
+                      borderStyle: 'dashed'
+                    }}
+                  />
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
+                    Analysis Period:
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+                    {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleNewSearch}
+                  sx={{
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                  }}
+                >
+                  New Search
+                </Button>
+              </Box>
+            </Paper>
+
             {/* Date Range Selector for changing periods after query execution */}
             <Paper
               elevation={0}
@@ -970,25 +1073,6 @@ export default function MigrationAnalysisPageContent() {
                 onDateRangeChange={handleDateRangeChange}
               />
             </Paper>
-
-            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-              <Box>
-                <Typography variant="h5" gutterBottom>
-                  Multi-province comparison (diverging grouped bars): {chartData.locations.map(l => l.name).join(', ')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Period: {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
-                </Typography>
-
-              </Box>
-              <Button
-                variant="outlined"
-                onClick={handleNewSearch}
-                sx={{ mt: 1 }}
-              >
-                New Search
-              </Button>
-            </Box>
 
             <Box display="flex" gap={3} mb={3}>
               {/* Chart Container */}
