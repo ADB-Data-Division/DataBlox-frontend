@@ -23,6 +23,7 @@ import { ColorPicker } from '@/components/color-picker';
 interface Node {
   id: string;
   title: string;
+  tooltip: string;
   x: number;
   y: number;
   size: number; // radius of the circle
@@ -344,7 +345,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     d3.selectAll('.flowline-to').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
       return isRelated ? 0.7 : 0.1;
     });
 
@@ -352,7 +353,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     d3.selectAll('.flowline-from').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.title || toNode === selectedNode.title;
+      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
       return isRelated ? 0.7 : 0.1;
     });
   }, [activeNodes]);
@@ -571,8 +572,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-flow-rate', Math.abs(conn.toFlowRate))
             .attr('data-absolute-flow', conn.metadata.absoluteToFlow)
             .attr('data-units', conn.metadata.units || '')
-            .attr('data-from-node', fromNode.title)
-            .attr('data-to-node', toNode.title)
+            .attr('data-from-node', fromNode.tooltip)
+            .attr('data-to-node', toNode.tooltip)
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -601,8 +602,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-flow-rate', Math.abs(conn.fromFlowRate))
             .attr('data-absolute-flow', conn.metadata.absoluteFromFlow)
             .attr('data-units', conn.metadata.units || '')
-            .attr('data-from-node', toNode.title)
-            .attr('data-to-node', fromNode.title)
+            .attr('data-from-node', toNode.tooltip)
+            .attr('data-to-node', fromNode.tooltip)
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -612,6 +613,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const nodeGroup = vizGroup.append('g')
           .attr('class', 'node-group')
           .attr('data-node-id', node.id)
+          .attr('data-tooltip', node.tooltip)
           .attr('transform', `translate(${node.x}, ${node.y})`)
           .style('cursor', 'pointer');
 
@@ -817,9 +819,25 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-size', '12px')
         .style('pointer-events', 'none');
 
-      // Add A events to paths
+      // Add tooltip events to nodes
+      d3.selectAll('.node-group')
+        .on('mouseover', function(event) {
+          event.stopPropagation();
+          const tooltipText = d3.select(this).attr('data-tooltip');
+          tooltip.transition().duration(200).style('opacity', .9);
+          tooltip.html(tooltipText)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function(event) {
+          event.stopPropagation();
+          tooltip.transition().duration(500).style('opacity', 0);
+        });
+
+      // Add tooltip events to paths
       d3.selectAll('.flowline-to, .flowline-from')
         .on('mouseover', function(event) {
+          event.stopPropagation();
           const absoluteFlow = d3.select(this).attr('data-absolute-flow');
           const units = d3.select(this).attr('data-units');
           const fromNode = d3.select(this).attr('data-from-node');
@@ -830,7 +848,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 28) + 'px');
         })
-        .on('mouseout', function() {
+        .on('mouseout', function(event) {
+          event.stopPropagation();
           tooltip.transition().duration(500).style('opacity', 0);
         });
 
@@ -1064,7 +1083,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         justifyContent: 'space-between',
                         alignItems: 'center'
                       }}>
-                        <span>📍 Showing flows involving: <strong>{selectedNode.title}</strong></span>
+                        <span>📍 Showing flows involving: <strong>{selectedNode.tooltip}</strong></span>
                         <button
                           onClick={() => {
                             setSelectedNodeId(null);
@@ -1126,8 +1145,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                         const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
                         if (selectedNode) {
                           filteredFlows = filteredFlows.filter(flow => 
-                            flow.origin.name === selectedNode.title || 
-                            flow.destination.name === selectedNode.title
+                            flow.origin.name === selectedNode.tooltip || 
+                            flow.destination.name === selectedNode.tooltip
                           );
                         }
                       }

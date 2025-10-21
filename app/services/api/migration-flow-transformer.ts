@@ -4,6 +4,9 @@ import { mapProvinceToXY } from '../../../components/node-flow-animation/thailan
 // Import administrative units data for coordinates
 import thailandAdministrativeUnits from '../../../public/datasets/thailand_administrative_units.json';
 
+// Import location display utilities
+import { getLocationDisplayInfo } from '../../../src/utils/locationDisplay';
+
 // Interface for administrative unit data (matches actual JSON structure)
 interface AdministrativeUnit {
   id: string;
@@ -18,6 +21,7 @@ interface AdministrativeUnit {
 export interface MapNode {
   id: string;
   title: string;
+  tooltip: string;
   x: number;
   y: number;
   size: number; // radius of the circle
@@ -176,9 +180,22 @@ export function transformMigrationDataForMap(
     const moveOut = timeSeriesData?.move_out || 0;
     const size = calculateNodeSize(moveIn, moveOut);
     
+    // Determine location type from administrative units data
+    const units = thailandAdministrativeUnits as AdministrativeUnit[];
+    const unit = units.find(u => u.id === location.id);
+    const locationType = unit?.type || 'province'; // Default to province if not found
+    
+    // Get display information based on location type
+    const { displayText, tooltipText } = getLocationDisplayInfo(
+      location.name,
+      location.code,
+      locationType as 'province' | 'district' | 'subDistrict'
+    );
+    
     return {
       id: location.id,
-      title: location.name,
+      title: displayText,
+      tooltip: tooltipText,
       x: coordinates.x,
       y: coordinates.y,
       size: size
