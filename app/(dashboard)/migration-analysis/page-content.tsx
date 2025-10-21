@@ -186,7 +186,7 @@ const DivergingBarChart: React.FC<{
       .style("opacity", 0)
       .style("z-index", 1000);
 
-    const margin = { top: 60, right: 150, bottom: 60, left: 80 };
+    const margin = { top: 60, right: 150, bottom: 100, left: 80 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -226,7 +226,11 @@ const DivergingBarChart: React.FC<{
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale))
       .selectAll("text")
-      .style("font-weight", "bold");
+      .style("font-weight", "bold")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", "rotate(-45)");
 
     // Format y-axis values to thousands (k)
     const formatYAxis = (d: d3.NumberValue) => {
