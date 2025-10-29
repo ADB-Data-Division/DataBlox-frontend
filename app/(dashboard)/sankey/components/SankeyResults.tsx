@@ -20,6 +20,7 @@ interface SankeyResultsProps {
   apiResponse: MigrationResponse | null;
   loading: boolean;
   error: string | null;
+  dateRangeControls?: React.ReactNode;
 }
 
 const getLocationIcon = (type: Location['type']) => {
@@ -51,7 +52,8 @@ export default function SankeyResults({
   onNewSearch,
   apiResponse,
   loading,
-  error
+  error,
+  dateRangeControls
 }: SankeyResultsProps) {
   const theme = useTheme();
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -304,6 +306,22 @@ export default function SankeyResults({
                 )}
               </Box>
             </Box>
+
+            {/* Date Range Controls */}
+            {dateRangeControls && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
+                {dateRangeControls}
+              </Paper>
+            )}
 
             {/* Full Width Diagram */}
             <Paper

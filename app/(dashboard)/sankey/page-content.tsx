@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useReducer, useEffect, useState } from 'react';
 import { Box, useTheme } from '@mui/material';
 
 // Components
@@ -14,6 +14,7 @@ import { SearchPagination } from '../components/SearchPagination';
 import { SearchResultsSummary } from '../components/SearchResultsSummary';
 import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
 import CitationFooter from '@/components/citation-footer/citation-footer';
+import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts, useSankeyMigrationData } from '../hooks';
@@ -47,6 +48,20 @@ export default function SankeyPageContent() {
 
   // URL params hook for shareable URLs
   const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
+
+  // Time period state - initialized with empty values, will be populated from metadata
+  const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
+
+  // Handle date range change
+  const handleDateRangeChange = useCallback((startDate: string, endDate: string) => {
+    console.log('Sankey: Date range changed:', { startDate, endDate });
+    setDateRange({ startDate, endDate });
+    
+    // Only reload data if we already have migration data (user has already executed a query)
+    if (memoizedSelectedLocations.length > 0 && migrationData.apiResponse) {
+      loadMigrationData(memoizedSelectedLocations, startDate, endDate);
+    }
+  }, [memoizedSelectedLocations, migrationData.apiResponse, loadMigrationData]);
 
 
   // Keyboard shortcuts configuration
@@ -105,10 +120,14 @@ export default function SankeyPageContent() {
             dispatch({ type: 'START_QUERY_EXECUTION' });
             
             try {
+              // Use date range from state, fallback to 2024 if not set
+              const startDate = dateRange.startDate || '2024-01-01';
+              const endDate = dateRange.endDate || '2024-12-31';
+              
               await loadMigrationData(
                 locations,
-                '2019-01-01',
-                '2024-12-31'
+                startDate,
+                endDate
               );
               updateUrlWithLocations(locations);
               dispatch({ type: 'SET_QUERY_SUCCESS' });
@@ -156,12 +175,14 @@ export default function SankeyPageContent() {
     dispatch({ type: 'START_QUERY_EXECUTION' });
     
     try {
-      // Load all historical data from 2019 to end of 2024 for Sankey visualization
-      // The useSankeyMigrationData hook will automatically split this into yearly queries
+      // Use date range from state, fallback to 2024 if not set
+      const startDate = dateRange.startDate || '2024-01-01';
+      const endDate = dateRange.endDate || '2024-12-31';
+      
       await loadMigrationData(
         memoizedSelectedLocations,
-        '2019-01-01', // Start from 2019
-        '2024-12-31'  // End at December 2024
+        startDate,
+        endDate
       );
       updateUrlWithLocations(memoizedSelectedLocations); // Update URL for sharing
       dispatch({ type: 'SET_QUERY_SUCCESS' });
@@ -169,7 +190,7 @@ export default function SankeyPageContent() {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
     }
-  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations]);
+  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations, dateRange]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     // Handle Enter key
@@ -249,7 +270,15 @@ export default function SankeyPageContent() {
               apiResponse={migrationData.apiResponse}
               loading={migrationData.isLoading}
               error={migrationData.error}
+              dateRangeControls={
+                <MigrationAnalysisDuration
+                  selectedStartDate={dateRange.startDate}
+                  selectedEndDate={dateRange.endDate}
+                  onDateRangeChange={handleDateRangeChange}
+                />
+              }
             />
+
             <CitationFooter />
           </Box>
         )}
