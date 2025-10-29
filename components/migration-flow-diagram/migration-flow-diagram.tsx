@@ -1,4 +1,5 @@
 import React from 'react';
+import { getShortLocationName } from '@/src/utils/locationDisplay';
 
 interface MigrationFlowDiagramProps {
   fromLocation: string;
@@ -87,7 +88,7 @@ export default function MigrationFlowDiagram({
           fontWeight="bold"
           fill="#374151"
         >
-          {(fromLocation.length > 3 ? fromLocation.substring(0, 3) : fromLocation).toUpperCase()}
+          {getShortLocationName(fromLocation, 'district')}
         </text>
 
         {/* Circular arrow */}
@@ -196,7 +197,7 @@ export default function MigrationFlowDiagram({
         fontWeight="bold"
         fill="#374151"
       >
-        {(fromLocation.length > 3 ? fromLocation.substring(0, 3) : fromLocation).toUpperCase()}
+        {getShortLocationName(fromLocation, 'district')}
       </text>
       <text
         x={rightBoxX + boxWidth / 2}
@@ -207,7 +208,7 @@ export default function MigrationFlowDiagram({
         fontWeight="bold"
         fill="#374151"
       >
-        {(toLocation.length > 3 ? toLocation.substring(0, 3) : toLocation).toUpperCase()}
+        {getShortLocationName(toLocation, 'district')}
       </text>
 
       {/* Flow arrows */}

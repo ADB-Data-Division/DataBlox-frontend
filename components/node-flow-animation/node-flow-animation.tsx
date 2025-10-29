@@ -15,6 +15,14 @@ import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
 import { MigrationAnalysisPeriod } from '@/components/migration-analysis-period';
 import { ColorPicker } from '@/components/color-picker';
+import {
+  computeRadius,
+  computeStrokeWidth,
+  computeFontSize,
+  resolveScreenOverlaps,
+  computeDashPattern,
+  VISUAL_CONFIG
+} from '@/src/utils/visualScaling';
 
 // Default transform constants
 const DEFAULT_TRANSFORM_SCALE = 1.5;
@@ -23,7 +31,7 @@ const DEFAULT_TRANSFORM_Y = 90;
 
 // Zoom configuration constants
 const DEFAULT_MIN_ZOOM = 1;
-const DEFAULT_MAX_ZOOM = 30;
+const DEFAULT_MAX_ZOOM = 50;
 
 // Text scaling configuration - adjust these values to fine-tune text scaling
 const TEXT_SCALING_CONFIG = {
@@ -339,12 +347,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // Function to calculate dynamic node size based on zoom level
   const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel?: number): number => {
-    // Use current zoom level if not provided
-    const currentZoom = zoomLevel ?? 2;
-    // As zoom increases, make nodes smaller to prevent them from covering edges
-    // Use more aggressive inverse relationship with a minimum size limit
-    const scaleFactor = Math.max(0.05, 1 / currentZoom); // Minimum 20% of original size, more aggressive scaling
-    return baseSize * scaleFactor;
+    // Use computeRadius from visualScaling for consistent, configurable sizing
+    const currentZoom = zoomLevel ?? (currentZoomTransform ? currentZoomTransform.k : DEFAULT_TRANSFORM_SCALE);
+    // Treat baseSize as a pixel radius baseline (existing code passed node.size * 2)
+    return computeRadius(baseSize, currentZoom, VISUAL_CONFIG);
   }, []);
 
   // Function to update edge visibility based on selected node
@@ -429,52 +435,94 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                           event.transform.y === defaultTransform.y;
         setShowResetButton(!isAtDefault);
         
-        // Create consistent scaling functions available in this scope
-        const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
-        const getTextScaleFactor = (minScale: number) => {
-          const baseScale = TEXT_SCALING_CONFIG.sqrtScaling ? 1 / Math.sqrt(zoomLevel) : 1 / zoomLevel;
-          return Math.max(minScale, baseScale);
-        };
-        const getDynamicSize = (baseSize: number) => baseSize * getScaleFactor(0.2);
-        
-        // Update node sizes based on zoom level using consistent scaling
+        // Use the visualScaling helpers for consistent sizing and optional overlap resolution.
+        const k = zoomLevel;
+
+        // Update node radii based on blended scaling
         d3.selectAll('.node').attr('r', function() {
           const element = this as Element;
           const parentElement = element.parentNode as SVGGElement;
-          if (!parentElement) return 20; // fallback size
+          if (!parentElement) return computeRadius(1, k, VISUAL_CONFIG); // fallback size
           const nodeGroup = d3.select(parentElement);
           const nodeId = nodeGroup.attr('data-node-id');
           const node = activeNodes.find(n => n.id === nodeId);
-          if (!node) return 20; // fallback size
-          return getDynamicSize(node.size * 2);
+          if (!node) return computeRadius(1, k, VISUAL_CONFIG); // fallback size
+          const baseRadiusPx = node.size * 2; // preserve previous base usage
+          return computeRadius(baseRadiusPx, k, VISUAL_CONFIG);
         });
 
-        // Update text size using separate text scaling (gentler than element scaling)
+        // Update text size using computeFontSize (gentler scaling)
         d3.selectAll('.node-title').style('font-size', function() {
-          const baseFontSize = 12;
-          const scaleFactor = getTextScaleFactor(TEXT_SCALING_CONFIG.minScale);
-          return `${baseFontSize * scaleFactor}px`;
+          const baseFontSize = VISUAL_CONFIG.baseFontPx;
+          const fontPx = computeFontSize(baseFontSize, k, VISUAL_CONFIG, TEXT_SCALING_CONFIG.sqrtScaling);
+          return `${fontPx}px`;
         });
 
-        // Update border thickness using consistent scaling
+        // Update border thickness using computeStrokeWidth
         d3.selectAll('.node').style('stroke-width', function() {
-          const baseStrokeWidth = 3;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
-          return `${baseStrokeWidth * scaleFactor}px`;
+          const baseStrokeWidth = VISUAL_CONFIG.baseStrokePx;
+          const strokePx = computeStrokeWidth(baseStrokeWidth, k, VISUAL_CONFIG);
+          return `${strokePx}px`;
         });
 
-        // Update arrow line thickness using consistent scaling
+        // Update arrow line thickness using computeStrokeWidth (with larger base)
         d3.selectAll('.flowline-to, .flowline-from').style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
-          return `${baseStrokeWidth * scaleFactor}px`;
+          const strokePx = computeStrokeWidth(baseStrokeWidth, k, VISUAL_CONFIG);
+          return `${strokePx}px`;
         });
 
-        // Update arrow marker sizes using consistent scaling
-        const arrowScaleFactor = getScaleFactor(0.05);
+        // Update arrow marker sizes using stroke scaling (approx)
+        const markerSize = Math.max(2, computeStrokeWidth(4, k, VISUAL_CONFIG));
         d3.selectAll('#arrow-to, #arrow-from')
-          .attr('markerWidth', 4 * arrowScaleFactor)
-          .attr('markerHeight', 4 * arrowScaleFactor);
+          .attr('markerWidth', markerSize)
+          .attr('markerHeight', markerSize);
+
+        // --- Collision avoidance in screen space (lightweight) ---
+        try {
+          const screenNodes: Array<{id: string, x: number, y: number, r: number}> = [];
+          d3.selectAll('.node-group').each(function() {
+            const g = d3.select(this);
+            const id = g.attr('data-node-id');
+            const nodeObj = activeNodes.find(n => n.id === id);
+            if (!nodeObj) return;
+            // compute screen position using current transform
+            const sx = event.transform.applyX(nodeObj.x);
+            const sy = event.transform.applyY(nodeObj.y);
+            // radius currently set via computeRadius; compute here too for resolver
+            const baseRadiusPx = nodeObj.size * 2;
+            const r = computeRadius(baseRadiusPx, k, VISUAL_CONFIG);
+            screenNodes.push({ id, x: sx, y: sy, r });
+          });
+
+          // Only run resolver for small-to-moderate node counts to avoid heavy compute
+          let offsets = new Map<string, {dx:number, dy:number}>();
+          if (screenNodes.length > 1 && screenNodes.length <= 800) {
+            offsets = resolveScreenOverlaps(screenNodes, { padding: VISUAL_CONFIG.overlapPaddingPx, maxShift: VISUAL_CONFIG.maxShiftPx });
+          }
+
+          // Apply computed screen offsets by converting back to data coords
+          d3.selectAll('.node-group').each(function() {
+            const g = d3.select(this);
+            const id = g.attr('data-node-id');
+            const nodeObj = activeNodes.find(n => n.id === id);
+            if (!nodeObj) return;
+            const o = offsets.get(id) || { dx: 0, dy: 0 };
+            if (o.dx === 0 && o.dy === 0) {
+              g.attr('transform', `translate(${nodeObj.x}, ${nodeObj.y})`);
+            } else {
+              // convert screen-space offset back to data coordinates
+              const screenX = event.transform.applyX(nodeObj.x) + o.dx;
+              const screenY = event.transform.applyY(nodeObj.y) + o.dy;
+              const newDataX = event.transform.invertX(screenX);
+              const newDataY = event.transform.invertY(screenY);
+              g.attr('transform', `translate(${newDataX}, ${newDataY})`);
+            }
+          });
+        } catch (e) {
+          // In case of any error in resolver, leave positions unchanged (fail-safe)
+          // console.warn('Overlap resolver error', e);
+        }
       });
 
     // Store zoom behavior in ref for reset functionality
@@ -765,6 +813,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('pointer-events', 'none');
 
       // Style "to" direction paths with custom edge colors
+      // compute initial dash pattern so dash lengths look good at current zoom
+      const initialK = (currentZoomTransform && currentZoomTransform.k) || (initialTransform && initialTransform.k) || 1;
+      const initialDash = computeDashPattern(initialK, VISUAL_CONFIG).dashArray;
+
       d3.selectAll('.flowline-to')
         .style('fill', 'none')
         .style('stroke', function() {
@@ -776,7 +828,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
-        .style('stroke-dasharray', '8, 4');
+  .style('stroke-dasharray', initialDash);
 
       // Style "from" direction paths with custom edge colors  
       d3.selectAll('.flowline-from')
@@ -790,11 +842,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
-        .style('stroke-dasharray', '8, 4');
+  .style('stroke-dasharray', initialDash);
 
       // Animation configuration constants
-      const DASH_PATTERN_LENGTH = 12; // 8px dash + 4px gap = 12px cycle
-      const BASE_SPEED = 25; // Base pixels per second for flow animation
+  const BASE_SPEED = 25; // Base pixels per second for flow animation
 
       // Individual animation function for each "to" path
       function animateToPath(pathElement: any) {
@@ -806,17 +857,20 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
         const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
-        // Calculate duration to move exactly one dash pattern cycle
-        const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
-        
-        d3.select(pathElement)
+          // Calculate duration to move exactly one dash pattern cycle.
+          // Use the dash pattern's screen-pixel length so animation speed is consistent.
+          const currentK = d3.zoomTransform(svgRef.current!).k;
+          const patternLen = computeDashPattern(currentK, VISUAL_CONFIG).patternLengthScreenPx;
+          const duration = (patternLen / pixelsPerSecond) * 1000; // Convert to milliseconds
+
+          d3.select(pathElement)
           .transition()
           .duration(duration)
           .ease(d3.easeLinear)
           .styleTween("stroke-dashoffset", function() {
             return function(t: number) {
-              // Move by exactly one dash pattern length during the animation
-              return (t * -DASH_PATTERN_LENGTH).toString();
+                // Move by exactly one dash pattern length during the animation (screen px)
+                return (t * -patternLen).toString();
             };
           })
           .on("end", function() {
@@ -836,17 +890,19 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
         const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
-        // Calculate duration to move exactly one dash pattern cycle
-        const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
+          // Calculate duration to move exactly one dash pattern cycle using current zoom
+          const currentK = d3.zoomTransform(svgRef.current!).k;
+          const patternLen = computeDashPattern(currentK, VISUAL_CONFIG).patternLengthScreenPx;
+          const duration = (patternLen / pixelsPerSecond) * 1000; // Convert to milliseconds
         
-        d3.select(pathElement)
+          d3.select(pathElement)
           .transition()
           .duration(duration)
           .ease(d3.easeLinear)
           .styleTween("stroke-dashoffset", function() {
             return function(t: number) {
-              // Move by exactly one dash pattern length during the animation
-              return (t * -DASH_PATTERN_LENGTH).toString();
+                // Move by exactly one dash pattern length during the animation (screen px)
+                return (t * -patternLen).toString();
             };
           })
           .on("end", function() {
