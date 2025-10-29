@@ -288,6 +288,7 @@ export default function PageContent() {
               highlightedForDeletion={state.highlightedForDeletion}
               isLoading={state.isLoading}
               allowedType={searchResults.allowedType}
+              searchedRegion={searchResults.searchedRegion}
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
@@ -339,6 +340,7 @@ export default function PageContent() {
               searchQuery={state.searchQuery}
               allowedType={searchResults.allowedType}
               selectedProvinceName={searchResults.selectedProvinceName}
+              searchedRegion={searchResults.searchedRegion}
             />
 
             <LocationList
@@ -346,6 +348,7 @@ export default function PageContent() {
               filteredDistricts={searchResults.filteredDistricts}
               filteredSubDistricts={searchResults.filteredSubDistricts}
               selectedLocationsCount={state.selectedLocations.length}
+              searchedRegion={searchResults.searchedRegion}
               onLocationSelect={handleLocationSelect}
             />
 

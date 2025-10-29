@@ -24,6 +24,7 @@ export interface Province {
   id: string;
   name: string;
   code: string;
+  region?: string; // Optional region field for frontend mapping
 }
 
 export interface District {

@@ -11,6 +11,7 @@ import {
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr';
 import { getCommandKey } from '../../../src/utils/search';
 import { Location } from '../helper';
+import { ThailandRegion, getRegionDisplayName } from '../../services/api/province-regions';
 
 interface SearchBarProps {
   inputRef: RefObject<HTMLInputElement>;
@@ -19,6 +20,7 @@ interface SearchBarProps {
   highlightedForDeletion: number | null;
   isLoading: boolean;
   allowedType?: string | null;
+  searchedRegion?: ThailandRegion | null;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
   onExecuteQuery: () => void;
@@ -31,6 +33,7 @@ export function SearchBar({
   highlightedForDeletion,
   isLoading,
   allowedType,
+  searchedRegion,
   onSearchChange,
   onKeyDown,
   onExecuteQuery
@@ -58,6 +61,11 @@ export function SearchBar({
   };
 
   const getSearchPlaceholder = () => {
+    if (searchedRegion) {
+      const regionName = getRegionDisplayName(searchedRegion);
+      return `Search for provinces in ${regionName}`;
+    }
+    
     if (allowedType) {
       switch (allowedType) {
         case 'province': return 'Search for provinces';

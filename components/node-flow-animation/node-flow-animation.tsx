@@ -23,7 +23,7 @@ const DEFAULT_TRANSFORM_Y = 90;
 
 // Zoom configuration constants
 const DEFAULT_MIN_ZOOM = 1;
-const DEFAULT_MAX_ZOOM = 20;
+const DEFAULT_MAX_ZOOM = 30;
 
 // Text scaling configuration - adjust these values to fine-tune text scaling
 const TEXT_SCALING_CONFIG = {
@@ -131,6 +131,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // State for map reset button visibility
   const [showResetButton, setShowResetButton] = useState<boolean>(false);
+
+  // State to store current zoom transform to preserve it during re-renders
+  const [currentZoomTransform, setCurrentZoomTransform] = useState<d3.ZoomTransform | null>(null);
 
   // Ref to avoid dependency issues in useEffect
   const selectedNodeIdRef = useRef<string | null>(null);
@@ -348,30 +351,49 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   const updateEdgeVisibility = useCallback((selectedNodeId: string | null) => {
     if (!selectedNodeId) {
       // Show all edges when no node is selected
-      d3.selectAll('.flowline-to, .flowline-from').style('opacity', 0.7);
+      d3.selectAll('.flowline-to, .flowline-from').style('opacity', function() {
+        // Check if this flow should be visible based on flowVisibility state
+        const flowKey = d3.select(this).attr('data-flow-key');
+        const direction = d3.select(this).attr('data-direction');
+        const flowVis = flowVisibility[flowKey];
+        
+        if (direction === 'to') {
+          return flowVis?.moveIn !== false ? '0.7' : '0';
+        } else if (direction === 'from') {
+          return flowVis?.moveOut !== false ? '0.7' : '0';
+        }
+        return '0.7'; // fallback
+      });
       return;
     }
 
-    // Get the selected node's title for comparison
+    // Get the selected node's tooltip for comparison
     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
     if (!selectedNode) return;
 
-    // Update "to" paths
-    d3.selectAll('.flowline-to').style('opacity', function() {
+    // Update flow line visibility based on node selection and individual flow visibility
+    d3.selectAll('.flowline-to, .flowline-from').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
+      const flowKey = d3.select(this).attr('data-flow-key');
+      const direction = d3.select(this).attr('data-direction');
+      const flowVis = flowVisibility[flowKey];
+      
+      // Check if this flow involves the selected node
       const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
-      return isRelated ? 0.7 : 0.1;
+      
+      // If not related to selected node, hide it
+      if (!isRelated) return '0.1';
+      
+      // If related, check individual flow visibility settings
+      if (direction === 'to') {
+        return flowVis?.moveIn !== false ? '0.7' : '0';
+      } else if (direction === 'from') {
+        return flowVis?.moveOut !== false ? '0.7' : '0';
+      }
+      return '0.7'; // fallback
     });
-
-    // Update "from" paths  
-    d3.selectAll('.flowline-from').style('opacity', function() {
-      const fromNode = d3.select(this).attr('data-from-node');
-      const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
-      return isRelated ? 0.7 : 0.1;
-    });
-  }, [activeNodes]);
+  }, [activeNodes, flowVisibility]);
 
 
 
@@ -396,6 +418,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
         const zoomLevel = event.transform.k;
+        
+        // Store the current zoom transform to preserve it during re-renders
+        setCurrentZoomTransform(event.transform);
         
         // Check if transform is different from default (scale 2, translate 100,20)
         const defaultTransform = d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
@@ -458,7 +483,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    svg.call(zoom.transform, d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y));
+    // Apply the current zoom transform, or default if none stored
+    const initialTransform = currentZoomTransform || d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
+    svg.call(zoom.transform, initialTransform);
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -588,7 +615,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         }
         
         // Check if this flow should be visible based on threshold and individual flow visibility
-        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
         const flowVis = flowVisibility[flowKey];
         const shouldShowMoveIn = flowVis?.moveIn ?? (conn.metadata.absoluteToFlow >= migrationThreshold);
         
@@ -603,6 +630,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', fromNode.tooltip)
             .attr('data-to-node', toNode.tooltip)
+            .attr('data-flow-key', flowKey)
+            .attr('data-direction', 'to')
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -618,7 +647,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         }
         
         // Check if this flow should be visible based on threshold and individual flow visibility
-        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
         const flowVis = flowVisibility[flowKey];
         const shouldShowMoveOut = flowVis?.moveOut ?? (conn.metadata.absoluteFromFlow >= migrationThreshold);
         
@@ -633,6 +662,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', toNode.tooltip)
             .attr('data-to-node', fromNode.tooltip)
+            .attr('data-flow-key', flowKey)
+            .attr('data-direction', 'from')
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -739,7 +770,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('stroke', function() {
           return d3.select(this).attr('data-edge-color') || '#2563eb';
         })
-        .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
           const zoomLevel = 2; // Initial zoom level
@@ -754,7 +784,6 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('stroke', function() {
           return d3.select(this).attr('data-edge-color') || '#888888';
         })
-        .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
           const zoomLevel = 2; // Initial zoom level
@@ -898,16 +927,53 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, flowVisibility, edgeColors, getEdgeColor]);
+  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, edgeColors, getEdgeColor]);
 
-  // Separate useEffect for handling node selection changes (without resetting the visualization)
+  // Apply initial visibility after rendering
   useEffect(() => {
-    if (selectedNodeId) {
-      updateEdgeVisibility(selectedNodeId);
-    } else {
-      updateEdgeVisibility(null);
-    }
-  }, [selectedNodeId, updateEdgeVisibility]);
+    if (!svgRef.current || !connections) return;
+
+    // Force an initial visibility update to ensure correct opacity
+    const activeConnections = connections || [];
+    activeConnections.forEach((conn: any) => {
+      const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
+      const toNode = activeNodes.find(n => n.id === conn.toNodeId);
+      
+      if (!fromNode || !toNode) return;
+
+      const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
+      const flowVis = flowVisibility[flowKey];
+      
+      // Get the selected node for filtering
+      const selectedNode = selectedNodeId ? activeNodes.find(n => n.id === selectedNodeId) : null;
+      
+      // Update "to" direction flows (Move In)
+      const shouldShowMoveIn = flowVis?.moveIn ?? (conn.metadata.absoluteToFlow >= migrationThreshold);
+      const toPaths = d3.selectAll(`.flowline-to[data-flow-key="${flowKey}"][data-direction="to"]`);
+      
+      if (selectedNode) {
+        // Node filtering is active - check if this flow involves the selected node
+        const isRelated = fromNode.tooltip === selectedNode.tooltip || toNode.tooltip === selectedNode.tooltip;
+        toPaths.style('opacity', isRelated && shouldShowMoveIn && conn.toFlowRate !== 0 ? '0.7' : '0.1');
+      } else {
+        // No node filtering - use checkbox visibility
+        toPaths.style('opacity', shouldShowMoveIn && conn.toFlowRate !== 0 ? '0.7' : '0');
+      }
+
+      // Update "from" direction flows (Move Out)  
+      const shouldShowMoveOut = flowVis?.moveOut ?? (conn.metadata.absoluteFromFlow >= migrationThreshold);
+      const fromPaths = d3.selectAll(`.flowline-from[data-flow-key="${flowKey}"][data-direction="from"]`);
+      
+      if (selectedNode) {
+        // Node filtering is active - check if this flow involves the selected node
+        const isRelated = toNode.tooltip === selectedNode.tooltip || fromNode.tooltip === selectedNode.tooltip;
+        fromPaths.style('opacity', isRelated && shouldShowMoveOut && conn.fromFlowRate !== 0 ? '0.7' : '0.1');
+      } else {
+        // No node filtering - use checkbox visibility
+        fromPaths.style('opacity', shouldShowMoveOut && conn.fromFlowRate !== 0 ? '0.7' : '0');
+      }
+    });
+  }, [connections, activeNodes, flowVisibility, migrationThreshold, selectedNodeId]);
 
   // Show loading state while data is being fetched
   if (dataLoading) {
@@ -980,10 +1046,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             <Button
               onClick={() => {
                 if (svgRef.current && zoomRef.current) {
+                  const defaultTransform = d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
                   const svg = d3.select(svgRef.current);
                   svg.transition()
                     .duration(750)
-                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y));
+                    .call(zoomRef.current.transform, defaultTransform);
+                  // Clear stored transform and reset to default
+                  setCurrentZoomTransform(null);
                   // The zoom event handler will automatically update showResetButton
                 }
               }}

@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react/dist/ssr';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
+import { ThailandRegion, getRegionDisplayName } from '../../services/api/province-regions';
 
 interface LocationSectionProps {
   title: string;
@@ -106,6 +107,7 @@ interface LocationListProps {
   filteredDistricts: Location[];
   filteredSubDistricts: Location[];
   selectedLocationsCount: number;
+  searchedRegion?: ThailandRegion | null;
   onLocationSelect: (location: Location) => void;
 }
 
@@ -114,14 +116,23 @@ export function LocationList({
   filteredDistricts,
   filteredSubDistricts,
   selectedLocationsCount,
+  searchedRegion,
   onLocationSelect
 }: LocationListProps) {
   const theme = useTheme();
 
+  const getProvinceSectionTitle = () => {
+    if (searchedRegion) {
+      const regionName = getRegionDisplayName(searchedRegion);
+      return `PROVINCES IN ${regionName.toUpperCase()}`;
+    }
+    return 'PROVINCE';
+  };
+
   return (
     <>
       <LocationSection
-        title="PROVINCE"
+        title={getProvinceSectionTitle()}
         locations={filteredProvinces}
         icon={<TrainRegionalIcon size={20} color={theme.palette.text.primary} />}
         selectedLocationsCount={selectedLocationsCount}
