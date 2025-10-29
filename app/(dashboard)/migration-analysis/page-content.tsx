@@ -634,6 +634,31 @@ const NetMigrationLineChart: React.FC<{
   return <svg ref={svgRef} width={width} height={height}></svg>;
 };
 
+// Helper function to determine the appropriate title based on selected location types
+const getMigrationAnalysisTitle = (locations: Location[]): string => {
+  if (locations.length === 0) return 'Migration Analysis';
+
+  const locationTypes = locations.map(loc => loc.type);
+  const uniqueTypes = [...new Set(locationTypes)];
+
+  if (uniqueTypes.length === 1) {
+    // All locations are the same type
+    switch (uniqueTypes[0]) {
+      case 'province':
+        return 'Multi-province Migration Analysis';
+      case 'district':
+        return 'Multi-district Migration Analysis';
+      case 'subDistrict':
+        return 'Multi-subdistrict Migration Analysis';
+      default:
+        return 'Migration Analysis';
+    }
+  } else {
+    // Mixed location types
+    return 'Multi-location Migration Analysis';
+  }
+};
+
 export default function MigrationAnalysisPageContent() {
   const theme = useTheme();
   const { isConnected } = useConnectivity();
@@ -1234,7 +1259,7 @@ export default function MigrationAnalysisPageContent() {
             >
               <Box>
                 <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-                  Multi-province Migration Analysis
+                  {getMigrationAnalysisTitle(chartData.locations)}
                 </Typography>
                 <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
                   Diverging Grouped Bars Comparison
