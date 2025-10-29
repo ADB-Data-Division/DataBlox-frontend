@@ -201,14 +201,14 @@ export default function MigrationResultsTable({
           </Box>
         )}
 
-        {/* Success State - Migration Data Visualization */}
-        {!loading && !error && mapNodes.length > 0 && (
+        {/* Migration Data Visualization - Always show the map */}
+        {!loading && !error && (
           <Box>
             <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
               Migration Flow
             </Typography>
-            
-            <NodeFlowAnimation 
+
+            <NodeFlowAnimation
               nodes={mapNodes}
               connections={mapConnections}
               curved={true}
@@ -224,30 +224,25 @@ export default function MigrationResultsTable({
               edgeColors={edgeColors}
               onEdgeColorsChange={onEdgeColorsChange}
             />
-            
 
-
-          </Box>
-        )}
-
-        {/* No Data State */}
-        {!loading && !error && mapNodes.length === 0 && (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            py: 8,
-            minHeight: '40vh'
-          }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-              No Migration Data Available
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-              No migration flows found for the selected locations and time period.
-              <br />
-              Try selecting different locations or check back later.
-            </Typography>
+            {/* Notice when no data is available for the current period */}
+            {mapNodes.length === 0 && (
+              <Box sx={{
+                mt: 2,
+                p: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(255, 152, 0, 0.05)',
+                border: `1px solid ${theme.palette.warning.main}`,
+                borderRadius: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Typography variant="body2" color="warning.main" sx={{ fontWeight: 500 }}>
+                  ℹ️ No migration data available for the selected locations and time period.
+                  Try selecting a different time period or different locations.
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
         
