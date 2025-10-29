@@ -401,6 +401,234 @@ const DivergingBarChart: React.FC<{
   return <svg ref={svgRef} width={width} height={height}></svg>;
 };
 
+// D3.js Net Migration Line Chart Component
+const NetMigrationLineChart: React.FC<{
+  data: ChartDataEntry[];
+  locations: Location[];
+  width: number;
+  height: number;
+  getMoveInColor: (locationId: string) => string;
+  getMoveOutColor: (locationId: string) => string;
+}> = ({ data, locations, width, height, getMoveInColor, getMoveOutColor }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current || !data || data.length === 0) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // Clear previous chart
+
+    // Create tooltip
+    const tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "net-migration-tooltip")
+      .style("position", "absolute")
+      .style("background", "rgba(0, 0, 0, 0.8)")
+      .style("color", "white")
+      .style("padding", "8px")
+      .style("border-radius", "4px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("opacity", 0)
+      .style("z-index", 1000);
+
+    const margin = { top: 60, right: 150, bottom: 100, left: 80 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    // Create main group
+    const g = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Transform data for line chart: each location becomes a series
+    const lineData = locations.map(location => {
+      const series = data.map(periodData => {
+        const locationEntry = periodData.locations.find(l => l.locationId === location.uniqueId);
+        return {
+          period: periodData.period,
+          periodIndex: data.indexOf(periodData),
+          netMigration: locationEntry ? locationEntry.netMigration : 0,
+          locationName: location.name,
+          locationId: location.uniqueId
+        };
+      });
+      return {
+        locationId: location.uniqueId,
+        locationName: location.name,
+        data: series,
+        color: getMoveInColor(location.uniqueId) // Use move-in color for consistency
+      };
+    });
+
+    // Scales
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, data.length - 1])
+      .range([0, innerWidth]);
+
+    // Find the extent of all net migration values
+    const allValues = lineData.flatMap(series => series.data.map(d => d.netMigration));
+    const yExtent = d3.extent(allValues) as [number, number];
+    const yMax = Math.max(Math.abs(yExtent[0]), Math.abs(yExtent[1]));
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([-yMax * 1.1, yMax * 1.1])
+      .range([innerHeight, 0]);
+
+    // Create line generator
+    const line = d3
+      .line<{ periodIndex: number; netMigration: number }>()
+      .x(d => xScale(d.periodIndex))
+      .y(d => yScale(d.netMigration))
+      .curve(d3.curveMonotoneX);
+
+    // Add axes
+    g.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(xScale)
+        .tickValues(d3.range(data.length))
+        .tickFormat((i: any) => data[i]?.period || '')
+      )
+      .selectAll("text")
+      .style("font-weight", "bold")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", "rotate(-45)");
+
+    // Format y-axis values to thousands (k)
+    const formatYAxis = (d: d3.NumberValue) => {
+      const value = Math.abs(d.valueOf());
+      if (value >= 1000) {
+        return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'k';
+      }
+      return value.toString();
+    };
+
+    g.append("g")
+      .attr("class", "y-axis")
+      .call(d3.axisLeft(yScale).tickFormat(formatYAxis))
+      .selectAll("text")
+      .style("font-weight", "bold");
+
+    // Add y-axis label
+    g.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x", 0 - (innerHeight / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-weight", "bold")
+      .style("font-size", "16px")
+      .text("Net Migration (thousands)");
+
+    // Add zero line
+    g.append("line")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", yScale(0))
+      .attr("y2", yScale(0))
+      .attr("stroke", "#000")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "2,2")
+      .attr("opacity", 0.5);
+
+    // Add lines for each location
+    const locationGroups = g.selectAll(".location-line")
+      .data(lineData)
+      .enter()
+      .append("g")
+      .attr("class", "location-line");
+
+    locationGroups
+      .append("path")
+      .attr("class", "line")
+      .attr("d", d => line(d.data))
+      .attr("fill", "none")
+      .attr("stroke", d => d.color)
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.8);
+
+    // Add data points
+    locationGroups.selectAll(".data-point")
+      .data(d => d.data)
+      .enter()
+      .append("circle")
+      .attr("class", "data-point")
+      .attr("cx", d => xScale(d.periodIndex))
+      .attr("cy", d => yScale(d.netMigration))
+      .attr("r", 4)
+      .attr("fill", d => {
+        const locationData = lineData.find(l => l.locationId === d.locationId);
+        return locationData ? locationData.color : '#000';
+      })
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 2)
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("r", 6);
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${d.locationName}</strong><br/>
+            <strong>${d.period}</strong><br/>
+            Net Migration: ${d.netMigration >= 0 ? '+' : ''}${d.netMigration.toLocaleString()}
+          `);
+      })
+      .on("mousemove", function(event) {
+        tooltip
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("r", 4);
+        tooltip.style("opacity", 0);
+      });
+
+    // Add legend
+    const legend = g.append("g")
+      .attr("class", "legend")
+      .attr("transform", `translate(${innerWidth + 20}, 0)`);
+
+    const legendItems = legend.selectAll(".legend-item")
+      .data(lineData)
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", (d, i) => `translate(0, ${i * 25})`);
+
+    legendItems
+      .append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", d => d.color)
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.8);
+
+    legendItems
+      .append("text")
+      .attr("x", 25)
+      .attr("y", 0)
+      .attr("dy", "0.35em")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("fill", "#000")
+      .text(d => d.locationName);
+
+    // Cleanup function to remove tooltip when component unmounts
+    return () => {
+      d3.selectAll(".net-migration-tooltip").remove();
+    };
+  }, [data, locations, width, height, getMoveInColor, getMoveOutColor]);
+
+  return <svg ref={svgRef} width={width} height={height}></svg>;
+};
+
 export default function MigrationAnalysisPageContent() {
   const theme = useTheme();
   const { isConnected } = useConnectivity();
@@ -425,10 +653,17 @@ export default function MigrationAnalysisPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedForDeletion, setHighlightedForDeletion] = useState<number | null>(null);
 
-  // Chart data and loading state
-  const [chartData, setChartData] = useState<MigrationChartData | null>(null);
+  // Loading, error, and chart data state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<MigrationChartData | null>(null);
+
+  // Time period selection state for targeted comparisons
+  const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+  const [periodSelectionMode, setPeriodSelectionMode] = useState(false);
+  const [filteredChartData, setFilteredChartData] = useState<MigrationChartData | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
 
   // Time period state - initialized with empty values, will be populated from metadata
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
@@ -1160,7 +1395,266 @@ export default function MigrationAnalysisPageContent() {
           </Box>
         )}
 
-      {/* Citation Footer - only show when visualizations are rendered */}
+        {/* Net Migration Trends Line Chart */}
+        {chartData && !isLoading && !error && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Net Migration Trends
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  Time series view of net migration for each location across all periods
+                </Typography>
+              </Box>
+
+              <NetMigrationLineChart
+                data={chartData.data}
+                locations={chartData.locations}
+                width={chartWidth}
+                height={chartHeight}
+                getMoveInColor={getMoveInColor}
+                getMoveOutColor={getMoveOutColor}
+              />
+            </Paper>
+          </Box>
+        )}
+
+        {/* Targeted Period Comparison Section */}
+        {chartData && !isLoading && !error && (
+          <Box sx={{ px: 2, py: 2, mt: 4 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Targeted Period Comparison
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                  Select specific time periods for detailed comparison across the same locations
+                </Typography>
+
+                <Button
+                  variant={periodSelectionMode ? "contained" : "outlined"}
+                  size="small"
+                  onClick={() => setPeriodSelectionMode(!periodSelectionMode)}
+                  sx={{
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    mb: 2
+                  }}
+                >
+                  {periodSelectionMode ? 'Hide Period Selection' : 'Select Specific Periods'}
+                </Button>
+              </Box>
+
+              {periodSelectionMode && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
+                    Selected Periods ({selectedPeriods.length})
+                  </Typography>
+
+                  {/* Selected Periods Display */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {selectedPeriods.map((periodId) => (
+                      <Chip
+                        key={periodId}
+                        label={formatTimePeriodForDisplay(periodId)}
+                        onDelete={() => setSelectedPeriods(prev => prev.filter(p => p !== periodId))}
+                        size="small"
+                        sx={{ fontWeight: 500 }}
+                      />
+                    ))}
+                  </Box>
+
+                  {/* Period Selection Controls */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 'fit-content' }}>
+                      Add Period:
+                    </Typography>
+                    
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        fontSize: '14px',
+                        minWidth: '100px'
+                      }}
+                    >
+                      <option value="" disabled>Month</option>
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(month => (
+                        <option key={month} value={month.toLowerCase()}>{month}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        fontSize: '14px',
+                        minWidth: '100px'
+                      }}
+                    >
+                      <option value="" disabled>Year</option>
+                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year.toString().slice(-2)}>{year}</option>
+                      ))}
+                    </select>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        if (selectedMonth && selectedYear) {
+                          const periodId = `${selectedMonth}${selectedYear}`;
+                          
+                          // Check if this period exists in the available data by comparing the formatted periodId
+                          // to the display periods already stored in chartData.data
+                          const periodExists = chartData?.data.some(entry => formatTimePeriodForDisplay(periodId) === entry.period);
+                          
+                          if (!periodExists) {
+                            alert(`Period ${formatTimePeriodForDisplay(periodId)} is not available in the current data range.`);
+                            return;
+                          }
+                          
+                          if (!selectedPeriods.includes(periodId)) {
+                            setSelectedPeriods(prev => [...prev, periodId]);
+                          }
+                          // Reset selects
+                          setSelectedMonth('');
+                          setSelectedYear('');
+                        }
+                      }}
+                      disabled={!selectedMonth || !selectedYear}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Add Period
+                    </Button>
+                  </Box>
+
+                  {/* Apply Button */}
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        if (selectedPeriods.length > 0 && chartData) {
+                          // Filter chart data to only selected periods
+                          const filteredData = {
+                            ...chartData,
+                            data: chartData.data.filter(entry => {
+                              // Find the period ID that corresponds to this display period
+                              // We need to check if any of the selected periods match this entry's period
+                              return selectedPeriods.some(selectedPeriod => {
+                                const displayPeriod = formatTimePeriodForDisplay(selectedPeriod);
+                                return entry.period === displayPeriod;
+                              });
+                            })
+                          };
+                          setFilteredChartData(filteredData);
+                        }
+                      }}
+                      disabled={selectedPeriods.length === 0}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Apply Comparison
+                    </Button>
+
+                    {filteredChartData && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          setFilteredChartData(null);
+                          setSelectedPeriods([]);
+                          setSelectedMonth('');
+                          setSelectedYear('');
+                        }}
+                        sx={{
+                          borderRadius: 1.5,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Clear Comparison
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Paper>
+
+            {/* Filtered Chart Display */}
+            {filteredChartData && (
+              <Box sx={{ mb: 3 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    mb: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      Period Comparison Results
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                      Comparing {filteredChartData.data.length} selected periods across {filteredChartData.locations.length} locations
+                    </Typography>
+                  </Box>
+
+                  <DivergingBarChart
+                    data={filteredChartData.data}
+                    locations={filteredChartData.locations}
+                    width={chartWidth}
+                    height={chartHeight}
+                    getMoveInColor={getMoveInColor}
+                    getMoveOutColor={getMoveOutColor}
+                  />
+                </Paper>
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Citation Footer - only show when visualizations are rendered */}
       {chartData && !isLoading && !error && (
         <CitationFooter />
       )}
