@@ -25,6 +25,12 @@ const DEFAULT_TRANSFORM_Y = 90;
 const DEFAULT_MIN_ZOOM = 1;
 const DEFAULT_MAX_ZOOM = 20;
 
+// Text scaling configuration - adjust these values to fine-tune text scaling
+const TEXT_SCALING_CONFIG = {
+  minScale: 0.3,        // Minimum text scale (30% of original size)
+  sqrtScaling: true,    // Use square root scaling instead of linear
+};
+
 interface Node {
   id: string;
   title: string;
@@ -400,6 +406,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         
         // Create consistent scaling functions available in this scope
         const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
+        const getTextScaleFactor = (minScale: number) => {
+          const baseScale = TEXT_SCALING_CONFIG.sqrtScaling ? 1 / Math.sqrt(zoomLevel) : 1 / zoomLevel;
+          return Math.max(minScale, baseScale);
+        };
         const getDynamicSize = (baseSize: number) => baseSize * getScaleFactor(0.2);
         
         // Update node sizes based on zoom level using consistent scaling
@@ -414,10 +424,10 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           return getDynamicSize(node.size * 2);
         });
 
-        // Update text size using consistent scaling
+        // Update text size using separate text scaling (gentler than element scaling)
         d3.selectAll('.node-title').style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 40% scale
+          const scaleFactor = getTextScaleFactor(TEXT_SCALING_CONFIG.minScale);
           return `${baseFontSize * scaleFactor}px`;
         });
 
@@ -716,7 +726,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-family', 'Arial, sans-serif')
         .style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.4, 1 / 2); // More aggressive scaling, minimum 40%
+          const scaleFactor = Math.max(TEXT_SCALING_CONFIG.minScale, TEXT_SCALING_CONFIG.sqrtScaling ? 1 / Math.sqrt(2) : 1 / 2);
           return `${baseFontSize * scaleFactor}px`;
         })
         .style('font-weight', 'bold')
