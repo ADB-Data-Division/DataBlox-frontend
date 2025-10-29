@@ -75,6 +75,11 @@ interface VisualizationToolbarProps {
    * Allows the page to specify which datasets are allowed to be selected for that page content.
    */
   datasetsAllowed?: string[];
+
+  /**
+   * Maximum number of locations that can be selected. If not provided, uses default from constraints.
+   */
+  maxLocations?: number;
 }
 
 const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
@@ -86,7 +91,8 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
   subActionsAllowed,
   visualizationTypesAllowed,
   initialFilters,
-  datasetsAllowed
+  datasetsAllowed,
+  maxLocations
 }) => {
   
   const reduxDispatch = useAppDispatch();
@@ -371,6 +377,7 @@ const VisualizationToolbar: React.FC<VisualizationToolbarProps> = ({
                   darkMode={darkMode} 
                   onProvinceChange={handleProvinceChange}
                   provinceFilter={provinceFilter}
+                  maxLocations={maxLocations}
                 />
                 <DateTimePeriodFilter 
                   darkMode={darkMode} 

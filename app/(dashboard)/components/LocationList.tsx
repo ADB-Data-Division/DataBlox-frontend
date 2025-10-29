@@ -26,6 +26,7 @@ interface LocationSectionProps {
   icon: React.ReactNode;
   selectedLocationsCount: number;
   onLocationSelect: (location: Location) => void;
+  maxLocations?: number;
 }
 
 function LocationSection({ 
@@ -33,7 +34,8 @@ function LocationSection({
   locations, 
   icon, 
   selectedLocationsCount, 
-  onLocationSelect 
+  onLocationSelect,
+  maxLocations
 }: LocationSectionProps) {
   const theme = useTheme();
 
@@ -59,17 +61,17 @@ function LocationSection({
           <Paper
             key={location.id}
             elevation={0}
-            onClick={canAddMoreLocations(selectedLocationsCount) ? () => onLocationSelect(location) : undefined}
+            onClick={canAddMoreLocations(selectedLocationsCount, maxLocations) ? () => onLocationSelect(location) : undefined}
             sx={{
               p: 2,
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 2,
-              cursor: canAddMoreLocations(selectedLocationsCount) ? 'pointer' : 'not-allowed',
-              opacity: canAddMoreLocations(selectedLocationsCount) ? 1 : 0.5,
-              backgroundColor: canAddMoreLocations(selectedLocationsCount) ? 'background.paper' : 'action.disabledBackground',
+              cursor: canAddMoreLocations(selectedLocationsCount, maxLocations) ? 'pointer' : 'not-allowed',
+              opacity: canAddMoreLocations(selectedLocationsCount, maxLocations) ? 1 : 0.5,
+              backgroundColor: canAddMoreLocations(selectedLocationsCount, maxLocations) ? 'background.paper' : 'action.disabledBackground',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': canAddMoreLocations(selectedLocationsCount) ? {
+              '&:hover': canAddMoreLocations(selectedLocationsCount, maxLocations) ? {
                 backgroundColor: 'action.hover',
                 borderColor: 'primary.main',
                 transform: 'translateY(-2px)',
@@ -109,6 +111,7 @@ interface LocationListProps {
   selectedLocationsCount: number;
   searchedRegion?: ThailandRegion | null;
   onLocationSelect: (location: Location) => void;
+  maxLocations?: number;
 }
 
 export function LocationList({
@@ -117,7 +120,8 @@ export function LocationList({
   filteredSubDistricts,
   selectedLocationsCount,
   searchedRegion,
-  onLocationSelect
+  onLocationSelect,
+  maxLocations
 }: LocationListProps) {
   const theme = useTheme();
 
@@ -137,6 +141,7 @@ export function LocationList({
         icon={<TrainRegionalIcon size={20} color={theme.palette.text.primary} />}
         selectedLocationsCount={selectedLocationsCount}
         onLocationSelect={onLocationSelect}
+        maxLocations={maxLocations}
       />
 
       <LocationSection
@@ -145,6 +150,7 @@ export function LocationList({
         icon={<MapPinAreaIcon size={20} color={theme.palette.text.primary} />}
         selectedLocationsCount={selectedLocationsCount}
         onLocationSelect={onLocationSelect}
+        maxLocations={maxLocations}
       />
 
       <LocationSection
@@ -153,6 +159,7 @@ export function LocationList({
         icon={<MapPinSimpleIcon size={20} color={theme.palette.text.primary} />}
         selectedLocationsCount={selectedLocationsCount}
         onLocationSelect={onLocationSelect}
+        maxLocations={maxLocations}
       />
     </>
   );

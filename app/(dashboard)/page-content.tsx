@@ -214,8 +214,8 @@ export default function PageContent() {
   }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
 
   const handleLocationSelect = useCallback((location: Location) => {
-    if (!canAddMoreLocations(memoizedSelectedLocations.length)) {
-      console.warn(`Cannot add more locations. Maximum of ${LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations allowed.`);
+    if (!canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
+      console.warn(`Cannot add more locations. Maximum of 5 locations allowed.`);
       return;
     }
     
@@ -279,6 +279,7 @@ export default function PageContent() {
               selectedLocations={state.selectedLocations}
               highlightedForDeletion={state.highlightedForDeletion}
               onLocationRemove={handleLocationRemove}
+              maxLocations={5}
             />
 
             <SearchBar
@@ -350,6 +351,7 @@ export default function PageContent() {
               selectedLocationsCount={state.selectedLocations.length}
               searchedRegion={searchResults.searchedRegion}
               onLocationSelect={handleLocationSelect}
+              maxLocations={5}
             />
 
             <NoResultsState 

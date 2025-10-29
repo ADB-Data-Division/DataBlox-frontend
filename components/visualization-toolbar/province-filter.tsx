@@ -8,16 +8,19 @@ import { ProvinceFilter } from "@/app/services/data-loader/data-loader-interface
 import { metadataService } from "@/app/services/api";
 import { Province as APIProvince } from "@/app/services/api/types";
 import { useState, useEffect } from "react";
+import { LOCATION_CONSTRAINTS, canAddMoreLocations } from "@/app/(dashboard)/constraints";
 export type ProvinceFilterProps = {
   provinceFilter: ProvinceFilter;
 	darkMode: boolean;
 	onProvinceChange?: (provinces: string[]) => void;
+	maxLocations?: number;
 }
 
 export default function ProvinceFilterUI({ 
   darkMode, 
   onProvinceChange,
-  provinceFilter
+  provinceFilter,
+  maxLocations
 }: ProvinceFilterProps) {
 	const dispatch = useAppDispatch();
 	const [provinces, setProvinces] = useState<APIProvince[]>([]);
@@ -46,6 +49,15 @@ export default function ProvinceFilterUI({
 	const handleProvinceChange = (event: SelectChangeEvent<string[]>) => {
 		const value = event.target.value;
 		const selectedProvinces = typeof value === 'string' ? value.split(',') : value;
+		
+		// Check if the new selection would exceed the maximum limit
+		const effectiveMaxLocations = maxLocations || LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
+		const newCount = selectedProvinces.length;
+		
+		if (newCount > effectiveMaxLocations) {
+			console.warn(`Cannot select more than ${effectiveMaxLocations} provinces. Attempted to select ${newCount} provinces.`);
+			return; // Don't update if it would exceed the limit
+		}
 		
 		// Update Redux state
 		dispatch(addFilter({

@@ -128,6 +128,8 @@ export default function SankeyDiagram({
         const periodSourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number> }>>();
         
         periodFlows.forEach(flow => {
+          if (flow.origin.id === flow.destination.id) return; // Skip self-loops
+          
           const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
           const destKey = `${flow.destination.id}|${flow.destination.name}`;
           
@@ -197,6 +199,8 @@ export default function SankeyDiagram({
         const periodSourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number> }>>();
         
         periodFlows.forEach(flow => {
+          if (flow.origin.id === flow.destination.id) return; // Skip self-loops
+          
           const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
           const destKey = `${flow.destination.id}|${flow.destination.name}`;
           
@@ -487,11 +491,11 @@ export default function SankeyDiagram({
           } else if (sourceLayer === 1 && targetLayer === 2 && isMonthlyGranularity) {
             // Monthly view: Source → Destination
             tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${linkMetadata.year}: ${d.source.name} → ${d.target.name}</div>`;
-            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Migration Flow: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
+            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
           } else if (sourceLayer === 1 && targetLayer === 2 && !isMonthlyGranularity) {
             // Yearly view: Source → Destination
             tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${linkMetadata.year}: ${d.source.name} → ${d.target.name}</div>`;
-            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Migration Flow: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
+            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
             
             // Show month breakdown if available
             if (linkMetadata.monthBreakdown && linkMetadata.monthBreakdown.length > 0) {
