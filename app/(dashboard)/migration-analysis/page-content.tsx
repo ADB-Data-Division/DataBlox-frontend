@@ -3,6 +3,11 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Box, Paper, Typography, useTheme, CircularProgress, Button, Chip } from '@mui/material';
 import * as d3 from 'd3';
+import {
+  MapPinAreaIcon,
+  MapPinSimpleIcon,
+  TrainRegionalIcon,
+} from '@phosphor-icons/react/dist/ssr';
 
 // Components
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
@@ -25,7 +30,7 @@ import { metadataService } from '@/app/services/api';
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts } from '../hooks';
 import { useUrlParams } from '../hooks/useUrlParams';
-import { Location } from '../helper';
+import { Location, getLocationIconType, getLocationColor } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
 
@@ -648,6 +653,16 @@ export default function MigrationAnalysisPageContent() {
     return d3.color(baseColor)?.brighter(0.5)?.toString() || baseColor;
   }, [locationColors]);
 
+  // Helper function to get icon component
+  const getLocationIcon = (type: Location['type']) => {
+    const iconType = getLocationIconType(type);
+    switch (iconType) {
+      case 'buildings': return <TrainRegionalIcon size={16} />;
+      case 'users': return <MapPinAreaIcon size={16} />;
+      case 'mapPin': return <MapPinSimpleIcon size={16} />;
+    }
+  };
+
   // Search and location state
   const [selectedLocations, setSelectedLocations] = useState<Location[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1243,10 +1258,11 @@ export default function MigrationAnalysisPageContent() {
                   {chartData.locations.map((location) => (
                     <Chip
                       key={location.uniqueId}
+                      icon={getLocationIcon(location.type)}
                       label={location.name}
-                      color={location.type === 'province' ? 'primary' : location.type === 'district' ? 'secondary' : 'default'}
+                      color={getLocationColor(location.type)}
                       size="medium"
-                      sx={{
+                      sx={{ 
                         fontWeight: 600,
                         fontSize: '0.875rem'
                       }}
@@ -1256,7 +1272,7 @@ export default function MigrationAnalysisPageContent() {
                     label={`${chartData.locations.length} location${chartData.locations.length > 1 ? 's' : ''}`}
                     size="small"
                     variant="outlined"
-                    sx={{
+                    sx={{ 
                       fontWeight: 500,
                       fontSize: '0.75rem',
                       borderStyle: 'dashed'

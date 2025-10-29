@@ -23,7 +23,7 @@ const DEFAULT_TRANSFORM_Y = 90;
 
 // Zoom configuration constants
 const DEFAULT_MIN_ZOOM = 1;
-const DEFAULT_MAX_ZOOM = 10;
+const DEFAULT_MAX_ZOOM = 20;
 
 interface Node {
   id: string;
