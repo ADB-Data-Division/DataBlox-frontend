@@ -128,8 +128,6 @@ export default function SankeyDiagram({
         const periodSourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number> }>>();
         
         periodFlows.forEach(flow => {
-          if (flow.origin.id === flow.destination.id) return; // Skip self-loops
-          
           const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
           const destKey = `${flow.destination.id}|${flow.destination.name}`;
           
