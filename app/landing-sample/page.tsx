@@ -211,7 +211,7 @@ export default function LandingSamplePage() {
             lineHeight: 1.6
           }}
         >
-          Explore comprehensive migration patterns across Thailand's provinces, districts, and subdistricts.
+          Explore comprehensive migration patterns across Thailand&apos;s provinces, districts, and subdistricts.
           Discover population movements, trends, and insights from our extensive dataset.
         </Typography>
 
@@ -282,7 +282,7 @@ export default function LandingSamplePage() {
             maxWidth: '600px'
           }}
         >
-          Here's a glimpse of migration patterns for selected provinces. These numbers represent
+          Here&apos;s a glimpse of migration patterns for selected provinces. These numbers represent
           total population movements within the available time period.
         </Typography>
 

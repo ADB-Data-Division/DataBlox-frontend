@@ -1354,17 +1354,17 @@ export default function MigrationAnalysisPageContent() {
                   gap: 1.5,
                   flexWrap: 'wrap',
                   '& .MuiToggleButton-root': {
-                    px: 3,
-                    py: 2,
-                    borderRadius: 8,
+                    px: 4,
+                    py: 2.5,
+                    borderRadius: 2,
                     fontWeight: 600,
                     fontSize: '0.95rem',
                     textTransform: 'none',
                     border: 'none',
                     transition: 'all 0.18s ease',
-                    // wider buttons; full-width on very small screens
-                    minHeight: 48,
-                    minWidth: { xs: '100%', sm: 200 },
+                    // much wider buttons; full-width on very small screens
+                    minHeight: 56,
+                    minWidth: { xs: '100%', sm: 280 },
                     // subtle neutral base so gradients on buttons show through
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)'
