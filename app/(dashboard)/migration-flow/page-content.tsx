@@ -187,6 +187,7 @@ const MigrationTrends: React.FC<MigrationTrendsProps> = ({
           initialFilters={initialFilters}
           datasetsAllowed={['migration-2020', 'premium-1', 'premium-2']}
           visualizationTypesAllowed={['chord']}
+          maxLocations={5}
         />
         
         {/* API Toggle */}

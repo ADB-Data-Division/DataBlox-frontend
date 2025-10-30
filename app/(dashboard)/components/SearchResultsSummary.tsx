@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Typography, useTheme } from '@mui/material';
+import { ThailandRegion, getRegionDisplayName } from '../../services/api/province-regions';
 
 interface SearchResultsSummaryProps {
   totalResults: number;
@@ -9,6 +10,7 @@ interface SearchResultsSummaryProps {
   searchQuery: string;
   allowedType: string | null;
   selectedProvinceName?: string | null;
+  searchedRegion?: ThailandRegion | null;
 }
 
 export function SearchResultsSummary({
@@ -17,7 +19,8 @@ export function SearchResultsSummary({
   endIndex,
   searchQuery,
   allowedType,
-  selectedProvinceName
+  selectedProvinceName,
+  searchedRegion
 }: SearchResultsSummaryProps) {
   const theme = useTheme();
 
@@ -28,7 +31,12 @@ export function SearchResultsSummary({
       {searchQuery.trim() ? (
         <Typography variant="body2" color="text.secondary">
           Showing {startIndex + 1}-{Math.min(endIndex, totalResults)} of {totalResults} results
-          {allowedType && (
+          {searchedRegion && (
+            <span style={{ marginLeft: '8px', color: theme.palette.primary.main }}>
+              • Provinces in {getRegionDisplayName(searchedRegion)}
+            </span>
+          )}
+          {allowedType && !searchedRegion && (
             <span style={{ marginLeft: '8px', color: theme.palette.primary.main }}>
               • Filtered to {allowedType}s only
             </span>

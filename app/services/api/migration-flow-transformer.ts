@@ -158,11 +158,17 @@ export function transformMigrationDataForMap(
     totalFlows: apiResponse.flows?.length || 0
   });
 
-  // Use first time period if none specified
-  const timePeriodId = selectedTimePeriod || apiResponse.time_periods[0]?.id;
-  
+  // Determine time period to use. If no time periods are available for the
+  // selected locations, return empty nodes/connections so the UI can render
+  // the map with a notice that there are no data for this period.
+  const timePeriodId = selectedTimePeriod || apiResponse.time_periods?.[0]?.id || '';
+
   if (!timePeriodId) {
-    throw new Error('No time period available in the data');
+    console.warn('No time period available in the data for the provided API response');
+    return {
+      nodes: [],
+      connections: []
+    };
   }
 
   console.log('📅 Using time period:', timePeriodId);
@@ -207,8 +213,10 @@ export function transformMigrationDataForMap(
     flow.time_period_id === timePeriodId
   ) || [];
 
-  // Find maximum flow for normalization
-  const maxFlow = Math.max(...relevantFlows.map(flow => Math.abs(flow.flow_count)));
+  // Find maximum flow for normalization. If there are no relevant flows,
+  // set maxFlow to 0 to avoid Math.max() returning -Infinity and to ensure
+  // normalizeFlowRate behaves correctly.
+  const maxFlow = relevantFlows.length > 0 ? Math.max(...relevantFlows.map(flow => Math.abs(flow.flow_count))) : 0;
 
   // Group flows by origin-destination pairs to combine bidirectional flows
   const flowPairs = new Map<string, {
@@ -301,7 +309,8 @@ export function getAvailableTimePeriods(apiResponse: MigrationResponse): Array<{
   id: string;
   label: string;
 }> {
-  return apiResponse.time_periods.map(period => ({
+  const periods = apiResponse.time_periods || [];
+  return periods.map(period => ({
     id: period.id,
     label: formatTimePeriodLabel(period.start_date, period.end_date)
   }));

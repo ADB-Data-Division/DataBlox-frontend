@@ -43,8 +43,9 @@ export const getWarningThreshold = (): number => {
 /**
  * Check if adding more locations would exceed the limit
  */
-export const canAddMoreLocations = (currentCount: number, additionalCount: number = 1): boolean => {
-  return (currentCount + additionalCount) <= LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
+export const canAddMoreLocations = (currentCount: number, maxLimit?: number, additionalCount: number = 1): boolean => {
+  const limit = maxLimit ?? LOCATION_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
+  return (currentCount + additionalCount) <= limit;
 };
 
 /**

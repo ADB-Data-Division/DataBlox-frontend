@@ -99,7 +99,6 @@ export function mapViewReducer(state: MapViewState, action: MapViewAction): MapV
       return {
         ...state,
         selectedLocations: [...state.selectedLocations, action.payload],
-        searchQuery: '', // Clear search after selection
         highlightedForDeletion: null, // Clear any highlighted item
       };
 

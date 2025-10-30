@@ -15,11 +15,29 @@ import type { MigrationResponse } from '@/app/services/api';
 import MigrationFlowDiagram from '@/components/migration-flow-diagram';
 import { MigrationAnalysisPeriod } from '@/components/migration-analysis-period';
 import { ColorPicker } from '@/components/color-picker';
+import {
+  computeRadius,
+  computeStrokeWidth,
+  computeFontSize,
+  resolveScreenOverlaps,
+  computeDashPattern,
+  VISUAL_CONFIG
+} from '@/src/utils/visualScaling';
 
-// // Default transform constants
-// const DEFAULT_TRANSFORM_SCALE = 2;
-// const DEFAULT_TRANSFORM_X = 175.8644263369394;
-// const DEFAULT_TRANSFORM_Y = 147.29254719698156;
+// Default transform constants
+const DEFAULT_TRANSFORM_SCALE = 1.5;
+const DEFAULT_TRANSFORM_X = 160;
+const DEFAULT_TRANSFORM_Y = 90;
+
+// Zoom configuration constants
+const DEFAULT_MIN_ZOOM = 1;
+const DEFAULT_MAX_ZOOM = 50;
+
+// Text scaling configuration - adjust these values to fine-tune text scaling
+const TEXT_SCALING_CONFIG = {
+  minScale: 0.3,        // Minimum text scale (30% of original size)
+  sqrtScaling: true,    // Use square root scaling instead of linear
+};
 
 interface Node {
   id: string;
@@ -121,6 +139,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // State for map reset button visibility
   const [showResetButton, setShowResetButton] = useState<boolean>(false);
+
+  // State to store current zoom transform to preserve it during re-renders
+  const [currentZoomTransform, setCurrentZoomTransform] = useState<d3.ZoomTransform | null>(null);
 
   // Ref to avoid dependency issues in useEffect
   const selectedNodeIdRef = useRef<string | null>(null);
@@ -326,42 +347,59 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
   // Function to calculate dynamic node size based on zoom level
   const getDynamicNodeSize = useCallback((baseSize: number, zoomLevel?: number): number => {
-    // Use current zoom level if not provided
-    const currentZoom = zoomLevel ?? 2;
-    // As zoom increases, make nodes smaller to prevent them from covering edges
-    // Use more aggressive inverse relationship with a minimum size limit
-    const scaleFactor = Math.max(0.05, 1 / currentZoom); // Minimum 20% of original size, more aggressive scaling
-    return baseSize * scaleFactor;
+    // Use computeRadius from visualScaling for consistent, configurable sizing
+    const currentZoom = zoomLevel ?? (currentZoomTransform ? currentZoomTransform.k : DEFAULT_TRANSFORM_SCALE);
+    // Treat baseSize as a pixel radius baseline (existing code passed node.size * 2)
+    return computeRadius(baseSize, currentZoom, VISUAL_CONFIG);
   }, []);
 
   // Function to update edge visibility based on selected node
   const updateEdgeVisibility = useCallback((selectedNodeId: string | null) => {
     if (!selectedNodeId) {
       // Show all edges when no node is selected
-      d3.selectAll('.flowline-to, .flowline-from').style('opacity', 0.7);
+      d3.selectAll('.flowline-to, .flowline-from').style('opacity', function() {
+        // Check if this flow should be visible based on flowVisibility state
+        const flowKey = d3.select(this).attr('data-flow-key');
+        const direction = d3.select(this).attr('data-direction');
+        const flowVis = flowVisibility[flowKey];
+        
+        if (direction === 'to') {
+          return flowVis?.moveIn !== false ? '0.7' : '0';
+        } else if (direction === 'from') {
+          return flowVis?.moveOut !== false ? '0.7' : '0';
+        }
+        return '0.7'; // fallback
+      });
       return;
     }
 
-    // Get the selected node's title for comparison
+    // Get the selected node's tooltip for comparison
     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
     if (!selectedNode) return;
 
-    // Update "to" paths
-    d3.selectAll('.flowline-to').style('opacity', function() {
+    // Update flow line visibility based on node selection and individual flow visibility
+    d3.selectAll('.flowline-to, .flowline-from').style('opacity', function() {
       const fromNode = d3.select(this).attr('data-from-node');
       const toNode = d3.select(this).attr('data-to-node');
+      const flowKey = d3.select(this).attr('data-flow-key');
+      const direction = d3.select(this).attr('data-direction');
+      const flowVis = flowVisibility[flowKey];
+      
+      // Check if this flow involves the selected node
       const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
-      return isRelated ? 0.7 : 0.1;
+      
+      // If not related to selected node, hide it
+      if (!isRelated) return '0.1';
+      
+      // If related, check individual flow visibility settings
+      if (direction === 'to') {
+        return flowVis?.moveIn !== false ? '0.7' : '0';
+      } else if (direction === 'from') {
+        return flowVis?.moveOut !== false ? '0.7' : '0';
+      }
+      return '0.7'; // fallback
     });
-
-    // Update "from" paths  
-    d3.selectAll('.flowline-from').style('opacity', function() {
-      const fromNode = d3.select(this).attr('data-from-node');
-      const toNode = d3.select(this).attr('data-to-node');
-      const isRelated = fromNode === selectedNode.tooltip || toNode === selectedNode.tooltip;
-      return isRelated ? 0.7 : 0.1;
-    });
-  }, [activeNodes]);
+  }, [activeNodes, flowVisibility]);
 
 
 
@@ -380,62 +418,111 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
 
     // Set up zoom behavior with pan constraints
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([2, 10]) // Allow zoom from 70% to 1000% (prevents map from being too small)
+      .scaleExtent([DEFAULT_MIN_ZOOM, DEFAULT_MAX_ZOOM]) // Allow zoom from 70% to 1000% (prevents map from being too small)
       .translateExtent([[-300, -300], [800, 800]]) // Expanded pan boundaries for better UX
       .on('zoom', function(event) {
         mainContainer.attr('transform', event.transform);
         console.log("zoom: ", event.transform);
         const zoomLevel = event.transform.k;
         
+        // Store the current zoom transform to preserve it during re-renders
+        setCurrentZoomTransform(event.transform);
+        
         // Check if transform is different from default (scale 2, translate 100,20)
-        const defaultTransform = d3.zoomIdentity.scale(2).translate(100, 20);
+        const defaultTransform = d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
         const isAtDefault = event.transform.k === defaultTransform.k && 
                           event.transform.x === defaultTransform.x && 
                           event.transform.y === defaultTransform.y;
         setShowResetButton(!isAtDefault);
         
-        // Create consistent scaling functions available in this scope
-        const getScaleFactor = (minScale: number) => Math.max(minScale, 1 / zoomLevel);
-        const getDynamicSize = (baseSize: number) => baseSize * getScaleFactor(0.2);
-        
-        // Update node sizes based on zoom level using consistent scaling
+        // Use the visualScaling helpers for consistent sizing and optional overlap resolution.
+        const k = zoomLevel;
+
+        // Update node radii based on blended scaling
         d3.selectAll('.node').attr('r', function() {
           const element = this as Element;
           const parentElement = element.parentNode as SVGGElement;
-          if (!parentElement) return 20; // fallback size
+          if (!parentElement) return computeRadius(1, k, VISUAL_CONFIG); // fallback size
           const nodeGroup = d3.select(parentElement);
           const nodeId = nodeGroup.attr('data-node-id');
           const node = activeNodes.find(n => n.id === nodeId);
-          if (!node) return 20; // fallback size
-          return getDynamicSize(node.size * 2);
+          if (!node) return computeRadius(1, k, VISUAL_CONFIG); // fallback size
+          const baseRadiusPx = node.size * 2; // preserve previous base usage
+          return computeRadius(baseRadiusPx, k, VISUAL_CONFIG);
         });
 
-        // Update text size using consistent scaling
+        // Update text size using computeFontSize (gentler scaling)
         d3.selectAll('.node-title').style('font-size', function() {
-          const baseFontSize = 12;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 40% scale
-          return `${baseFontSize * scaleFactor}px`;
+          const baseFontSize = VISUAL_CONFIG.baseFontPx;
+          const fontPx = computeFontSize(baseFontSize, k, VISUAL_CONFIG, TEXT_SCALING_CONFIG.sqrtScaling);
+          return `${fontPx}px`;
         });
 
-        // Update border thickness using consistent scaling
+        // Update border thickness using computeStrokeWidth
         d3.selectAll('.node').style('stroke-width', function() {
-          const baseStrokeWidth = 3;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
-          return `${baseStrokeWidth * scaleFactor}px`;
+          const baseStrokeWidth = VISUAL_CONFIG.baseStrokePx;
+          const strokePx = computeStrokeWidth(baseStrokeWidth, k, VISUAL_CONFIG);
+          return `${strokePx}px`;
         });
 
-        // Update arrow line thickness using consistent scaling
+        // Update arrow line thickness using computeStrokeWidth (with larger base)
         d3.selectAll('.flowline-to, .flowline-from').style('stroke-width', function() {
           const baseStrokeWidth = 5;
-          const scaleFactor = getScaleFactor(0.05); // Minimum 30% scale
-          return `${baseStrokeWidth * scaleFactor}px`;
+          const strokePx = computeStrokeWidth(baseStrokeWidth, k, VISUAL_CONFIG);
+          return `${strokePx}px`;
         });
 
-        // Update arrow marker sizes using consistent scaling
-        const arrowScaleFactor = getScaleFactor(0.05);
+        // Update arrow marker sizes using stroke scaling (approx)
+        const markerSize = Math.max(2, computeStrokeWidth(4, k, VISUAL_CONFIG));
         d3.selectAll('#arrow-to, #arrow-from')
-          .attr('markerWidth', 4 * arrowScaleFactor)
-          .attr('markerHeight', 4 * arrowScaleFactor);
+          .attr('markerWidth', markerSize)
+          .attr('markerHeight', markerSize);
+
+        // --- Collision avoidance in screen space (lightweight) ---
+        try {
+          const screenNodes: Array<{id: string, x: number, y: number, r: number}> = [];
+          d3.selectAll('.node-group').each(function() {
+            const g = d3.select(this);
+            const id = g.attr('data-node-id');
+            const nodeObj = activeNodes.find(n => n.id === id);
+            if (!nodeObj) return;
+            // compute screen position using current transform
+            const sx = event.transform.applyX(nodeObj.x);
+            const sy = event.transform.applyY(nodeObj.y);
+            // radius currently set via computeRadius; compute here too for resolver
+            const baseRadiusPx = nodeObj.size * 2;
+            const r = computeRadius(baseRadiusPx, k, VISUAL_CONFIG);
+            screenNodes.push({ id, x: sx, y: sy, r });
+          });
+
+          // Only run resolver for small-to-moderate node counts to avoid heavy compute
+          let offsets = new Map<string, {dx:number, dy:number}>();
+          if (screenNodes.length > 1 && screenNodes.length <= 800) {
+            offsets = resolveScreenOverlaps(screenNodes, { padding: VISUAL_CONFIG.overlapPaddingPx, maxShift: VISUAL_CONFIG.maxShiftPx });
+          }
+
+          // Apply computed screen offsets by converting back to data coords
+          d3.selectAll('.node-group').each(function() {
+            const g = d3.select(this);
+            const id = g.attr('data-node-id');
+            const nodeObj = activeNodes.find(n => n.id === id);
+            if (!nodeObj) return;
+            const o = offsets.get(id) || { dx: 0, dy: 0 };
+            if (o.dx === 0 && o.dy === 0) {
+              g.attr('transform', `translate(${nodeObj.x}, ${nodeObj.y})`);
+            } else {
+              // convert screen-space offset back to data coordinates
+              const screenX = event.transform.applyX(nodeObj.x) + o.dx;
+              const screenY = event.transform.applyY(nodeObj.y) + o.dy;
+              const newDataX = event.transform.invertX(screenX);
+              const newDataY = event.transform.invertY(screenY);
+              g.attr('transform', `translate(${newDataX}, ${newDataY})`);
+            }
+          });
+        } catch (e) {
+          // In case of any error in resolver, leave positions unchanged (fail-safe)
+          // console.warn('Overlap resolver error', e);
+        }
       });
 
     // Store zoom behavior in ref for reset functionality
@@ -444,7 +531,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
     // Apply zoom behavior to SVG
     svg.call(zoom);
 
-    svg.call(zoom.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+    // Apply the current zoom transform, or default if none stored
+    const initialTransform = currentZoomTransform || d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
+    svg.call(zoom.transform, initialTransform);
 
     // Thailand hexagonal map data
     const hexSize = 9; // Scaled down by 50% from 18
@@ -574,7 +663,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         }
         
         // Check if this flow should be visible based on threshold and individual flow visibility
-        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
         const flowVis = flowVisibility[flowKey];
         const shouldShowMoveIn = flowVis?.moveIn ?? (conn.metadata.absoluteToFlow >= migrationThreshold);
         
@@ -589,6 +678,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', fromNode.tooltip)
             .attr('data-to-node', toNode.tooltip)
+            .attr('data-flow-key', flowKey)
+            .attr('data-direction', 'to')
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -604,7 +695,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         }
         
         // Check if this flow should be visible based on threshold and individual flow visibility
-        const flowKey = `${conn.fromNodeId}-${conn.toNodeId}`;
+        const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
         const flowVis = flowVisibility[flowKey];
         const shouldShowMoveOut = flowVis?.moveOut ?? (conn.metadata.absoluteFromFlow >= migrationThreshold);
         
@@ -619,6 +710,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             .attr('data-units', conn.metadata.units || '')
             .attr('data-from-node', toNode.tooltip)
             .attr('data-to-node', fromNode.tooltip)
+            .attr('data-flow-key', flowKey)
+            .attr('data-direction', 'from')
             .attr('data-edge-color', edgeColor);
         }
       });
@@ -712,7 +805,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('font-family', 'Arial, sans-serif')
         .style('font-size', function() {
           const baseFontSize = 12;
-          const scaleFactor = Math.max(0.4, 1 / 2); // More aggressive scaling, minimum 40%
+          const scaleFactor = Math.max(TEXT_SCALING_CONFIG.minScale, TEXT_SCALING_CONFIG.sqrtScaling ? 1 / Math.sqrt(2) : 1 / 2);
           return `${baseFontSize * scaleFactor}px`;
         })
         .style('font-weight', 'bold')
@@ -720,19 +813,22 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('pointer-events', 'none');
 
       // Style "to" direction paths with custom edge colors
+      // compute initial dash pattern so dash lengths look good at current zoom
+      const initialK = (currentZoomTransform && currentZoomTransform.k) || (initialTransform && initialTransform.k) || 1;
+      const initialDash = computeDashPattern(initialK, VISUAL_CONFIG).dashArray;
+
       d3.selectAll('.flowline-to')
         .style('fill', 'none')
         .style('stroke', function() {
           return d3.select(this).attr('data-edge-color') || '#2563eb';
         })
-        .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
           const zoomLevel = 2; // Initial zoom level
           const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
-        .style('stroke-dasharray', '8, 4');
+  .style('stroke-dasharray', initialDash);
 
       // Style "from" direction paths with custom edge colors  
       d3.selectAll('.flowline-from')
@@ -740,18 +836,16 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         .style('stroke', function() {
           return d3.select(this).attr('data-edge-color') || '#888888';
         })
-        .style('opacity', '0.7')
         .style('stroke-width', function() {
           const baseStrokeWidth = 5;
           const zoomLevel = 2; // Initial zoom level
           const scaleFactor = Math.max(0.05, 1 / zoomLevel); // Dynamic scaling consistent with zoom handler
           return `${baseStrokeWidth * scaleFactor}px`;
         })
-        .style('stroke-dasharray', '8, 4');
+  .style('stroke-dasharray', initialDash);
 
       // Animation configuration constants
-      const DASH_PATTERN_LENGTH = 12; // 8px dash + 4px gap = 12px cycle
-      const BASE_SPEED = 25; // Base pixels per second for flow animation
+  const BASE_SPEED = 25; // Base pixels per second for flow animation
 
       // Individual animation function for each "to" path
       function animateToPath(pathElement: any) {
@@ -763,17 +857,20 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
         const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
-        // Calculate duration to move exactly one dash pattern cycle
-        const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
-        
-        d3.select(pathElement)
+          // Calculate duration to move exactly one dash pattern cycle.
+          // Use the dash pattern's screen-pixel length so animation speed is consistent.
+          const currentK = d3.zoomTransform(svgRef.current!).k;
+          const patternLen = computeDashPattern(currentK, VISUAL_CONFIG).patternLengthScreenPx;
+          const duration = (patternLen / pixelsPerSecond) * 1000; // Convert to milliseconds
+
+          d3.select(pathElement)
           .transition()
           .duration(duration)
           .ease(d3.easeLinear)
           .styleTween("stroke-dashoffset", function() {
             return function(t: number) {
-              // Move by exactly one dash pattern length during the animation
-              return (t * -DASH_PATTERN_LENGTH).toString();
+                // Move by exactly one dash pattern length during the animation (screen px)
+                return (t * -patternLen).toString();
             };
           })
           .on("end", function() {
@@ -793,17 +890,19 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
         const speedMultiplier = 0.2 + (normalizedFlow * 0.3); // Range from 0.2x to much higher
         const pixelsPerSecond = BASE_SPEED * Math.max(speedMultiplier, 0.1); // Minimum 10% speed
         
-        // Calculate duration to move exactly one dash pattern cycle
-        const duration = (DASH_PATTERN_LENGTH / pixelsPerSecond) * 1000; // Convert to milliseconds
+          // Calculate duration to move exactly one dash pattern cycle using current zoom
+          const currentK = d3.zoomTransform(svgRef.current!).k;
+          const patternLen = computeDashPattern(currentK, VISUAL_CONFIG).patternLengthScreenPx;
+          const duration = (patternLen / pixelsPerSecond) * 1000; // Convert to milliseconds
         
-        d3.select(pathElement)
+          d3.select(pathElement)
           .transition()
           .duration(duration)
           .ease(d3.easeLinear)
           .styleTween("stroke-dashoffset", function() {
             return function(t: number) {
-              // Move by exactly one dash pattern length during the animation
-              return (t * -DASH_PATTERN_LENGTH).toString();
+                // Move by exactly one dash pattern length during the animation (screen px)
+                return (t * -patternLen).toString();
             };
           })
           .on("end", function() {
@@ -884,16 +983,53 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, flowVisibility, edgeColors, getEdgeColor]);
+  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, edgeColors, getEdgeColor]);
 
-  // Separate useEffect for handling node selection changes (without resetting the visualization)
+  // Apply initial visibility after rendering
   useEffect(() => {
-    if (selectedNodeId) {
-      updateEdgeVisibility(selectedNodeId);
-    } else {
-      updateEdgeVisibility(null);
-    }
-  }, [selectedNodeId, updateEdgeVisibility]);
+    if (!svgRef.current || !connections) return;
+
+    // Force an initial visibility update to ensure correct opacity
+    const activeConnections = connections || [];
+    activeConnections.forEach((conn: any) => {
+      const fromNode = activeNodes.find(n => n.id === conn.fromNodeId);
+      const toNode = activeNodes.find(n => n.id === conn.toNodeId);
+      
+      if (!fromNode || !toNode) return;
+
+      const flowKey = [conn.fromNodeId, conn.toNodeId].sort().join('-');
+      const flowVis = flowVisibility[flowKey];
+      
+      // Get the selected node for filtering
+      const selectedNode = selectedNodeId ? activeNodes.find(n => n.id === selectedNodeId) : null;
+      
+      // Update "to" direction flows (Move In)
+      const shouldShowMoveIn = flowVis?.moveIn ?? (conn.metadata.absoluteToFlow >= migrationThreshold);
+      const toPaths = d3.selectAll(`.flowline-to[data-flow-key="${flowKey}"][data-direction="to"]`);
+      
+      if (selectedNode) {
+        // Node filtering is active - check if this flow involves the selected node
+        const isRelated = fromNode.tooltip === selectedNode.tooltip || toNode.tooltip === selectedNode.tooltip;
+        toPaths.style('opacity', isRelated && shouldShowMoveIn && conn.toFlowRate !== 0 ? '0.7' : '0.1');
+      } else {
+        // No node filtering - use checkbox visibility
+        toPaths.style('opacity', shouldShowMoveIn && conn.toFlowRate !== 0 ? '0.7' : '0');
+      }
+
+      // Update "from" direction flows (Move Out)  
+      const shouldShowMoveOut = flowVis?.moveOut ?? (conn.metadata.absoluteFromFlow >= migrationThreshold);
+      const fromPaths = d3.selectAll(`.flowline-from[data-flow-key="${flowKey}"][data-direction="from"]`);
+      
+      if (selectedNode) {
+        // Node filtering is active - check if this flow involves the selected node
+        const isRelated = toNode.tooltip === selectedNode.tooltip || fromNode.tooltip === selectedNode.tooltip;
+        fromPaths.style('opacity', isRelated && shouldShowMoveOut && conn.fromFlowRate !== 0 ? '0.7' : '0.1');
+      } else {
+        // No node filtering - use checkbox visibility
+        fromPaths.style('opacity', shouldShowMoveOut && conn.fromFlowRate !== 0 ? '0.7' : '0');
+      }
+    });
+  }, [connections, activeNodes, flowVisibility, migrationThreshold, selectedNodeId]);
 
   // Show loading state while data is being fetched
   if (dataLoading) {
@@ -952,7 +1088,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
           ref={containerRef}
           className="svg-container"
           style={{
-            flex: '1',
+            flex: '8',
             height: '700px',
             width: '100%',
             border: '1px solid #e5e7eb',
@@ -966,10 +1102,13 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             <Button
               onClick={() => {
                 if (svgRef.current && zoomRef.current) {
+                  const defaultTransform = d3.zoomIdentity.scale(DEFAULT_TRANSFORM_SCALE).translate(DEFAULT_TRANSFORM_X, DEFAULT_TRANSFORM_Y);
                   const svg = d3.select(svgRef.current);
                   svg.transition()
                     .duration(750)
-                    .call(zoomRef.current.transform, d3.zoomIdentity.scale(2).translate(100, 20));
+                    .call(zoomRef.current.transform, defaultTransform);
+                  // Clear stored transform and reset to default
+                  setCurrentZoomTransform(null);
                   // The zoom event handler will automatically update showResetButton
                 }
               }}
@@ -1014,7 +1153,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
             id="table-container"  
             className="table-container"
             style={{
-              flex: '1',
+              flex: '5',
               height: '700px',
               display: 'flex',
               flexDirection: 'column',
@@ -1042,7 +1181,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               />
             </Paper>
 
-            {/* Controls Card */}
+            {/* Controls Card - Temporarily Hidden */}
+            {/*
             <Paper
               elevation={0}
               sx={{
@@ -1052,9 +1192,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 flexShrink: 0
               }}
             >
-              <Typography 
-                variant="overline" 
-                sx={{ 
+              <Typography
+                variant="overline"
+                sx={{
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   letterSpacing: 1,
@@ -1065,7 +1205,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
               >
                 Controls
               </Typography>
-              
+
               <Box sx={{ display: 'flex', gap: 3 }}>
                 <TextField
                   label="Threshold"
@@ -1104,6 +1244,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 </FormControl>
               </Box>
             </Paper>
+            */}
 
             {/* Flow Details Card */}
             {apiResponse && apiResponse.flows && (
@@ -1120,6 +1261,23 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                 }}
               >
                 <Box sx={{ p: 2.5, flexShrink: 0 }}>
+                  <h3 style={{ 
+                    fontSize: '18px', 
+                    fontWeight: 'bold', 
+                    marginBottom: '8px',
+                    color: '#374151',
+                  }}>
+                    Flow Details
+                  </h3>
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#6b7280',
+                    fontStyle: 'italic',
+                    marginBottom: '16px'
+                  }}>
+                    * {selectedUnits === 'thousands' ? 'thousands people/month' : 'people/month'}
+                  </div>
+                  
                   {/* Filter indicator */}
                   {selectedNodeId && (() => {
                     const selectedNode = activeNodes.find(n => n.id === selectedNodeId);
@@ -1296,7 +1454,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                               backgroundColor: '#ffffff',
                               borderRadius: '8px',
                               padding: '12px',
-                              border: '1.5px solid #d1d5db',
+                              border: '1px solid #e5e7eb',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '8px'
@@ -1306,42 +1464,31 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                             {!flowData.isSelfLoop ? (
                               <div style={{
                                 display: 'flex',
-                                justifyContent: 'space-between',
+                                justifyContent: 'flex-start',
                                 alignItems: 'center',
                                 padding: '4px 0',
                                 borderBottom: '1px solid #f3f4f6'
                               }}>
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
+                                <ColorPicker
+                                  currentColor={getEdgeColor(flowData.key, 0)}
+                                  onColorChange={(color) => {
+                                    if (onEdgeColorsChange) {
+                                      onEdgeColorsChange({
+                                        ...edgeColors,
+                                        [flowData.key]: color
+                                      });
+                                    }
+                                  }}
+                                  label={`${flowData.fromLocation} → ${flowData.toLocation} Edge Color`}
+                                />
+                                <span style={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#374151',
+                                  marginLeft: '8px'
                                 }}>
-                                  <ColorPicker
-                                    currentColor={getEdgeColor(flowData.key, 0)}
-                                    onColorChange={(color) => {
-                                      if (onEdgeColorsChange) {
-                                        onEdgeColorsChange({
-                                          ...edgeColors,
-                                          [flowData.key]: color
-                                        });
-                                      }
-                                    }}
-                                    label={`${flowData.fromLocation} → ${flowData.toLocation} Edge Color`}
-                                  />
-                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                                    {flowData.fromLocation}
-                                  </span>
-                                </div>
-                                
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px'
-                                }}>
-                                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
-                                    {flowData.toLocation}
-                                  </span>
-                                </div>
+                                  {flowData.fromLocation} ↔ {flowData.toLocation}
+                                </span>
                               </div>
                             ) : (
                               <div style={{

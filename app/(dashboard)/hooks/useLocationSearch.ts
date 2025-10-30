@@ -7,6 +7,7 @@ import { LOCATION_CONSTRAINTS } from '../constraints';
 import { trackMigrationEvent, trackUserInteraction } from '../../../src/utils/analytics';
 import { useLocationContext } from '../../contexts';
 import { enhancedLocationService } from '../../services/enhanced-location-service';
+import { isRegionQuery, getProvinceRegion, getRegionDisplayName, ThailandRegion } from '../../services/api/province-regions';
 
 interface SearchPagination {
   currentPage: number;
@@ -37,6 +38,11 @@ export function useLocationSearch(
       ? selectedLocationTypes[0]
       : null;
   }, [selectedLocations]);
+
+  // Detect if the search query is a region query
+  const searchedRegion = useMemo(() => {
+    return searchQuery.trim() ? isRegionQuery(searchQuery) : null;
+  }, [searchQuery]);
 
   // Smart filtering: if a district is selected, get its province_id for filtering
   const selectedProvinceId = useMemo(() => {
@@ -91,6 +97,17 @@ export function useLocationSearch(
       return districtList;
     };
 
+    // Helper function to filter provinces by region
+    const applyRegionFilter = (provinceList: Location[]) => {
+      if (searchedRegion) {
+        return provinceList.filter(province => {
+          const provinceRegion = getProvinceRegion(province.name);
+          return provinceRegion === searchedRegion;
+        });
+      }
+      return provinceList;
+    };
+
     if (!searchQuery.trim()) {
       // No search query: show defaults based on allowed type
       return {
@@ -108,8 +125,17 @@ export function useLocationSearch(
           ? subDistricts.slice(0, 5).filter(subDistrict => !selectedIds.includes(subDistrict.id))
           : []
       };
+    } else if (searchedRegion) {
+      // Region query: show all provinces in the region
+      return {
+        allFilteredProvinces: (!allowedType || allowedType === 'province')
+          ? applyRegionFilter(provinces.filter(province => !selectedIds.includes(province.id)))
+          : [],
+        allFilteredDistricts: [],
+        allFilteredSubDistricts: []
+      };
     } else {
-      // Search query exists: filter based on allowed type
+      // Regular search query: filter based on allowed type
       return {
         allFilteredProvinces: (!allowedType || allowedType === 'province') 
           ? filterItems(provinces, searchQuery, ['name', 'description'], selectedIds)
@@ -124,7 +150,7 @@ export function useLocationSearch(
           : []
       };
     }
-  }, [searchQuery, allowedType, provinces, districts, subDistricts, selectedIds, selectedProvinceId]);
+  }, [searchQuery, allowedType, provinces, districts, subDistricts, selectedIds, selectedProvinceId, searchedRegion]);
 
   const totalFilteredResults = useMemo(() => 
     allFilteredProvinces.length + allFilteredDistricts.length + allFilteredSubDistricts.length,
@@ -204,6 +230,7 @@ export function useLocationSearch(
     handlePageSizeChange,
     getFirstAvailableResult,
     selectedProvinceName,
+    searchedRegion,
     isLoading,
     error,
     allLocations
