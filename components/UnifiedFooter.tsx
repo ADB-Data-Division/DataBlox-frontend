@@ -1,15 +1,14 @@
 'use client';
 
-import React from 'react';
-import { GearSix } from '@phosphor-icons/react';
+import React, { useCallback } from 'react';
+import { signOut } from 'next-auth/react';
+import { GearSixIcon, SignOutIcon } from '@phosphor-icons/react';
 
 interface SettingsButtonProps {
   openModal: () => void;
 }
-
-const SettingsButton = ({ openModal }: SettingsButtonProps) => {
+function SettingsButton({ openModal }: SettingsButtonProps) {
   const handleOpenSettings = () => {
-    // Just open the modal without clearing user data
     openModal();
   };
 
@@ -35,8 +34,41 @@ const SettingsButton = ({ openModal }: SettingsButtonProps) => {
         e.currentTarget.style.textDecoration = 'none';
       }}
     >
-      <GearSix size={14} />
+      <GearSixIcon size={14} />
       User Settings
+    </button>
+  );
+};
+
+function LogoutButton() {
+  const handleLogout = useCallback(async () => {
+    await signOut({ callbackUrl: '/auth/signin' });
+  }, []);
+
+  return (
+    <button
+      onClick={handleLogout}
+      style={{
+        background: 'none',
+        border: 'none',
+        fontSize: '12px',
+        color: '#0077BE',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '0'
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.textDecoration = 'underline';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.textDecoration = 'none';
+      }}
+    >
+      <SignOutIcon size={14} />
+      Log Out
     </button>
   );
 };
@@ -46,7 +78,6 @@ interface UnifiedFooterProps {
     openModal: () => void;
   };
 }
-
 export default function UnifiedFooter({ userTypeContext }: UnifiedFooterProps) {
   return (
     <footer style={{
@@ -77,7 +108,10 @@ export default function UnifiedFooter({ userTypeContext }: UnifiedFooterProps) {
       </div>
       
       {userTypeContext && (
-        <SettingsButton openModal={userTypeContext.openModal} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <SettingsButton openModal={userTypeContext.openModal} />
+          <LogoutButton />
+        </div>
       )}
     </footer>
   );
