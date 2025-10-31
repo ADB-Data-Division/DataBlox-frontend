@@ -8,6 +8,12 @@ const providers: Provider[] = [
     clientId: process.env.AUTH0_CLIENT_ID,
     clientSecret: process.env.AUTH0_CLIENT_SECRET,
     issuer: process.env.AUTH0_ISSUER,
+    authorization: {
+      params: {
+        audience: process.env.AUTH0_AUDIENCE, 
+        scope: 'openid profile email offline_access',
+      },
+    },
   }),
 ];
 
@@ -38,6 +44,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/auth/signin',
   },
   callbacks: {
+    async jwt({ token, account }) {
+      // Persist the OAuth access_token to the token right after signin
+      if (account) {
+        token.accessToken = account.access_token;
+        token.idToken = account.id_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Send properties to the client, like an access_token from a provider.
+      session.accessToken = token.accessToken as string;
+      return session;
+    },
     authorized({ auth: session, request: { nextUrl } }) {
       const isLoggedIn = !!session?.user;
       const isPublicPage = nextUrl.pathname.startsWith('/public');

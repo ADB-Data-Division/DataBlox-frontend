@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { authenticatedApiClient } from './authenticated-client';
 import { MetadataResponse, Province, District, Subdistrict, TimePeriods } from './types';
 
 /**
@@ -23,7 +24,8 @@ export class MetadataService {
     }
 
     try {
-      this.cachedMetadata = await apiClient.getMetadata();
+      // Use authenticated client for metadata requests
+      this.cachedMetadata = await authenticatedApiClient.getMetadata();
       this.cacheTimestamp = now;
       return this.cachedMetadata;
     } catch (error) {

@@ -4,6 +4,9 @@ export * from './types';
 // Export API client and error class
 export { MigrationAPIClient, APIError, createAPIClient, apiClient } from './client';
 
+// Export authenticated API client
+export { createAuthenticatedAPIClient, authenticatedApiClient } from './authenticated-client';
+
 // Export service classes and instances
 export { MetadataService, metadataService } from './metadata-service';
 export { MigrationService, migrationService } from './migration-service';

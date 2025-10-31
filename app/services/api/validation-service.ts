@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { authenticatedApiClient } from './authenticated-client';
 import { ValidationResponse } from './types';
 
 /**
@@ -25,7 +26,8 @@ export class ValidationService {
     }
 
     try {
-      const result = await apiClient.validateDataset(normalizedKey);
+      // Use authenticated client for validation requests
+      const result = await authenticatedApiClient.validateDataset(normalizedKey);
       
       // Cache the result
       this.validationCache.set(normalizedKey, result);

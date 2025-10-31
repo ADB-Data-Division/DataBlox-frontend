@@ -17,6 +17,7 @@ export class MigrationAPIClient {
   private timeout: number;
   private defaultHeaders: Record<string, string>;
   private connectivityCallback?: (connected: boolean) => void;
+  private getAccessToken?: () => Promise<string | null>;
 
   constructor(config: APIConfig) {
     this.baseURL = config.baseURL.replace(/\/$/, ''); // Remove trailing slash
@@ -26,6 +27,7 @@ export class MigrationAPIClient {
       'Accept': 'application/json',
       ...config.headers
     };
+    this.getAccessToken = config.getAccessToken;
   }
 
   /**
@@ -46,13 +48,25 @@ export class MigrationAPIClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
+    // Get access token if available
+    const accessToken = this.getAccessToken ? await this.getAccessToken() : null;
+    
+    // Prepare headers with optional authorization
+    const headers: Record<string, string> = {
+      ...this.defaultHeaders,
+      ...(options.headers && typeof options.headers === 'object' && !(options.headers instanceof Headers)
+        ? options.headers as Record<string, string>
+        : {})
+    };
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
     try {
       const response = await fetch(url, {
         ...options,
-        headers: {
-          ...this.defaultHeaders,
-          ...options.headers
-        },
+        headers,
         signal: controller.signal
       });
 
@@ -199,7 +213,10 @@ export class APIError extends Error {
  * Default API client instance
  * Can be configured based on environment
  */
-export const createAPIClient = (baseURL?: string): MigrationAPIClient => {
+export const createAPIClient = (
+  baseURL?: string, 
+  getAccessToken?: () => Promise<string | null>
+): MigrationAPIClient => {
   // Default to localhost:2020 as specified in OpenAPI spec
   const apiBaseURL = baseURL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:2020';
   
@@ -208,9 +225,10 @@ export const createAPIClient = (baseURL?: string): MigrationAPIClient => {
     timeout: 30000,
     headers: {
       // Add any default headers here
-    }
+    },
+    getAccessToken
   });
 };
 
-// Export a default client instance
+// Export a default client instance (without authentication by default)
 export const apiClient = createAPIClient(); 
