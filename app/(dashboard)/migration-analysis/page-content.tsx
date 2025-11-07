@@ -1898,7 +1898,6 @@ export default function MigrationAnalysisPageContent() {
                       label="Year"
                       onChange={(e) => {
                         setSelectedYear(e.target.value);
-                        setSelectedMonth(''); // Reset month when year changes
                       }}
                       sx={{
                         borderRadius: 1.5,
@@ -2002,8 +2001,7 @@ export default function MigrationAnalysisPageContent() {
                           setSelectedPeriods(prev => [...prev, periodId]);
                         }
                         
-                        // Reset selects
-                        setSelectedMonth('');
+                        // Reset year only, keep month selected for easy addition of same month in different years
                         setSelectedYear('');
                       }
                     }}
