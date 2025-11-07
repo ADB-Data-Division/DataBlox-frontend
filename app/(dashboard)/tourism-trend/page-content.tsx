@@ -95,7 +95,7 @@ const DivergingBarChart: React.FC<{
       .style("opacity", 0)
       .style("z-index", 1000);
 
-    const margin = { top: 60, right: 150, bottom: 60, left: 80 };
+    const margin = { top: 60, right: 150, bottom: 120, left: 80 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -147,9 +147,59 @@ const DivergingBarChart: React.FC<{
     g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(xScale))
+      .call(d3.axisBottom(xScale).tickFormat(d => {
+        // Extract month from "Jun 2024" format
+        const parts = d.split(' ');
+        return parts.length >= 1 ? parts[0] : d;
+      }))
       .selectAll("text")
-      .style("font-weight", "bold");
+      .style("font-weight", "bold")
+      .style("text-anchor", "middle")
+      .attr("dy", ".35em");
+
+    // Add year boundary lines and labels
+    const yearBoundaries: { year: number; x: number; label: string }[] = [];
+
+    data.forEach((d, i) => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        const year = parseInt(parts[1]);
+        const month = parts[0];
+
+        // Check if this is the first occurrence of this year
+        const isFirstOfYear = i === 0 || !data.slice(0, i).some(prev => prev.period.includes(` ${year}`));
+
+        if (isFirstOfYear) {
+          const x = xScale(d.period)! - 8; // Offset slightly to the left for better visual separation
+          yearBoundaries.push({ year, x, label: year.toString() });
+        }
+      }
+    });
+
+    // Add year boundary lines
+    yearBoundaries.forEach(boundary => {
+      // Vertical line at year start
+      g.append("line")
+        .attr("x1", boundary.x)
+        .attr("x2", boundary.x)
+        .attr("y1", 0)
+        .attr("y2", innerHeight)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "5,5")
+        .style("opacity", 0.7);
+
+      // Year label below the x-axis
+      g.append("text")
+        .attr("x", boundary.x + 30) // Position slightly to the right of the boundary line
+        .attr("y", innerHeight + 25)
+        .attr("dy", "0.35em")
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .style("font-size", "14px")
+        .style("fill", "#666")
+        .text(boundary.label);
+    });
 
     // Format y-axis values to thousands (k)
     const formatYAxis = (d: d3.NumberValue) => {
