@@ -144,22 +144,41 @@ export function getLocationsByUniqueIds(uniqueIds: string[]): Location[] {
 }
 
 /**
- * Executes a migration query using the real API
- * @param locations - Array of selected locations
- * @returns Promise that resolves with success or rejects with error
+ * Recent Searches Integration
  */
-export async function executeQuery(locations: Location[]): Promise<{ success: boolean; data?: any; error?: string }> {
-  try {
-    // Import the migration API service dynamically to avoid circular dependencies
-    const { migrationAPIService } = await import('../services/migration-api-service');
-    
-    // Use the real API service
-    return await migrationAPIService.executeQuery(locations);
-  } catch (error) {
-    console.error('Query execution failed:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to execute migration query'
-    };
-  }
+
+/**
+ * Check if a recent search can be fully loaded given current constraints
+ * @param recentSearch - The recent search to validate
+ * @param currentSelectedCount - Number of currently selected locations
+ * @param maxLocations - Maximum allowed locations
+ * @returns Object with validation result and details
+ */
+export function canLoadRecentSearch(
+  recentSearch: { locations: Location[]; locationCount: number },
+  currentSelectedCount: number,
+  maxLocations: number = 5
+): { canLoad: boolean; canLoadCount: number; excessCount: number } {
+  const availableSlots = maxLocations - currentSelectedCount;
+  const canLoadCount = Math.min(recentSearch.locationCount, availableSlots);
+  const excessCount = Math.max(0, recentSearch.locationCount - availableSlots);
+
+  return {
+    canLoad: canLoadCount > 0,
+    canLoadCount,
+    excessCount
+  };
+}
+
+/**
+ * Get a subset of locations from a recent search that fit within constraints
+ * @param recentSearch - The recent search
+ * @param maxCount - Maximum number of locations to return
+ * @returns Array of locations (up to maxCount)
+ */
+export function getLocationsFromRecentSearch(
+  recentSearch: { locations: Location[] },
+  maxCount: number
+): Location[] {
+  return recentSearch.locations.slice(0, maxCount);
 } 

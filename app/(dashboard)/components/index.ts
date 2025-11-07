@@ -6,3 +6,4 @@ export { NoResultsState } from './NoResultsState';
 export { LocationList } from './LocationList';
 export { SearchPagination } from './SearchPagination';
 export { SearchResultsSummary } from './SearchResultsSummary';
+export { RecentSearches } from './RecentSearches';

@@ -17,6 +17,7 @@ import { SearchResultsSummary } from '@/app/(dashboard)/components/SearchResults
 import { ApiDisconnectedPage } from '@/app/(dashboard)/components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import CitationFooter from '@/components/citation-footer/citation-footer';
+import { RecentSearches } from '@/app/(dashboard)/components/RecentSearches';
 
 // Hooks
 import { 
@@ -31,6 +32,7 @@ import { trackMigrationEvent, trackUserInteraction } from '@/src/utils/analytics
 import { Location, getLocationsByUniqueIds, getAllLocations } from '@/app/(dashboard)/helper';
 import { mapViewReducer, initialState } from '@/app/(dashboard)/reducer';
 import { LOCATION_CONSTRAINTS, canAddMoreLocations } from '@/app/(dashboard)/constraints';
+import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
 
 
 // Style objects - defined outside component to prevent recreation
@@ -79,6 +81,9 @@ export default function PageContent() {
   // Store edge colors (edgeKey -> color)
   const [edgeColors, setEdgeColors] = useState<Record<string, string>>({});
 
+  // Recent searches state
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+
   // Memoize Paper styles to prevent recreation
   const paperStyles = useMemo(() => ({
     p: 1,
@@ -114,6 +119,10 @@ export default function PageContent() {
     setTimeout(() => {
       isResettingRef.current = false;
     }, 100);
+  };
+
+  const handleEditSearch = () => {
+    dispatch({ type: 'EDIT_SEARCH' });
   };
 
   const handleRetryMigrationData = useCallback(() => {
@@ -182,6 +191,20 @@ export default function PageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam]); // Only depend on getLocationsParam to avoid loops, other dependencies are stable within the effect
 
+  // Load and validate recent searches on mount
+  useEffect(() => {
+    const loadAndValidateRecentSearches = () => {
+      const storedSearches = loadRecentSearches();
+      const validatedSearches = storedSearches.map(search => ({
+        ...search,
+        locations: validateStoredLocations(search.locations, searchResults.allLocations)
+      })).filter(search => search.locations.length > 0);
+      setRecentSearches(validatedSearches);
+    };
+
+    loadAndValidateRecentSearches();
+  }, [searchResults.allLocations]);
+
   const handleCloseShortcutsModal = useCallback(() => {
     dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false });
     trackUserInteraction('modal_close', 'shortcuts_modal');
@@ -204,12 +227,26 @@ export default function PageContent() {
       await loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
       updateUrlWithLocations(memoizedSelectedLocations);
       dispatch({ type: 'SET_QUERY_SUCCESS' });
+
+      // Save successful search to recent searches
+      console.log('💾 Saving recent search for locations:', memoizedSelectedLocations.map(l => l.name));
+      saveRecentSearch(memoizedSelectedLocations);
+      
+      // Update the recent searches state to reflect the new search
+      setRecentSearches(prev => {
+        const updated = loadRecentSearches();
+        // Validate against current location data
+        return updated.map(search => ({
+          ...search,
+          locations: validateStoredLocations(search.locations, searchResults.allLocations)
+        })).filter(search => search.locations.length > 0);
+      });
     } catch (error) {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
       trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations, searchResults.allLocations]);
 
   const handleLocationSelect = useCallback((location: Location) => {
     if (!canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
@@ -257,6 +294,28 @@ export default function PageContent() {
     }
   }, [handleExecuteQuery, searchResults, handleLocationSelect, state.searchQuery, memoizedSelectedLocations.length, state.highlightedForDeletion]);
 
+  // Recent searches handlers
+  const handleLoadRecentSearch = useCallback((locations: Location[]) => {
+    const availableSlots = 5 - state.selectedLocations.length;
+    if (availableSlots <= 0) return;
+
+    // Add locations that fit within the limit
+    const locationsToAdd = locations.slice(0, availableSlots);
+    locationsToAdd.forEach(location => {
+      dispatch({ type: 'ADD_LOCATION', payload: location });
+    });
+  }, [state.selectedLocations.length]);
+
+  const handleRemoveRecentSearch = useCallback((searchId: string) => {
+    removeRecentSearch(searchId);
+    setRecentSearches(prev => prev.filter(search => search.id !== searchId));
+  }, []);
+
+  const handleClearAllRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+  }, []);
+
   if (!isConnected) {
     return (
       <Box sx={containerStyles}>
@@ -295,6 +354,15 @@ export default function PageContent() {
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
             />
+
+            <RecentSearches
+              recentSearches={recentSearches}
+              onLoadRecentSearch={handleLoadRecentSearch}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+              onClearAllRecentSearches={handleClearAllRecentSearches}
+              currentSelectedCount={state.selectedLocations.length}
+              maxLocations={5}
+            />
           </>
         )}
 
@@ -310,6 +378,7 @@ export default function PageContent() {
               selectedLocations={state.selectedLocations}
               selectedPeriod={state.selectedPeriod}
               onNewSearch={handleReset}
+              onEditSearch={handleEditSearch}
               onPeriodChange={handlePeriodChange}
               mapNodes={migrationData.mapNodes}
               mapConnections={migrationData.mapConnections}

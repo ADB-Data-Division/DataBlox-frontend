@@ -14,6 +14,7 @@ import { NoResultsState } from './components/NoResultsState';
 import { LocationList } from './components/LocationList';
 import { SearchPagination } from './components/SearchPagination';
 import { SearchResultsSummary } from './components/SearchResultsSummary';
+import { RecentSearches } from './components/RecentSearches';
 import { ApiDisconnectedPage } from './components/ApiDisconnectedPage';
 import CitationFooter from '@/components/citation-footer/citation-footer';
 
@@ -30,9 +31,10 @@ import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 
 // Utils and helpers
 import { trackMigrationEvent, trackUserInteraction } from '../../src/utils/analytics';
-import { Location, getLocationsByUniqueIds, getAllLocations } from './helper';
+import { Location, getLocationsByUniqueIds, getAllLocations, canLoadRecentSearch, getLocationsFromRecentSearch } from './helper';
 import { mapViewReducer, initialState } from './reducer';
 import { LOCATION_CONSTRAINTS, canAddMoreLocations } from './constraints';
+import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../src/utils/recentSearches';
 
 
 // Style objects - defined outside component to prevent recreation
@@ -80,6 +82,9 @@ export default function PageContent() {
 
   // Store edge colors (edgeKey -> color)
   const [edgeColors, setEdgeColors] = useState<Record<string, string>>({});
+
+  // Recent searches state
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   // Memoize Paper styles to prevent recreation
   const paperStyles = useMemo(() => ({
@@ -188,6 +193,25 @@ export default function PageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations]); // Wait for locations to load before processing URL
 
+  // Load and validate recent searches on mount and when location data changes
+  useEffect(() => {
+    if (searchResults.isLoading || searchResults.allLocations.length === 0) return;
+
+    const loadAndValidateRecentSearches = () => {
+      const storedSearches = loadRecentSearches();
+
+      // Validate each recent search against current location data
+      const validatedSearches = storedSearches.map(search => ({
+        ...search,
+        locations: validateStoredLocations(search.locations, searchResults.allLocations)
+      })).filter(search => search.locations.length > 0); // Remove searches with no valid locations
+
+      setRecentSearches(validatedSearches);
+    };
+
+    loadAndValidateRecentSearches();
+  }, [searchResults.isLoading, searchResults.allLocations]);
+
   const handleCloseShortcutsModal = useCallback(() => {
     dispatch({ type: 'SET_SHORTCUTS_MODAL', payload: false });
     trackUserInteraction('modal_close', 'shortcuts_modal');
@@ -210,12 +234,26 @@ export default function PageContent() {
       await loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
       updateUrlWithLocations(memoizedSelectedLocations);
       dispatch({ type: 'SET_QUERY_SUCCESS' });
+
+      // Save successful search to recent searches
+      console.log('💾 Saving recent search for locations:', memoizedSelectedLocations.map(l => l.name));
+      saveRecentSearch(memoizedSelectedLocations);
+      
+      // Update the recent searches state to reflect the new search
+      setRecentSearches(prev => {
+        const updated = loadRecentSearches();
+        // Validate against current location data
+        return updated.map(search => ({
+          ...search,
+          locations: validateStoredLocations(search.locations, searchResults.allLocations)
+        })).filter(search => search.locations.length > 0);
+      });
     } catch (error) {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
       trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations, searchResults.allLocations]);
 
   const handleLocationSelect = useCallback((location: Location) => {
     if (!canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
@@ -263,6 +301,30 @@ export default function PageContent() {
     }
   }, [handleExecuteQuery, searchResults, handleLocationSelect, state.searchQuery, memoizedSelectedLocations.length, state.highlightedForDeletion]);
 
+  // Recent searches handlers
+  const handleLoadRecentSearch = useCallback((locations: Location[]) => {
+    // Add locations from recent search, respecting constraints
+    locations.forEach(location => {
+      if (canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
+        dispatch({ type: 'ADD_LOCATION', payload: location });
+      }
+    });
+
+    trackUserInteraction('recent_search_loaded', `${locations.length}_locations`);
+  }, [memoizedSelectedLocations.length]);
+
+  const handleRemoveRecentSearch = useCallback((searchId: string) => {
+    removeRecentSearch(searchId);
+    setRecentSearches(prev => prev.filter(search => search.id !== searchId));
+    trackUserInteraction('recent_search_removed', searchId);
+  }, []);
+
+  const handleClearAllRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+    trackUserInteraction('recent_searches_cleared', 'all');
+  }, []);
+
   return (
     <Box sx={containerStyles}>
       <Header />
@@ -297,6 +359,15 @@ export default function PageContent() {
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
+            />
+
+            <RecentSearches
+              recentSearches={recentSearches}
+              onLoadRecentSearch={handleLoadRecentSearch}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+              onClearAllRecentSearches={handleClearAllRecentSearches}
+              currentSelectedCount={state.selectedLocations.length}
+              maxLocations={5}
             />
 
           </>

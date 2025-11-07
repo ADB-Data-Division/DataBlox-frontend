@@ -25,6 +25,7 @@ import { NoResultsState } from '../components/NoResultsState';
 import { LocationList } from '../components/LocationList';
 import { SearchPagination } from '../components/SearchPagination';
 import { SearchResultsSummary } from '../components/SearchResultsSummary';
+import { RecentSearches } from '../components/RecentSearches';
 
 // Services
 import { migrationAPIService } from '@/app/services/migration-api-service';
@@ -35,6 +36,7 @@ import { useUrlParams } from '../hooks/useUrlParams';
 import { Location, getLocationIconType, getLocationColor } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
+import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
 
 // Legend Component
 interface LegendProps {
@@ -719,6 +721,9 @@ export default function MigrationAnalysisPageContent() {
   // Time period state - initialized with empty values, will be populated from metadata
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
+  // Recent searches state
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+
   const searchResults = useLocationSearch(selectedLocations, searchQuery);
 
   // URL params hook for shareable URLs
@@ -796,6 +801,20 @@ export default function MigrationAnalysisPageContent() {
     loadFromUrl();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchResults.isLoading, searchResults.allLocations]);
+
+  // Load and validate recent searches on mount
+  useEffect(() => {
+    const loadAndValidateRecentSearches = () => {
+      const storedSearches = loadRecentSearches();
+      const validatedSearches = storedSearches.map(search => ({
+        ...search,
+        locations: validateStoredLocations(search.locations, searchResults.allLocations)
+      })).filter(search => search.locations.length > 0);
+      setRecentSearches(validatedSearches);
+    };
+
+    loadAndValidateRecentSearches();
+  }, [searchResults.allLocations]);
 
   // Transform API response to chart format for D3.js diverging bars
   const transformAPIResponseToChartData = useCallback((
@@ -1122,7 +1141,21 @@ export default function MigrationAnalysisPageContent() {
     
     await loadMigrationData(selectedLocations, dateRange.startDate, dateRange.endDate);
     updateUrlWithLocations(selectedLocations); // Update URL for sharing
-  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations]);
+
+    // Save successful search to recent searches
+    console.log('💾 Saving recent search for locations:', selectedLocations.map(l => l.name));
+    saveRecentSearch(selectedLocations);
+    
+    // Update the recent searches state to reflect the new search
+    setRecentSearches(prev => {
+      const updated = loadRecentSearches();
+      // Validate against current location data
+      return updated.map(search => ({
+        ...search,
+        locations: validateStoredLocations(search.locations, searchResults.allLocations)
+      })).filter(search => search.locations.length > 0);
+    });
+  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations, searchResults.allLocations]);
 
   // Handle new search
   const handleNewSearch = useCallback(() => {
@@ -1180,6 +1213,26 @@ export default function MigrationAnalysisPageContent() {
     }
   }, [handleExecuteQuery, searchResults, handleLocationSelect, searchQuery, selectedLocations, highlightedForDeletion, handleLocationRemove]);
 
+  // Recent searches handlers
+  const handleLoadRecentSearch = useCallback((locations: Location[]) => {
+    const availableSlots = 5 - selectedLocations.length;
+    if (availableSlots <= 0) return;
+
+    // Add locations that fit within the limit
+    const locationsToAdd = locations.slice(0, availableSlots);
+    setSelectedLocations(prev => [...prev, ...locationsToAdd]);
+  }, [selectedLocations.length]);
+
+  const handleRemoveRecentSearch = useCallback((searchId: string) => {
+    removeRecentSearch(searchId);
+    setRecentSearches(prev => prev.filter(search => search.id !== searchId));
+  }, []);
+
+  const handleClearAllRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+  }, []);
+
   const showSearchResults = searchQuery.trim() !== '' || selectedLocations.length === 0 || !chartData;
 
   if (!isConnected) {
@@ -1215,6 +1268,15 @@ export default function MigrationAnalysisPageContent() {
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
+            />
+
+            <RecentSearches
+              recentSearches={recentSearches}
+              onLoadRecentSearch={handleLoadRecentSearch}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+              onClearAllRecentSearches={handleClearAllRecentSearches}
+              currentSelectedCount={selectedLocations.length}
+              maxLocations={5}
             />
           </Box>
         )}

@@ -15,6 +15,7 @@ import { SearchResultsSummary } from '../components/SearchResultsSummary';
 import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
 import CitationFooter from '@/components/citation-footer/citation-footer';
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
+import { RecentSearches } from '../components/RecentSearches';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts, useSankeyMigrationData } from '../hooks';
@@ -22,6 +23,7 @@ import { useUrlParams } from '../hooks/useUrlParams';
 import { Location } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { mapViewReducer, initialState } from '../reducer';
+import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
 
 // Results component
 import SankeyResults from './components/SankeyResults';
@@ -51,6 +53,9 @@ export default function SankeyPageContent() {
 
   // Time period state - initialized with empty values, will be populated from metadata
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
+
+  // Recent searches state
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   // Handle date range change
   const handleDateRangeChange = useCallback((startDate: string, endDate: string) => {
@@ -154,6 +159,20 @@ export default function SankeyPageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam, searchResults.isLoading, searchResults.allLocations]);
 
+  // Load and validate recent searches on mount
+  useEffect(() => {
+    const loadAndValidateRecentSearches = () => {
+      const storedSearches = loadRecentSearches();
+      const validatedSearches = storedSearches.map(search => ({
+        ...search,
+        locations: validateStoredLocations(search.locations, searchResults.allLocations)
+      })).filter(search => search.locations.length > 0);
+      setRecentSearches(validatedSearches);
+    };
+
+    loadAndValidateRecentSearches();
+  }, [searchResults.allLocations]);
+
   // Handlers  
   const handleLocationSelect = useCallback((location: Location) => {
     if (canAddMoreLocations(memoizedSelectedLocations.length, SANKEY_CONSTRAINTS.MAX_TOTAL_LOCATIONS)) {
@@ -190,11 +209,25 @@ export default function SankeyPageContent() {
       );
       updateUrlWithLocations(memoizedSelectedLocations); // Update URL for sharing
       dispatch({ type: 'SET_QUERY_SUCCESS' });
+
+      // Save successful search to recent searches
+      console.log('💾 Saving recent search for locations:', memoizedSelectedLocations.map(l => l.name));
+      saveRecentSearch(memoizedSelectedLocations);
+      
+      // Update the recent searches state to reflect the new search
+      setRecentSearches(prev => {
+        const updated = loadRecentSearches();
+        // Validate against current location data
+        return updated.map(search => ({
+          ...search,
+          locations: validateStoredLocations(search.locations, searchResults.allLocations)
+        })).filter(search => search.locations.length > 0);
+      });
     } catch (error) {
       console.error('Query execution error:', error);
       dispatch({ type: 'SET_QUERY_ERROR' });
     }
-  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations, dateRange]);
+  }, [memoizedSelectedLocations, loadMigrationData, updateUrlWithLocations, dateRange, searchResults.allLocations]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     // Handle Enter key
@@ -228,6 +261,28 @@ export default function SankeyPageContent() {
     }
   }, [handleExecuteQuery, hasSearchResults, searchResults, memoizedSelectedLocations, state.searchQuery, state.highlightedForDeletion, handleLocationSelect]);
 
+  // Recent searches handlers
+  const handleLoadRecentSearch = useCallback((locations: Location[]) => {
+    const availableSlots = 5 - state.selectedLocations.length;
+    if (availableSlots <= 0) return;
+
+    // Add locations that fit within the limit
+    const locationsToAdd = locations.slice(0, availableSlots);
+    locationsToAdd.forEach(location => {
+      dispatch({ type: 'ADD_LOCATION', payload: location });
+    });
+  }, [state.selectedLocations.length]);
+
+  const handleRemoveRecentSearch = useCallback((searchId: string) => {
+    removeRecentSearch(searchId);
+    setRecentSearches(prev => prev.filter(search => search.id !== searchId));
+  }, []);
+
+  const handleClearAllRecentSearches = useCallback(() => {
+    clearRecentSearches();
+    setRecentSearches([]);
+  }, []);
+
   return (
     <Box sx={{ width: '100%' }}>
       <Header />
@@ -251,6 +306,15 @@ export default function SankeyPageContent() {
               onSearchChange={handleSearchQueryChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
+            />
+
+            <RecentSearches
+              recentSearches={recentSearches}
+              onLoadRecentSearch={handleLoadRecentSearch}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+              onClearAllRecentSearches={handleClearAllRecentSearches}
+              currentSelectedCount={state.selectedLocations.length}
+              maxLocations={5}
             />
           </Box>
         )}
