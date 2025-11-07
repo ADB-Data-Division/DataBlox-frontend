@@ -86,6 +86,10 @@ export default function SankeyPageContent() {
     clearUrlParams(); // Clear URL params on reset
   }, [resetMigrationData, migrationData.apiResponse, clearUrlParams]);
 
+  const handleEditSearch = useCallback(() => {
+    dispatch({ type: 'EDIT_SEARCH' });
+  }, []);
+
   // Load locations from URL on mount
   useEffect(() => {
     const loadFromUrl = async () => {
@@ -267,6 +271,7 @@ export default function SankeyPageContent() {
               startDate={migrationData.apiResponse?.metadata.start_date || ''}
               endDate={migrationData.apiResponse?.metadata.end_date || ''}
               onNewSearch={handleReset}
+              onEditSearch={handleEditSearch}
               apiResponse={migrationData.apiResponse}
               loading={migrationData.isLoading}
               error={migrationData.error}

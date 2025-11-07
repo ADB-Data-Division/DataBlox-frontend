@@ -27,6 +27,7 @@ interface MigrationResultsTableProps {
   selectedLocations: Location[];
   selectedPeriod: string;
   onNewSearch: () => void;
+  onEditSearch: () => void;
   onPeriodChange: (period: string, startDate: string, endDate: string) => void;
   // Migration data passed from parent
   mapNodes: MapNode[];
@@ -47,6 +48,7 @@ export default function MigrationResultsTable({
   selectedLocations, 
   selectedPeriod,
   onNewSearch,
+  onEditSearch,
   onPeriodChange,
   mapNodes,
   mapConnections,
@@ -133,6 +135,20 @@ export default function MigrationResultsTable({
             }}
           />
         </Box>
+
+        <Button 
+          variant="outlined" 
+          size="small"
+          onClick={onEditSearch}
+          sx={{ 
+            borderRadius: 1.5,
+            textTransform: 'none',
+            fontWeight: 600,
+            mr: 1,
+          }}
+        >
+          Edit Search
+        </Button>
 
         <Button 
           variant="outlined" 

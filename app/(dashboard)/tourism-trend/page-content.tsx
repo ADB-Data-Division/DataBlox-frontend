@@ -807,6 +807,16 @@ export default function MigrationAnalysisPageContent() {
     }, 100);
   }, []);
 
+  // Handle edit search
+  const handleEditSearch = useCallback(() => {
+    setChartData(null);
+    setError(null);
+    
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
   // Handle key down events
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
@@ -920,6 +930,14 @@ export default function MigrationAnalysisPageContent() {
                   </Typography>
                   
                 </Box>
+                <Button 
+                  variant="outlined" 
+                  onClick={handleEditSearch}
+                  sx={{ mt: 1, mr: 1 }}
+                >
+                  Edit Search
+                </Button>
+
                 <Button 
                   variant="outlined" 
                   onClick={handleNewSearch}

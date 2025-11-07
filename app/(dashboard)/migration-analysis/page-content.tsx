@@ -1139,6 +1139,17 @@ export default function MigrationAnalysisPageContent() {
     }, 100);
   }, [clearUrlParams]);
 
+  // Handle edit search
+  const handleEditSearch = useCallback(() => {
+    setChartData(null);
+    setError(null);
+    setActiveVisualization('migration-comparison'); // Reset to default visualization
+    
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
   // Handle key down events
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
@@ -1304,6 +1315,20 @@ export default function MigrationAnalysisPageContent() {
                     {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
                   </Typography>
                 </Box>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleEditSearch}
+                  sx={{
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    mr: 1,
+                  }}
+                >
+                  Edit Search
+                </Button>
 
                 <Button
                   variant="outlined"

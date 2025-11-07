@@ -118,6 +118,10 @@ export default function PageContent() {
     }, 100);
   };
 
+  const handleEditSearch = () => {
+    dispatch({ type: 'EDIT_SEARCH' });
+  };
+
   const handleRetryMigrationData = useCallback(() => {
     if (memoizedSelectedLocations.length > 0) {
       loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
@@ -311,6 +315,7 @@ export default function PageContent() {
               selectedLocations={state.selectedLocations}
               selectedPeriod={state.selectedPeriod}
               onNewSearch={handleReset}
+              onEditSearch={handleEditSearch}
               onPeriodChange={handlePeriodChange}
               mapNodes={migrationData.mapNodes}
               mapConnections={migrationData.mapConnections}

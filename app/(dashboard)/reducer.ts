@@ -49,7 +49,8 @@ export type MapViewAction =
   | { type: 'UPDATE_TOTAL_RESULTS'; payload: number }
   | { type: 'RESET_PAGINATION' }
   | { type: 'SET_PAGE_SIZE'; payload: number }
-  | { type: 'TOGGLE_YEAR_MONTH'; payload: boolean };
+  | { type: 'TOGGLE_YEAR_MONTH'; payload: boolean }
+  | { type: 'EDIT_SEARCH' };
 
 /**
  * Initial state for the reducer
@@ -247,6 +248,14 @@ export function mapViewReducer(state: MapViewState, action: MapViewAction): MapV
       return {
         ...state,
         showYearMonth: action.payload
+      };
+
+    case 'EDIT_SEARCH':
+      return {
+        ...state,
+        queryExecutionState: 'idle',
+        showSearchResults: true,
+        isLoading: false,
       };
 
     default:

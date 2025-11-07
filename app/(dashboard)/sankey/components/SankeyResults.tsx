@@ -17,6 +17,7 @@ interface SankeyResultsProps {
   startDate: string;
   endDate: string;
   onNewSearch: () => void;
+  onEditSearch: () => void;
   apiResponse: MigrationResponse | null;
   loading: boolean;
   error: string | null;
@@ -50,6 +51,7 @@ export default function SankeyResults({
   startDate,
   endDate,
   onNewSearch,
+  onEditSearch,
   apiResponse,
   loading,
   error,
@@ -192,6 +194,20 @@ export default function SankeyResults({
             }}
           />
         </Box>
+
+        <Button 
+          variant="outlined" 
+          size="small"
+          onClick={onEditSearch}
+          sx={{ 
+            borderRadius: 1.5,
+            textTransform: 'none',
+            fontWeight: 600,
+            mr: 1,
+          }}
+        >
+          Edit Search
+        </Button>
 
         <Button 
           variant="outlined" 
