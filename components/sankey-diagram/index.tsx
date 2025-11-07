@@ -36,7 +36,7 @@ export default function SankeyDiagram({
   const [dimensions, setDimensions] = React.useState({ width: 1200, height: 700 });
 
   // Transform API response into simplified Sankey data format
-  // Year → Source Location → Destination Location (aggregated across months)
+  // Source Location → Destination Location (aggregated across selected time periods)
   const sankeyData = useMemo(() => {
     if (!apiResponse || !apiResponse.flows || apiResponse.flows.length === 0) {
       return null;
@@ -55,8 +55,7 @@ export default function SankeyDiagram({
     const nodes: SankeyNodeData[] = [];
     const links: SankeyLinkData[] = [];
     const nodeMap = new Map<string, SankeyNodeData>();
-    
-    const yearColor = '#1f77b4';
+
     const sourceColor = '#2ca02c';
     const destColor = '#d62728';
 
@@ -70,225 +69,97 @@ export default function SankeyDiagram({
       return nodeMap.get(id)!;
     };
 
-    // Group flows by time period (year or month-year depending on filtering)
-    const flowsByPeriod = new Map<string, typeof apiResponse.flows>();
-    const periodLabels = new Map<string, string>();
-    
+    // Aggregate flows by source and destination across all time periods
+    const sourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number>; timePeriods: Set<string> }>>();
+
     // Determine if we're showing monthly or yearly granularity
     const isMonthlyGranularity = apiResponse.time_periods.length === 1;
-    
+    const timePeriodLabel = isMonthlyGranularity
+      ? `${new Date(apiResponse.time_periods[0].start_date).toLocaleString('default', { month: 'long' })} ${new Date(apiResponse.time_periods[0].start_date).getFullYear()}`
+      : `${new Date(apiResponse.time_periods[0].start_date).getFullYear()}`;
+
     apiResponse.flows.forEach(flow => {
+      const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
+      const destKey = `${flow.destination.id}|${flow.destination.name}`;
+
+      if (!sourceDestFlows.has(sourceKey)) {
+        sourceDestFlows.set(sourceKey, new Map());
+      }
+
+      const destMap = sourceDestFlows.get(sourceKey)!;
+      if (!destMap.has(destKey)) {
+        destMap.set(destKey, { count: 0, monthBreakdown: new Map(), timePeriods: new Set() });
+      }
+
+      const destData = destMap.get(destKey)!;
+      destData.count += flow.flow_count;
+
+      // Track month breakdown for tooltips
       const period = apiResponse.time_periods.find(p => p.id === flow.time_period_id);
-      if (!period) return;
-      
-      const year = new Date(period.start_date).getFullYear();
-      const month = new Date(period.start_date).getMonth();
-      
-      let periodKey: string;
-      let periodLabel: string;
-      
-      if (isMonthlyGranularity) {
-        periodKey = `${year}-${month}`;
-        periodLabel = `${new Date(period.start_date).toLocaleString('default', { month: 'long' })} ${year}`;
-      } else {
-        periodKey = `${year}`;
-        periodLabel = `${year}`;
+      if (period) {
+        const month = new Date(period.start_date).toLocaleString('default', { month: 'short' });
+        destData.monthBreakdown.set(month, (destData.monthBreakdown.get(month) || 0) + flow.flow_count);
+        destData.timePeriods.add(new Date(period.start_date).getFullYear().toString());
       }
-      
-      if (!flowsByPeriod.has(periodKey)) {
-        flowsByPeriod.set(periodKey, []);
-      }
-      flowsByPeriod.get(periodKey)!.push(flow);
-      periodLabels.set(periodKey, periodLabel);
     });
 
-    // Sort periods chronologically
-    const sortedPeriods = Array.from(flowsByPeriod.keys()).sort();
-
-    console.log('📅 Periods detected in data:', {
-      periods: sortedPeriods,
-      labels: sortedPeriods.map(p => periodLabels.get(p)),
-      isMonthlyGranularity: apiResponse.time_periods.length === 1,
-      flowCountByPeriod: Object.fromEntries(
-        sortedPeriods.map(p => [p, flowsByPeriod.get(p)!.length])
-      )
+    console.log('📊 Aggregated flows across time periods:', {
+      totalSourceDestPairs: Array.from(sourceDestFlows.values()).reduce((sum, destMap) => sum + destMap.size, 0),
+      isMonthlyGranularity,
+      timePeriodLabel
     });
 
-    // Process each period
-    sortedPeriods.forEach(periodKey => {
-      const periodFlows = flowsByPeriod.get(periodKey)!;
-      const periodLabel = periodLabels.get(periodKey)!;
-      
-      // Layer 0: Period node (year or month-year)
-      const periodNode = getOrCreateNode(`period-${periodKey}`, periodLabel, 0, yearColor, periodKey);
+    // Create nodes and links for Source → Destination
+    sourceDestFlows.forEach((destMap, sourceKey) => {
+      const [sourceId, sourceName] = sourceKey.split('|');
 
-      if (isMonthlyGranularity) {
-        // 3-layer structure for monthly granularity: Month-Year → Source → Destination
-        // Aggregate flows by source and destination within this period
-        const periodSourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number> }>>();
-        
-        periodFlows.forEach(flow => {
-          const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
-          const destKey = `${flow.destination.id}|${flow.destination.name}`;
-          
-          if (!periodSourceDestFlows.has(sourceKey)) {
-            periodSourceDestFlows.set(sourceKey, new Map());
-          }
-          
-          const destMap = periodSourceDestFlows.get(sourceKey)!;
-          if (!destMap.has(destKey)) {
-            destMap.set(destKey, { count: 0, monthBreakdown: new Map() });
-          }
-          
-          const destData = destMap.get(destKey)!;
-          destData.count += flow.flow_count;
-          
-          // For monthly view, we don't need month breakdown since it's already filtered to one month
-        });
+      // Layer 0: Source node
+      const sourceNode = getOrCreateNode(
+        `source-${sourceId}`,
+        sourceName,
+        0,
+        sourceColor,
+        sourceName
+      );
 
-        // Create nodes and links for this period
-        periodSourceDestFlows.forEach((destMap, sourceKey) => {
-          const [sourceId, sourceName] = sourceKey.split('|');
-          
-          // Layer 1: Source node
-          const sourceNode = getOrCreateNode(
-            `source-${periodKey}-${sourceId}`,
-            sourceName,
-            1,
-            sourceColor,
-            `${periodKey}-${sourceName}`
-          );
+      // Create source → destination links
+      destMap.forEach((destData, destKey) => {
+        const [destId, destName] = destKey.split('|');
 
-          // Create period → source link
-          const totalSourceFlow = Array.from(destMap.values()).reduce((sum, d) => sum + (d as any).count, 0);
-          links.push({
-            source: periodNode,
-            target: sourceNode,
-            value: totalSourceFlow,
-            flowCount: totalSourceFlow,
-            year: periodLabel
+        // Layer 1: Destination node
+        const destNode = getOrCreateNode(
+          `dest-${destId}`,
+          destName,
+          1,
+          destColor,
+          destName
+        );
+
+        // Convert month breakdown to array for tooltips
+        const monthBreakdown = Array.from(destData.monthBreakdown.entries())
+          .map(([month, count]) => ({ month, count }))
+          .sort((a, b) => {
+            const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
           });
 
-          // Create source → destination links
-          destMap.forEach((destData, destKey) => {
-            const [destId, destName] = destKey.split('|');
-            
-            // Layer 2: Destination node
-            const destNode = getOrCreateNode(
-              `dest-${periodKey}-${destId}`,
-              destName,
-              2,
-              destColor,
-              `${periodKey}-${destName}`
-            );
-
-            links.push({
-              source: sourceNode,
-              target: destNode,
-              value: (destData as any).count,
-              flowCount: (destData as any).count,
-              year: periodLabel
-            });
-          });
+        links.push({
+          source: sourceNode,
+          target: destNode,
+          value: destData.count,
+          flowCount: destData.count,
+          year: timePeriodLabel,
+          monthBreakdown: monthBreakdown.length > 0 ? monthBreakdown : undefined
         });
-      } else {
-        // 3-layer structure for yearly granularity: Year → Source → Destination
-        // Aggregate flows by source and destination within this period
-        const periodSourceDestFlows = new Map<string, Map<string, { count: number; monthBreakdown: Map<string, number> }>>();
-        
-        periodFlows.forEach(flow => {
-          const sourceKey = `${flow.origin.id}|${flow.origin.name}`;
-          const destKey = `${flow.destination.id}|${flow.destination.name}`;
-          
-          if (!periodSourceDestFlows.has(sourceKey)) {
-            periodSourceDestFlows.set(sourceKey, new Map());
-          }
-          
-          const destMap = periodSourceDestFlows.get(sourceKey)!;
-          if (!destMap.has(destKey)) {
-            destMap.set(destKey, { count: 0, monthBreakdown: new Map() });
-          }
-          
-          const destData = destMap.get(destKey)!;
-          destData.count += flow.flow_count;
-          
-          // Track month breakdown
-          const period = apiResponse.time_periods.find(p => p.id === flow.time_period_id);
-          if (period) {
-            const month = new Date(period.start_date).toLocaleString('default', { month: 'short' });
-            destData.monthBreakdown.set(month, (destData.monthBreakdown.get(month) || 0) + flow.flow_count);
-          }
-        });
-
-        // Create nodes and links for this period
-        periodSourceDestFlows.forEach((destMap, sourceKey) => {
-          const [sourceId, sourceName] = sourceKey.split('|');
-          
-          // Layer 1: Source node
-          const sourceNode = getOrCreateNode(
-            `source-${periodKey}-${sourceId}`,
-            sourceName,
-            1,
-            sourceColor,
-            `${periodKey}-${sourceName}`
-          );
-
-          // Create period → source link
-          const totalSourceFlow = Array.from(destMap.values()).reduce((sum, d) => sum + (d as any).count, 0);
-          links.push({
-            source: periodNode,
-            target: sourceNode,
-            value: totalSourceFlow,
-            flowCount: totalSourceFlow,
-            year: periodLabel
-          });
-
-          // Create source → destination links
-          destMap.forEach((destData, destKey) => {
-            const [destId, destName] = destKey.split('|');
-            
-            // Layer 2: Destination node
-            const destNode = getOrCreateNode(
-              `dest-${periodKey}-${destId}`,
-              destName,
-              2,
-              destColor,
-              `${periodKey}-${destName}`
-            );
-
-            // Convert month breakdown to array
-            const monthBreakdown = (Array.from((destData as any).monthBreakdown.entries()) as [string, number][])
-              .map(([month, count]) => ({ month, count }))
-              .sort((a, b) => {
-                const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                return monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
-              });
-
-            // Extract month from periodKey if it exists (format: "year-month")
-            const monthFromKey = periodKey.includes('-') ? periodKey.split('-')[1] : undefined;
-            const monthName = monthFromKey ? new Date(2000, parseInt(monthFromKey)).toLocaleString('default', { month: 'long' }) : undefined;
-
-            links.push({
-              source: sourceNode,
-              target: destNode,
-              value: (destData as any).count,
-              flowCount: (destData as any).count,
-              year: periodLabel,
-              month: monthName,
-              monthBreakdown
-            });
-          });
-        });
-      }
+      });
     });
 
     console.log('🎨 Simplified Sankey processed:', {
       totalNodes: nodes.length,
       totalLinks: links.length,
       nodesByLayer: {
-        periods: nodes.filter(n => n.layer === 0).length,
-        sources: nodes.filter(n => n.layer === 1).length,
-        destinations: nodes.filter(n => n.layer === 2).length
+        sources: nodes.filter(n => n.layer === 0).length,
+        destinations: nodes.filter(n => n.layer === 1).length
       }
     });
 
@@ -297,10 +168,9 @@ export default function SankeyDiagram({
       return null;
     }
 
-    return { 
-      nodes, 
-      links,
-      isMonthlyGranularity: apiResponse.time_periods.length === 1
+    return {
+      nodes,
+      links
     };
   }, [apiResponse]);
 
@@ -332,24 +202,16 @@ export default function SankeyDiagram({
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Get granularity from processed data
-    const isMonthlyGranularity = sankeyData.isMonthlyGranularity;
-
     // Create Sankey generator with vertical layout
     const sankeyGenerator = sankey<SankeyNodeData, SankeyLinkData>()
       .nodeWidth(20)
       .nodePadding(15)
       .extent([[1, 1], [innerWidth - 1, innerHeight - 6]])
       .nodeSort((a: any, b: any) => {
-        // Sort by layer first
+        // Sort by layer first (0 = sources, 1 = destinations)
         if (a.layer !== b.layer) return a.layer - b.layer;
-        
-        // Within same layer, sort by sortKey (chronological for months, grouped for sources/dests)
-        if (a.sortKey && b.sortKey) {
-          return a.sortKey.localeCompare(b.sortKey);
-        }
-        
-        // Fallback to name
+
+        // Within same layer, sort alphabetically by name
         return a.name.localeCompare(b.name);
       });
 
@@ -398,10 +260,8 @@ export default function SankeyDiagram({
       totalNodes: graphData.nodes.length,
       totalLinks: graphData.links.length,
       nodesByLayer: {
-        0: graphData.nodes.filter(n => n.layer === 0).map(n => n.name),
-        1: graphData.nodes.filter(n => n.layer === 1).map(n => n.name),
-        2: graphData.nodes.filter(n => n.layer === 2).map(n => n.name),
-        3: graphData.nodes.filter(n => n.layer === 3).map(n => n.name)
+        sources: graphData.nodes.filter(n => n.layer === 0).map(n => n.name),
+        destinations: graphData.nodes.filter(n => n.layer === 1).map(n => n.name)
       },
       sampleLinks: graphData.links.slice(0, 5).map((l: any) => ({
         source: l.source,
@@ -475,36 +335,20 @@ export default function SankeyDiagram({
         const linkMetadata = sankeyData.links.find(
           l => l.source.id === d.source.id && l.target.id === d.target.id
         );
-        
+
         if (linkMetadata) {
-          const sourceLayer = d.source.layer;
-          const targetLayer = d.target.layer;
-          
-          if (sourceLayer === 0 && targetLayer === 1 && isMonthlyGranularity) {
-            // Monthly view: Period → Source
-            tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${d.source.name}: ${d.target.name} → ...</div>`;
-            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Outgoing: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
-          } else if (sourceLayer === 1 && targetLayer === 2 && isMonthlyGranularity) {
-            // Monthly view: Source → Destination
-            tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${linkMetadata.year}: ${d.source.name} → ${d.target.name}</div>`;
-            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
-          } else if (sourceLayer === 1 && targetLayer === 2 && !isMonthlyGranularity) {
-            // Yearly view: Source → Destination
-            tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${linkMetadata.year}: ${d.source.name} → ${d.target.name}</div>`;
-            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
-            
-            // Show month breakdown if available
-            if (linkMetadata.monthBreakdown && linkMetadata.monthBreakdown.length > 0) {
-              tooltipHtml += `<div style="border-top: 1px solid #666; padding-top: 8px; margin-top: 8px;">`;
-              tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 6px;">Monthly Breakdown:</div>`;
-              linkMetadata.monthBreakdown.forEach(({ month, count }) => {
-                tooltipHtml += `<div style="font-size: 11px; margin-bottom: 2px;">• <strong>${month}:</strong> ${count.toLocaleString()}</div>`;
-              });
-              tooltipHtml += `</div>`;
-            }
-          } else {
-            tooltipHtml = `<div style="font-weight: 600;">${d.source.name} → ${d.target.name}</div>`;
-            tooltipHtml += `<div style="font-size: 12px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
+          // Source → Destination flow
+          tooltipHtml = `<div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${linkMetadata.year}: ${d.source.name} → ${d.target.name}</div>`;
+          tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">Total: ${d.flowCount?.toLocaleString() || 'N/A'} people</div>`;
+
+          // Show month breakdown if available
+          if (linkMetadata.monthBreakdown && linkMetadata.monthBreakdown.length > 0) {
+            tooltipHtml += `<div style="border-top: 1px solid #666; padding-top: 8px; margin-top: 8px;">`;
+            tooltipHtml += `<div style="font-weight: 600; font-size: 12px; margin-bottom: 6px;">Monthly Breakdown:</div>`;
+            linkMetadata.monthBreakdown.forEach(({ month, count }) => {
+              tooltipHtml += `<div style="font-size: 11px; margin-bottom: 2px;">• <strong>${month}:</strong> ${count.toLocaleString()}</div>`;
+            });
+            tooltipHtml += `</div>`;
           }
         } else {
           tooltipHtml = `<div style="font-weight: 600;">${d.source.name} → ${d.target.name}</div>`;
@@ -517,12 +361,18 @@ export default function SankeyDiagram({
         // Calculate tooltip position to keep it within bounds
         // Reserve more space for edge cases
         const tooltipMaxWidth = 280;
+        const tooltipEstimatedHeight = 200; // Increased estimated height buffer
         let tooltipX = mouseX + 10;
         let tooltipY = Math.max(mouseY - 40, 20);
         
         // Adjust X position if too close to right edge
         if (tooltipX + tooltipMaxWidth > innerWidth) {
           tooltipX = mouseX - tooltipMaxWidth - 10;
+        }
+        
+        // Adjust Y position if too close to bottom edge (with larger buffer)
+        if (tooltipY + tooltipEstimatedHeight > innerHeight) {
+          tooltipY = Math.max(mouseY - tooltipEstimatedHeight - 20, 20);
         }
         
         const tooltip = g.append('g')
@@ -620,12 +470,18 @@ export default function SankeyDiagram({
         
         // Calculate tooltip position to keep it within bounds
         const tooltipMaxWidth = 200;
+        const tooltipEstimatedHeight = 100; // Increased estimated height buffer
         let tooltipX = mouseX + 10;
         let tooltipY = Math.max(mouseY - 50, 20);
         
         // Adjust X position if too close to right edge
         if (tooltipX + tooltipMaxWidth > innerWidth) {
           tooltipX = mouseX - tooltipMaxWidth - 10;
+        }
+        
+        // Adjust Y position if too close to bottom edge (position above mouse)
+        if (tooltipY + tooltipEstimatedHeight > innerHeight) {
+          tooltipY = Math.max(mouseY - tooltipEstimatedHeight - 20, 20);
         }
         
         const tooltip = g.append('g')
@@ -698,15 +554,13 @@ export default function SankeyDiagram({
       .attr('dy', '0.35em')
       .attr('text-anchor', (d: any) => (d.x0 || 0) < innerWidth / 2 ? 'start' : 'end')
       .style('font-family', 'sans-serif')
-      .style('font-size', '12px')
+      .style('font-size', '16px')
       .style('font-weight', 'bold')
       .text((d: any) => d.name);
 
     // Add title with layer labels
-    const titleText = isMonthlyGranularity 
-      ? 'Migration Flow: Month → Source → Destination'
-      : 'Migration Flow: Year → Source → Destination';
-      
+    const titleText = 'Migration Flow: Source → Destination';
+
     svg.append('text')
       .attr('x', width / 2)
       .attr('y', 15)
@@ -716,7 +570,7 @@ export default function SankeyDiagram({
       .style('fill', '#666')
       .text(titleText);
 
-  }, [sankeyData, dimensions, apiResponse?.time_periods?.length]);
+  }, [sankeyData, dimensions]);
 
   if (!sankeyData) {
     return (
@@ -736,12 +590,12 @@ export default function SankeyDiagram({
   }
 
   return (
-    <Box ref={containerRef} sx={{ width: '100%', overflow: 'visible' }}>
+    <Box ref={containerRef} sx={{ width: '100%', overflow: 'visible', position: 'relative' }}>
       <svg
         ref={svgRef}
         width={dimensions.width}
-        height={dimensions.height}
-        style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+        height={dimensions.height + 100} // Add extra height for tooltips
+        style={{ display: 'block', maxWidth: '100%', height: 'auto', overflow: 'visible' }}
       />
     </Box>
   );
