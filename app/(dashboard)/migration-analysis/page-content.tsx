@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Box, Paper, Typography, useTheme, CircularProgress, Button, Chip, ToggleButton, ToggleButtonGroup, Select, MenuItem, FormControl, InputLabel, Fade } from '@mui/material';
-import TimelineIcon from '@mui/icons-material/Timeline';
+import { BarChart } from '@mui/icons-material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import * as d3 from 'd3';
@@ -797,12 +797,6 @@ export default function MigrationAnalysisPageContent() {
   // Visualization selector state
   const [activeVisualization, setActiveVisualization] = useState<'migration-comparison' | 'net-migration-trends' | 'period-comparison'>('migration-comparison');
 
-  // Human-readable descriptions for each visualization (used under the selector)
-  const visualizationDescriptions: Record<string, string> = {
-    'migration-comparison': 'Diverging bar chart showing move-in and move-out per period for selected locations.',
-    'net-migration-trends': 'Line charts comparing trends. Use the Migration Type control to switch between Net, Move In, and Move Out.',
-    'period-comparison': 'Compare snapshots for selected months across the same locations for side-by-side analysis.'
-  };
 
   // Migration trend type selector state
   const [migrationTrendType, setMigrationTrendType] = useState<'net-migration' | 'move-in' | 'move-out'>('net-migration');
@@ -1526,133 +1520,134 @@ export default function MigrationAnalysisPageContent() {
               elevation={0}
               sx={{
                 p: 3,
-                mb: 3,
+                mb: 0,
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 2,
               }}
             >
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-                  Visualization Type
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-                  Choose how to visualize your migration data
-                </Typography>
-              </Box>
 
+              {/* Grouped segmented toggle appearance: single control with equal segments */}
               <ToggleButtonGroup
-                value={activeVisualization}
-                exclusive
-                onChange={(_, newValue) => {
-                  if (newValue !== null) {
-                    setActiveVisualization(newValue);
-                  }
-                }}
-                aria-label="Visualization type"
-                sx={{
-                  display: 'flex',
-                  gap: 1.5,
-                  flexWrap: 'wrap',
-                  '& .MuiToggleButton-root': {
-                    px: 4,
-                    py: 2.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    textTransform: 'none',
-                    border: 'none',
-                    transition: 'all 0.18s ease',
-                    // much wider buttons; full-width on very small screens
-                    minHeight: 56,
-                    minWidth: { xs: '100%', sm: 280 },
-                    // subtle neutral base so gradients on buttons show through
+                  value={activeVisualization}
+                  exclusive
+                  onChange={(_, newValue) => {
+                    if (newValue !== null) {
+                      setActiveVisualization(newValue);
+                    }
+                  }}
+                  aria-label="Visualization type"
+                  sx={{
+                    display: 'flex',
+                    width: '100%',
+                    gap: 0,
+                    p: 0.5,
                     background: theme.palette.mode === 'dark'
-                      ? 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)'
-                      : 'linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.01) 100%)',
-                    '&.Mui-selected': {
-                      transform: 'scale(1.03)',
-                      boxShadow: '0 8px 22px rgba(0,0,0,0.12)',
+                      ? 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))'
+                      : 'linear-gradient(180deg, rgba(0,0,0,0.01), rgba(0,0,0,0))',
+                    '& .MuiToggleButton-root': {
+                      flex: 1,
+                      px: { xs: 3, sm: 4 },
+                      py: 2,
+                      borderRadius: 0,
+                      fontWeight: 600,
+                      fontSize: '0.95rem',
+                      textTransform: 'none',
+                      border: 'none',
+                      transition: 'all 0.14s ease',
+                      minHeight: 64,
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:not(:last-of-type)': {
+                        borderRight: `1px solid ${theme.palette.divider}`,
+                      },
+                      '&:first-of-type': {
+                        borderTopLeftRadius: 12,
+                        borderBottomLeftRadius: 12,
+                      },
+                      '&:last-of-type': {
+                        borderTopRightRadius: 12,
+                        borderBottomRightRadius: 12,
+                      },
+                      '&.Mui-selected': {
+                        transform: 'none',
+                        boxShadow: '0 10px 30px rgba(16,24,40,0.08)',
+                        zIndex: 1,
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-2px)'
+                      },
                     },
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
-                    },
-                  },
-                }}
-              >
-                <ToggleButton
-                  value="migration-comparison"
-                  aria-label="Migration Timeline"
-                  aria-describedby="viz-migration-comparison-desc"
-                  sx={{
-                    // light blue gradient in default state, stronger when selected
-                    background: 'linear-gradient(135deg, rgba(0,52,104,0.06) 0%, rgba(30,136,229,0.04) 100%)',
-                    color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.primary,
-                    '&.Mui-selected': {
-                      background: 'linear-gradient(135deg, #003468 0%, #1E88E5 100%)',
-                      color: 'white',
-                    }
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <TimelineIcon fontSize="small" />
-                    <Box sx={{ textAlign: 'left' }}>
-                      <Typography component="span" sx={{ fontWeight: 700 }}>Migration Timeline</Typography>
-                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Move in & out bars</Typography>
+                  <ToggleButton
+                    value="migration-comparison"
+                    aria-label="Migration Timeline"
+                    aria-describedby="viz-migration-comparison-desc"
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(0,52,104,0.04) 0%, rgba(30,136,229,0.03) 100%)',
+                      color: theme.palette.text.primary,
+                      '&.Mui-selected': {
+                        background: 'linear-gradient(135deg, #003468 0%, #1E88E5 100%)',
+                        color: 'white',
+                      }
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                      <BarChart fontSize="small" />
+                      <Box>
+                        <Typography component="span" sx={{ fontWeight: 700 }}>Migration Timeline</Typography>
+                        <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Move in & out bars</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </ToggleButton>
+                  </ToggleButton>
 
-                <ToggleButton
-                  value="net-migration-trends"
-                  aria-label="Trend Breakdown"
-                  aria-describedby="viz-trend-breakdown-desc"
-                  sx={{
-                    background: 'linear-gradient(135deg, rgba(0,119,190,0.06) 0%, rgba(51,153,211,0.04) 100%)',
-                    color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.primary,
-                    '&.Mui-selected': {
-                      background: 'linear-gradient(135deg, #0077BE 0%, #3399D3 100%)',
-                      color: 'white',
-                    }
-                  }}
-                >
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <ShowChartIcon fontSize="small" />
-                    <Box sx={{ textAlign: 'left' }}>
-                      <Typography component="span" sx={{ fontWeight: 700 }}>Trend Breakdown</Typography>
-                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Line trends by type</Typography>
+                  <ToggleButton
+                    value="net-migration-trends"
+                    aria-label="Trend Breakdown"
+                    aria-describedby="viz-trend-breakdown-desc"
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(0,119,190,0.04) 0%, rgba(51,153,211,0.03) 100%)',
+                      color: theme.palette.text.primary,
+                      '&.Mui-selected': {
+                        background: 'linear-gradient(135deg, #0077BE 0%, #3399D3 100%)',
+                        color: 'white',
+                      }
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                      <ShowChartIcon fontSize="small" />
+                      <Box>
+                        <Typography component="span" sx={{ fontWeight: 700 }}>Trend Breakdown</Typography>
+                        <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Line trends by type</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </ToggleButton>
+                  </ToggleButton>
 
-                <ToggleButton
-                  value="period-comparison"
-                  aria-label="Period Comparison"
-                  aria-describedby="viz-period-comparison-desc"
-                  sx={{
-                    background: 'linear-gradient(135deg, rgba(30,136,229,0.06) 0%, rgba(66,165,245,0.04) 100%)',
-                    color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.primary,
-                    '&.Mui-selected': {
-                      background: 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)',
-                      color: 'white',
-                    }
-                  }}
-                >
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <CompareArrowsIcon fontSize="small" />
-                    <Box sx={{ textAlign: 'left' }}>
-                      <Typography component="span" sx={{ fontWeight: 700 }}>Period Comparison</Typography>
-                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Compare moments in time</Typography>
+                  <ToggleButton
+                    value="period-comparison"
+                    aria-label="Period Comparison"
+                    aria-describedby="viz-period-comparison-desc"
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(30,136,229,0.04) 0%, rgba(66,165,245,0.03) 100%)',
+                      color: theme.palette.text.primary,
+                      '&.Mui-selected': {
+                        background: 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)',
+                        color: 'white',
+                      }
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                      <CompareArrowsIcon fontSize="small" />
+                      <Box>
+                        <Typography component="span" sx={{ fontWeight: 700 }}>Period Comparison</Typography>
+                        <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Compare moments in time</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </ToggleButton>
-              </ToggleButtonGroup>
+                  </ToggleButton>
+                </ToggleButtonGroup>
 
-              {/* Dynamic description visible beneath the segmented control */}
-              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 1 }}>
-                {visualizationDescriptions[activeVisualization]}
-              </Typography>
+              {/* (Visible descriptions removed — rely on per-card captions and screen-reader text) */}
 
               {/* Hidden descriptions for screen readers */}
               <Box id="viz-migration-comparison-desc" sx={{ position: 'absolute', left: -9999, top: 'auto', width: 1, height: 1, overflow: 'hidden' }}>
@@ -1665,10 +1660,23 @@ export default function MigrationAnalysisPageContent() {
                 Choose specific months to compare side-by-side across selected locations.
               </Box>
             </Paper>
+          </Box>
+        )}
 
-            {/* Migration Comparison Visualization */}
-            {activeVisualization === 'migration-comparison' && (
-              <Box display="flex" gap={3} mb={3}>
+        {/* Migration Comparison Visualization */}
+        {chartData && !isLoading && !error && activeVisualization === 'migration-comparison' && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box display="flex" gap={3} >
                 {/* Chart Container */}
                 <Paper
                   elevation={0}
@@ -1708,7 +1716,7 @@ export default function MigrationAnalysisPageContent() {
                   />
                 </Paper>
               </Box>
-            )}
+            </Paper>
           </Box>
         )}
 
@@ -1760,7 +1768,7 @@ export default function MigrationAnalysisPageContent() {
 
         {/* Net Migration Trends Visualization */}
         {chartData && !isLoading && !error && activeVisualization === 'net-migration-trends' && (
-          <Box sx={{ px: 2, py: 2 }}>
+          <Box sx={{ px: 2, py: 2}}>
             <Paper
               elevation={0}
               sx={{
@@ -1772,12 +1780,6 @@ export default function MigrationAnalysisPageContent() {
               }}
             >
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-                  Trend Breakdown
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
-                  Time series analysis of migration patterns. Switch between net migration, move-in, and move-out data to explore different aspects of population movement.
-                </Typography>
 
                 <FormControl size="small" sx={{ minWidth: 200 }}>
                   <InputLabel>Migration Type</InputLabel>
@@ -1849,6 +1851,7 @@ export default function MigrationAnalysisPageContent() {
               elevation={0}
               sx={{
                 p: 3,
+                pb: 2,
                 mb: 3,
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
                 border: `1px solid ${theme.palette.divider}`,
@@ -1864,7 +1867,7 @@ export default function MigrationAnalysisPageContent() {
                 </Typography>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              <Box >
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
                   Selected Periods ({selectedPeriods.length})
                 </Typography>
