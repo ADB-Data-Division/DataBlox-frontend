@@ -1400,120 +1400,116 @@ export default function MigrationAnalysisPageContent() {
         {/* Chart Display */}
         {chartData && !isLoading && !error && (
           <Box sx={{ px: 2, py: 2 }}>
-            {/* Title Card */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                mb: 3,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 2,
-              }}
-            >
-              <Box>
-                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-                  {getMigrationAnalysisTitle(chartData.locations)}
-                </Typography>
-                <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
-                  Migration Timeline
-                </Typography>
+            {/* Title Card and Date Range Selector Row */}
+            <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+              {/* Multi-province migration analysis card */}
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 40%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                    {getMigrationAnalysisTitle(chartData.locations)}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                    Migration Timeline
+                  </Typography>
 
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    mb: 1.5
-                  }}
-                >
-                  Selected Locations
-                </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      mb: 1.5
+                    }}
+                  >
+                    Selected Locations
+                  </Typography>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {chartData.locations.map((location) => (
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {chartData.locations.map((location) => (
+                      <Chip
+                        key={location.uniqueId}
+                        icon={getLocationIcon(location.type)}
+                        label={location.name}
+                        color={getLocationColor(location.type)}
+                        size="medium"
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: '0.875rem'
+                        }}
+                      />
+                    ))}
                     <Chip
-                      key={location.uniqueId}
-                      icon={getLocationIcon(location.type)}
-                      label={location.name}
-                      color={getLocationColor(location.type)}
-                      size="medium"
+                      label={`${chartData.locations.length} location${chartData.locations.length > 1 ? 's' : ''}`}
+                      size="small"
+                      variant="outlined"
                       sx={{ 
-                        fontWeight: 600,
-                        fontSize: '0.875rem'
+                        fontWeight: 500,
+                        fontSize: '0.75rem',
+                        borderStyle: 'dashed'
                       }}
                     />
-                  ))}
-                  <Chip
-                    label={`${chartData.locations.length} location${chartData.locations.length > 1 ? 's' : ''}`}
-                    size="small"
-                    variant="outlined"
-                    sx={{ 
-                      fontWeight: 500,
-                      fontSize: '0.75rem',
-                      borderStyle: 'dashed'
-                    }}
-                  />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleEditSearch}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Edit Search
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleNewSearch}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      New Search
+                    </Button>
+                  </Box>
                 </Box>
+              </Paper>
 
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
-                    Analysis Period:
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
-                    {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
-                  </Typography>
-                </Box>
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleEditSearch}
-                  sx={{
-                    borderRadius: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    mr: 1,
-                  }}
-                >
-                  Edit Search
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleNewSearch}
-                  sx={{
-                    borderRadius: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                  }}
-                >
-                  New Search
-                </Button>
-              </Box>
-            </Paper>
-
-            {/* Date Range Selector for changing periods after query execution */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                mb: 3,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 2,
-              }}
-            >
-              <MigrationAnalysisDuration
-                selectedStartDate={dateRange.startDate}
-                selectedEndDate={dateRange.endDate}
-                onDateRangeChange={handleDateRangeChange}
-              />
-            </Paper>
+              {/* Migration Analysis Duration Card */}
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 58.5%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <MigrationAnalysisDuration
+                  selectedStartDate={dateRange.startDate}
+                  selectedEndDate={dateRange.endDate}
+                  onDateRangeChange={handleDateRangeChange}
+                />
+              </Paper>
+            </Box>
 
             {/* Visualization Selector */}
             <Paper

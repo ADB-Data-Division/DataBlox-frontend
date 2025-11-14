@@ -144,84 +144,104 @@ export default function SankeyResults({
 
   return (
     <Box>
-      {/* Header Section */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3.5,
-          mb: 3,
-          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: 2,
-        }}
-      >
-        <Typography 
-          variant="subtitle2" 
-          color="text.secondary" 
-          sx={{ 
-            textTransform: 'uppercase', 
-            letterSpacing: 0.5,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            mb: 1.5
+      {/* Header Section - Selected Locations and Date Range side-by-side (40:60) */}
+      <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            flex: '0 0 40%',
+            p: 3.5,
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 2,
           }}
         >
-          Selected Locations
-        </Typography>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          {selectedLocations.map((location, index) => (
+          <Typography 
+            variant="subtitle2" 
+            color="text.secondary" 
+            sx={{ 
+              textTransform: 'uppercase', 
+              letterSpacing: 0.5,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              mb: 1.5
+            }}
+          >
+            Selected Locations
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            {selectedLocations.map((location, index) => (
+              <Chip
+                key={location.id}
+                icon={getLocationIcon(location.type)}
+                label={location.name}
+                color={getLocationColor(location.type)}
+                size="medium"
+                sx={{ 
+                  fontWeight: 600,
+                  fontSize: '0.875rem'
+                }}
+              />
+            ))}
             <Chip
-              key={location.id}
-              icon={getLocationIcon(location.type)}
-              label={location.name}
-              color={getLocationColor(location.type)}
-              size="medium"
+              label={`${selectedLocations.length} location${selectedLocations.length > 1 ? 's' : ''}`}
+              size="small"
+              variant="outlined"
               sx={{ 
-                fontWeight: 600,
-                fontSize: '0.875rem'
+                fontWeight: 500,
+                fontSize: '0.75rem',
+                borderStyle: 'dashed'
               }}
             />
-          ))}
-          <Chip
-            label={`${selectedLocations.length} location${selectedLocations.length > 1 ? 's' : ''}`}
-            size="small"
-            variant="outlined"
-            sx={{ 
-              fontWeight: 500,
-              fontSize: '0.75rem',
-              borderStyle: 'dashed'
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button 
+              variant="outlined" 
+              size="small"
+              onClick={onEditSearch}
+              sx={{ 
+                borderRadius: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+                mr: 1,
+              }}
+            >
+              Edit Search
+            </Button>
+
+            <Button 
+              variant="outlined" 
+              size="small"
+              onClick={onNewSearch}
+              sx={{ 
+                borderRadius: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
+              New Search
+            </Button>
+          </Box>
+        </Paper>
+
+        {/* Right column - Migration Analysis Duration */}
+        {dateRangeControls ? (
+          <Paper
+            elevation={0}
+            sx={{
+              flex: '0 0 58.5%',
+              p: 3,
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
             }}
-          />
-        </Box>
-
-        <Button 
-          variant="outlined" 
-          size="small"
-          onClick={onEditSearch}
-          sx={{ 
-            borderRadius: 1.5,
-            textTransform: 'none',
-            fontWeight: 600,
-            mr: 1,
-          }}
-        >
-          Edit Search
-        </Button>
-
-        <Button 
-          variant="outlined" 
-          size="small"
-          onClick={onNewSearch}
-          sx={{ 
-            borderRadius: 1.5,
-            textTransform: 'none',
-            fontWeight: 600,
-          }}
-        >
-          New Search
-        </Button>
-      </Paper>
+          >
+            {dateRangeControls}
+          </Paper>
+        ) : null}
+      </Box>
       
       {/* Results Container */}
       <Paper 
