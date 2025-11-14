@@ -359,7 +359,7 @@ export default function SankeyResults({
               <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block', textAlign: 'center', maxWidth: 900, mx: 'auto' }}>
                 {selectedMonth !== 'all'
                   ? `Showing migration flows for ${new Date(parseInt(selectedYear), parseInt(selectedMonth)).toLocaleString('default', { month: 'long', year: 'numeric' })}. Flow thickness represents migration volume.`
-                  : `Showing migration flows for ${selectedYear || 'selected year'}. Hover over flows to see monthly breakdown. Flow thickness represents total migration volume.`
+                  : `Showing migration flows for ${selectedYear || 'selected year'}. Click on a flow to see monthly breakdown. Flow thickness represents total migration volume.`
                 }
               </Typography>
             </Paper>

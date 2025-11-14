@@ -34,6 +34,31 @@ export default function SankeyDiagram({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = React.useState({ width: 1200, height: 700 });
+  const [selectedElement, setSelectedElement] = React.useState<{ type: 'link' | 'node'; data: any } | null>(null);
+
+  // Function to clear selection and reset styles
+  const clearSelection = React.useCallback(() => {
+    setSelectedElement(null);
+    
+    // Only try to reset styles if SVG and g element exist
+    if (svgRef.current) {
+      const g = d3.select(svgRef.current).select('g');
+      if (!g.empty()) {
+        // Reset all link styles
+        g.selectAll('.link')
+          .style('stroke-opacity', 0.4)
+          .style('stroke-width', (d: any) => Math.max(1, d.width || 0));
+        
+        // Reset all node styles
+        g.selectAll('.node rect')
+          .style('fill-opacity', 1)
+          .style('stroke-width', 0.5);
+        
+        // Remove tooltips
+        g.selectAll('.tooltip').remove();
+      }
+    }
+  }, []);
 
   // Transform API response into simplified Sankey data format
   // Source Location → Destination Location (aggregated across selected time periods)
@@ -308,9 +333,23 @@ export default function SankeyDiagram({
       .style('stroke-width', (d: any) => Math.max(1, d.width || 0))
       .style('cursor', 'pointer');
 
-    // Add link hover effects
+    // Add link click effects
     link
-      .on('mouseover', function(event: MouseEvent, d: any) {
+      .on('click', function(event: MouseEvent, d: any) {
+        event.stopPropagation(); // Prevent triggering background click
+        
+        // If clicking the same link, clear selection
+        if (selectedElement?.type === 'link' && selectedElement.data === d) {
+          clearSelection();
+          return;
+        }
+        
+        // Clear any existing selection first
+        clearSelection();
+        
+        // Set new selection
+        setSelectedElement({ type: 'link', data: d });
+        
         // Highlight the link
         d3.select(this)
           .style('stroke-opacity', 0.8)
@@ -416,21 +455,6 @@ export default function SankeyDiagram({
               .attr('y', 0);
           }
         });
-      })
-      .on('mouseout', function(event: MouseEvent, d: any) {
-        // Restore link styles
-        d3.select(this)
-          .style('stroke-opacity', 0.4)
-          .style('stroke-width', Math.max(1, d.width || 0));
-        
-        // Restore node styles
-        g.selectAll('.node rect').style('fill-opacity', 1);
-        
-        // Restore all link opacity
-        g.selectAll('.link').style('stroke-opacity', 0.4);
-        
-        // Remove tooltip
-        g.selectAll('.tooltip').remove();
       });
 
     // Add nodes
@@ -450,7 +474,21 @@ export default function SankeyDiagram({
       .style('stroke', '#000')
       .style('stroke-width', 0.5)
       .style('rx', 2)
-      .on('mouseover', function(event: MouseEvent, d: any) {
+      .on('click', function(event: MouseEvent, d: any) {
+        event.stopPropagation(); // Prevent triggering background click
+        
+        // If clicking the same node, clear selection
+        if (selectedElement?.type === 'node' && selectedElement.data === d) {
+          clearSelection();
+          return;
+        }
+        
+        // Clear any existing selection first
+        clearSelection();
+        
+        // Set new selection
+        setSelectedElement({ type: 'node', data: d });
+        
         // Highlight the node
         d3.select(this)
           .style('fill-opacity', 0.8)
@@ -533,18 +571,6 @@ export default function SankeyDiagram({
               .attr('y', 4);
           }
         });
-      })
-      .on('mouseout', function() {
-        // Restore node styles
-        d3.select(this)
-          .style('fill-opacity', 1)
-          .style('stroke-width', 0.5);
-        
-        // Restore all link opacity
-        g.selectAll('.link').style('stroke-opacity', 0.4);
-        
-        // Remove tooltip
-        g.selectAll('.tooltip').remove();
       });
 
     // Node labels
@@ -590,7 +616,15 @@ export default function SankeyDiagram({
   }
 
   return (
-    <Box ref={containerRef} sx={{ width: '100%', overflow: 'visible', position: 'relative' }}>
+    <Box 
+      ref={containerRef} 
+      sx={{ width: '100%', overflow: 'visible', position: 'relative' }}
+      onClick={() => {
+        if (selectedElement) {
+          clearSelection();
+        }
+      }}
+    >
       <svg
         ref={svgRef}
         width={dimensions.width}
