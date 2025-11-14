@@ -342,23 +342,6 @@ export default function SankeyResults({
                 )}
               </Box>
             </Box>
-
-            {/* Date Range Controls */}
-            {dateRangeControls && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  mb: 3,
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 2,
-                }}
-              >
-                {dateRangeControls}
-              </Paper>
-            )}
-
             {/* Full Width Diagram */}
             <Paper
               elevation={0}
