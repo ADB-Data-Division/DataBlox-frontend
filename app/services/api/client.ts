@@ -85,6 +85,16 @@ export class MigrationAPIClient {
       if (!response.ok) {
         // Handle API errors
         const errorData = data as unknown as ErrorResponse;
+        
+        if (response.status === 401) {
+          const errorMessage = errorData.message || errorData.detail || '';
+          if (errorMessage.toLowerCase().includes('token has expired')) {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/auth/signin';
+            }
+          }
+        }
+        
         throw new APIError(
           errorData.message || `HTTP ${response.status}: ${response.statusText}`,
           response.status,
@@ -206,6 +216,15 @@ export class APIError extends Error {
    */
   isServerError(): boolean {
     return this.status >= 500 && this.status < 600;
+  }
+
+  /**
+   * Check if error is due to an expired token
+   */
+  isExpiredToken(): boolean {
+    if (this.status !== 401) return false;
+    const message = this.details?.message || this.details?.detail || this.message || '';
+    return message.toLowerCase().includes('token has expired');
   }
 }
 
