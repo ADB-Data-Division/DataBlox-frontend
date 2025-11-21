@@ -2,8 +2,9 @@
 
 // Base response types
 export interface ErrorResponse {
-  error: string;
-  message: string;
+  error?: string;
+  message?: string;
+  detail?: string;
   details?: Record<string, any>;
 }
 
