@@ -147,16 +147,6 @@ export class MigrationAPIService {
     try {
       console.log(`🔍 Looking for province API ID for: "${location.name}"`);
       
-      // TEMPORARY: Hardcode Bangkok and Songkhla for testing
-      if (location.name.toLowerCase().includes('bangkok')) {
-        console.log(`✅ Hardcoded Bangkok -> 1`);
-        return "1";
-      }
-      if (location.name.toLowerCase().includes('songkhla')) {
-        console.log(`✅ Hardcoded Songkhla -> 70`);
-        return "70";
-      }
-      
       const metadata = await metadataService.getMetadata();
       
       // Try to find by name first (case-insensitive)
