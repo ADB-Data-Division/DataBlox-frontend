@@ -4,7 +4,7 @@ import React, { useRef, KeyboardEvent, useEffect, useReducer, useCallback, useSt
 import { Box, Paper, useTheme } from '@mui/material';
 
 // Components
-import MigrationResultsTable from '@/components/migration-results-table';
+import TourismResultsDisplay from '@/components/tourism-results-display';
 import ShortcutsModal from '@/components/shortcuts-modal/shortcuts-modal';
 import { Header } from '@/app/(dashboard)/components/Header';
 import { LocationChips } from '@/app/(dashboard)/components/LocationChips';
@@ -21,7 +21,7 @@ import { RecentSearches } from '@/app/(dashboard)/components/RecentSearches';
 
 // Hooks
 import { 
-  useMigrationData, 
+  useTourismData, 
   useLocationSearch, 
   useUrlParams, 
   useKeyboardShortcuts 
@@ -53,7 +53,7 @@ export default function PageContent() {
   const memoizedSelectedLocations = useMemo(() => state.selectedLocations, [state.selectedLocations]);
 
   // Custom hooks
-    const { migrationData, loadMigrationData, resetMigrationData } = useMigrationData();
+  const { tourismData, loadTourismData, resetTourismData } = useTourismData();
   const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
   
   // Tourism only supports province-level data, so restrict search to provinces
@@ -75,11 +75,8 @@ export default function PageContent() {
   // Store date range for API calls
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
-  // Store threshold for migration flow filtering
-  const [migrationThreshold, setMigrationThreshold] = useState<number>(0);
-
-  // Store individual flow visibility settings
-  const [flowVisibility, setFlowVisibility] = useState<Record<string, { moveIn: boolean; moveOut: boolean }>>({});
+  // Store individual flow visibility settings (arrivals only for tourism)
+  const [flowVisibility, setFlowVisibility] = useState<Record<string, { moveIn: boolean; moveOut: boolean }>>({}); 
 
   // Store edge colors (edgeKey -> color)
   const [edgeColors, setEdgeColors] = useState<Record<string, string>>({});
@@ -94,7 +91,7 @@ export default function PageContent() {
     minHeight: '70vh'
   }), [theme.palette.background.paper]);
 
-  // Period change handler - no additional debouncing since MigrationAnalysisPeriod already handles it
+  // Period change handler
   const handlePeriodChange = useCallback((period: string, startDate?: string, endDate?: string) => {
     console.log('📊 handlePeriodChange called:', { period, startDate, endDate });
     dispatch({ type: 'SET_SELECTED_PERIOD', payload: period });
@@ -102,17 +99,16 @@ export default function PageContent() {
     
     // Trigger new API request with the updated date range if locations are selected
     if (memoizedSelectedLocations.length > 0) {
-      // loadMigrationData immediately sets loading state and clears existing data
-      loadMigrationData(memoizedSelectedLocations, period, startDate, endDate);
+      loadTourismData(memoizedSelectedLocations, period, startDate, endDate);
     }
-  }, [loadMigrationData, memoizedSelectedLocations]);
+  }, [loadTourismData, memoizedSelectedLocations]);
 
   // Note: Cleanup effect removed - isResettingRef is managed in handleReset
 
   const handleReset = () => {
     isResettingRef.current = true;
     clearUrlParams();
-    resetMigrationData();
+    resetTourismData();
     
     dispatch({ type: 'RESET_QUERY_STATE' });
     dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
@@ -128,11 +124,11 @@ export default function PageContent() {
     dispatch({ type: 'EDIT_SEARCH' });
   };
 
-  const handleRetryMigrationData = useCallback(() => {
+  const handleRetryTourismData = useCallback(() => {
     if (memoizedSelectedLocations.length > 0) {
-      loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
+      loadTourismData(memoizedSelectedLocations, dateRange.startDate, dateRange.endDate);
     }
-  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData]);
+  }, [memoizedSelectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData]);
 
   // Load locations from URL parameters on mount - using useEffect for legitimate side effect
   useEffect(() => {
@@ -167,15 +163,15 @@ export default function PageContent() {
               dispatch({ type: 'ADD_LOCATION', payload: location });
             });
             
-            // After loading locations from URL, automatically execute migration query
+            // After loading locations from URL, automatically execute tourism query
             dispatch({ type: 'START_QUERY_EXECUTION' });
             
             try {
-              await loadMigrationData(locations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
+              await loadTourismData(locations, dateRange.startDate, dateRange.endDate);
               updateUrlWithLocations(locations); // Update URL to ensure consistency
               dispatch({ type: 'SET_QUERY_SUCCESS' });
             } catch (error) {
-              console.error('Migration query failed after URL load:', error);
+              console.error('Tourism query failed after URL load:', error);
               dispatch({ type: 'SET_QUERY_ERROR' });
             }
             
@@ -227,7 +223,7 @@ export default function PageContent() {
     trackMigrationEvent.executeQuery(memoizedSelectedLocations.length, queryType);
     
     try {
-      await loadMigrationData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
+      await loadTourismData(memoizedSelectedLocations, dateRange.startDate, dateRange.endDate);
       updateUrlWithLocations(memoizedSelectedLocations);
       dispatch({ type: 'SET_QUERY_SUCCESS' });
 
@@ -249,7 +245,7 @@ export default function PageContent() {
       dispatch({ type: 'SET_QUERY_ERROR' });
       trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadMigrationData, updateUrlWithLocations, searchResults.allLocations]);
+  }, [memoizedSelectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData, updateUrlWithLocations, searchResults.allLocations]);
 
   const handleLocationSelect = useCallback((location: Location) => {
     if (!canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
@@ -357,6 +353,7 @@ export default function PageContent() {
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
+              actionLabel="View Tourism Trends"
             />
 
             <RecentSearches
@@ -370,28 +367,26 @@ export default function PageContent() {
           </>
         )}
 
-        {/* Loading State - Show when initially loading OR when migration data is loading (e.g., period change) */}
-        {(state.queryExecutionState === 'loading' || migrationData.isLoading) && (
+        {/* Loading State - Show when initially loading OR when tourism data is loading */}
+        {(state.queryExecutionState === 'loading' || tourismData.isLoading) && (
           <LoadingState selectedLocations={state.selectedLocations} />
         )}
 
-        {/* Success State with Results - Show when successful AND not loading migration data */}
-        {state.queryExecutionState === 'success' && !migrationData.isLoading && (
+        {/* Success State with Results - Show when successful AND not loading tourism data */}
+        {state.queryExecutionState === 'success' && !tourismData.isLoading && (
           <>
-            <MigrationResultsTable
+            <TourismResultsDisplay
               selectedLocations={state.selectedLocations}
               selectedPeriod={state.selectedPeriod}
               onNewSearch={handleReset}
               onEditSearch={handleEditSearch}
               onPeriodChange={handlePeriodChange}
-              mapNodes={migrationData.mapNodes}
-              mapConnections={migrationData.mapConnections}
-              apiResponse={migrationData.apiResponse}
-              loading={migrationData.isLoading}
-              error={migrationData.error}
-              onRetry={handleRetryMigrationData}
-              migrationThreshold={migrationThreshold}
-              onThresholdChange={setMigrationThreshold}
+              mapNodes={tourismData.mapNodes}
+              mapConnections={tourismData.mapConnections}
+              apiResponse={tourismData.apiResponse}
+              loading={tourismData.isLoading}
+              error={tourismData.error}
+              onRetry={handleRetryTourismData}
               flowVisibility={flowVisibility}
               onFlowVisibilityChange={setFlowVisibility}
               edgeColors={edgeColors}

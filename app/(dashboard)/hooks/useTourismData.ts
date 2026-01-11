@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { tourismService, TourismQueryOptions, TourismResponse, LocationTourismData } from '../../services/api';
+import { tourismAPIService } from '../../services/tourism-api-service';
+import { tourismService, TourismResponse, LocationTourismData } from '../../services/api';
+import { TourismMapNode, TourismMapConnection, transformTourismDataForMap } from '../../services/api/tourism-flow-transformer';
 import { Location } from '../helper';
 
 interface TourismDataState {
   data: LocationTourismData[];
   apiResponse: TourismResponse | null;
+  mapNodes: TourismMapNode[];
+  mapConnections: TourismMapConnection[];
   isLoading: boolean;
   error: string | null;
   summary: {
@@ -19,6 +23,8 @@ interface TourismDataState {
 const initialState: TourismDataState = {
   data: [],
   apiResponse: null,
+  mapNodes: [],
+  mapConnections: [],
   isLoading: false,
   error: null,
   summary: null
@@ -38,26 +44,15 @@ export function useTourismData() {
    */
   const loadTourismData = useCallback(async (
     locations: Location[], 
+    selectedPeriod: string = '',
     startDate?: string,
-    endDate?: string,
-    aggregation?: 'monthly' | 'quarterly' | 'yearly'
+    endDate?: string
   ) => {
     // Cancel any pending request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
-
-    // Filter to only province-level locations (tourism API only supports province)
-    const provinceLocations = locations.filter(l => l.type === 'province');
-    
-    if (provinceLocations.length === 0 && locations.length > 0) {
-      setTourismData({
-        ...initialState,
-        error: 'Tourism data is only available at province level. Please select provinces instead of districts or subdistricts.'
-      });
-      return;
-    }
 
     if (locations.length === 0) {
       setTourismData({
@@ -74,35 +69,32 @@ export function useTourismData() {
     });
     
     try {
-      console.log('Loading tourism data for selected provinces:', provinceLocations.map(l => l.name));
+      console.log('Loading tourism data for selected locations:', locations.map(l => l.name));
       
-      // Map Location objects to province IDs for the API
-      const provinceIds = provinceLocations.map(loc => {
-        // Try to extract API ID from uniqueId if available
-        if (loc.uniqueId?.startsWith('api-pr-')) {
-          return loc.uniqueId.replace('api-pr-', '');
-        }
-        // Otherwise use the name as-is (API accepts province names)
-        return loc.name;
-      });
-
-      const queryOptions: TourismQueryOptions = {
-        startDate,
-        endDate,
-        provinceIds,
-        aggregation: aggregation || 'monthly',
-        includeFlows: false,
-        aggregateOthers: true
-      };
-
-      const response = await tourismService.getTourismData(queryOptions);
+      // Use the TourismAPIService which properly maps Location objects to API IDs
+      const result = await tourismAPIService.executeQuery(locations, startDate, endDate);
       
+      if (!result.success || !result.apiResponse) {
+        setTourismData({
+          ...initialState,
+          error: result.error || 'Failed to load tourism data'
+        });
+        return;
+      }
+
+      const response = result.apiResponse;
+      
+      // Transform data for map visualization with the selected period
+      const { nodes, connections } = transformTourismDataForMap(response, selectedPeriod);
+
       // Calculate summary statistics
       const summary = tourismService.calculateSummaryStats(response.data);
 
       setTourismData({
         data: response.data,
         apiResponse: response,
+        mapNodes: nodes,
+        mapConnections: connections,
         isLoading: false,
         error: null,
         summary
@@ -111,7 +103,10 @@ export function useTourismData() {
       console.log('Tourism data loaded successfully:', {
         locations: response.data.length,
         totalArrivals: summary.totalArrivals,
-        timePeriods: response.time_periods.length
+        timePeriods: response.time_periods?.length || 0,
+        mapNodes: nodes.length,
+        mapConnections: connections.length,
+        flows: response.flows?.length || 0
       });
     } catch (error) {
       // Don't update state if request was aborted

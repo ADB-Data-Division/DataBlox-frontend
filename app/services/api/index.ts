@@ -29,4 +29,10 @@ export {
   getAvailableTimePeriods,
 } from './migration-flow-transformer';
 export type { MapNode, MapConnection, TransformedMigrationData } from './migration-flow-transformer';
- 
+
+// Export tourism transformation utilities
+export { 
+  transformTourismDataForMap, 
+  getTourismTimePeriods,
+} from './tourism-flow-transformer';
+export type { TourismMapNode, TourismMapConnection, TransformedTourismData } from './tourism-flow-transformer';

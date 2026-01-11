@@ -26,6 +26,7 @@ interface SearchBarProps {
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
   onExecuteQuery: () => void;
+  actionLabel?: string; // New prop for button label
 }
 
 export function SearchBar({
@@ -39,7 +40,8 @@ export function SearchBar({
   searchedRegion,
   onSearchChange,
   onKeyDown,
-  onExecuteQuery
+  onExecuteQuery,
+  actionLabel = "View Migration Trends" // Default value
 }: SearchBarProps) {
   const theme = useTheme();
 
@@ -166,7 +168,7 @@ export function SearchBar({
             transition: 'all 0.2s ease-in-out'
           }}
         >
-          View Migration Trends
+          {actionLabel}
         </Button>
       )}
     </Box>

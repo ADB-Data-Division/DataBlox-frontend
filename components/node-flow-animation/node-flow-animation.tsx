@@ -80,6 +80,7 @@ interface NodesVisualizationProps {
   onFlowVisibilityChange?: (visibility: Record<string, { moveIn: boolean; moveOut: boolean }>) => void;
   edgeColors?: Record<string, string>;
   onEdgeColorsChange?: (colors: Record<string, string>) => void;
+  dataType?: 'migration' | 'tourism'; // New prop for terminology
 }
 
 // Custom hook to track container size
@@ -120,7 +121,8 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
   flowVisibility = {},
   onFlowVisibilityChange,
   edgeColors = {},
-  onEdgeColorsChange
+  onEdgeColorsChange,
+  dataType = 'migration'
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -192,8 +194,21 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       const flowPairs = new Map<string, { flows: typeof filteredFlows, key: string }>();
       
       filteredFlows.forEach(flow => {
-        const originId = flow.origin.id;
-        const destinationId = flow.destination.id;
+        let originId = flow.origin.id;
+        let destinationId = flow.destination.id;
+
+        // For tourism data, map API names to internal node IDs to match map visualization keys
+        if (dataType === 'tourism' && nodes) {
+           // Use n.tooltip (full name like "Bangkok") not n.title (abbreviation like "BAN")
+           const originNode = nodes.find(n => 
+             n.tooltip.toLowerCase().trim() === flow.origin.name.toLowerCase().trim()
+           );
+           const destNode = nodes.find(n => 
+             n.tooltip.toLowerCase().trim() === flow.destination.name.toLowerCase().trim()
+           );
+           if (originNode) originId = originNode.id;
+           if (destNode) destinationId = destNode.id;
+        }
         
         // Handle self-loops
         if (originId === destinationId) {
@@ -244,7 +259,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiResponse, selectedPeriod, migrationThreshold, onFlowVisibilityChange, areVisibilityEqual]); // Removed flowVisibility from dependencies to prevent infinite loop
+  }, [apiResponse, selectedPeriod, migrationThreshold, onFlowVisibilityChange, areVisibilityEqual, nodes, dataType]); // Removed flowVisibility from dependencies to prevent infinite loop
 
 
 
@@ -983,7 +998,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
       d3.selectAll(".flowline-from").interrupt();
       d3.select('.flow-tooltip').remove();
     };
-  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, edgeColors, getEdgeColor]);
+  }, [width, height, activeNodes, curved, getDynamicNodeSize, connections, migrationThreshold, edgeColors, getEdgeColor, flowVisibility]);
 
   // Apply initial visibility after rendering
   useEffect(() => {
@@ -1178,6 +1193,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                     onPeriodChange(periodId, startDate, endDate);
                   }
                 }}
+                title={dataType === 'tourism' ? 'Tourism Analysis Period' : 'Migration Analysis Period'}
               />
             </Paper>
 
@@ -1275,7 +1291,9 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                     fontStyle: 'italic',
                     marginBottom: '16px'
                   }}>
-                    * {selectedUnits === 'thousands' ? 'thousands people/month' : 'people/month'}
+                    * {selectedUnits === 'thousands' 
+                      ? (dataType === 'tourism' ? 'thousands tourists/month' : 'thousands people/month')
+                      : (dataType === 'tourism' ? 'tourists/month' : 'people/month')}
                   </div>
                   
                   {/* Filter indicator */}
@@ -1379,8 +1397,22 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                       }[] = [];
 
                       filteredFlows.forEach(flow => {
-                        const originId = flow.origin.id;
-                        const destinationId = flow.destination.id;
+                        let originId = flow.origin.id;
+                        let destinationId = flow.destination.id;
+
+                        // For tourism data, ensure we use the same Node IDs as the map visualization
+                        // The API returns Names ("Bangkok"), but Map uses IDs ("1")
+                        if (dataType === 'tourism') {
+                           // Use n.tooltip (full name like "Bangkok") not n.title (abbreviation like "BAN")
+                           const originNode = activeNodes.find(n => 
+                             n.tooltip.toLowerCase().trim() === flow.origin.name.toLowerCase().trim()
+                           );
+                           const destNode = activeNodes.find(n => 
+                             n.tooltip.toLowerCase().trim() === flow.destination.name.toLowerCase().trim()
+                           );
+                           if (originNode) originId = originNode.id;
+                           if (destNode) destinationId = destNode.id;
+                        }
 
                         // Check for self-loops
                         if (originId === destinationId) {
@@ -1558,7 +1590,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                                           cursor: moveInPassesThreshold ? 'pointer' : 'not-allowed'
                                         }}
                                       />
-                                      Move In ({flowData.flowCount.toLocaleString()})
+                                      {dataType === 'tourism' ? 'Traveling To' : 'Move In'} ({flowData.flowCount.toLocaleString()})
                                     </label>
                                     <label style={{
                                       display: 'flex',
@@ -1588,7 +1620,7 @@ const NodeFlowAnimation: React.FC<NodesVisualizationProps> = ({
                                           cursor: moveOutPassesThreshold ? 'pointer' : 'not-allowed'
                                         }}
                                       />
-                                      Move Out ({flowData.returnFlowCount.toLocaleString()})
+                                      {dataType === 'tourism' ? 'Traveling From' : 'Move Out'} ({flowData.returnFlowCount.toLocaleString()})
                                     </label>
                                   </>
                                 )}

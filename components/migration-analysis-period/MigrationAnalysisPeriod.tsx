@@ -9,11 +9,13 @@ import { formatToMonthYear, formatDateRange } from '@/src/utils/date-formatter';
 interface MigrationAnalysisPeriodProps {
   selectedPeriod?: string;
   onPeriodChange?: (periodId: string, startDate: string, endDate: string) => void;
+  title?: string;
 }
 
 export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = ({
   selectedPeriod,
-  onPeriodChange
+  onPeriodChange,
+  title = "Migration Analysis Period"
 }) => {
   // State for metadata and periods
   const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
@@ -203,7 +205,7 @@ export const MigrationAnalysisPeriod: React.FC<MigrationAnalysisPeriodProps> = (
         fontWeight: 'bold', 
         color: '#374151'
       }}>
-        Migration Analysis Period
+        {title}
       </h3>
 
       <p style={{
