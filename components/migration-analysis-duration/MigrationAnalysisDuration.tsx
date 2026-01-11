@@ -10,12 +10,14 @@ interface MigrationAnalysisDurationProps {
   selectedStartDate?: string;
   selectedEndDate?: string;
   onDateRangeChange?: (startDate: string, endDate: string) => void;
+  title?: string;
 }
 
 export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps> = ({
   selectedStartDate,
   selectedEndDate,
-  onDateRangeChange
+  onDateRangeChange,
+  title = "Migration Analysis Duration"
 }) => {
   // State for metadata and periods
   const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
@@ -368,7 +370,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
         marginBottom: '16px',
         color: '#374151'
       }}>
-        Migration Analysis Duration
+        {title}
       </h3>
       
       {/* Date Range Dropdowns */}

@@ -1,8 +1,12 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Box, Paper, Typography, useTheme, CircularProgress, Button } from '@mui/material';
+import { Box, Paper, Typography, useTheme, CircularProgress, Button, Chip, ToggleButton, ToggleButtonGroup, FormControl, Select, MenuItem, InputLabel, Fade } from '@mui/material';
+import { BarChart } from '@mui/icons-material';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import * as d3 from 'd3';
+import { MapPinAreaIcon } from '@phosphor-icons/react/dist/ssr';
 
 // Components
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
@@ -20,71 +24,121 @@ import { SearchResultsSummary } from '../components/SearchResultsSummary';
 import { RecentSearches } from '../components/RecentSearches';
 
 // Services
-import { migrationAPIService } from '@/app/services/migration-api-service';
+import { tourismAPIService } from '@/app/services/tourism-api-service';
 import { metadataService } from '@/app/services/api';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts } from '../hooks';
-import { Location } from '../helper';
+import { Location, getLocationColor } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
 import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
 
-// Custom constraints for migration analysis page
-const MIGRATION_ANALYSIS_CONSTRAINTS = {
+// Custom constraints for tourism analysis page
+const TOURISM_ANALYSIS_CONSTRAINTS = {
   MAX_TOTAL_LOCATIONS: 5
 };
 
-// Types for D3.js chart
-interface LocationMigrationEntry {
+// Types for D3.js chart - Tourism uses arrivals only
+interface LocationTourismEntry {
   locationId: string;
   locationName: string;
-  moveIn: number;
-  moveOut: number;
-  netMigration: number;
+  arrivals: number;
 }
 
-interface ChartDataEntry {
+interface TourismChartDataEntry {
   period: string;
-  locations: LocationMigrationEntry[];
+  locations: LocationTourismEntry[];
 }
 
-interface ChartDataEntryWithSort extends ChartDataEntry {
+interface TourismChartDataEntryWithSort extends TourismChartDataEntry {
   sortKey: number;
 }
 
-interface MigrationChartData {
-  data: ChartDataEntry[];
+interface TourismChartData {
+  data: TourismChartDataEntry[];
   locations: Location[];
   period: { id: string; startDate: string; endDate: string };
   summary: {
-    totalMoveIn: number;
-    totalMoveOut: number;
-    netMigration: number;
+    totalArrivals: number;
   };
 }
 
-const containerStyles = { width: '100%' };
+// Legend Component for Tourism
+interface LegendProps {
+  locations: Location[];
+  getLocationColor: (locationId: string) => string;
+}
 
-// D3.js Diverging Bar Chart Component
-const DivergingBarChart: React.FC<{
-  data: ChartDataEntry[];
+const Legend: React.FC<LegendProps> = ({ locations, getLocationColor }) => {
+  const theme = useTheme();
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+        Legend
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {locations.map((location) => (
+          <Box key={location.uniqueId} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                mb: 1
+              }}
+            >
+              {location.name}
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: getLocationColor(location.uniqueId),
+                    borderRadius: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Tourist Arrivals
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+const containerStyles = { width: '100%' };
+const paperStyles = { p: 3, borderRadius: 2 };
+
+// D3.js Tourism Bar Chart Component (single-direction for arrivals)
+const TourismBarChart: React.FC<{
+  data: TourismChartDataEntry[];
   locations: Location[];
   width: number;
   height: number;
-}> = ({ data, locations, width, height }) => {
+  getTourismColor: (locationId: string) => string;
+}> = ({ data, locations, width, height, getTourismColor }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (!svgRef.current || !data || data.length === 0) return;
 
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove(); // Clear previous chart
+    svg.selectAll("*").remove();
 
     // Create tooltip
     const tooltip = d3.select("body")
       .append("div")
-      .attr("class", "migration-tooltip")
+      .attr("class", "tourism-tooltip")
       .style("position", "absolute")
       .style("background", "rgba(0, 0, 0, 0.8)")
       .style("color", "white")
@@ -95,28 +149,13 @@ const DivergingBarChart: React.FC<{
       .style("opacity", 0)
       .style("z-index", 1000);
 
-    const margin = { top: 60, right: 150, bottom: 120, left: 80 };
+    const margin = { top: 60, right: 20, bottom: 120, left: 80 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Create main group
     const g = svg
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Color scales - different colors per province
-    const locationColors = d3.scaleOrdinal(d3.schemeCategory10);
-    
-    // Function to get darker (move-in) and lighter (move-out) versions of location colors
-    const getMoveInColor = (locationId: string) => {
-      const baseColor = locationColors(locationId);
-      return d3.color(baseColor)?.darker(0.3)?.toString() || baseColor;
-    };
-    
-    const getMoveOutColor = (locationId: string) => {
-      const baseColor = locationColors(locationId);
-      return d3.color(baseColor)?.brighter(0.5)?.toString() || baseColor;
-    };
 
     // Scales
     const xScale = d3
@@ -131,24 +170,31 @@ const DivergingBarChart: React.FC<{
       .range([0, xScale.bandwidth()])
       .padding(0.05);
 
-    // Find the extent of all values for y-scale
-    const allValues = data.flatMap(d => 
-      d.locations.flatMap(l => [l.moveIn, -l.moveOut, l.netMigration])
-    );
-    const yExtent = d3.extent(allValues) as [number, number];
-    const yMax = Math.max(Math.abs(yExtent[0]), Math.abs(yExtent[1]));
+    // Find the max arrivals value
+    const maxArrivals = d3.max(data.flatMap(d => d.locations.map(l => l.arrivals))) || 0;
 
     const yScale = d3
       .scaleLinear()
-      .domain([-yMax * 1.1, yMax * 1.1])
+      .domain([0, maxArrivals * 1.1])
       .range([innerHeight, 0]);
 
-    // Add axes
+    // Calculate year span to determine if month labels should be hidden
+    const uniqueYears = new Set<number>();
+    data.forEach(d => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        uniqueYears.add(parseInt(parts[1]));
+      }
+    });
+    const yearSpan = uniqueYears.size;
+    const hideMonthLabels = yearSpan > 3;
+
+    // Add axes (hide month labels if year span > 3)
     g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale).tickFormat(d => {
-        // Extract month from "Jun 2024" format
+        if (hideMonthLabels) return '';
         const parts = d.split(' ');
         return parts.length >= 1 ? parts[0] : d;
       }))
@@ -157,28 +203,21 @@ const DivergingBarChart: React.FC<{
       .style("text-anchor", "middle")
       .attr("dy", ".35em");
 
-    // Add year boundary lines and labels
+    // Add year boundary lines
     const yearBoundaries: { year: number; x: number; label: string }[] = [];
-
     data.forEach((d, i) => {
       const parts = d.period.split(' ');
       if (parts.length >= 2) {
         const year = parseInt(parts[1]);
-        const month = parts[0];
-
-        // Check if this is the first occurrence of this year
         const isFirstOfYear = i === 0 || !data.slice(0, i).some(prev => prev.period.includes(` ${year}`));
-
         if (isFirstOfYear) {
-          const x = xScale(d.period)! - 8; // Offset slightly to the left for better visual separation
+          const x = xScale(d.period)! - 5;
           yearBoundaries.push({ year, x, label: year.toString() });
         }
       }
     });
 
-    // Add year boundary lines
     yearBoundaries.forEach(boundary => {
-      // Vertical line at year start
       g.append("line")
         .attr("x1", boundary.x)
         .attr("x2", boundary.x)
@@ -189,9 +228,8 @@ const DivergingBarChart: React.FC<{
         .attr("stroke-dasharray", "5,5")
         .style("opacity", 0.7);
 
-      // Year label below the x-axis
       g.append("text")
-        .attr("x", boundary.x + 30) // Position slightly to the right of the boundary line
+        .attr("x", boundary.x)
         .attr("y", innerHeight + 25)
         .attr("dy", "0.35em")
         .style("text-anchor", "middle")
@@ -201,9 +239,9 @@ const DivergingBarChart: React.FC<{
         .text(boundary.label);
     });
 
-    // Format y-axis values to thousands (k)
+    // Format y-axis values
     const formatYAxis = (d: d3.NumberValue) => {
-      const value = Math.abs(d.valueOf());
+      const value = d.valueOf();
       if (value >= 1000) {
         return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'k';
       }
@@ -225,16 +263,18 @@ const DivergingBarChart: React.FC<{
       .style("text-anchor", "middle")
       .style("font-weight", "bold")
       .style("font-size", "16px")
-      .text("Number of People (thousands)");
+      .text("Number of Tourists (thousands)");
 
-    // Add zero line
-    g.append("line")
-      .attr("x1", 0)
-      .attr("x2", innerWidth)
-      .attr("y1", yScale(0))
-      .attr("y2", yScale(0))
-      .attr("stroke", "#000")
-      .attr("stroke-width", 2);
+    // Add direction label
+    g.append("text")
+      .attr("x", -margin.left + 10)
+      .attr("y", -margin.top / 2)
+      .attr("dy", "0.5em")
+      .style("text-anchor", "start")
+      .style("font-weight", "bold")
+      .style("font-size", "14px")
+      .style("fill", "#000")
+      .text("Arrivals");
 
     // Create bars for each period
     data.forEach(periodData => {
@@ -249,15 +289,15 @@ const DivergingBarChart: React.FC<{
           .attr("class", `location-${locationData.locationId}`)
           .attr("transform", `translate(${xSubScale(locationData.locationId)},0)`);
 
-        // Move-in bar (positive) - darker hue for this province
+        // Arrivals bar
         locationGroup
           .append("rect")
-          .attr("class", "move-in-bar")
+          .attr("class", "arrivals-bar")
           .attr("x", 0)
-          .attr("y", yScale(locationData.moveIn))
+          .attr("y", yScale(locationData.arrivals))
           .attr("width", xSubScale.bandwidth())
-          .attr("height", yScale(0) - yScale(locationData.moveIn))
-          .attr("fill", getMoveInColor(locationData.locationId))
+          .attr("height", innerHeight - yScale(locationData.arrivals))
+          .attr("fill", getTourismColor(locationData.locationId))
           .attr("opacity", 0.9)
           .style("cursor", "pointer")
           .on("mouseover", function(event) {
@@ -267,9 +307,7 @@ const DivergingBarChart: React.FC<{
               .html(`
                 <strong>${locationData.locationName}</strong><br/>
                 <strong>${periodData.period}</strong><br/>
-                Move In: ${locationData.moveIn.toLocaleString()}<br/>
-                Move Out: ${locationData.moveOut.toLocaleString()}<br/>
-                Net Migration: ${locationData.netMigration >= 0 ? '+' : ''}${locationData.netMigration.toLocaleString()}
+                Arrivals: ${locationData.arrivals.toLocaleString()}
               `);
           })
           .on("mousemove", function(event) {
@@ -281,192 +319,287 @@ const DivergingBarChart: React.FC<{
             d3.select(this).attr("opacity", 0.9);
             tooltip.style("opacity", 0);
           });
-
-        // Move-out bar (negative) - lighter hue for this province
-        locationGroup
-          .append("rect")
-          .attr("class", "move-out-bar")
-          .attr("x", 0)
-          .attr("y", yScale(0))
-          .attr("width", xSubScale.bandwidth())
-          .attr("height", yScale(-locationData.moveOut) - yScale(0))
-          .attr("fill", getMoveOutColor(locationData.locationId))
-          .attr("opacity", 0.9)
-          .style("cursor", "pointer")
-          .on("mouseover", function(event) {
-            d3.select(this).attr("opacity", 1);
-            tooltip
-              .style("opacity", 1)
-              .html(`
-                <strong>${locationData.locationName}</strong><br/>
-                <strong>${periodData.period}</strong><br/>
-                Move In: ${locationData.moveIn.toLocaleString()}<br/>
-                Move Out: ${locationData.moveOut.toLocaleString()}<br/>
-                Net Migration: ${locationData.netMigration >= 0 ? '+' : ''}${locationData.netMigration.toLocaleString()}
-              `);
-          })
-          .on("mousemove", function(event) {
-            tooltip
-              .style("left", (event.pageX + 10) + "px")
-              .style("top", (event.pageY - 10) + "px");
-          })
-          .on("mouseout", function() {
-            d3.select(this).attr("opacity", 0.9);
-            tooltip.style("opacity", 0);
-          });
-
-        // Net migration line - black dashed with 80% opacity
-        locationGroup
-          .append("line")
-          .attr("class", "net-migration-line")
-          .attr("x1", 0)
-          .attr("x2", xSubScale.bandwidth())
-          .attr("y1", yScale(locationData.netMigration))
-          .attr("y2", yScale(locationData.netMigration))
-          .attr("stroke", "black")
-          .attr("stroke-width", 3)
-          .attr("stroke-dasharray", "5,5")
-          .attr("opacity", 0.8);
-
-        // Add small circle at the end of net migration line
-        locationGroup
-          .append("circle")
-          .attr("class", "net-migration-point")
-          .attr("cx", xSubScale.bandwidth() / 2)
-          .attr("cy", yScale(locationData.netMigration))
-          .attr("r", 3)
-          .attr("fill", "black")
-          .attr("opacity", 0.8);
       });
     });
 
-    // Add legend
-    const legend = svg
-      .append("g")
-      .attr("class", "legend")
-      .attr("transform", `translate(${width - margin.right + 10}, ${margin.top})`);
-
-    // Province-specific legends
-    locations.forEach((location, i) => {
-      const yOffset = i * 70; // Increased spacing between provinces
-      
-      // Create a group for this province's legend items
-      const provinceGroup = legend
-        .append("g")
-        .attr("class", `legend-province-${location.uniqueId}`)
-        .style("cursor", "pointer");
-
-      // Move-in legend for this province (darker color)
-      provinceGroup
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", yOffset)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", getMoveInColor(location.uniqueId));
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 12)
-        .text("Move-in")
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Move-out legend for this province (lighter color)
-      provinceGroup
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", yOffset + 20)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", getMoveOutColor(location.uniqueId));
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 32)
-        .text("Move-out")
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Net migration line for this province - black dashed
-      provinceGroup
-        .append("line")
-        .attr("x1", 0)
-        .attr("x2", 15)
-        .attr("y1", yOffset + 47)
-        .attr("y2", yOffset + 47)
-        .attr("stroke", "black")
-        .attr("stroke-width", 3)
-        .attr("stroke-dasharray", "3,3")
-        .attr("opacity", 0.8);
-
-      provinceGroup
-        .append("text")
-        .attr("x", 20)
-        .attr("y", yOffset + 52)
-        .text(`Net: ${location.name}`)
-        .style("font-size", "12px")
-        .style("font-weight", "normal");
-
-      // Add hover events to the entire province group
-      provinceGroup
-        .on("mouseover", function(event) {
-          // Calculate total stats for this province across all periods
-          let totalMoveIn = 0;
-          let totalMoveOut = 0;
-          let totalNet = 0;
-          
-          data.forEach(periodData => {
-            const locationStats = periodData.locations.find(l => l.locationId === location.uniqueId);
-            if (locationStats) {
-              totalMoveIn += locationStats.moveIn;
-              totalMoveOut += locationStats.moveOut;
-              totalNet += locationStats.netMigration;
-            }
-          });
-
-          tooltip
-            .style("opacity", 1)
-            .html(`
-              <strong>${location.name} - Total Summary</strong><br/>
-              Total Move In: ${totalMoveIn.toLocaleString()}<br/>
-              Total Move Out: ${totalMoveOut.toLocaleString()}<br/>
-              Total Net Migration: ${totalNet >= 0 ? '+' : ''}${totalNet.toLocaleString()}
-            `);
-        })
-        .on("mousemove", function(event) {
-          tooltip
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 10) + "px");
-        })
-        .on("mouseout", function() {
-          tooltip.style("opacity", 0);
-        });
-    });
-
-    // Cleanup function to remove tooltip when component unmounts
     return () => {
-      d3.selectAll(".migration-tooltip").remove();
+      d3.selectAll(".tourism-tooltip").remove();
     };
-  }, [data, locations, width, height]);
+  }, [data, locations, width, height, getTourismColor]);
 
   return <svg ref={svgRef} width={width} height={height}></svg>;
 };
 
-export default function MigrationAnalysisPageContent() {
+// D3.js Tourism Line Chart Component (for Trend Breakdown)
+const TourismLineChart: React.FC<{
+  data: TourismChartDataEntry[];
+  locations: Location[];
+  width: number;
+  height: number;
+  getTourismColor: (locationId: string) => string;
+}> = ({ data, locations, width, height, getTourismColor }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current || !data || data.length === 0) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    // Create tooltip
+    const tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "tourism-line-tooltip")
+      .style("position", "absolute")
+      .style("background", "rgba(0, 0, 0, 0.8)")
+      .style("color", "white")
+      .style("padding", "8px")
+      .style("border-radius", "4px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("opacity", 0)
+      .style("z-index", 1000);
+
+    const margin = { top: 60, right: 20, bottom: 120, left: 80 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    const g = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Transform data for line chart: each location becomes a series
+    const lineData = locations.map(location => {
+      const series = data.map((periodData, periodIndex) => {
+        const locationEntry = periodData.locations.find(l => l.locationId === location.uniqueId);
+        return {
+          period: periodData.period,
+          periodIndex,
+          value: locationEntry?.arrivals || 0,
+          locationName: location.name,
+          locationId: location.uniqueId
+        };
+      });
+      return {
+        locationId: location.uniqueId,
+        locationName: location.name,
+        data: series,
+        color: getTourismColor(location.uniqueId)
+      };
+    });
+
+    // Scales
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, data.length - 1])
+      .range([0, innerWidth]);
+
+    const maxValue = d3.max(lineData.flatMap(series => series.data.map(d => d.value))) || 0;
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, maxValue * 1.1])
+      .range([innerHeight, 0]);
+
+    // Create line generator
+    const line = d3
+      .line<{ periodIndex: number; value: number }>()
+      .x(d => xScale(d.periodIndex))
+      .y(d => yScale(d.value))
+      .curve(d3.curveMonotoneX);
+
+    // Calculate year span to determine if month labels should be hidden
+    const uniqueYears = new Set<number>();
+    data.forEach(d => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        uniqueYears.add(parseInt(parts[1]));
+      }
+    });
+    const yearSpan = uniqueYears.size;
+    const hideMonthLabels = yearSpan > 3;
+
+    // Add x-axis (hide month labels if year span > 3)
+    g.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(xScale)
+        .tickValues(hideMonthLabels ? [] : d3.range(data.length))
+        .tickFormat((i: any) => {
+          if (hideMonthLabels) return '';
+          const period = data[i]?.period;
+          if (period) {
+            const parts = period.split(' ');
+            return parts.length >= 1 ? parts[0] : period;
+          }
+          return '';
+        })
+      )
+      .selectAll("text")
+      .style("font-weight", "bold")
+      .style("text-anchor", "middle")
+      .attr("dy", ".35em");
+
+    // Add year boundary lines
+    const yearBoundaries: { year: number; x: number; label: string }[] = [];
+    data.forEach((d, i) => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        const year = parseInt(parts[1]);
+        const isFirstOfYear = i === 0 || !data.slice(0, i).some(prev => prev.period.includes(` ${year}`));
+        if (isFirstOfYear) {
+          yearBoundaries.push({ year, x: xScale(i), label: year.toString() });
+        }
+      }
+    });
+
+    yearBoundaries.forEach(boundary => {
+      g.append("line")
+        .attr("x1", boundary.x)
+        .attr("x2", boundary.x)
+        .attr("y1", 0)
+        .attr("y2", innerHeight)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "5,5")
+        .style("opacity", 0.7);
+
+      g.append("text")
+        .attr("x", boundary.x)
+        .attr("y", innerHeight + 25)
+        .attr("dy", "0.35em")
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .style("font-size", "14px")
+        .style("fill", "#666")
+        .text(boundary.label);
+    });
+
+    // Format y-axis values
+    const formatYAxis = (d: d3.NumberValue) => {
+      const value = d.valueOf();
+      if (value >= 1000) {
+        return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'k';
+      }
+      return value.toString();
+    };
+
+    g.append("g")
+      .attr("class", "y-axis")
+      .call(d3.axisLeft(yScale).tickFormat(formatYAxis))
+      .selectAll("text")
+      .style("font-weight", "bold");
+
+    // Add y-axis label
+    g.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x", 0 - (innerHeight / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-weight", "bold")
+      .style("font-size", "16px")
+      .text("Tourist Arrivals (thousands)");
+
+    // Add lines for each location
+    const locationGroups = g.selectAll(".location-line")
+      .data(lineData)
+      .enter()
+      .append("g")
+      .attr("class", "location-line");
+
+    locationGroups
+      .append("path")
+      .attr("class", "line")
+      .attr("d", d => line(d.data))
+      .attr("fill", "none")
+      .attr("stroke", d => d.color)
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.8);
+
+    // Add data points
+    locationGroups.selectAll(".data-point")
+      .data(d => d.data)
+      .enter()
+      .append("circle")
+      .attr("class", "data-point")
+      .attr("cx", d => xScale(d.periodIndex))
+      .attr("cy", d => yScale(d.value))
+      .attr("r", 4)
+      .attr("fill", d => {
+        const locationData = lineData.find(l => l.locationId === d.locationId);
+        return locationData ? locationData.color : '#000';
+      })
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 2)
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("r", 6);
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${d.locationName}</strong><br/>
+            <strong>${d.period}</strong><br/>
+            Arrivals: ${d.value.toLocaleString()}
+          `);
+      })
+      .on("mousemove", function(event) {
+        tooltip
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("r", 4);
+        tooltip.style("opacity", 0);
+      });
+
+    return () => {
+      d3.selectAll(".tourism-line-tooltip").remove();
+    };
+  }, [data, locations, width, height, getTourismColor]);
+
+  return <svg ref={svgRef} width={width} height={height}></svg>;
+};
+
+export default function TourismAnalysisPageContent() {
   const theme = useTheme();
   const { isConnected } = useConnectivity();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Shared color functions for chart and legend
+  const locationColors = d3.scaleOrdinal([
+    '#EF5350', // Light Thai red
+    '#42A5F5', // Light Thai blue
+    '#D4AF37', // Gold
+    '#FF9933', // Saffron
+    '#26A69A', // Light emerald
+    '#00BCD4', // Turquoise
+    '#AB47BC', // Light royal purple
+    '#FF6B6B', // Coral
+    '#4ECDC4', // Teal
+  ]);
+
+  const getTourismColor = useCallback((locationId: string) => {
+    return locationColors(locationId);
+  }, [locationColors]);
 
   // Search and location state
   const [selectedLocations, setSelectedLocations] = useState<Location[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedForDeletion, setHighlightedForDeletion] = useState<number | null>(null);
 
+  // Visualization selector state
+  const [activeVisualization, setActiveVisualization] = useState<'tourism-timeline' | 'trend-breakdown' | 'period-comparison'>('tourism-timeline');
+
+  // Time period selection state for targeted comparisons (Period Comparison feature)
+  const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+  const [filteredChartData, setFilteredChartData] = useState<TourismChartData | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState<string>('');
+
   // Chart data and loading state
-  const [chartData, setChartData] = useState<MigrationChartData | null>(null);
+  const [chartData, setChartData] = useState<TourismChartData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -483,7 +616,7 @@ export default function MigrationAnalysisPageContent() {
   });
 
   // Chart dimensions
-  const chartWidth = 1200;
+  const chartWidth = 1000;
   const chartHeight = 500;
 
   // Keyboard shortcuts
@@ -540,22 +673,22 @@ export default function MigrationAnalysisPageContent() {
     minHeight: '70vh'
   }), [theme.palette.background.paper]);
 
-  // Transform API response to chart format for D3.js diverging bars
-  const transformAPIResponseToChartData = useCallback((
+  // Transform Tourism API response to chart format for D3.js
+  const transformTourismResponseToChartData = useCallback((
     apiResponse: any, 
     locations: Location[], 
     period: { id: string; startDate: string; endDate: string }
-  ): MigrationChartData => {
-    console.log('Transforming API response:', apiResponse);
+  ): TourismChartData => {
+    console.log('Transforming Tourism API response:', apiResponse);
     console.log('Selected period range:', period);
     
     if (!apiResponse || !apiResponse.data || !Array.isArray(apiResponse.data)) {
-      console.warn('Invalid API response structure:', apiResponse);
+      console.warn('Invalid Tourism API response structure:', apiResponse);
       return {
         data: [],
         locations,
         period,
-        summary: { totalMoveIn: 0, totalMoveOut: 0, netMigration: 0 }
+        summary: { totalArrivals: 0 }
       };
     }
 
@@ -570,25 +703,16 @@ export default function MigrationAnalysisPageContent() {
     const selectedEndDate = new Date(period.endDate);
 
     // Group time series data by time period, keeping location separation
-    const timeSeriesMap: Record<string, LocationMigrationEntry[]> = {};
-    let totalMoveIn = 0;
-    let totalMoveOut = 0;
+    const timeSeriesMap: Record<string, LocationTourismEntry[]> = {};
+    let totalArrivals = 0;
 
     // Get all unique time periods and filter by date range
     const allTimePeriods = new Set<string>();
-    const allAvailablePeriods: string[] = [];
     
     apiResponse.data.forEach((locationData: any) => {
       if (locationData.time_series) {
         Object.keys(locationData.time_series).forEach(timePeriodId => {
-          allAvailablePeriods.push(timePeriodId);
-          
-          // Parse the time period date to check if it's within range
           const periodDate = parseTimePeriodToDate(timePeriodId, apiResponse);
-          console.log(`Parsing period ${timePeriodId}:`, periodDate, 'Selected range:', selectedStartDate, '-', selectedEndDate);
-          
-          // Use inclusive start date but exclusive end date to avoid off-by-one errors
-          // This ensures that if end date is "2025-01-01", we don't include January 2025 data
           if (periodDate && periodDate >= selectedStartDate && periodDate < selectedEndDate) {
             allTimePeriods.add(timePeriodId);
           }
@@ -596,48 +720,40 @@ export default function MigrationAnalysisPageContent() {
       }
     });
 
-    console.log('All available time periods from API:', [...new Set(allAvailablePeriods)]);
     console.log('Filtered time periods:', Array.from(allTimePeriods));
 
     // Process each time period
     Array.from(allTimePeriods).forEach(timePeriodId => {
-      const locationEntries: LocationMigrationEntry[] = [];
+      const locationEntries: LocationTourismEntry[] = [];
 
       locations.forEach(location => {
         // Find corresponding API location data
         let apiLocationData = null;
         for (const [, data] of locationDataMap) {
-          const locationData = data as any;
-          if (locationData.location.name.toLowerCase() === location.name.toLowerCase()) {
-            apiLocationData = locationData;
+          const locData = data as any;
+          if (locData.location.name.toLowerCase() === location.name.toLowerCase()) {
+            apiLocationData = locData;
             break;
           }
         }
 
-        if (apiLocationData && apiLocationData.time_series && apiLocationData.time_series[timePeriodId]) {
+        if (apiLocationData?.time_series?.[timePeriodId]) {
           const stats = apiLocationData.time_series[timePeriodId];
-          const moveIn = stats.move_in || 0;
-          const moveOut = stats.move_out || 0;
-          const netMigration = stats.net_migration || (moveIn - moveOut);
+          // Tourism API uses 'arrivals' instead of move_in/move_out
+          const arrivals = stats.arrivals || 0;
 
           locationEntries.push({
             locationId: location.uniqueId,
             locationName: location.name,
-            moveIn,
-            moveOut,
-            netMigration
+            arrivals
           });
 
-          totalMoveIn += moveIn;
-          totalMoveOut += moveOut;
+          totalArrivals += arrivals;
         } else {
-          // Add zero entry if no data for this location/period
           locationEntries.push({
             locationId: location.uniqueId,
             locationName: location.name,
-            moveIn: 0,
-            moveOut: 0,
-            netMigration: 0
+            arrivals: 0
           });
         }
       });
@@ -646,8 +762,8 @@ export default function MigrationAnalysisPageContent() {
     });
 
     // Convert to chart data format and sort chronologically
-    const chartData: ChartDataEntry[] = Object.entries(timeSeriesMap)
-      .map(([timePeriodId, locationEntries]): ChartDataEntryWithSort => {
+    const chartData: TourismChartDataEntry[] = Object.entries(timeSeriesMap)
+      .map(([timePeriodId, locationEntries]): TourismChartDataEntryWithSort => {
         const displayPeriod = formatTimePeriodForDisplay(timePeriodId);
         
         return {
@@ -656,23 +772,21 @@ export default function MigrationAnalysisPageContent() {
           sortKey: parseTimePeriodToDate(timePeriodId, apiResponse)?.getTime() || 0
         };
       })
-      .sort((a, b) => a.sortKey - b.sortKey) // Sort chronologically
-      .map(({ sortKey, ...entry }) => entry); // Remove sortKey from final data
+      .sort((a, b) => a.sortKey - b.sortKey)
+      .map(({ sortKey, ...entry }) => entry);
 
     return {
       data: chartData,
       locations,
       period,
       summary: {
-        totalMoveIn,
-        totalMoveOut,
-        netMigration: totalMoveIn - totalMoveOut
+        totalArrivals
       }
     };
   }, []);
 
-  // Load migration data using the new API
-  const loadMigrationData = useCallback(async (
+  // Load tourism data using the Tourism API
+  const loadTourismData = useCallback(async (
     locations: Location[], 
     startDate?: string, 
     endDate?: string
@@ -681,15 +795,15 @@ export default function MigrationAnalysisPageContent() {
     setError(null);
 
     try {
-      const response = await migrationAPIService.executeQuery(locations, startDate, endDate);
+      const response = await tourismAPIService.executeQuery(locations, startDate, endDate);
       
       if (response.success && response.data) {
-        // Use the effective date range from the API response (includes defaults if no dates were provided)
+        // Use the effective date range from the API response
         const effectiveRange = response.data.effectiveDateRange || { startDate: startDate || '', endDate: endDate || '' };
         
-        // Transform API response to chart data
-        const transformedData = transformAPIResponseToChartData(
-          response.data.apiResponse, 
+        // Transform API response to chart data for tourism
+        const transformedData = transformTourismResponseToChartData(
+          response.apiResponse, 
           locations, 
           { id: 'custom-range', startDate: effectiveRange.startDate, endDate: effectiveRange.endDate }
         );
@@ -701,16 +815,16 @@ export default function MigrationAnalysisPageContent() {
           endDate: effectiveRange.endDate
         });
       } else {
-        setError(response.error || 'Failed to load migration data');
+        setError(response.error || 'Failed to load tourism data');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      console.error('Migration data loading failed:', err);
+      console.error('Tourism data loading failed:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [transformAPIResponseToChartData]);
+  }, []);
 
   // Handle date range change
   const handleDateRangeChange = useCallback((startDate: string, endDate: string) => {
@@ -719,9 +833,9 @@ export default function MigrationAnalysisPageContent() {
     
     // Only reload data if we already have chart data (user has already executed a query)
     if (selectedLocations.length > 0 && chartData) {
-      loadMigrationData(selectedLocations, startDate, endDate);
+      loadTourismData(selectedLocations, startDate, endDate);
     }
-  }, [selectedLocations, chartData, loadMigrationData]);
+  }, [selectedLocations, chartData, loadTourismData]);
 
   // Helper function to parse time period ID to Date object for filtering
   const parseTimePeriodToDate = (timePeriodId: string, apiResponse?: any): Date | null => {
@@ -829,9 +943,9 @@ export default function MigrationAnalysisPageContent() {
     return timePeriodId;
   };
 
-  // Custom location limit check for migration analysis
-  const canAddMoreMigrationLocations = (currentCount: number): boolean => {
-    return currentCount < MIGRATION_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
+  // Custom location limit check for tourism analysis
+  const canAddMoreTourismLocations = (currentCount: number): boolean => {
+    return currentCount < TOURISM_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS;
   };
 
   // Handle search change
@@ -841,8 +955,8 @@ export default function MigrationAnalysisPageContent() {
 
   // Handle location selection
   const handleLocationSelect = useCallback((location: Location) => {
-    if (!canAddMoreMigrationLocations(selectedLocations.length)) {
-      console.warn(`Cannot add more locations. Maximum of ${MIGRATION_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations allowed for migration analysis.`);
+    if (!canAddMoreTourismLocations(selectedLocations.length)) {
+      console.warn(`Cannot add more locations. Maximum of ${TOURISM_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS} locations allowed for tourism analysis.`);
       return;
     }
     
@@ -863,7 +977,7 @@ export default function MigrationAnalysisPageContent() {
   const handleExecuteQuery = useCallback(async () => {
     if (selectedLocations.length === 0) return;
     
-    await loadMigrationData(selectedLocations, dateRange.startDate, dateRange.endDate);
+    await loadTourismData(selectedLocations, dateRange.startDate, dateRange.endDate);
 
     // Save successful search to recent searches
     console.log('💾 Saving recent search for locations:', selectedLocations.map(l => l.name));
@@ -878,7 +992,7 @@ export default function MigrationAnalysisPageContent() {
         locations: validateStoredLocations(search.locations, searchResults.allLocations)
       })).filter(search => search.locations.length > 0);
     });
-  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadMigrationData, searchResults.allLocations]);
+  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData, searchResults.allLocations]);
 
   // Handle new search
   const handleNewSearch = useCallback(() => {
@@ -976,7 +1090,7 @@ export default function MigrationAnalysisPageContent() {
               selectedLocations={selectedLocations}
               highlightedForDeletion={highlightedForDeletion}
               onLocationRemove={handleLocationRemove}
-              maxLocations={MIGRATION_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS}
+              maxLocations={TOURISM_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS}
             />
 
             <SearchBar
@@ -990,6 +1104,7 @@ export default function MigrationAnalysisPageContent() {
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}
+              actionLabel="View Tourism Trends"
             />
 
             <RecentSearches
@@ -1008,7 +1123,7 @@ export default function MigrationAnalysisPageContent() {
           <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={4}>
             <CircularProgress size={40} />
             <Typography variant="body1" sx={{ mt: 2 }}>
-              Loading migration data...
+              Loading tourism data...
             </Typography>
           </Box>
         )}
@@ -1027,53 +1142,617 @@ export default function MigrationAnalysisPageContent() {
 
         {/* Chart Display */}
         {chartData && !isLoading && !error && (
-          <>
-            {/* Date Range Selector for changing periods after query execution */}
-            <MigrationAnalysisDuration
-              selectedStartDate={dateRange.startDate}
-              selectedEndDate={dateRange.endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-            
-            <Box mt={3}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+          <Box sx={{ px: 2, py: 2 }}>
+            {/* Title Card and Date Range Selector Row */}
+            <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+              {/* Multi-province tourism analysis card */}
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 40%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
                 <Box>
-                  <Typography variant="h5" gutterBottom>
-                    Multi-province comparison (diverging grouped bars): {chartData.locations.map(l => l.name).join(', ')}
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                    Multi-province Tourism Analysis
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Period: {formatDateRange(chartData.period.startDate, chartData.period.endDate)}
+                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                    Tourism Timeline
                   </Typography>
-                  
-                </Box>
-                <Button 
-                  variant="outlined" 
-                  onClick={handleEditSearch}
-                  sx={{ mt: 1, mr: 1 }}
-                >
-                  Edit Search
-                </Button>
 
-                <Button 
-                  variant="outlined" 
-                  onClick={handleNewSearch}
-                  sx={{ mt: 1 }}
-                >
-                  New Search
-                </Button>
-              </Box>
-              
-              <DivergingBarChart
-                data={chartData.data}
-                locations={chartData.locations}
-                width={chartWidth}
-                height={chartHeight}
-              />
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      mb: 1.5
+                    }}
+                  >
+                    Selected Provinces
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {chartData.locations.map((location) => (
+                      <Chip
+                        key={location.uniqueId}
+                        icon={<MapPinAreaIcon size={16} />}
+                        label={location.name}
+                        color={getLocationColor(location.type)}
+                        size="medium"
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: '0.875rem'
+                        }}
+                      />
+                    ))}
+                    <Chip
+                      label={`${chartData.locations.length} province${chartData.locations.length > 1 ? 's' : ''}`}
+                      size="small"
+                      variant="outlined"
+                      sx={{ 
+                        fontWeight: 500,
+                        fontSize: '0.75rem',
+                        borderStyle: 'dashed'
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleEditSearch}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Edit Search
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleNewSearch}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      New Search
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
+
+              {/* Tourism Analysis Duration Card */}
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 58.5%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <MigrationAnalysisDuration
+                  selectedStartDate={dateRange.startDate}
+                  selectedEndDate={dateRange.endDate}
+                  onDateRangeChange={handleDateRangeChange}
+                  title="Tourism Analysis Duration"
+                />
+              </Paper>
             </Box>
-            
-            {/* Citation Footer - only show when visualizations are rendered */}
+
+            {/* Visualization Selector */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 0,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <ToggleButtonGroup
+                value={activeVisualization}
+                exclusive
+                onChange={(_, newValue) => {
+                  if (newValue !== null) {
+                    setActiveVisualization(newValue);
+                  }
+                }}
+                aria-label="Visualization type"
+                sx={{
+                  display: 'flex',
+                  width: '100%',
+                  gap: 0,
+                  p: 0.5,
+                  '& .MuiToggleButton-root': {
+                    flex: 1,
+                    px: { xs: 3, sm: 4 },
+                    py: 2,
+                    borderRadius: 0,
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    textTransform: 'none',
+                    border: 'none',
+                    transition: 'all 0.14s ease',
+                    minHeight: 64,
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:not(:last-of-type)': {
+                      borderRight: `1px solid ${theme.palette.divider}`,
+                    },
+                    '&:first-of-type': {
+                      borderTopLeftRadius: 12,
+                      borderBottomLeftRadius: 12,
+                    },
+                    '&:last-of-type': {
+                      borderTopRightRadius: 12,
+                      borderBottomRightRadius: 12,
+                    },
+                    '&.Mui-selected': {
+                      transform: 'none',
+                      boxShadow: '0 10px 30px rgba(16,24,40,0.08)',
+                      zIndex: 1,
+                    },
+                    '&:hover': {
+                      transform: 'translateY(-2px)'
+                    },
+                  },
+                }}
+              >
+                <ToggleButton
+                  value="tourism-timeline"
+                  aria-label="Tourism Timeline"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(0,52,104,0.04) 0%, rgba(30,136,229,0.03) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #003468 0%, #1E88E5 100%)',
+                      color: 'white',
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                    <BarChart fontSize="small" />
+                    <Box>
+                      <Typography component="span" sx={{ fontWeight: 700 }}>Tourism Timeline</Typography>
+                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Arrivals by period</Typography>
+                    </Box>
+                  </Box>
+                </ToggleButton>
+
+                <ToggleButton
+                  value="trend-breakdown"
+                  aria-label="Trend Breakdown"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(0,119,190,0.04) 0%, rgba(51,153,211,0.03) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #0077BE 0%, #3399D3 100%)',
+                      color: 'white',
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                    <ShowChartIcon fontSize="small" />
+                    <Box>
+                      <Typography component="span" sx={{ fontWeight: 700 }}>Trend Breakdown</Typography>
+                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Line trends by province</Typography>
+                    </Box>
+                  </Box>
+                </ToggleButton>
+
+                <ToggleButton
+                  value="period-comparison"
+                  aria-label="Period Comparison"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(30,136,229,0.04) 0%, rgba(66,165,245,0.03) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)',
+                      color: 'white',
+                    }
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} sx={{ width: '100%', textAlign: 'left' }}>
+                    <CompareArrowsIcon fontSize="small" />
+                    <Box>
+                      <Typography component="span" sx={{ fontWeight: 700 }}>Period Comparison</Typography>
+                      <Typography component="div" variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>Compare moments in time</Typography>
+                    </Box>
+                  </Box>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Paper>
+          </Box>
+        )}
+
+        {/* Tourism Timeline Visualization */}
+        {chartData && !isLoading && !error && activeVisualization === 'tourism-timeline' && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box display="flex" gap={3}>
+                {/* Chart Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <TourismBarChart
+                    data={chartData.data}
+                    locations={chartData.locations}
+                    width={chartWidth}
+                    height={chartHeight}
+                    getTourismColor={getTourismColor}
+                  />
+                </Paper>
+
+                {/* Legend Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    width: '250px',
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Legend
+                    locations={chartData.locations}
+                    getLocationColor={getTourismColor}
+                  />
+                </Paper>
+              </Box>
+            </Paper>
+
+            {/* Citation Footer */}
             <CitationFooter />
-          </>
+          </Box>
+        )}
+
+        {/* Trend Breakdown Visualization (Line Chart) */}
+        {chartData && !isLoading && !error && activeVisualization === 'trend-breakdown' && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box display="flex" gap={3}>
+                {/* Chart Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <TourismLineChart
+                    data={chartData.data}
+                    locations={chartData.locations}
+                    width={chartWidth}
+                    height={chartHeight}
+                    getTourismColor={getTourismColor}
+                  />
+                </Paper>
+
+                {/* Legend Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    width: '250px',
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Legend
+                    locations={chartData.locations}
+                    getLocationColor={getTourismColor}
+                  />
+                </Paper>
+              </Box>
+            </Paper>
+
+            {/* Citation Footer */}
+            <CitationFooter />
+          </Box>
+        )}
+
+        {/* Period Comparison Visualization */}
+        {chartData && !isLoading && !error && activeVisualization === 'period-comparison' && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                pb: 2,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Targeted Period Comparison
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                  Select specific time periods for detailed comparison across the same locations
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
+                  Selected Periods ({selectedPeriods.length})
+                </Typography>
+
+                {/* Selected Periods Display */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  {selectedPeriods.map((periodId) => (
+                    <Chip
+                      key={periodId}
+                      label={formatTimePeriodForDisplay(periodId)}
+                      onDelete={() => setSelectedPeriods(prev => prev.filter(p => p !== periodId))}
+                      size="small"
+                      sx={{ fontWeight: 500 }}
+                    />
+                  ))}
+                </Box>
+
+                {/* Period Selection Controls */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 'fit-content' }}>
+                    Add Period:
+                  </Typography>
+
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Year</InputLabel>
+                    <Select
+                      value={selectedYear}
+                      label="Year"
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      sx={{ borderRadius: 1.5, fontWeight: 500 }}
+                    >
+                      <MenuItem value=""><em>Year</em></MenuItem>
+                      {(() => {
+                        if (!dateRange.startDate || !dateRange.endDate) {
+                          return <MenuItem disabled>No date range selected</MenuItem>;
+                        }
+                        const startYear = new Date(dateRange.startDate).getFullYear();
+                        const endYear = new Date(dateRange.endDate).getFullYear();
+                        const years = [];
+                        for (let year = startYear; year <= endYear; year++) {
+                          years.push(year);
+                        }
+                        return years.map(year => (
+                          <MenuItem key={year} value={year.toString().slice(-2)}>{year}</MenuItem>
+                        ));
+                      })()}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Month</InputLabel>
+                    <Select
+                      value={selectedMonth}
+                      label="Month"
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      disabled={!selectedYear}
+                      sx={{ borderRadius: 1.5, fontWeight: 500 }}
+                    >
+                      <MenuItem value=""><em>Month</em></MenuItem>
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(month => (
+                        <MenuItem key={month} value={month.toLowerCase()}>{month}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      if (selectedMonth && selectedYear) {
+                        const periodId = `${selectedMonth}${selectedYear}`;
+                        const periodExists = chartData?.data.some(entry => formatTimePeriodForDisplay(periodId) === entry.period);
+                        
+                        if (!periodExists) {
+                          const monthMap: Record<string, number> = {
+                            'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                            'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                          };
+                          const monthNum = monthMap[selectedMonth];
+                          const fullYear = 2000 + parseInt(selectedYear);
+                          const periodDate = new Date(fullYear, monthNum, 1);
+                          
+                          if (!isNaN(periodDate.getTime())) {
+                            const currentStart = new Date(dateRange.startDate || '2020-01-01');
+                            const currentEnd = new Date(dateRange.endDate || '2024-12-31');
+                            
+                            if (periodDate < currentStart) {
+                              setFeedbackMessage(`This period is before your current date range. Please adjust the Tourism Analysis Duration above to include ${formatTimePeriodForDisplay(periodId)}.`);
+                            } else if (periodDate > currentEnd) {
+                              setFeedbackMessage(`This period is after your current date range. Please adjust the Tourism Analysis Duration above to include ${formatTimePeriodForDisplay(periodId)}.`);
+                            } else {
+                              setFeedbackMessage(`Period ${formatTimePeriodForDisplay(periodId)} is not available in the current data.`);
+                            }
+                            setTimeout(() => setFeedbackMessage(''), 5000);
+                          }
+                          return;
+                        }
+                        
+                        if (!selectedPeriods.includes(periodId)) {
+                          setSelectedPeriods(prev => [...prev, periodId]);
+                        }
+                        setSelectedYear('');
+                      }
+                    }}
+                    disabled={!selectedMonth || !selectedYear}
+                    sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Add Period
+                  </Button>
+                </Box>
+
+                {/* Apply Button */}
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      if (selectedPeriods.length > 0 && chartData) {
+                        const filteredData = {
+                          ...chartData,
+                          data: chartData.data.filter(entry => {
+                            return selectedPeriods.some(selectedPeriod => {
+                              const displayPeriod = formatTimePeriodForDisplay(selectedPeriod);
+                              return entry.period === displayPeriod;
+                            });
+                          })
+                        };
+                        setFilteredChartData(filteredData);
+                      }
+                    }}
+                    disabled={selectedPeriods.length === 0}
+                    sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Apply Comparison
+                  </Button>
+
+                  {filteredChartData && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setFilteredChartData(null);
+                        setSelectedPeriods([]);
+                        setSelectedMonth('');
+                        setSelectedYear('');
+                        setFeedbackMessage('');
+                      }}
+                      sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Clear Comparison
+                    </Button>
+                  )}
+                </Box>
+
+                {/* Feedback message */}
+                <Fade in={!!feedbackMessage} timeout={500}>
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, border: '1px solid', borderColor: 'warning.main' }}>
+                    <Typography variant="body2" sx={{ color: 'warning.contrastText', fontWeight: 500 }}>
+                      ⚠️ {feedbackMessage}
+                    </Typography>
+                  </Box>
+                </Fade>
+              </Box>
+            </Paper>
+
+            {/* Filtered Chart Display */}
+            {filteredChartData && (
+              <Box sx={{ mb: 3 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    mb: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      Period Comparison Results
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                      Comparing {filteredChartData.data.length} selected periods across {filteredChartData.locations.length} locations
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" gap={3}>
+                    {/* Chart Container */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        flex: 1,
+                        p: 3,
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                        border: `1px solid ${theme.palette.divider}`,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <TourismBarChart
+                        data={filteredChartData.data}
+                        locations={filteredChartData.locations}
+                        width={chartWidth}
+                        height={chartHeight}
+                        getTourismColor={getTourismColor}
+                      />
+                    </Paper>
+
+                    {/* Legend Container */}
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: '250px',
+                        p: 3,
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                        border: `1px solid ${theme.palette.divider}`,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Legend
+                        locations={filteredChartData.locations}
+                        getLocationColor={getTourismColor}
+                      />
+                    </Paper>
+                  </Box>
+                </Paper>
+              </Box>
+            )}
+
+            {/* Citation Footer */}
+            <CitationFooter />
+          </Box>
         )}
 
         {/* Search Results - only show when no chart data */}
@@ -1115,7 +1794,7 @@ export default function MigrationAnalysisPageContent() {
         {!chartData && !isLoading && !error && selectedLocations.length > 0 && (
           <Box py={4} textAlign="center">
             <Typography variant="body1" color="text.secondary">
-              Click &quot;Execute Query&quot; or press Shift+Enter to load migration data for the selected locations.
+              Click &quot;Execute Query&quot; or press Shift+Enter to load tourism data for the selected provinces.
             </Typography>
           </Box>
         )}
