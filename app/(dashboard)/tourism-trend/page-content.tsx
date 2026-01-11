@@ -28,7 +28,7 @@ import { tourismAPIService } from '@/app/services/tourism-api-service';
 import { metadataService } from '@/app/services/api';
 
 // Hooks and utils
-import { useLocationSearch, useKeyboardShortcuts } from '../hooks';
+import { useLocationSearch, useKeyboardShortcuts, useUrlParams } from '../hooks';
 import { Location, getLocationColor } from '../helper';
 import { canAddMoreLocations } from '../constraints';
 import { formatDateRange } from '@/src/utils/date-formatter';
@@ -615,6 +615,12 @@ export default function TourismAnalysisPageContent() {
     restrictToTypes: ['province']
   });
 
+  // URL params hook for shareable URLs
+  const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
+  
+  // Ref to prevent duplicate URL loading
+  const isResettingRef = useRef(false);
+
   // Chart dimensions
   const chartWidth = 1000;
   const chartHeight = 500;
@@ -665,6 +671,81 @@ export default function TourismAnalysisPageContent() {
 
     loadAndValidateRecentSearches();
   }, [searchResults.allLocations]);
+
+  // Load locations from URL on mount
+  useEffect(() => {
+    const loadFromUrl = async () => {
+      if (isResettingRef.current || searchResults.isLoading || searchResults.allLocations.length === 0) return;
+      
+      const locationsParam = getLocationsParam();
+      
+      if (locationsParam) {
+        try {
+          const decodedParam = decodeURIComponent(locationsParam);
+          const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
+          
+          console.log('Tourism Trends: Loading locations from URL...', uniqueIds);
+          // Filter to only include provinces (tourism only supports province-level data)
+          const locations = uniqueIds
+            .map(uniqueId => searchResults.allLocations.find(loc => loc.uniqueId === uniqueId))
+            .filter((location): location is Location => location !== undefined && location.type === 'province');
+          
+          const currentUniqueIds = selectedLocations.map(loc => loc.uniqueId).sort();
+          const urlUniqueIds = uniqueIds.sort();
+          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length && 
+                                currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
+          
+          if (locations.length > 0 && !locationsMatch) {
+            // Wait for dateRange to be available, or use defaults
+            const currentDateRange = dateRange.startDate && dateRange.endDate ? dateRange : { startDate: '2024-01-01', endDate: '2024-12-31' };
+            
+            isResettingRef.current = true;
+            
+            setSelectedLocations(locations);
+            setSearchQuery('');
+            
+            // Auto-execute query with loaded locations
+            setIsLoading(true);
+            setError(null);
+            
+            try {
+              const response = await tourismAPIService.executeQuery(locations, currentDateRange.startDate, currentDateRange.endDate);
+              
+              if (response.success && response.data) {
+                const effectiveRange = response.data.effectiveDateRange || { startDate: currentDateRange.startDate || '', endDate: currentDateRange.endDate || '' };
+                
+                const transformedData = transformTourismResponseToChartData(
+                  response.apiResponse, 
+                  locations, 
+                  { id: 'custom-range', startDate: effectiveRange.startDate, endDate: effectiveRange.endDate }
+                );
+                setChartData(transformedData);
+                setDateRange({
+                  startDate: effectiveRange.startDate,
+                  endDate: effectiveRange.endDate
+                });
+              }
+              updateUrlWithLocations(locations);
+            } catch (error) {
+              console.error('Tourism Trends query failed after URL load:', error);
+              setError(error instanceof Error ? error.message : 'Failed to load tourism data');
+            } finally {
+              setIsLoading(false);
+            }
+            
+            setTimeout(() => {
+              isResettingRef.current = false;
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Failed to parse locations from URL:', error);
+        }
+      }
+    };
+    
+    loadFromUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchResults.isLoading, searchResults.allLocations]);
 
   // Paper styles
   const paperStyles = useMemo(() => ({
@@ -978,6 +1059,7 @@ export default function TourismAnalysisPageContent() {
     if (selectedLocations.length === 0) return;
     
     await loadTourismData(selectedLocations, dateRange.startDate, dateRange.endDate);
+    updateUrlWithLocations(selectedLocations); // Update URL for sharing
 
     // Save successful search to recent searches
     console.log('💾 Saving recent search for locations:', selectedLocations.map(l => l.name));
@@ -992,7 +1074,7 @@ export default function TourismAnalysisPageContent() {
         locations: validateStoredLocations(search.locations, searchResults.allLocations)
       })).filter(search => search.locations.length > 0);
     });
-  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData, searchResults.allLocations]);
+  }, [selectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData, updateUrlWithLocations, searchResults.allLocations]);
 
   // Handle new search
   const handleNewSearch = useCallback(() => {
@@ -1001,11 +1083,13 @@ export default function TourismAnalysisPageContent() {
     setSearchQuery('');
     setHighlightedForDeletion(null);
     setError(null);
+    setActiveVisualization('tourism-timeline'); // Reset to default visualization
+    clearUrlParams(); // Clear URL params on reset
     
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  }, []);
+  }, [clearUrlParams]);
 
   // Handle edit search
   const handleEditSearch = useCallback(() => {
