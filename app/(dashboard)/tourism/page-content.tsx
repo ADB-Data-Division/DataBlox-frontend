@@ -56,7 +56,10 @@ export default function PageContent() {
     const { migrationData, loadMigrationData, resetMigrationData } = useMigrationData();
   const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
   
-  const searchResults = useLocationSearch(memoizedSelectedLocations, state.searchQuery);
+  // Tourism only supports province-level data, so restrict search to provinces
+  const searchResults = useLocationSearch(memoizedSelectedLocations, state.searchQuery, {
+    restrictToTypes: ['province']
+  });
 
   // Memoize keyboard shortcuts configuration
   const keyboardShortcutsConfig = useMemo(() => ({
@@ -350,6 +353,7 @@ export default function PageContent() {
               highlightedForDeletion={state.highlightedForDeletion}
               isLoading={state.isLoading}
               allowedType={searchResults.allowedType}
+              restrictToTypes={searchResults.restrictToTypes}
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}

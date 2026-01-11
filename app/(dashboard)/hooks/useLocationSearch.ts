@@ -15,10 +15,19 @@ interface SearchPagination {
   totalResults: number;
 }
 
+export type LocationType = 'province' | 'district' | 'subDistrict';
+
+export interface LocationSearchOptions {
+  /** Restrict search results to specific location types (e.g., ['province'] for tourism) */
+  restrictToTypes?: LocationType[];
+}
+
 export function useLocationSearch(
   selectedLocations: Location[],
-  searchQuery: string
+  searchQuery: string,
+  options?: LocationSearchOptions
 ) {
+  const { restrictToTypes } = options || {};
   const { allLocations, isLoading, error } = useLocationContext();
   const [searchPagination, setSearchPagination] = useState<SearchPagination>({
     currentPage: 1,
@@ -31,13 +40,29 @@ export function useLocationSearch(
     [selectedLocations]
   );
 
-  // Determine allowed location types based on current selections
+  // Determine allowed location types based on current selections and restrictions
   const allowedType = useMemo(() => {
+    // If restricted to specific types, use the first restricted type as default
+    if (restrictToTypes && restrictToTypes.length > 0) {
+      // If user has selected locations, still respect same-type constraint within restrictions
+      const selectedLocationTypes = Array.from(new Set(selectedLocations.map(loc => loc.type)));
+      if (selectedLocationTypes.length > 0 && LOCATION_CONSTRAINTS.ENFORCE_SAME_TYPE_SELECTION) {
+        // Ensure the selected type is within restrictions
+        const selectedType = selectedLocationTypes[0];
+        if (restrictToTypes.includes(selectedType as LocationType)) {
+          return selectedType;
+        }
+      }
+      // Default to first restricted type if no valid selection
+      return restrictToTypes[0];
+    }
+    
+    // Original behavior when no restrictions
     const selectedLocationTypes = Array.from(new Set(selectedLocations.map(loc => loc.type)));
     return selectedLocationTypes.length > 0 && LOCATION_CONSTRAINTS.ENFORCE_SAME_TYPE_SELECTION 
       ? selectedLocationTypes[0]
       : null;
-  }, [selectedLocations]);
+  }, [selectedLocations, restrictToTypes]);
 
   // Detect if the search query is a region query
   const searchedRegion = useMemo(() => {
@@ -73,12 +98,19 @@ export function useLocationSearch(
     resolveProvinceName();
   }, [selectedProvinceId]);
 
-  // Separate locations by type
+  // Helper to check if a type is allowed based on restrictions
+  const isTypeAllowed = (type: LocationType): boolean => {
+    if (!restrictToTypes || restrictToTypes.length === 0) return true;
+    return restrictToTypes.includes(type);
+  };
+
+  // Separate locations by type, respecting restrictions
   const { provinces, districts, subDistricts } = useMemo(() => ({
-    provinces: allLocations.filter(loc => loc.type === 'province'),
-    districts: allLocations.filter(loc => loc.type === 'district'),
-    subDistricts: allLocations.filter(loc => loc.type === 'subDistrict')
-  }), [allLocations]);
+    provinces: isTypeAllowed('province') ? allLocations.filter(loc => loc.type === 'province') : [],
+    districts: isTypeAllowed('district') ? allLocations.filter(loc => loc.type === 'district') : [],
+    subDistricts: isTypeAllowed('subDistrict') ? allLocations.filter(loc => loc.type === 'subDistrict') : []
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [allLocations, restrictToTypes]);
 
   // Apply filtering logic
   const { 
@@ -222,6 +254,7 @@ export function useLocationSearch(
     ...paginatedByType,
     totalFilteredResults,
     allowedType,
+    restrictToTypes,
     searchPagination,
     startIndex,
     endIndex,

@@ -477,7 +477,10 @@ export default function MigrationAnalysisPageContent() {
   // Recent searches state
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
-  const searchResults = useLocationSearch(selectedLocations, searchQuery);
+  // Tourism only supports province-level data, so restrict search to provinces
+  const searchResults = useLocationSearch(selectedLocations, searchQuery, {
+    restrictToTypes: ['province']
+  });
 
   // Chart dimensions
   const chartWidth = 1200;
@@ -983,6 +986,7 @@ export default function MigrationAnalysisPageContent() {
               highlightedForDeletion={highlightedForDeletion}
               isLoading={false}
               allowedType={searchResults.allowedType}
+              restrictToTypes={searchResults.restrictToTypes}
               onSearchChange={handleSearchChange}
               onKeyDown={handleKeyDown}
               onExecuteQuery={handleExecuteQuery}

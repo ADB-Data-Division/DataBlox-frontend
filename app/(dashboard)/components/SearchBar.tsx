@@ -12,6 +12,7 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr';
 import { getCommandKey } from '../../../src/utils/search';
 import { Location } from '../helper';
 import { ThailandRegion, getRegionDisplayName } from '../../services/api/province-regions';
+import type { LocationType } from '../hooks/useLocationSearch';
 
 interface SearchBarProps {
   inputRef: RefObject<HTMLInputElement>;
@@ -20,6 +21,7 @@ interface SearchBarProps {
   highlightedForDeletion: number | null;
   isLoading: boolean;
   allowedType?: string | null;
+  restrictToTypes?: LocationType[];
   searchedRegion?: ThailandRegion | null;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
@@ -33,6 +35,7 @@ export function SearchBar({
   highlightedForDeletion,
   isLoading,
   allowedType,
+  restrictToTypes,
   searchedRegion,
   onSearchChange,
   onKeyDown,
@@ -64,6 +67,26 @@ export function SearchBar({
     if (searchedRegion) {
       const regionName = getRegionDisplayName(searchedRegion);
       return `Search for provinces in ${regionName}`;
+    }
+    
+    // Check for type restrictions first (e.g., tourism pages only allow provinces)
+    if (restrictToTypes && restrictToTypes.length > 0) {
+      if (restrictToTypes.length === 1) {
+        switch (restrictToTypes[0]) {
+          case 'province': return 'Search for provinces';
+          case 'district': return 'Search for districts';
+          case 'subDistrict': return 'Search for sub-districts';
+        }
+      }
+      // Multiple restricted types
+      const typeLabels = restrictToTypes.map(t => {
+        switch (t) {
+          case 'province': return 'provinces';
+          case 'district': return 'districts';
+          case 'subDistrict': return 'sub-districts';
+        }
+      });
+      return `Search for ${typeLabels.join(' or ')}`;
     }
     
     if (allowedType) {

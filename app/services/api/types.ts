@@ -120,6 +120,50 @@ export interface MigrationResponse {
   flows?: MigrationFlow[];
 }
 
+// ============================================================================
+// Tourism Data Types
+// ============================================================================
+
+// Tourism request types (province-level only, no scale needed)
+export interface TourismRequest {
+  start_date?: string; // ISO 8601 format - optional, server will use latest dataset if omitted
+  end_date?: string;   // ISO 8601 format - optional, server will use latest dataset if omitted
+  provinces?: string[];
+  aggregation?: Aggregation;
+  include_flows?: boolean;
+  aggregate_others?: boolean;
+}
+
+// Tourism statistics (arrivals only, no move_in/move_out/net_migration)
+export interface TourismStats {
+  arrivals: number;
+}
+
+// Tourism data per location
+export interface LocationTourismData {
+  location: LocationInfo;
+  time_series: Record<string, TourismStats>; // keyed by time period ID
+}
+
+// Tourism flow data (similar to MigrationFlow but for tourist movement)
+export interface TourismFlow {
+  origin: LocationInfo;
+  destination: LocationInfo;
+  time_period_id: string;
+  flow_count: number;
+  flow_rate: number;
+  return_flow_count?: number;
+  return_flow_rate?: number;
+}
+
+// Tourism response model
+export interface TourismResponse {
+  metadata: ResponseMetadata;
+  time_periods: TimePeriod[];
+  data: LocationTourismData[];
+  flows?: TourismFlow[];
+}
+
 // Dataset validation types
 export interface ValidationResponse {
   valid: boolean;

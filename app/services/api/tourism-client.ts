@@ -1,0 +1,254 @@
+import { 
+  APIConfig, 
+  APIResponse, 
+  MetadataResponse, 
+  TourismRequest, 
+  TourismResponse, 
+  ValidationResponse,
+  ErrorResponse 
+} from './types';
+
+/**
+ * API Client for the Datablox Engine - Tourism API
+ * Separate from MigrationAPIClient to maintain separation of concerns
+ */
+export class TourismAPIClient {
+  private baseURL: string;
+  private timeout: number;
+  private defaultHeaders: Record<string, string>;
+  private connectivityCallback?: (connected: boolean) => void;
+  private getAccessToken?: () => Promise<string | null>;
+
+  constructor(config: APIConfig) {
+    this.baseURL = config.baseURL.replace(/\/$/, ''); // Remove trailing slash
+    this.timeout = config.timeout || 30000; // 30 second default timeout
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...config.headers
+    };
+    this.getAccessToken = config.getAccessToken;
+  }
+
+  /**
+   * Set callback function to update connectivity status
+   */
+  setConnectivityCallback(callback: (connected: boolean) => void) {
+    this.connectivityCallback = callback;
+  }
+
+  /**
+   * Generic HTTP request method
+   */
+  private async request<T>(
+    endpoint: string, 
+    options: RequestInit = {}
+  ): Promise<APIResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    // Get access token if available
+    const accessToken = this.getAccessToken ? await this.getAccessToken() : null;
+    
+    // Prepare headers with optional authorization
+    const headers: Record<string, string> = {
+      ...this.defaultHeaders,
+      ...(options.headers && typeof options.headers === 'object' && !(options.headers instanceof Headers)
+        ? options.headers as Record<string, string>
+        : {})
+    };
+    
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      let data: T;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // Handle non-JSON responses
+        data = await response.text() as unknown as T;
+      }
+
+      if (!response.ok) {
+        // Handle API errors
+        const errorData = data as unknown as ErrorResponse;
+        
+        if (response.status === 401) {
+          const errorMessage = errorData.message || errorData.detail || '';
+          if (errorMessage.toLowerCase().includes('token has expired')) {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/auth/signin';
+            }
+          }
+        }
+        
+        throw new TourismAPIError(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+          response.status,
+          errorData
+        );
+      }
+
+      // Update connectivity status on successful response
+      this.connectivityCallback?.(true);
+
+      return {
+        data,
+        status: response.status,
+        statusText: response.statusText
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      // Update connectivity status on error
+      this.connectivityCallback?.(false);
+      
+      if (error instanceof TourismAPIError) {
+        throw error;
+      }
+      
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new TourismAPIError('Request timeout', 408);
+      }
+      
+      throw new TourismAPIError(
+        error instanceof Error ? error.message : 'Network error',
+        0
+      );
+    }
+  }
+
+  /**
+   * GET /api/v1/tourism/metadata
+   * Retrieves metadata about available provinces and time periods for tourism data
+   */
+  async getMetadata(): Promise<MetadataResponse> {
+    const response = await this.request<MetadataResponse>('/api/v1/tourism/metadata', {
+      method: 'GET'
+    });
+    return response.data;
+  }
+
+  /**
+   * POST /api/v1/tourism
+   * Retrieves tourism data based on specified parameters
+   * Note: Tourism data is province-level only (no district/subdistrict)
+   */
+  async getTourism(request: TourismRequest): Promise<TourismResponse> {
+    const response = await this.request<TourismResponse>('/api/v1/tourism', {
+      method: 'POST',
+      body: JSON.stringify(request)
+    });
+    return response.data;
+  }
+
+  /**
+   * POST /api/v1/tourism/datasets/{item_key}/validate
+   * Validates tourism dataset files for the specified item key
+   */
+  async validateDataset(itemKey: string): Promise<ValidationResponse> {
+    const response = await this.request<ValidationResponse>(
+      `/api/v1/tourism/datasets/${encodeURIComponent(itemKey)}/validate`,
+      {
+        method: 'POST'
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Health check method to test API connectivity
+   */
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Use metadata endpoint as a health check
+      await this.getMetadata();
+      return true;
+    } catch (error) {
+      console.warn('Tourism API health check failed:', error);
+      return false;
+    }
+  }
+}
+
+/**
+ * Custom Tourism API Error class
+ */
+export class TourismAPIError extends Error {
+  public status: number;
+  public details?: ErrorResponse;
+
+  constructor(message: string, status: number, details?: ErrorResponse) {
+    super(message);
+    this.name = 'TourismAPIError';
+    this.status = status;
+    this.details = details;
+  }
+
+  /**
+   * Check if error is a specific HTTP status
+   */
+  is(status: number): boolean {
+    return this.status === status;
+  }
+
+  /**
+   * Check if error is a client error (4xx)
+   */
+  isClientError(): boolean {
+    return this.status >= 400 && this.status < 500;
+  }
+
+  /**
+   * Check if error is a server error (5xx)
+   */
+  isServerError(): boolean {
+    return this.status >= 500 && this.status < 600;
+  }
+
+  /**
+   * Check if error is due to an expired token
+   */
+  isExpiredToken(): boolean {
+    if (this.status !== 401) return false;
+    const message = this.details?.message || this.details?.detail || this.message || '';
+    return message.toLowerCase().includes('token has expired');
+  }
+}
+
+/**
+ * Default Tourism API client instance factory
+ * Can be configured based on environment
+ */
+export const createTourismAPIClient = (
+  baseURL?: string, 
+  getAccessToken?: () => Promise<string | null>
+): TourismAPIClient => {
+  // Default to localhost:2020 as specified in OpenAPI spec
+  const apiBaseURL = baseURL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:2020';
+  
+  return new TourismAPIClient({
+    baseURL: apiBaseURL,
+    timeout: 30000,
+    headers: {
+      // Add any default headers here
+    },
+    getAccessToken
+  });
+};
+
+// Export a default client instance (without authentication by default)
+export const tourismApiClient = createTourismAPIClient();
