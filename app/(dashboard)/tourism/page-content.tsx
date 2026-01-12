@@ -144,10 +144,11 @@ export default function PageContent() {
           const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
           
           // Get all locations from API and find matches
+          // Filter to only include provinces (tourism only supports province-level data)
           const allLocations = await getAllLocations();
           const locations = uniqueIds
             .map(uniqueId => allLocations.find(loc => loc.uniqueId === uniqueId))
-            .filter((location): location is Location => location !== undefined);
+            .filter((location): location is Location => location !== undefined && location.type === 'province');
           
           const currentUniqueIds = state.selectedLocations.map(loc => loc.uniqueId).sort();
           const urlUniqueIds = uniqueIds.sort();
