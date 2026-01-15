@@ -126,9 +126,9 @@ export default function PageContent() {
 
   const handleRetryTourismData = useCallback(() => {
     if (memoizedSelectedLocations.length > 0) {
-      loadTourismData(memoizedSelectedLocations, dateRange.startDate, dateRange.endDate);
+      loadTourismData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
     }
-  }, [memoizedSelectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData]);
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadTourismData]);
 
   // Load locations from URL parameters on mount - using useEffect for legitimate side effect
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function PageContent() {
             setEdgeColors({});
 
             try {
-              await loadTourismData(locations, dateRange.startDate, dateRange.endDate);
+              await loadTourismData(locations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
               updateUrlWithLocations(locations); // Update URL to ensure consistency
               dispatch({ type: 'SET_QUERY_SUCCESS' });
             } catch (error) {
@@ -233,7 +233,7 @@ export default function PageContent() {
     trackMigrationEvent.executeQuery(memoizedSelectedLocations.length, queryType);
 
     try {
-      await loadTourismData(memoizedSelectedLocations, dateRange.startDate, dateRange.endDate);
+      await loadTourismData(memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate);
       updateUrlWithLocations(memoizedSelectedLocations);
       dispatch({ type: 'SET_QUERY_SUCCESS' });
 
@@ -255,7 +255,7 @@ export default function PageContent() {
       dispatch({ type: 'SET_QUERY_ERROR' });
       trackMigrationEvent.trackError('query_execution', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [memoizedSelectedLocations, dateRange.startDate, dateRange.endDate, loadTourismData, updateUrlWithLocations, searchResults.allLocations]);
+  }, [memoizedSelectedLocations, state.selectedPeriod, dateRange.startDate, dateRange.endDate, loadTourismData, updateUrlWithLocations, searchResults.allLocations]);
 
   const handleLocationSelect = useCallback((location: Location) => {
     if (!canAddMoreLocations(memoizedSelectedLocations.length, 5)) {
