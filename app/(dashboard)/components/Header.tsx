@@ -11,15 +11,15 @@ const navigationLinks = [
   { label: 'Migration Flow', href: '/', segment: '', preserveParams: true },
   { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis', preserveParams: true },
   { label: 'Migration Sankey', href: '/sankey', segment: 'sankey', preserveParams: true },
-  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: false },
-  { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend', preserveParams: false },
+  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: true },
+  { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend', preserveParams: true },
   { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about', preserveParams: false },
 ];
 
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   // Extract the current segment from pathname
   const currentSegment = pathname.split('/').filter(Boolean)[0] || '';
 
@@ -28,17 +28,17 @@ export function Header() {
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Stack 
-        direction="row" 
-        alignItems="center" 
+      <Stack
+        direction="row"
+        alignItems="center"
         justifyContent="space-between"
         sx={{ mb: 0 }}
       >
-        
-        <Typography 
-          variant="h3" 
-          component="h1" 
-          sx={{ 
+
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
             fontSize: '36px',
             fontFamily: 'var(--font-asap), sans-serif',
             fontWeight: '900',
@@ -48,8 +48,8 @@ export function Header() {
           }}
         >
           <Image src="/images/adb-jfpr-japan.webp" alt="ADB-JFPR Japan" width={774} height={198} style={{ maxWidth: '200px', maxHeight: '54px', transform: 'translateY(13px)', marginRight: '1rem' }} />
-          Datablo<Box 
-            component="span" 
+          Datablo<Box
+            component="span"
             sx={{
               backgroundColor: '#0077BE',
               color: '#ffffff',
@@ -64,26 +64,26 @@ export function Header() {
         </Typography>
         <ConnectivityStatus />
       </Stack>
-      
+
       {/* Navigation Links */}
-      <Stack 
-        direction="row" 
-        spacing={3} 
-        sx={{ 
+      <Stack
+        direction="row"
+        spacing={3}
+        sx={{
           mt: 2,
-          mb: 1 
+          mb: 1
         }}
       >
         {navigationLinks.map((link) => {
           const isActive = currentSegment === link.segment;
-          
+
           // Preserve location params when navigating between migration pages
-          const href = link.preserveParams && locationsParam 
+          const href = link.preserveParams && locationsParam
             ? `${link.href}?locations=${encodeURIComponent(locationsParam)}`
             : link.href;
-          
+
           return (
-            <Link 
+            <Link
               key={link.href}
               href={href}
               style={{ textDecoration: 'none' }}
