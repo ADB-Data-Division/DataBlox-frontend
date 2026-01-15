@@ -20,11 +20,11 @@ import CitationFooter from '@/components/citation-footer/citation-footer';
 import { RecentSearches } from '@/app/(dashboard)/components/RecentSearches';
 
 // Hooks
-import { 
-  useTourismData, 
-  useLocationSearch, 
-  useUrlParams, 
-  useKeyboardShortcuts 
+import {
+  useTourismData,
+  useLocationSearch,
+  useUrlParams,
+  useKeyboardShortcuts
 } from '@/app/(dashboard)/hooks';
 
 // Utils and helpers
@@ -39,13 +39,13 @@ import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSe
 const containerStyles = { width: '100%' };
 
 export default function PageContent() {
-  
+
   const theme = useTheme();
   const { isConnected } = useConnectivity();
   const [state, dispatch] = useReducer(mapViewReducer, initialState);
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  
+
+
   // Track when we're resetting to prevent URL effect interference
   const isResettingRef = useRef<boolean>(false);
 
@@ -55,7 +55,7 @@ export default function PageContent() {
   // Custom hooks
   const { tourismData, loadTourismData, resetTourismData } = useTourismData();
   const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
-  
+
   // Tourism only supports province-level data, so restrict search to provinces
   const searchResults = useLocationSearch(memoizedSelectedLocations, state.searchQuery, {
     restrictToTypes: ['province']
@@ -76,7 +76,7 @@ export default function PageContent() {
   const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
   // Store individual flow visibility settings (arrivals only for tourism)
-  const [flowVisibility, setFlowVisibility] = useState<Record<string, { moveIn: boolean; moveOut: boolean }>>({}); 
+  const [flowVisibility, setFlowVisibility] = useState<Record<string, { moveIn: boolean; moveOut: boolean }>>({});
 
   // Store edge colors (edgeKey -> color)
   const [edgeColors, setEdgeColors] = useState<Record<string, string>>({});
@@ -96,7 +96,7 @@ export default function PageContent() {
     console.log('📊 handlePeriodChange called:', { period, startDate, endDate });
     dispatch({ type: 'SET_SELECTED_PERIOD', payload: period });
     setDateRange({ startDate, endDate });
-    
+
     // Trigger new API request with the updated date range if locations are selected
     if (memoizedSelectedLocations.length > 0) {
       loadTourismData(memoizedSelectedLocations, period, startDate, endDate);
@@ -109,12 +109,12 @@ export default function PageContent() {
     isResettingRef.current = true;
     clearUrlParams();
     resetTourismData();
-    
+
     dispatch({ type: 'RESET_QUERY_STATE' });
     dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
     dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
     dispatch({ type: 'SET_SELECTED_PERIOD', payload: '2020-all' });
-    
+
     setTimeout(() => {
       isResettingRef.current = false;
     }, 100);
@@ -134,39 +134,43 @@ export default function PageContent() {
   useEffect(() => {
     const loadFromUrl = async () => {
       if (isResettingRef.current) return;
-      
+
       const locationsParam = getLocationsParam();
-      
+
       if (locationsParam) {
         try {
           // URL decode the parameter first, then split on commas
           const decodedParam = decodeURIComponent(locationsParam);
           const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
-          
+
           // Get all locations from API and find matches
           // Filter to only include provinces (tourism only supports province-level data)
           const allLocations = await getAllLocations();
           const locations = uniqueIds
             .map(uniqueId => allLocations.find(loc => loc.uniqueId === uniqueId))
             .filter((location): location is Location => location !== undefined && location.type === 'province');
-          
+
           const currentUniqueIds = state.selectedLocations.map(loc => loc.uniqueId).sort();
           const urlUniqueIds = uniqueIds.sort();
-          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length && 
-                                currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
-          
+          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length &&
+            currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
+
           if (locations.length > 0 && !locationsMatch) {
             // Prevent this effect from running again while we're updating
             isResettingRef.current = true;
-            
+
             dispatch({ type: 'CLEAR_ALL_LOCATIONS' });
             locations.forEach(location => {
               dispatch({ type: 'ADD_LOCATION', payload: location });
             });
-            
+
             // After loading locations from URL, automatically execute tourism query
             dispatch({ type: 'START_QUERY_EXECUTION' });
-            
+
+            // Reset flow visibility and edge colors to ensure clean state
+            setFlowVisibility({});
+            setEdgeColors({});
+
             try {
               await loadTourismData(locations, dateRange.startDate, dateRange.endDate);
               updateUrlWithLocations(locations); // Update URL to ensure consistency
@@ -175,7 +179,7 @@ export default function PageContent() {
               console.error('Tourism query failed after URL load:', error);
               dispatch({ type: 'SET_QUERY_ERROR' });
             }
-            
+
             // Re-enable the effect
             setTimeout(() => {
               isResettingRef.current = false;
@@ -186,9 +190,9 @@ export default function PageContent() {
         }
       }
     };
-    
+
     loadFromUrl();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getLocationsParam]); // Only depend on getLocationsParam to avoid loops, other dependencies are stable within the effect
 
   // Load and validate recent searches on mount
@@ -216,13 +220,18 @@ export default function PageContent() {
 
   const handleExecuteQuery = useCallback(async () => {
     if (memoizedSelectedLocations.length === 0) return;
-    
+
     dispatch({ type: 'START_QUERY_EXECUTION' });
-    
+
+    // Reset flow visibility and edge colors to prevent stale entries from conflicting with new flows
+    // This is critical when user edits search and adds/removes locations
+    setFlowVisibility({});
+    setEdgeColors({});
+
     const locationTypes = memoizedSelectedLocations.map(loc => loc.type);
     const queryType = locationTypes.length === 1 ? locationTypes[0] : 'mixed';
     trackMigrationEvent.executeQuery(memoizedSelectedLocations.length, queryType);
-    
+
     try {
       await loadTourismData(memoizedSelectedLocations, dateRange.startDate, dateRange.endDate);
       updateUrlWithLocations(memoizedSelectedLocations);
@@ -231,7 +240,7 @@ export default function PageContent() {
       // Save successful search to recent searches
       console.log('💾 Saving recent search for locations:', memoizedSelectedLocations.map(l => l.name));
       saveRecentSearch(memoizedSelectedLocations);
-      
+
       // Update the recent searches state to reflect the new search
       setRecentSearches(prev => {
         const updated = loadRecentSearches();
@@ -253,10 +262,10 @@ export default function PageContent() {
       console.warn(`Cannot add more locations. Maximum of 5 locations allowed.`);
       return;
     }
-    
+
     dispatch({ type: 'ADD_LOCATION', payload: location });
     trackMigrationEvent.selectLocation(location.type, location.name);
-    
+
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
@@ -280,7 +289,7 @@ export default function PageContent() {
     } else if (event.key === 'Backspace') {
       if (state.searchQuery === '' && memoizedSelectedLocations.length > 0) {
         event.preventDefault();
-        
+
         if (state.highlightedForDeletion !== null) {
           dispatch({ type: 'REMOVE_HIGHLIGHTED_LOCATION' });
         } else {
@@ -329,8 +338,8 @@ export default function PageContent() {
     <Box sx={containerStyles}>
       <Header />
 
-      <Paper 
-        elevation={0} 
+      <Paper
+        elevation={0}
         sx={paperStyles}
       >
         {/* Search Interface - Hidden in success state */}
@@ -393,7 +402,7 @@ export default function PageContent() {
               edgeColors={edgeColors}
               onEdgeColorsChange={setEdgeColors}
             />
-            
+
             {/* Citation Footer - only show when visualizations are rendered */}
             <CitationFooter />
           </>
@@ -420,8 +429,8 @@ export default function PageContent() {
               maxLocations={5}
             />
 
-            <NoResultsState 
-              searchQuery={state.searchQuery} 
+            <NoResultsState
+              searchQuery={state.searchQuery}
               totalResults={searchResults.totalFilteredResults}
             />
 
