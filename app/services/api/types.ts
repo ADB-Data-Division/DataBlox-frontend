@@ -175,6 +175,58 @@ export interface ValidationResponse {
   };
 }
 
+// ============================================================================
+// Overtourism Data Types
+// ============================================================================
+
+export interface OvertourismStats {
+  visitors: number | null;
+  population: number | null;
+  avg_duration: number | null;
+  area_km2: number | null;
+  irritation_index: number | null;
+  environmental_stress: number | null;
+}
+
+export interface LocationOvertourismData {
+  location: LocationInfo;
+  time_series: Record<string, OvertourismStats>;
+}
+
+export interface DataCoverage {
+  source: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface CoverageRange {
+  start_date: string;
+  end_date: string;
+  available?: string[];
+  missing?: string[];
+  description: string;
+}
+
+export interface OvertourismMetadataResponse {
+  data_coverage: DataCoverage[];
+  complete_coverage: CoverageRange;
+  partial_coverage: CoverageRange;
+}
+
+export interface OvertourismRequest {
+  start_date?: string;
+  end_date?: string;
+  provinces?: string[];
+}
+
+export interface OvertourismResponse {
+  metadata: ResponseMetadata;
+  time_periods: TimePeriod[];
+  data: LocationOvertourismData[];
+  data_coverage: DataCoverage[];
+  warnings: string[];
+}
+
 // API client configuration
 export interface APIConfig {
   baseURL: string;

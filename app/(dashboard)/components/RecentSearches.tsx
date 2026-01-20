@@ -160,6 +160,7 @@ export function RecentSearches({
                       {search.displayName}
                     </Typography>
                   }
+                  primaryTypographyProps={{ component: 'div' }}
                   secondary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                       <Chip
@@ -173,6 +174,7 @@ export function RecentSearches({
                       </Typography>
                     </Box>
                   }
+                  secondaryTypographyProps={{ component: 'div' }}
                 />
 
                 <ListItemSecondaryAction>

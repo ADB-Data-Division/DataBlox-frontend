@@ -13,6 +13,7 @@ const navigationLinks = [
   { label: 'Migration Sankey', href: '/sankey', segment: 'sankey', preserveParams: true },
   { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: true },
   { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend', preserveParams: true },
+  { label: 'Overtourism', href: '/overtourism', segment: 'overtourism', preserveParams: true },
   { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about', preserveParams: false },
 ];
 
