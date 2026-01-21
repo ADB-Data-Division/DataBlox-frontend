@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Box, Paper, Typography, useTheme, CircularProgress, LinearProgress, Button, Chip, ToggleButton, ToggleButtonGroup, Card, CardContent, Grid, Divider, Alert, AlertTitle } from '@mui/material';
+import { Box, Paper, Typography, useTheme, CircularProgress, Button, Chip, ToggleButton, ToggleButtonGroup, Card, CardContent, Grid, Divider, Alert, AlertTitle } from '@mui/material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import * as d3 from 'd3';
 import { MapPinAreaIcon } from '@phosphor-icons/react/dist/ssr';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CitationFooter from '@/components/citation-footer/citation-footer';
 
 // Components
 import { MigrationAnalysisDuration } from '@/components/migration-analysis-duration/MigrationAnalysisDuration';
@@ -26,8 +27,9 @@ import { metadataService } from '@/app/services/api';
 
 // Hooks and utils
 import { useLocationSearch, useKeyboardShortcuts, useUrlParams } from '../hooks';
-import { Location } from '../helper';
+import { Location, getLocationColor } from '../helper';
 import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
+import { canAddMoreLocations } from '../constraints';
 
 // Custom constraints
 const OVERTOURISM_ANALYSIS_CONSTRAINTS = {
@@ -146,6 +148,79 @@ const AttributeDisplay: React.FC<{
   );
 };
 
+// Legend Component for Overtourism
+interface OvertourismLegendProps {
+  locations: Location[];
+  getLocationColor: (locationId: string) => string;
+}
+
+const OvertourismLegend: React.FC<OvertourismLegendProps> = ({ locations, getLocationColor }) => {
+  const theme = useTheme();
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+        Legend
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {locations.map((location) => (
+          <Box key={location.uniqueId} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                mb: 1
+              }}
+            >
+              {location.name}
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: getLocationColor(location.uniqueId),
+                    borderRadius: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Irritation Index
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 3,
+                    backgroundColor: getLocationColor(location.uniqueId),
+                    borderRadius: 0.5,
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 3,
+                    background: 'repeating-linear-gradient(90deg, #666 0px, #666 4px, transparent 4px, transparent 8px)',
+                    borderRadius: 0.5,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                  Environmental Stress
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 // D3 Overtourism Line Chart
 const OvertourismLineChart: React.FC<{
   data: OvertourismChartDataEntry[];
@@ -222,6 +297,41 @@ const OvertourismLineChart: React.FC<{
       .call(xAxis)
       .selectAll("text")
       .style("font-weight", "bold");
+
+    // Add year boundary lines
+    const yearBoundaries: { year: number; x: number; label: string }[] = [];
+    data.forEach((d, i) => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        const year = parseInt(parts[1]);
+        const isFirstOfYear = i === 0 || !data.slice(0, i).some(prev => prev.period.includes(` ${year}`));
+        if (isFirstOfYear && !isNaN(year)) {
+          yearBoundaries.push({ year, x: xScale(i), label: year.toString() });
+        }
+      }
+    });
+
+    yearBoundaries.forEach(boundary => {
+      g.append("line")
+        .attr("x1", boundary.x)
+        .attr("x2", boundary.x)
+        .attr("y1", 0)
+        .attr("y2", innerHeight)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "5,5")
+        .style("opacity", 0.7);
+
+      g.append("text")
+        .attr("x", boundary.x)
+        .attr("y", innerHeight + 25)
+        .attr("dy", "0.35em")
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .style("font-size", "14px")
+        .style("fill", "#666")
+        .text(boundary.label);
+    });
 
     // Y Axis Left (Irritation) - Only if active
     if (activeSeries === 'both' || activeSeries === 'irritation') {
@@ -484,6 +594,10 @@ export default function OvertourismPageContent() {
     }
   }, [selectedLocations, chartData, loadOvertourismData]);
 
+  const handleLocationRemove = useCallback((locationId: number) => {
+    setSelectedLocations(prev => prev.filter(loc => loc.id !== locationId));
+  }, []);
+
   const handleExecuteQuery = useCallback(async (startDateOverride?: string | unknown, endDateOverride?: string) => {
     if (!selectedLocations.length) return;
     setChartData(null); // Clear previous data only on manual "Search" button click
@@ -510,9 +624,10 @@ export default function OvertourismPageContent() {
         {!chartData && (
           <>
             <LocationChips 
-              selectedLocations={selectedLocations} 
-              onLocationRemove={(id) => setSelectedLocations(prev => prev.filter(l => l.id !== id))}
+              selectedLocations={selectedLocations}
+              onLocationRemove={handleLocationRemove}
               highlightedForDeletion={highlightedForDeletion}
+              maxLocations={OVERTOURISM_ANALYSIS_CONSTRAINTS.MAX_TOTAL_LOCATIONS}
             />
             <SearchBar 
                inputRef={inputRef}
@@ -574,63 +689,273 @@ export default function OvertourismPageContent() {
           </>
         )}
 
-        {isLoading && <LinearProgress sx={{ mt: 2 }} />} {/* Use simple loading for now */}
+        {isLoading && (
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={4}>
+            <CircularProgress size={40} />
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Loading overtourism data...
+            </Typography>
+          </Box>
+        )}
 
-        {chartData && (
+        {error && !isLoading && (
+          <Box py={4}>
+            <Typography variant="h6" color="error" gutterBottom>
+              Error Loading Data
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {error}
+            </Typography>
+          </Box>
+        )}
+
+        {chartData && !isLoading && !error && (
           <Box sx={{ mt: 3 }}>
-            <Box display="flex" gap={3} mb={3}>
-               <Paper elevation={0} sx={{ flex: 1, p: 2, border: '1px solid #ddd' }}>
-                 <Typography variant="h6">Overtourism Analysis</Typography>
-                 <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-                   {selectedLocations.map(l => (
-                     <Chip key={l.id} label={l.name} size="small" sx={{ bgcolor: getTourismColor(l.uniqueId), color: '#fff' }} />
-                   ))}
-                 </Box>
-                 <Button onClick={() => setChartData(null)} sx={{ mt: 2 }} size="small" variant="outlined">New Search</Button>
-               </Paper>
-               <Paper elevation={0} sx={{ flex: 1.5, p: 2, border: '1px solid #ddd' }}>
-                 <MigrationAnalysisDuration 
-                   selectedStartDate={dateRange.startDate}
-                   selectedEndDate={dateRange.endDate}
-                   onDateRangeChange={handleDateRangeChange}
-                   title="Overtourism Analysis Duration"
-                 />
-               </Paper>
+            <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 40%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                }}
+              >
+                <Box>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                    Overtourism Analysis
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                    Irritation Index & Environmental Stress
+                  </Typography>
+
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      mb: 1.5
+                    }}
+                  >
+                    Selected Provinces
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {selectedLocations.map((location) => (
+                      <Chip
+                        key={location.id}
+                        icon={<MapPinAreaIcon size={16} />}
+                        label={location.name}
+                        color={getLocationColor(location.type)}
+                        size="medium"
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: '0.875rem'
+                        }}
+                      />
+                    ))}
+                    <Chip
+                      label={`${selectedLocations.length} province${selectedLocations.length > 1 ? 's' : ''}`}
+                      size="small"
+                      variant="outlined"
+                      sx={{ 
+                        fontWeight: 500,
+                        fontSize: '0.75rem',
+                        borderStyle: 'dashed'
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setChartData(null)}
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                      }}
+                    >
+                      New Search
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
+
+              <Paper
+                elevation={0}
+                sx={{
+                  flex: '0 0 58.5%',
+                  p: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <MigrationAnalysisDuration 
+                  selectedStartDate={dateRange.startDate}
+                  selectedEndDate={dateRange.endDate}
+                  onDateRangeChange={handleDateRangeChange}
+                  title="Overtourism Analysis Duration"
+                />
+              </Paper>
             </Box>
 
-            <Paper elevation={0} sx={{ p: 2, border: '1px solid #ddd', mb: 3 }}>
-              <ToggleButtonGroup 
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 0,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <ToggleButtonGroup
                 value={activeSeries}
                 exclusive
                 onChange={(_, v) => v && setActiveSeries(v)}
                 fullWidth
+                sx={{
+                  display: 'flex',
+                  width: '100%',
+                  gap: 0,
+                  p: 0.5,
+                  '& .MuiToggleButton-root': {
+                    flex: 1,
+                    px: { xs: 3, sm: 4 },
+                    py: 2,
+                    borderRadius: 0,
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    textTransform: 'none',
+                    border: 'none',
+                    transition: 'all 0.14s ease',
+                    minHeight: 64,
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&:not(:last-of-type)': {
+                      borderRight: `1px solid ${theme.palette.divider}`,
+                    },
+                    '&:first-of-type': {
+                      borderTopLeftRadius: 12,
+                      borderBottomLeftRadius: 12,
+                    },
+                    '&:last-of-type': {
+                      borderTopRightRadius: 12,
+                      borderBottomRightRadius: 12,
+                    },
+                    '&.Mui-selected': {
+                      transform: 'none',
+                      boxShadow: '0 10px 30px rgba(16,24,40,0.08)',
+                      zIndex: 1,
+                    },
+                    '&:hover': {
+                      transform: 'translateY(-2px)'
+                    },
+                  },
+                }}
               >
-                <ToggleButton value="both">Both Indexes</ToggleButton>
-                <ToggleButton value="irritation">Irritation Index Only</ToggleButton>
-                <ToggleButton value="environmental">Environmental Stress Only</ToggleButton>
+                <ToggleButton
+                  value="both"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(0,52,104,0.04) 0%, rgba(30,136,229,0.03) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #003468 0%, #1e88e5 100%)',
+                      color: '#fff',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #003668 0%, #1e98e5 100%)',
+                      },
+                    },
+                  }}
+                >
+                  Both Indexes
+                </ToggleButton>
+                <ToggleButton
+                  value="irritation"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(239,83,80,0.04) 0%, rgba(239,83,80,0.02) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #EF5350 0%, #E53935 100%)',
+                      color: '#fff',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #EF6360 0%, #E53935 100%)',
+                      },
+                    },
+                  }}
+                >
+                  Irritation Index Only
+                </ToggleButton>
+                <ToggleButton
+                  value="environmental"
+                  sx={{
+                    background: 'linear-gradient(135deg, rgba(102,187,106,0.04) 0%, rgba(102,187,106,0.02) 100%)',
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #66BB6A 0%, #43A047 100%)',
+                      color: '#fff',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #66BB6A 0%, #43A047 100%)',
+                      },
+                    },
+                  }}
+                >
+                  Environmental Stress Only
+                </ToggleButton>
               </ToggleButtonGroup>
             </Paper>
 
             {/* Warnings */}
-            {chartData.warnings.length > 0 && (
+            {chartData && chartData.warnings.length > 0 && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
                     <AlertTitle>Data Availability Warning</AlertTitle>
                     {chartData.warnings.map(w => <div key={w}>{w}</div>)}
                 </Alert>
             )}
 
-            <OvertourismLineChart 
-              data={chartData.data}
-              locations={selectedLocations}
-              width={chartWidth}
-              height={chartHeight}
-              activeSeries={activeSeries}
-              getLocationColor={getTourismColor}
-            />
+            <Box sx={{ 
+              p: 3, 
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+              mb: 3
+            }}>
+              <OvertourismLineChart 
+                data={chartData.data}
+                locations={selectedLocations}
+                width={chartWidth}
+                height={chartHeight}
+                activeSeries={activeSeries}
+                getLocationColor={getTourismColor}
+              />
+            </Box>
+
+            <Box sx={{ 
+              p: 3, 
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+              mb: 3
+            }}>
+              <OvertourismLegend 
+                locations={selectedLocations}
+                getLocationColor={getTourismColor}
+              />
+            </Box>
 
             <Divider sx={{ my: 4 }} />
             
             <AttributeDisplay data={chartData.data} locations={selectedLocations} getLocationColor={getTourismColor} />
+
+            <CitationFooter />
           </Box>
         )}
       </Paper>
