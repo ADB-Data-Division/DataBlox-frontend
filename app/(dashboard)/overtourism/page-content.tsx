@@ -30,6 +30,7 @@ import { useLocationSearch, useKeyboardShortcuts, useUrlParams } from '../hooks'
 import { Location, getLocationColor } from '../helper';
 import { saveRecentSearch, loadRecentSearches, removeRecentSearch, clearRecentSearches, RecentSearch, validateStoredLocations } from '../../../src/utils/recentSearches';
 import { canAddMoreLocations } from '../constraints';
+import { formatDateRange } from '@/src/utils/date-formatter';
 
 // Custom constraints
 const OVERTOURISM_ANALYSIS_CONSTRAINTS = {
@@ -104,17 +105,28 @@ const AttributeDisplay: React.FC<{
   }, [data]);
 
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-        Average Contributing Metics (Selected Period)
+    <Box>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+        Average Contributing Metrics (Selected Period)
       </Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
+      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+        Averaged values for the factors used to compute the Irritation Index and Environmental Stress.
+      </Typography>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
         {locations.map(loc => {
           const stats = averages[loc.uniqueId];
           if (!stats) return null;
           
           return (
-            <Card key={loc.uniqueId} variant="outlined" sx={{ height: '100%' }}>
+            <Card 
+              key={loc.uniqueId} 
+              variant="outlined" 
+              sx={{ 
+                height: '100%',
+                borderColor: theme.palette.divider,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.01)',
+              }}
+            >
                 <CardContent>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <Box sx={{ width: 12, height: 12, borderRadius: 0.5, bgcolor: getLocationColor(loc.uniqueId) }} />
@@ -284,19 +296,38 @@ const OvertourismLineChart: React.FC<{
         .y((d) => yScale(valueAccessor(d, '') || 0)) // Value guaranteed not null by .defined()
         .curve(d3.curveMonotoneX);
 
+    // Calculate year span to determine if month labels should be hidden
+    const uniqueYears = new Set<number>();
+    data.forEach(d => {
+      const parts = d.period.split(' ');
+      if (parts.length >= 2) {
+        uniqueYears.add(parseInt(parts[1]));
+      }
+    });
+    const yearSpan = uniqueYears.size;
+    const hideMonthLabels = yearSpan > 3;
+
     // Draw Axes
     // X Axis
     const xAxis = d3.axisBottom(xScale)
+      .tickValues(hideMonthLabels ? [] : d3.range(data.length))
       .tickFormat((i: any) => {
+        if (hideMonthLabels) return '';
         const period = data[i]?.period;
-        return period ? period.split(' ')[0] : '';
+        if (period) {
+          const parts = period.split(' ');
+          return parts.length >= 1 ? parts[0] : period;
+        }
+        return '';
       });
 
     g.append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(xAxis)
       .selectAll("text")
-      .style("font-weight", "bold");
+      .style("font-weight", "bold")
+      .style("text-anchor", "middle")
+      .attr("dy", ".35em");
 
     // Add year boundary lines
     const yearBoundaries: { year: number; x: number; label: string }[] = [];
@@ -502,6 +533,52 @@ export default function OvertourismPageContent() {
 
   const searchResults = useLocationSearch(selectedLocations, searchQuery, { restrictToTypes: ['province'] as const });
 
+  // URL params hook for shareable URLs
+  const { updateUrlWithLocations, clearUrlParams, getLocationsParam } = useUrlParams();
+
+  // Ref to prevent duplicate URL loading
+  const isResettingRef = useRef(false);
+
+  // Helper for date formatting - converts API time period IDs to display format
+  const formatDate = (id: string): string => {
+    // Handle the actual API format like "oct19", "nov19", "dec19"
+    if (id.match(/^[a-z]{3}\d{2}$/)) {
+      const monthMap: Record<string, string> = {
+        'jan': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'apr': 'Apr', 'may': 'May', 'jun': 'Jun',
+        'jul': 'Jul', 'aug': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dec': 'Dec'
+      };
+      
+      const monthPart = id.substring(0, 3).toLowerCase();
+      const yearPart = id.substring(3);
+      const fullYear = 2000 + parseInt(yearPart);
+      
+      const monthName = monthMap[monthPart];
+      if (monthName && !isNaN(fullYear)) {
+        return `${monthName} ${fullYear}`;
+      }
+    }
+    
+    // Handle YYYY-MM format
+    if (id.includes('-')) {
+      const parts = id.split('-');
+      if (parts.length >= 2) {
+        const year = parts[0];
+        const month = parts[1];
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthIndex = parseInt(month) - 1;
+        
+        if (monthIndex >= 0 && monthIndex < 12) {
+          return `${monthNames[monthIndex]} ${year}`;
+        }
+      }
+    }
+    
+    // Fallback to original ID if parsing fails
+    return id;
+  };
+
   // Load defaults
   useEffect(() => {
     const init = async () => {
@@ -515,6 +592,99 @@ export default function OvertourismPageContent() {
     init();
     setRecentSearches(loadRecentSearches());
   }, []);
+
+  // Load locations from URL on mount
+  useEffect(() => {
+    const loadFromUrl = async () => {
+      if (isResettingRef.current || searchResults.isLoading || searchResults.allLocations.length === 0) return;
+
+      const locationsParam = getLocationsParam();
+
+      if (locationsParam) {
+        try {
+          const decodedParam = decodeURIComponent(locationsParam);
+          const uniqueIds = decodedParam.split(',').filter(id => id.trim() !== '');
+
+          console.log('Overtourism: Loading locations from URL...', uniqueIds);
+          // Filter to only include provinces (overtourism only supports province-level data)
+          const locations = uniqueIds
+            .map(uniqueId => searchResults.allLocations.find(loc => loc.uniqueId === uniqueId))
+            .filter((location): location is Location => location !== undefined && location.type === 'province');
+
+          const currentUniqueIds = selectedLocations.map(loc => loc.uniqueId).sort();
+          const urlUniqueIds = uniqueIds.sort();
+          const locationsMatch = currentUniqueIds.length === urlUniqueIds.length &&
+                                currentUniqueIds.every((id, index) => id === urlUniqueIds[index]);
+
+          if (locations.length > 0 && !locationsMatch) {
+            // Wait for dateRange to be available, or use defaults
+            const currentDateRange = dateRange.startDate && dateRange.endDate ? dateRange : { startDate: '2024-01-01', endDate: '2024-12-31' };
+
+            isResettingRef.current = true;
+
+            setSelectedLocations(locations);
+            setSearchQuery('');
+
+            // Auto-execute query with loaded locations
+            setIsLoading(true);
+            setError(null);
+
+            try {
+              const res = await overtourismAPIService.executeQuery(locations, currentDateRange.startDate, currentDateRange.endDate);
+
+              if (res.success && res.data) {
+                const apiData = res.data;
+
+                const chartEntries: OvertourismChartDataEntry[] = apiData.time_periods.map(tp => {
+                  return {
+                    period: tp.id,
+                    sortKey: new Date(tp.start_date).getTime(),
+                    locations: locations.map(sl => {
+                      const locData = apiData.data.find(d => d.location.name === sl.name || d.location.id === sl.name);
+                      const stats = locData?.time_series[tp.id] || {
+                        visitors: null, population: null, avg_duration: null,
+                        area_km2: null, irritation_index: null, environmental_stress: null
+                      };
+                      return { locationId: sl.uniqueId, locationName: sl.name, stats };
+                    })
+                  };
+                });
+
+                const formattedEntries = chartEntries.map(e => ({
+                  ...e,
+                  period: formatDate(e.period)
+                })).sort((a, b) => a.sortKey - b.sortKey);
+
+                setChartData({
+                  data: formattedEntries,
+                  locations: locations,
+                  period: { id: 'custom', startDate: currentDateRange.startDate!, endDate: currentDateRange.endDate! },
+                  warnings: apiData.warnings || []
+                });
+
+                setDateRange({ startDate: currentDateRange.startDate, endDate: currentDateRange.endDate });
+              }
+              updateUrlWithLocations(locations);
+            } catch (error) {
+              console.error('Overtourism query failed after URL load:', error);
+              setError(error instanceof Error ? error.message : 'Failed to load overtourism data');
+            } finally {
+              setIsLoading(false);
+            }
+
+            setTimeout(() => {
+              isResettingRef.current = false;
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Failed to parse locations from URL:', error);
+        }
+      }
+    };
+
+    loadFromUrl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchResults.isLoading, searchResults.allLocations]);
 
   const showSearchResults = searchQuery.trim() !== '' || selectedLocations.length === 0 || !chartData;
 
@@ -606,13 +776,8 @@ export default function OvertourismPageContent() {
     const eDate = (typeof endDateOverride === 'string' ? endDateOverride : undefined);
     
     await loadOvertourismData(selectedLocations, sDate, eDate);
-  }, [selectedLocations, loadOvertourismData]);
-  
-  // Helper for date formatting (simplified)
-  const formatDate = (id: string) => {
-      // Basic formatting just to show label
-      return id; 
-  };
+    updateUrlWithLocations(selectedLocations); // Update URL for sharing
+  }, [selectedLocations, loadOvertourismData, updateUrlWithLocations]);
   
   // Render
   if (!isConnected) return <ApiDisconnectedPage />;
@@ -774,7 +939,15 @@ export default function OvertourismPageContent() {
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => setChartData(null)}
+                      onClick={() => {
+                        setChartData(null);
+                        setSelectedLocations([]);
+                        setSearchQuery('');
+                        setHighlightedForDeletion(null);
+                        setError(null);
+                        clearUrlParams();
+                        setTimeout(() => { inputRef.current?.focus(); }, 100);
+                      }}
                       sx={{
                         borderRadius: 1.5,
                         textTransform: 'none',
@@ -921,39 +1094,77 @@ export default function OvertourismPageContent() {
                 </Alert>
             )}
 
-            <Box sx={{ 
-              p: 3, 
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 2,
-              mb: 3
-            }}>
-              <OvertourismLineChart 
-                data={chartData.data}
-                locations={selectedLocations}
-                width={chartWidth}
-                height={chartHeight}
-                activeSeries={activeSeries}
-                getLocationColor={getTourismColor}
-              />
-            </Box>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  {activeSeries === 'both' ? 'Irritation Index & Environmental Stress' : activeSeries === 'irritation' ? 'Irritation Index' : 'Environmental Stress'} — {selectedLocations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
+                </Typography>
+              </Box>
+              <Box display="flex" gap={3}>
+                {/* Chart Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <OvertourismLineChart 
+                    data={chartData.data}
+                    locations={selectedLocations}
+                    width={chartWidth}
+                    height={chartHeight}
+                    activeSeries={activeSeries}
+                    getLocationColor={getTourismColor}
+                  />
+                </Paper>
 
-            <Box sx={{ 
-              p: 3, 
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 2,
-              mb: 3
-            }}>
-              <OvertourismLegend 
-                locations={selectedLocations}
-                getLocationColor={getTourismColor}
-              />
-            </Box>
+                {/* Legend Container */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    width: '250px',
+                    p: 3,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <OvertourismLegend 
+                    locations={selectedLocations}
+                    getLocationColor={getTourismColor}
+                  />
+                </Paper>
+              </Box>
+            </Paper>
 
-            <Divider sx={{ my: 4 }} />
-            
-            <AttributeDisplay data={chartData.data} locations={selectedLocations} getLocationColor={getTourismColor} />
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <AttributeDisplay data={chartData.data} locations={selectedLocations} getLocationColor={getTourismColor} />
+            </Paper>
 
             <CitationFooter />
           </Box>

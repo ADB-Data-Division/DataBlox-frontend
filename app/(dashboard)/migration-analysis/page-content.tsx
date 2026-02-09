@@ -1672,6 +1672,14 @@ export default function MigrationAnalysisPageContent() {
                 borderRadius: 2,
               }}
             >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Move In & Move Out — {chartData.locations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
+                </Typography>
+              </Box>
               <Box display="flex" gap={3} >
                 {/* Chart Container */}
                 <Paper
@@ -1795,6 +1803,14 @@ export default function MigrationAnalysisPageContent() {
                 </FormControl>
               </Box>
 
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  {migrationTrendType === 'net-migration' ? 'Net Migration' : migrationTrendType === 'move-in' ? 'Move In' : 'Move Out'} Trends — {chartData.locations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
+                </Typography>
+              </Box>
               <Box display="flex" gap={3}>
                 {/* Chart Container */}
                 <Paper

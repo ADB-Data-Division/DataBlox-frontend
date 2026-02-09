@@ -1479,6 +1479,14 @@ export default function TourismAnalysisPageContent() {
                 borderRadius: 2,
               }}
             >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Tourist Arrivals — {chartData.locations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
+                </Typography>
+              </Box>
               <Box display="flex" gap={3}>
                 {/* Chart Container */}
                 <Paper
@@ -1537,6 +1545,14 @@ export default function TourismAnalysisPageContent() {
                 borderRadius: 2,
               }}
             >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  Arrival Trends — {chartData.locations.map(l => l.name).join(', ')}
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
+                </Typography>
+              </Box>
               <Box display="flex" gap={3}>
                 {/* Chart Container */}
                 <Paper
