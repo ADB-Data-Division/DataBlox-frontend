@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useMemo } from 'react';
 
 const navigationLinks = [
-  { label: 'Migration Flow', href: '/', segment: '', preserveParams: true },
+  { label: 'Migration Flow', href: '/migration-flows', segment: 'migration-flows', preserveParams: true },
   { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis', preserveParams: true },
   { label: 'Migration Sankey', href: '/sankey', segment: 'sankey', preserveParams: true },
   { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: true },
@@ -36,33 +36,36 @@ export function Header() {
         sx={{ mb: 0 }}
       >
 
-        <Typography
-          variant="h3"
-          component="h1"
-          sx={{
-            fontSize: '36px',
-            fontFamily: 'var(--font-asap), sans-serif',
-            fontWeight: '900',
-            color: '#000000',
-            letterSpacing: '-0.5px',
-            mb: 0
-          }}
-        >
-          <Image src="/images/adb-jfpr-japan.webp" alt="ADB-JFPR Japan" width={774} height={198} style={{ maxWidth: '200px', maxHeight: '54px', transform: 'translateY(13px)', marginRight: '1rem' }} />
-          Datablo<Box
-            component="span"
+        <Link href="/home" style={{ textDecoration: 'none' }}>
+          <Typography
+            variant="h3"
+            component="h1"
             sx={{
-              backgroundColor: '#0077BE',
-              color: '#ffffff',
-              padding: '0px 2px',
-              borderRadius: '4px',
-              marginLeft: '1px',
-              display: 'inline-block'
+              fontSize: '36px',
+              fontFamily: 'var(--font-asap), sans-serif',
+              fontWeight: '900',
+              color: '#000000',
+              letterSpacing: '-0.5px',
+              mb: 0,
+              cursor: 'pointer',
             }}
           >
-            x
-          </Box>
-        </Typography>
+            <Image src="/images/adb-jfpr-japan.webp" alt="ADB-JFPR Japan" width={774} height={198} style={{ maxWidth: '200px', maxHeight: '54px', transform: 'translateY(13px)', marginRight: '1rem' }} />
+            Datablo<Box
+              component="span"
+              sx={{
+                backgroundColor: '#0077BE',
+                color: '#ffffff',
+                padding: '0px 2px',
+                borderRadius: '4px',
+                marginLeft: '1px',
+                display: 'inline-block'
+              }}
+            >
+              x
+            </Box>
+          </Typography>
+        </Link>
         <ConnectivityStatus />
       </Stack>
 

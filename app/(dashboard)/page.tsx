@@ -1,18 +1,13 @@
 import * as React from 'react';
-import { auth } from '../../auth';
-import PageContent from './page-content';
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Migration Analysis - Datablox',
+  title: 'Datablox',
   description: 'Datablox is a platform for analyzing migration data'
 };
 
 
-export default async function HomePage() {
-  const session = await auth();
-
-  return (    
-      <PageContent />
-  );
+export default function HomePage() {
+  redirect('/home');
 }
