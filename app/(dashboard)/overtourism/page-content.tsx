@@ -807,6 +807,7 @@ export default function OvertourismPageContent() {
                allowedType="province"
                restrictToTypes={['province'] as const}
                highlightedForDeletion={highlightedForDeletion}
+               actionLabel="View Overtourism Trends"
             />
             
             <RecentSearches
