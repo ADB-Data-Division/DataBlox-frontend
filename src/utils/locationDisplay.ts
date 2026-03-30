@@ -49,12 +49,8 @@ export function getLocationDisplayInfo(
 
   switch (locationType) {
     case 'province':
-      // For provinces, use the code if available, otherwise fallback to short name
-      if (locationCode) {
-        displayText = locationCode.toUpperCase();
-      } else {
-        displayText = getShortLocationName(locationName, 'district'); // Reuse logic
-      }
+      // For provinces, prefer the full name for readability on the map
+      displayText = locationName;
       break;
 
     case 'district':

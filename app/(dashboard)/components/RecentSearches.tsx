@@ -155,6 +155,8 @@ export function RecentSearches({
                 </Box>
 
                 <ListItemText
+                  primaryTypographyProps={{ component: 'div' }}
+                  secondaryTypographyProps={{ component: 'div' }}
                   primary={
                     <Typography variant="body2" fontWeight={500}>
                       {search.displayName}
