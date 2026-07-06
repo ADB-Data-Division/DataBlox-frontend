@@ -23,13 +23,13 @@ const navigationLinks = [
       { label: 'Overtourism', href: '/overtourism', preserveParams: true },
     ]
   },
-  { title: "Coastal Waters",
-    links: [
-      { label: 'Indicators', href: '/indicators', preserveParams: true },
-      { label: 'Vessel Types', href: '/vessels', preserveParams: true },
-    ]
-  },
-  { title: "Resources",
+  // { title: "Coastal Waters",
+  //   links: [
+  //     { label: 'Indicators', href: '/indicators', preserveParams: true },
+  //     { label: 'Vessel Types', href: '/vessels', preserveParams: true },
+  //   ]
+  // },
+  { title: "",
     links: [
       { label: 'DataBlox-OD Python Library', href: '/lib/index.html', preserveParams: false }
     ],
@@ -119,31 +119,65 @@ export function Header() {
           }
 
           return (
-            <>
+            <Box>
               {/* Category Title (Unhovered) */}
-              <Typography
-                variant="body1"
-                onMouseOver={handleTrigger}
-                onMouseLeave={handleClose}
-                sx={{
-                  fontSize: '16px',
-                  fontFamily: 'var(--font-asap), sans-serif',
-                  fontWeight: isActive ? '700' : '400',
-                  color: isActive ? '#0077BE' : '#666666',
-                  cursor: 'pointer',
-                  borderBottom: isActive ? '2px solid #0077BE' : '2px solid transparent',
-                  px: 4,
-                  pb: '2px',
-                }}
-              >
-                {category.title}
-              </Typography>
+              {category.title ? (
+                <Typography
+                  variant="body1"
+                  onMouseOver={handleTrigger}
+                  onMouseLeave={handleClose}
+                  sx={{
+                    fontSize: '16px',
+                    fontFamily: 'var(--font-asap), sans-serif',
+                    fontWeight: isActive ? '700' : '400',
+                    color: isActive ? '#0077BE' : '#666666',
+                    cursor: 'pointer',
+                    borderBottom: isActive ? '2px solid #0077BE' : '2px solid transparent',
+                    px: 4,
+                    pb: '2px',
+                  }}
+                >
+                  {category.title}
+                </Typography>
+                ) : (
+                  category.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontSize: '16px',
+                          fontFamily: 'var(--font-asap), sans-serif',
+                          fontWeight: '400',
+                          color: '#666666',
+                          cursor: 'pointer',
+                          borderBottom: '2px solid transparent',
+                          px: 4,
+                          pb: '2px',
+                          transition: 'color 0.2s ease',
+                          '&:hover': {
+                            color: '#0077BE',
+                          },
+                        }}
+                      >
+                        {link.label}
+                      </Typography>
+                    </Link>
+                  )
+                ))
+              }
               
               {/* Dropdown Container */}
               <Popover
                 anchorEl={anchorEl}
                 open={open}
                 slotProps={{
+                  root: {
+                    style: { pointerEvents: 'none' }
+                  },
                   paper: {
                     onMouseEnter: handleOpen,
                     onMouseLeave: handleClose,
@@ -157,7 +191,8 @@ export function Header() {
                       borderColor: 'divider',
                       borderRadius: '12px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                    }
+                    },
+                    style: { pointerEvents: 'auto' }
                   }
                 }}
                 anchorOrigin={{
@@ -224,7 +259,7 @@ export function Header() {
                   );
                 })}
               </Popover>
-            </>
+            </Box>
           );
         })}
       </Stack>
