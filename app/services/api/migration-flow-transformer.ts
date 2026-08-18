@@ -1,11 +1,11 @@
 import { MigrationResponse, MigrationFlow } from './types';
-import { mapProvinceToXY } from '../../../components/node-flow-animation/thailand-map-utils';
+import { mapProvinceToXY } from '@/components/node-flow-animation/thailand-map-utils';
 
 // Import administrative units data for coordinates
-import thailandAdministrativeUnits from '../../../public/datasets/thailand_administrative_units.json';
+import thailandAdministrativeUnits from '@/public/datasets/thailand_administrative_units.json';
 
 // Import location display utilities
-import { getLocationDisplayInfo } from '../../../src/utils/locationDisplay';
+import { getLocationDisplayInfo } from '@/src/utils/locationDisplay';
 
 // Interface for administrative unit data (matches actual JSON structure)
 interface AdministrativeUnit {
