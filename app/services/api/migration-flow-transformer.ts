@@ -59,12 +59,15 @@ export const ORIGIN_Y = -70; // Center the map (centerY from node-flow-animation
  * @param locationId - The location ID to look up
  * @returns - Object with lat, lng, and transformed SVG x, y coordinates
  */
-function getLocationCoordinates(locationId: string): { lat: number, lng: number, x: number; y: number } {
+function getLocationCoordinates(locationId: string, locationName?: string): { lat: number, lng: number, x: number; y: number } {
   // Cast the imported data to the correct type
   const units = thailandAdministrativeUnits as AdministrativeUnit[];
   
-  // Find the unit by ID
-  const unit = units.find(u => u.id === locationId);
+  // Find the unit by ID or name
+  let unit = units.find(u => u.id === locationId);
+  if (!unit && locationName) {
+    unit = units.find(u => u.name_en.toLowerCase() === locationName.toLowerCase());
+  }
   
   if (unit) {
     // Use the existing coordinate transformation from thailand-map-utils.ts
@@ -179,7 +182,7 @@ export function transformMigrationDataForMap(
     const timeSeriesData = locationData.time_series[timePeriodId];
     
     // Get coordinates for this location
-    const coordinates = getLocationCoordinates(location.id);
+    const coordinates = getLocationCoordinates(location.id, location.name);
     
     // Calculate node size based on migration volume
     const moveIn = timeSeriesData?.move_in || 0;

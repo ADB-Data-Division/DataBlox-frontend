@@ -145,26 +145,17 @@ export class MigrationAPIService {
    */
   private async findProvinceApiId(location: Location): Promise<string | null> {
     try {
-      console.log(`🔍 Looking for province API ID for: "${location.name}"`);
-      
-      // TEMPORARY: Hardcode Bangkok and Songkhla for testing
-      if (location.name.toLowerCase().includes('bangkok')) {
-        console.log(`✅ Hardcoded Bangkok -> 1`);
-        return "1";
+      if (location.uniqueId?.startsWith('api-pr-')) {
+        return location.uniqueId.replace('api-pr-', '');
       }
-      if (location.name.toLowerCase().includes('songkhla')) {
-        console.log(`✅ Hardcoded Songkhla -> 70`);
-        return "70";
-      }
-      
+
       const metadata = await metadataService.getMetadata();
-      
+
       // Try to find by name first (case-insensitive)
       const byName = metadata.provinces.find(p => 
         p.name.toLowerCase() === location.name.toLowerCase()
       );
       if (byName) {
-        console.log(`✅ Found by name: ${byName.name} -> ${byName.id}`);
         return byName.id;
       }
 
@@ -192,6 +183,10 @@ export class MigrationAPIService {
    */
   private async findDistrictApiId(location: Location): Promise<string | null> {
     try {
+      if (location.uniqueId?.startsWith('api-ds-')) {
+        return location.uniqueId.replace('api-ds-', '');
+      }
+
       const metadata = await metadataService.getMetadata();
       
       if (!metadata.districts) return null;
@@ -220,6 +215,10 @@ export class MigrationAPIService {
    */
   private async findSubdistrictApiId(location: Location): Promise<string | null> {
     try {
+      if (location.uniqueId?.startsWith('api-sd-')) {
+        return location.uniqueId.replace('api-sd-', '');
+      }
+
       const metadata = await metadataService.getMetadata();
       
       if (!metadata.subdistricts) return null;
