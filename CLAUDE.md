@@ -24,10 +24,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a Next.js 15 application built with TypeScript that visualizes migration and tourism data for Thailand. The architecture follows a modern React pattern with Redux for state management.
+This is a Next.js 16 application built with TypeScript that visualizes migration and tourism data for Thailand. The architecture follows a modern React pattern with Redux for state management.
 
 ### Core Technologies
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **UI**: Material-UI (MUI) v7 with Toolpad Core
 - **State Management**: Redux Toolkit with Redux Persist
 - **Data Visualization**: D3.js, MUI X Charts, custom chord diagrams

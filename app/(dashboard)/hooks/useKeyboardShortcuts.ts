@@ -4,7 +4,7 @@ import { useEffect, RefObject } from 'react';
 import { trackUserInteraction } from '../../../src/utils/analytics';
 
 interface UseKeyboardShortcutsProps {
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   onShowShortcutsModal: () => void;
 }
 

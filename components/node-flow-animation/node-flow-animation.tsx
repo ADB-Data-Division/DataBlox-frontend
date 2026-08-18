@@ -84,7 +84,7 @@ interface NodesVisualizationProps {
 }
 
 // Custom hook to track container size
-const useContainerSize = (ref: React.RefObject<HTMLDivElement>) => {
+const useContainerSize = (ref: React.RefObject<HTMLDivElement | null>) => {
   const [size, setSize] = useState({ width: 960, height: 400 });
 
   useEffect(() => {

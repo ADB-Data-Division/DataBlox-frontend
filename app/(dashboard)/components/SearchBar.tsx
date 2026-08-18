@@ -15,7 +15,7 @@ import { ThailandRegion, getRegionDisplayName } from '../../services/api/provinc
 import type { LocationType } from '../hooks/useLocationSearch';
 
 interface SearchBarProps {
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   searchQuery: string;
   selectedLocations: Location[];
   highlightedForDeletion: number | null;

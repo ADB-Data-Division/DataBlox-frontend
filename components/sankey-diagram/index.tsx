@@ -30,7 +30,7 @@ interface SankeyLinkData {
 
 export default function SankeyDiagram({ 
   apiResponse
-}: SankeyDiagramProps): JSX.Element {
+}: SankeyDiagramProps): React.JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = React.useState({ width: 1200, height: 700 });

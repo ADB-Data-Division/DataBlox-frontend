@@ -179,7 +179,7 @@ const Scorecard: React.FC<ScorecardProps> = ({
                 minHeight: 36,
               }}
             >
-              {React.cloneElement(icon as React.ReactElement, { 
+              {React.cloneElement(icon as React.ReactElement<any>, { 
                 size: config.iconSize,
                 weight: 'duotone'
               })}
