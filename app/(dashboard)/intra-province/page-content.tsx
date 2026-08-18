@@ -6,7 +6,7 @@ import { ApiDisconnectedPage } from '../components/ApiDisconnectedPage';
 import { useConnectivity } from '@/app/contexts/ConnectivityContext';
 import CitationFooter from '@/components/citation-footer/citation-footer';
 import { axisClasses } from '@mui/x-charts';
-import moveInSampleDataset from '@/public/move-in-sample-dataset.json';
+import moveInSampleDataset from '@/src/data/move-in-sample-dataset.json';
 import MigrationContent from '../migration/migration-content';
 import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import { Subaction } from '@/components/visualization-toolbar/types';

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Box, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { axisClasses } from '@mui/x-charts';
-import moveInSampleDataset from '@/public/move-in-sample-dataset.json';
+import moveInSampleDataset from '@/src/data/move-in-sample-dataset.json';
 import VisualizationToolbar from '@/components/visualization-toolbar/visualization-toolbar';
 import { VisualizationFilters } from '@/components/visualization-toolbar/state/types';
 import MigrationDataProcessor from '@/app/services/data-loader/danfo-service';
