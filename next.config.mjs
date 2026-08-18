@@ -7,14 +7,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: "standalone",
-    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-        // Add alias for @ to resolve to the project root
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            "@": path.resolve(__dirname),
-        };
-        return config;
-    },
+    turbopack: {},
 };
 
 export default nextConfig;
