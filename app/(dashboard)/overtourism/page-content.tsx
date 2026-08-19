@@ -66,6 +66,202 @@ interface OvertourismChartData {
   warnings: string[];
 }
 
+// Calculation Formulas Component
+const CalculationFormulas: React.FC<{
+  activeSeries: 'both' | 'irritation' | 'environmental';
+}> = ({ activeSeries }) => {
+  const theme = useTheme();
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        mb: 3,
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 2,
+      }}
+    >
+      <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
+        Calculation Formulas
+      </Typography>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gap: 2,
+        }}
+      >
+        {/* Irritation Index Formula Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            borderColor: activeSeries === 'both' || activeSeries === 'irritation' ? theme.palette.divider : 'transparent',
+            opacity: activeSeries === 'environmental' ? 0.4 : 1,
+            transition: 'opacity 0.2s ease, border-color 0.2s ease',
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.7)',
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 16 }}>
+                <Box sx={{ width: 24, height: 2, backgroundColor: theme.palette.text.primary, position: 'relative' }}>
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: theme.palette.text.primary,
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Irritation Index
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1.25,
+                p: 2,
+                borderRadius: 1.5,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(0, 0, 0, 0.03)',
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: theme.palette.text.primary }}>
+                Irritation Index =
+              </Typography>
+
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 300, color: theme.palette.text.secondary, lineHeight: 1 }}>
+                  (
+                </Typography>
+                <Box sx={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', px: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary, pb: 0.25 }}>
+                    Monthly Visitors
+                  </Typography>
+                  <Divider sx={{ width: '100%', borderColor: theme.palette.divider, borderBottomWidth: 1.5 }} />
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary, pt: 0.25 }}>
+                    Resident Population
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 300, color: theme.palette.text.secondary, lineHeight: 1 }}>
+                  )
+                </Typography>
+              </Box>
+
+              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: theme.palette.text.secondary }}>
+                ×
+              </Typography>
+
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary }}>
+                Avg. Stay Duration (days)
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Environmental Stress Formula Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            borderColor: activeSeries === 'both' || activeSeries === 'environmental' ? theme.palette.divider : 'transparent',
+            opacity: activeSeries === 'irritation' ? 0.4 : 1,
+            transition: 'opacity 0.2s ease, border-color 0.2s ease',
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.7)',
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 16 }}>
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 2,
+                    backgroundImage: `repeating-linear-gradient(90deg, ${theme.palette.text.primary} 0px, ${theme.palette.text.primary} 4px, transparent 4px, transparent 8px)`,
+                    position: 'relative',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: 6,
+                      height: 6,
+                      backgroundColor: theme.palette.text.primary,
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Environmental Stress
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1.25,
+                p: 2,
+                borderRadius: 1.5,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(0, 0, 0, 0.03)',
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: theme.palette.text.primary }}>
+                Environmental Stress =
+              </Typography>
+
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 300, color: theme.palette.text.secondary, lineHeight: 1 }}>
+                  (
+                </Typography>
+                <Box sx={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', px: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary, pb: 0.25 }}>
+                    Monthly Visitors
+                  </Typography>
+                  <Divider sx={{ width: '100%', borderColor: theme.palette.divider, borderBottomWidth: 1.5 }} />
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary, pt: 0.25 }}>
+                    Area Size (km²)
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 300, color: theme.palette.text.secondary, lineHeight: 1 }}>
+                  )
+                </Typography>
+              </Box>
+
+              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: theme.palette.text.secondary }}>
+                ×
+              </Typography>
+
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: theme.palette.text.primary }}>
+                Avg. Stay Duration (days)
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Paper>
+  );
+};
+
 // Attribute Display Component
 const AttributeDisplay: React.FC<{
   data: OvertourismChartDataEntry[];
@@ -106,11 +302,8 @@ const AttributeDisplay: React.FC<{
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
         Average Contributing Metrics (Selected Period)
-      </Typography>
-      <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 2 }}>
-        Averaged values for the factors used to compute the Irritation Index and Environmental Stress.
       </Typography>
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
         {locations.map(loc => {
@@ -176,58 +369,74 @@ const OvertourismLegend: React.FC<OvertourismLegendProps> = ({ locations, getLoc
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {locations.map((location) => (
-          <Box key={location.uniqueId} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                mb: 1
-              }}
-            >
-              {location.name}
-            </Typography>
+        {locations.map((location) => {
+          const locColor = getLocationColor(location.uniqueId);
+          return (
+            <Box key={location.uniqueId} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  mb: 1
+                }}
+              >
+                {location.name}
+              </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: getLocationColor(location.uniqueId),
-                    borderRadius: 0.5,
-                    border: `1px solid ${theme.palette.divider}`,
-                  }}
-                />
-                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
-                  Irritation Index
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 24,
-                    height: 3,
-                    backgroundColor: getLocationColor(location.uniqueId),
-                    borderRadius: 0.5,
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 24,
-                    height: 3,
-                    background: 'repeating-linear-gradient(90deg, #666 0px, #666 4px, transparent 4px, transparent 8px)',
-                    borderRadius: 0.5,
-                  }}
-                />
-                <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
-                  Environmental Stress
-                </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pl: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 16 }}>
+                    <Box sx={{ width: 28, height: 2, backgroundColor: locColor, position: 'relative' }}>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: locColor,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                    Irritation Index
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 16 }}>
+                    <Box
+                      sx={{
+                        width: 28,
+                        height: 2,
+                        backgroundImage: `repeating-linear-gradient(90deg, ${locColor} 0px, ${locColor} 4px, transparent 4px, transparent 8px)`,
+                        position: 'relative',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: 7,
+                          height: 7,
+                          backgroundColor: locColor,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.secondary }}>
+                    Environmental Stress
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </Box>
     </Box>
   );
@@ -1107,7 +1316,7 @@ export default function OvertourismPageContent() {
             >
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-                  {activeSeries === 'both' ? 'Irritation Index & Environmental Stress' : activeSeries === 'irritation' ? 'Irritation Index' : 'Environmental Stress'} — {selectedLocations.map(l => l.name).join(', ')}
+                  {activeSeries === 'both' ? 'Irritation Index & Environmental Stress' : activeSeries === 'irritation' ? 'Irritation Index' : 'Environmental Stress'}: {selectedLocations.map(l => l.name).join(', ')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                   {dateRange.startDate && dateRange.endDate ? formatDateRange(dateRange.startDate, dateRange.endDate) : 'All available periods'}
@@ -1153,6 +1362,8 @@ export default function OvertourismPageContent() {
                 </Paper>
               </Box>
             </Paper>
+
+            <CalculationFormulas activeSeries={activeSeries} />
 
             <Paper
               elevation={0}
