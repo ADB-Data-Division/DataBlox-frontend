@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Alert,
@@ -20,7 +20,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
-import { fetchIndicatorTimeline } from '@/services/coastalService';
+import { fetchIndicatorTimeline, fetchSpatialGrid, fetchSpatialSlice } from '@/services/coastalService';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -31,6 +31,9 @@ import { SummaryCards } from '../components/SummaryCards';
 import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
+import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
+import TemporalScrubber from '../components/TemporalScrubber';
+import HexCellDetailModal from '../components/HexCellDetailModal';
 
 const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
   { period_start: '2019-01-01', period_end: '2019-01-31', chlor_a: 2.1, total_vessels: 45, sst_c: 28.1, port_call_duration_hours: 50 },
@@ -48,6 +51,22 @@ const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
   { period_start: '2025-06-01', period_end: '2025-06-30', chlor_a: 3.9, total_vessels: 69, sst_c: 28.9, port_call_duration_hours: 78 },
 ];
 
+const PERIOD_LIST = [
+  'Jan 2024',
+  'Feb 2024',
+  'Mar 2024',
+  'Apr 2024',
+  'May 2024',
+  'Jun 2024',
+  'Jul 2024',
+  'Aug 2024',
+  'Sep 2024',
+  'Oct 2024',
+  'Nov 2024',
+  'Dec 2024',
+  'Jan 2025',
+];
+
 export function PageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -58,16 +77,21 @@ export function PageContent() {
   const start_date = searchParams.get('start_date') || '2019-01-01';
   const end_date = searchParams.get('end_date') || '2025-12-31';
   const grainParam = (searchParams.get('grain') as CoastalGrain) || 'monthly';
+  const initialView = searchParams.get('view') === 'map' ? 'map' : 'timeline';
 
   // State
+  const [viewMode, setViewMode] = useState<'timeline' | 'map'>(initialView);
   const [data, setData] = useState<IndicatorTimelineResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'vessels']);
+  const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
+  const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [scrubberIndex, setScrubberIndex] = useState<number>(6); // Default: Jul 2024
 
   const locationLabel = aoi_id ? `${aoi_id} (${country})` : country === 'IDN' ? 'Bali' : country;
 
@@ -122,6 +146,7 @@ export function PageContent() {
   };
 
   const timelineData = data?.timeline || data?.series || SAMPLE_TIMELINE_DATA;
+  const showVesselOverlay = selectedIndicators.includes('vessels');
 
   return (
     <Stack spacing={3} sx={{ width: '100%' }}>
@@ -163,13 +188,18 @@ export function PageContent() {
 
             {/* Right side Time Range & Aggregation */}
             <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap">
-              <Box>
+              <Box sx={{ opacity: viewMode === 'map' ? 0.5 : 1 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                   Time Range
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
                   {start_date} to {end_date}
                 </Typography>
+                {viewMode === 'map' && (
+                  <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5, maxWidth: 240 }}>
+                    Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
+                  </Typography>
+                )}
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -196,16 +226,18 @@ export function PageContent() {
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <Paper
           variant="outlined"
+          onClick={() => setViewMode('timeline')}
           sx={{
             flex: 1,
             p: 2,
             borderRadius: 2,
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
+            backgroundColor: viewMode === 'timeline' ? 'primary.main' : 'background.paper',
+            color: viewMode === 'timeline' ? 'primary.contrastText' : 'text.primary',
             display: 'flex',
             alignItems: 'center',
             gap: 2,
             cursor: 'pointer',
+            transition: 'all 0.2s',
           }}
         >
           <TimelineIcon sx={{ fontSize: 28 }} />
@@ -218,27 +250,23 @@ export function PageContent() {
 
         <Paper
           variant="outlined"
-          onClick={() => {
-            const params = new URLSearchParams(searchParams.toString());
-            router.push(`/coastal/map?${params.toString()}`);
-          }}
+          onClick={() => setViewMode('map')}
           sx={{
             flex: 1,
             p: 2,
             borderRadius: 2,
-            backgroundColor: 'background.paper',
+            backgroundColor: viewMode === 'map' ? 'teal' : 'background.paper',
+            color: viewMode === 'map' ? '#ffffff' : 'text.primary',
             display: 'flex',
             alignItems: 'center',
             gap: 2,
             cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
+            transition: 'all 0.2s',
           }}
         >
-          <MapIcon color="action" sx={{ fontSize: 28 }} />
+          <MapIcon sx={{ fontSize: 28 }} />
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               Choropleth Map
             </Typography>
           </Box>
@@ -252,51 +280,122 @@ export function PageContent() {
         </Alert>
       )}
 
-      {/* Top Row: Summary Cards (Slots 1 & 2) and Contextual Details Card (Slot 3) */}
-      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="stretch">
-        <Box sx={{ flex: 2, minWidth: 0 }}>
-          <SummaryCards
-            summary={data?.summary}
-            indicators={selectedIndicators}
-            locationName={locationLabel}
-            dateRange={{ start: start_date, end: end_date }}
-            timeline={timelineData}
-          />
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <DetailsCard
-            selectedPoint={selectedPoint}
-            timeline={timelineData}
-            activeIndicator={selectedIndicators[0]}
-            locationName={locationLabel}
-            grain={grain}
-          />
-        </Box>
-      </Stack>
+      {/* VIEW MODE 1: TIMELINE */}
+      {viewMode === 'timeline' && (
+        <>
+          {/* Top Row: Summary Cards (Slots 1 & 2) and Contextual Details Card (Slot 3) */}
+          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="stretch">
+            <Box sx={{ flex: 2, minWidth: 0 }}>
+              <SummaryCards
+                summary={data?.summary}
+                indicators={selectedIndicators}
+                locationName={locationLabel}
+                dateRange={{ start: start_date, end: end_date }}
+                timeline={timelineData}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <DetailsCard
+                selectedPoint={selectedPoint}
+                timeline={timelineData}
+                activeIndicator={selectedIndicators[0]}
+                locationName={locationLabel}
+                grain={grain}
+              />
+            </Box>
+          </Stack>
 
-      {/* Middle Row: Indicator Timeline Chart and Sidebar Controls */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
-        <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-          <IndicatorTimelineChart
-            data={timelineData}
-            indicators={selectedIndicators}
-            grain={grain}
-            locationName={locationLabel}
-            dateRange={{ start: start_date, end: end_date }}
-            selectedPeriod={selectedPoint?.period_start || null}
-            onSelectPoint={(pt) => setSelectedPoint(pt)}
-            loading={loading}
-          />
-        </Box>
-        <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}>
-          <IndicatorSidebar
-            selectedIndicators={selectedIndicators}
-            onToggleIndicator={handleToggleIndicator}
-            aggFunc={aggFunc}
-            onChangeAggFunc={(agg) => setAggFunc(agg)}
-          />
-        </Box>
-      </Stack>
+          {/* Middle Row: Indicator Timeline Chart and Sidebar Controls */}
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
+            <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+              <IndicatorTimelineChart
+                data={timelineData}
+                indicators={selectedIndicators}
+                grain={grain}
+                locationName={locationLabel}
+                dateRange={{ start: start_date, end: end_date }}
+                selectedPeriod={selectedPoint?.period_start || null}
+                onSelectPoint={(pt) => setSelectedPoint(pt)}
+                loading={loading}
+              />
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}>
+              <IndicatorSidebar
+                selectedIndicators={selectedIndicators}
+                onToggleIndicator={handleToggleIndicator}
+                aggFunc={aggFunc}
+                onChangeAggFunc={(agg) => setAggFunc(agg)}
+                mode="timeline"
+              />
+            </Box>
+          </Stack>
+        </>
+      )}
+
+      {/* VIEW MODE 2: CHOROPLETH MAP */}
+      {viewMode === 'map' && (
+        <>
+          {/* Top Row: Hex Cell Detail Inspection Card */}
+          <Box sx={{ width: '100%' }}>
+            <HexCellDetailModal
+              cellId={selectedHexCell}
+              locationName={locationLabel}
+              dateRange={{ start: start_date, end: end_date }}
+              indicators={selectedIndicators}
+              onClose={() => setSelectedHexCell(null)}
+            />
+          </Box>
+
+          {/* Middle Row: Choropleth Map + Scrubber and Sidebar */}
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
+            <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+              <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      Average {activeChoroplethIndicator === 'sst' ? 'Sea Surface Temperature' : 'Chlorophyll-a Concentration'} ({grain}) : {locationLabel}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {start_date} to {end_date}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ minHeight: 380, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CoastalChoroplethMap
+                      country={country}
+                      activeIndicator={activeChoroplethIndicator}
+                      overlayVessels={showVesselOverlay}
+                      selectedCellId={selectedHexCell}
+                      onSelectCell={(id) => setSelectedHexCell(id)}
+                    />
+                  </Box>
+
+                  <Box sx={{ mt: 2 }}>
+                    <TemporalScrubber
+                      periods={PERIOD_LIST}
+                      currentIndex={scrubberIndex}
+                      onChangeIndex={(idx) => setScrubberIndex(idx)}
+                      grain={grain}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}>
+              <IndicatorSidebar
+                selectedIndicators={selectedIndicators}
+                onToggleIndicator={handleToggleIndicator}
+                aggFunc={aggFunc}
+                onChangeAggFunc={(agg) => setAggFunc(agg)}
+                mode="map"
+                activeChoroplethIndicator={activeChoroplethIndicator}
+                onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
+              />
+            </Box>
+          </Stack>
+        </>
+      )}
 
       {/* Bottom Row: Download Data Card */}
       <Card variant="outlined" sx={{ borderRadius: 2 }}>
