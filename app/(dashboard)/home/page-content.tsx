@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Card, CardContent, Stack, Collapse, useTheme, useMediaQuery } from '@mui/material';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   ArrowsLeftRight,
@@ -14,6 +14,9 @@ import {
   Warning,
   Code,
   ArrowRight,
+  Boat,
+  Leaf,
+  Sailboat,
 } from '@phosphor-icons/react/dist/ssr';
 import { ConnectivityStatus } from '../components/ConnectivityStatus';
 
@@ -33,6 +36,7 @@ interface Category {
   icon: React.ReactNode;
   color: string;
   gradient: string;
+  href?: string;
   subPages: SubPage[];
 }
 
@@ -98,6 +102,30 @@ const categories: Category[] = [
     ],
   },
   {
+    title: 'Coastal Waters',
+    description: 'Examine water quality surrounding global seaports',
+    icon: <Boat size={36} weight="duotone" />,
+    color: '#3399D3',
+    gradient: 'linear-gradient(135deg, #005A94 0%, #3399D3 100%)',
+    href: '/coastal',
+    subPages: [
+      {
+        label: 'Indicators',
+        href: '/coastal/indicators',
+        icon: <Leaf size={20} weight="duotone" />,
+        description: 'Environment and human impact trends',
+        preserveParams: false,
+      },
+      {
+        label: 'Vessel Types',
+        href: '/coastal/vessels',
+        icon: <Sailboat size={20} weight="duotone" />,
+        description: 'Marine traffic by vessel type',
+        preserveParams: false,
+      },
+    ],
+  },
+  {
     title: 'DataBlox-OD Python Library',
     description: 'Python Toolkit for efficiently mining rich information from GPS data.',
     icon: <Code size={36} weight="duotone" />,
@@ -141,6 +169,7 @@ function useIsTouchDevice() {
 
 function CategoryCard({ category, locationsParam }: { category: Category; locationsParam: string | null }) {
   const isTouch = useIsTouchDevice();
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
@@ -148,8 +177,18 @@ function CategoryCard({ category, locationsParam }: { category: Category; locati
   const showSubPages = isTouch ? expanded : hovered;
 
   const handleClick = useCallback(() => {
-    if (isTouch) setExpanded((prev) => !prev);
-  }, [isTouch]);
+    if (isTouch) {
+      if (expanded && category.href) {
+        router.push(category.href);
+        return;
+      }
+      setExpanded((prev) => !prev);
+      return;
+    }
+    if (category.href) {
+      router.push(category.href);
+    }
+  }, [category.href, expanded, isTouch, router]);
 
   return (
     <Card
