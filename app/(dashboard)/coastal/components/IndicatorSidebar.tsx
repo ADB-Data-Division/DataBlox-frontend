@@ -21,13 +21,16 @@ export interface IndicatorSidebarProps {
   onToggleIndicator: (indicatorId: string) => void;
   aggFunc: CoastalAggFunc | string;
   onChangeAggFunc: (agg: CoastalAggFunc) => void;
+  mode?: 'timeline' | 'map';
+  activeChoroplethIndicator?: string;
+  onChangeChoroplethIndicator?: (ind: string) => void;
 }
 
 const AVAILABLE_INDICATORS = [
   { id: 'vessels', label: 'Vessel Count', description: 'No. of maritime vessels' },
   { id: 'duration', label: 'Vessel Port Call Duration', description: 'Hours' },
   { id: 'chlor_a', label: 'Chlorophyll-a', description: 'mg/m³' },
-  { id: 'sst', label: 'Sea Surface Temperature', description: '°C' },
+  { id: 'sst', label: 'Sea Surface Temperature', description: 'K / °C' },
 ];
 
 export function IndicatorSidebar({
@@ -35,8 +38,13 @@ export function IndicatorSidebar({
   onToggleIndicator,
   aggFunc,
   onChangeAggFunc,
+  mode = 'timeline',
+  activeChoroplethIndicator = 'chlor_a',
+  onChangeChoroplethIndicator,
 }: IndicatorSidebarProps) {
   const atMax = selectedIndicators.length >= 2;
+  const showVesselOverlay = selectedIndicators.includes('vessels');
+  const hasEnvIndicators = selectedIndicators.filter((id) => id === 'chlor_a' || id === 'sst');
 
   return (
     <Stack spacing={2} sx={{ width: '100%' }}>
@@ -46,25 +54,91 @@ export function IndicatorSidebar({
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
             Legend
           </Typography>
-          <Stack spacing={1}>
-            {selectedIndicators.map((ind, i) => {
-              const item = AVAILABLE_INDICATORS.find((x) => x.id === ind);
-              const color = i === 0 ? '#3B82F6' : '#EF4444';
-              return (
-                <Stack key={ind} direction="row" spacing={1.5} alignItems="center">
+
+          {mode === 'timeline' ? (
+            <Stack spacing={1}>
+              {selectedIndicators.map((ind, i) => {
+                const item = AVAILABLE_INDICATORS.find((x) => x.id === ind);
+                const color = i === 0 ? '#3B82F6' : '#EF4444';
+                return (
+                  <Stack key={ind} direction="row" spacing={1.5} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 18,
+                        height: 3,
+                        borderRadius: 1,
+                        backgroundColor: color,
+                      }}
+                    />
+                    <Typography variant="body2">{item?.label || ind}</Typography>
+                  </Stack>
+                );
+              })}
+            </Stack>
+          ) : (
+            <Stack spacing={1.5}>
+              {showVesselOverlay && (
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>
+                  Numbers = Vessel Count
+                </Typography>
+              )}
+
+              {activeChoroplethIndicator === 'sst' ? (
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                    Sea Surface Temp. (K)
+                  </Typography>
                   <Box
                     sx={{
-                      width: 18,
-                      height: 3,
+                      height: 8,
                       borderRadius: 1,
-                      backgroundColor: color,
+                      background: 'linear-gradient(to right, #a855f7, #ef4444)',
+                      mb: 0.5,
                     }}
                   />
-                  <Typography variant="body2">{item?.label || ind}</Typography>
-                </Stack>
-              );
-            })}
-          </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>290</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>310</Typography>
+                  </Stack>
+                </Box>
+              ) : (
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                    Chlorophyll-a (mg/m³)
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: 8,
+                      borderRadius: 1,
+                      background: 'linear-gradient(to right, #22c55e, #eab308, #ef4444)',
+                      mb: 0.5,
+                    }}
+                  />
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>0</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>20</Typography>
+                  </Stack>
+                </Box>
+              )}
+
+              {hasEnvIndicators.length > 1 && onChangeChoroplethIndicator && (
+                <Box sx={{ mt: 1 }}>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={activeChoroplethIndicator}
+                      onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
+                    >
+                      <MenuItem value="chlor_a">Chlorophyll-a</MenuItem>
+                      <MenuItem value="sst">Sea Surface Temp.</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
+                    Tip: Use the dropdown above to toggle between color maps.
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
+          )}
         </CardContent>
       </Card>
 
