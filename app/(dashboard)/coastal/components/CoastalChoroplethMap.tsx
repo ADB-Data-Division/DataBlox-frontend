@@ -276,7 +276,8 @@ function CoastalChoroplethMapClient({
     TextLayer: any;
   } | null>(null);
   const [genuineCells, setGenuineCells] = useState<HexCellData[] | null>(null);
-  const [selectedScreenPos, setSelectedScreenPos] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<HexCellData | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   // Determine indicator type
   const isChlor = useMemo(() => {
@@ -425,37 +426,6 @@ function CoastalChoroplethMapClient({
     });
   }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST]);
 
-  // Resolve currently selected hexagon data
-  const selectedCell = useMemo(() => {
-    if (!selectedCellId) return null;
-    return gridCells.find((c) => c.id === selectedCellId) || null;
-  }, [selectedCellId, gridCells]);
-
-  // Keep screen position of the selected hexagon in sync with pan/zoom
-  useEffect(() => {
-    const map = leafletMapRef.current;
-    if (!map || !selectedCell) {
-      setSelectedScreenPos(null);
-      return;
-    }
-
-    const updatePos = () => {
-      if (selectedCell.lat !== undefined && selectedCell.lng !== undefined) {
-        const pt = map.latLngToContainerPoint([selectedCell.lat, selectedCell.lng]);
-        setSelectedScreenPos({ x: pt.x, y: pt.y });
-      }
-    };
-
-    updatePos();
-    map.on('move', updatePos);
-    map.on('zoom', updatePos);
-
-    return () => {
-      map.off('move', updatePos);
-      map.off('zoom', updatePos);
-    };
-  }, [selectedCell]);
-
   // Dynamically load Leaflet and Deck.gl WebGL on client
   useEffect(() => {
     let mounted = true;
@@ -560,13 +530,7 @@ function CoastalChoroplethMapClient({
       map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12, animate: false });
     }
 
-    const handleMapClick = () => {
-      onSelectCell('');
-    };
-    map.on('click', handleMapClick);
-
     return () => {
-      map.off('click', handleMapClick);
       if (deckOverlayRef.current) {
         try {
           deckOverlayRef.current.remove();
@@ -580,7 +544,7 @@ function CoastalChoroplethMapClient({
         leafletMapRef.current = null;
       }
     };
-  }, [L, centerConfig, deckModules, onSelectCell]);
+  }, [L, centerConfig, deckModules]);
 
   // Update bounds or fallback center when genuine cells or location change
   useEffect(() => {
@@ -678,7 +642,16 @@ function CoastalChoroplethMapClient({
         highlightColor: [255, 255, 255, 90],
         onClick: (info: any) => {
           if (info.object && onSelectCell) {
-            onSelectCell(selectedCellId === info.object.id ? '' : info.object.id);
+            onSelectCell(info.object.id);
+          }
+        },
+        onHover: (info: any) => {
+          if (info.object) {
+            setHoveredCell(info.object);
+            setTooltipPos({ x: info.x, y: info.y });
+          } else {
+            setHoveredCell(null);
+            setTooltipPos(null);
           }
         },
         updateTriggers: {
@@ -758,8 +731,25 @@ function CoastalChoroplethMapClient({
         weight: isSelected ? 3.5 : 1,
       });
 
+      const tooltipContent = `
+        <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
+          <div style="font-weight: 700; margin-bottom: 2px;">Hex: ${cell.id}</div>
+          <div style="color: #64748b;">Resolution: 7</div>
+          <div style="color: #64748b;">Area: 4.5 km²</div>
+          ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
+          <div>Chlor_a (Avg.): <strong>${cell.chlor_a.toFixed(2)} mg/m³</strong></div>
+          <div>Sea Surface Temp (Avg.): <strong>${cell.sst.toFixed(1)} K</strong></div>
+        </div>
+      `;
+
+      polygon.bindTooltip(tooltipContent, {
+        sticky: true,
+        direction: 'top',
+        className: 'custom-hex-tooltip',
+      });
+
       polygon.on('click', () => {
-        onSelectCell(selectedCellId === cell.id ? '' : cell.id);
+        onSelectCell(cell.id);
       });
 
       layerGroup.addLayer(polygon);
@@ -864,18 +854,18 @@ function CoastalChoroplethMapClient({
       {/* Map container */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
 
-      {/* Selected Hexagon Detail Card (shows on select, not on hover) */}
-      {selectedCell && selectedScreenPos && (
+      {/* WebGL Hardware-Accelerated Tooltip */}
+      {hoveredCell && tooltipPos && (
         <Box
           sx={{
             position: 'absolute',
-            left: Math.max(12, Math.min(selectedScreenPos.x + 16, 420)),
-            top: Math.max(12, Math.min(selectedScreenPos.y - 40, 240)),
+            left: Math.min(tooltipPos.x + 12, (mapContainerRef.current?.clientWidth || 400) - 220),
+            top: Math.max(10, Math.min(tooltipPos.y + 12, (mapContainerRef.current?.clientHeight || 420) - 160)),
             zIndex: 1000,
             pointerEvents: 'none',
             bgcolor: 'rgba(255, 255, 255, 0.96)',
             backdropFilter: 'blur(4px)',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.16)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: 1.5,
             p: 1.25,
@@ -883,17 +873,17 @@ function CoastalChoroplethMapClient({
             fontSize: 12,
             lineHeight: 1.45,
             color: '#1e293b',
-            minWidth: 190,
+            minWidth: 180,
           }}
         >
-          <Box sx={{ fontWeight: 700, mb: 0.25 }}>Hex: {selectedCell.id}</Box>
+          <Box sx={{ fontWeight: 700, mb: 0.25 }}>Hex: {hoveredCell.id}</Box>
           <Box sx={{ color: '#64748b' }}>Resolution: 7</Box>
           <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
           {overlayVessels && (
-            <Box>Total Vessels: <strong>{selectedCell.vessels}</strong></Box>
+            <Box>Total Vessels: <strong>{hoveredCell.vessels}</strong></Box>
           )}
-          <Box>Chlor_a (Avg.): <strong>{selectedCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
-          <Box>Sea Surface Temp (Avg.): <strong>{selectedCell.sst.toFixed(1)} K</strong></Box>
+          <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
+          <Box>Sea Surface Temp (Avg.): <strong>{hoveredCell.sst.toFixed(1)} K</strong></Box>
         </Box>
       )}
     </Box>
