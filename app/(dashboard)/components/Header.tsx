@@ -45,12 +45,6 @@ const navigationLinks: NavCategory[] = [
       { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
     ],
   },
-  {
-    title: '',
-    links: [
-      { label: 'DataBlox-OD Python Library', href: '/lib/index.html', preserveParams: false },
-    ],
-  },
 ];
 
 interface NavCategoryItemProps {
@@ -286,19 +280,7 @@ export function Header() {
         sx={{ mb: 0 }}
       >
         <Link href="/home" style={{ textDecoration: 'none' }}>
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{
-              fontSize: '36px',
-              fontFamily: 'var(--font-asap), sans-serif',
-              fontWeight: '900',
-              color: '#000000',
-              letterSpacing: '-0.5px',
-              mb: 0,
-              cursor: 'pointer',
-            }}
-          >
+          <Stack direction="row" alignItems="center" spacing={2}>
             <Image
               src="/images/adb-jfpr-japan.webp"
               alt="ADB-JFPR Japan"
@@ -306,26 +288,41 @@ export function Header() {
               height={198}
               style={{
                 maxWidth: '200px',
-                maxHeight: '54px',
-                transform: 'translateY(13px)',
-                marginRight: '1rem',
+                maxHeight: '48px',
+                width: 'auto',
+                height: 'auto',
               }}
+              priority
             />
-            Datablo
-            <Box
-              component="span"
+            <Typography
+              variant="h3"
+              component="h1"
               sx={{
-                backgroundColor: '#0077BE',
-                color: '#ffffff',
-                padding: '0px 2px',
-                borderRadius: '4px',
-                marginLeft: '1px',
-                display: 'inline-block',
+                fontSize: '36px',
+                fontFamily: 'var(--font-asap), sans-serif',
+                fontWeight: '900',
+                color: '#000000',
+                letterSpacing: '-0.5px',
+                mb: 0,
+                cursor: 'pointer',
               }}
             >
-              x
-            </Box>
-          </Typography>
+              Datablo
+              <Box
+                component="span"
+                sx={{
+                  backgroundColor: '#0077BE',
+                  color: '#ffffff',
+                  padding: '0px 2px',
+                  borderRadius: '4px',
+                  marginLeft: '1px',
+                  display: 'inline-block',
+                }}
+              >
+                x
+              </Box>
+            </Typography>
+          </Stack>
         </Link>
         <ConnectivityStatus />
       </Stack>
