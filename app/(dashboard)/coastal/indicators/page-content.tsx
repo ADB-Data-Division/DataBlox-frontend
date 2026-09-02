@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Alert,
@@ -29,14 +29,13 @@ import type {
 } from '@/types/coastal';
 import { SummaryCards } from '../components/SummaryCards';
 import { DetailsCard } from '../components/DetailsCard';
-import { IndicatorTimelineChart } from '../components/IndicatorTimelineChart';
+import { IndicatorTimelineChart, formatPeriodLabel } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
 import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import { formatDisplayName } from '../data/provinces';
-
 
 const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
   { period_start: '2019-01-01', period_end: '2019-01-31', chlor_a: 2.1, total_vessels: 45, sst_c: 28.1, port_call_duration_hours: 50 },
@@ -54,21 +53,73 @@ const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
   { period_start: '2025-06-01', period_end: '2025-06-30', chlor_a: 3.9, total_vessels: 69, sst_c: 28.9, port_call_duration_hours: 78 },
 ];
 
-const PERIOD_LIST = [
-  'Jan 2024',
-  'Feb 2024',
-  'Mar 2024',
-  'Apr 2024',
-  'May 2024',
-  'Jun 2024',
-  'Jul 2024',
-  'Aug 2024',
-  'Sep 2024',
-  'Oct 2024',
-  'Nov 2024',
-  'Dec 2024',
-  'Jan 2025',
-];
+export function generatePeriods(
+  startDate: string,
+  endDate: string,
+  grain: string = 'monthly',
+  timeline?: IndicatorTimelinePoint[]
+): Array<{ label: string; start: string; end: string }> {
+  if (timeline && timeline.length > 0) {
+    return timeline.map((pt) => ({
+      label: formatPeriodLabel(pt.period_start),
+      start: pt.period_start,
+      end: pt.period_end || pt.period_start,
+    }));
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return [{ label: 'Jan 2024', start: '2024-01-01', end: '2024-01-31' }];
+  }
+
+  const results: Array<{ label: string; start: string; end: string }> = [];
+
+  if (grain === 'annually') {
+    const startYear = start.getFullYear();
+    const endYear = end.getFullYear();
+    for (let y = startYear; y <= endYear; y++) {
+      results.push({
+        label: String(y),
+        start: `${y}-01-01`,
+        end: `${y}-12-31`,
+      });
+    }
+    return results;
+  }
+
+  if (grain === 'weekly') {
+    const cur = new Date(start);
+    while (cur <= end) {
+      const periodStart = cur.toISOString().split('T')[0];
+      const nextWeek = new Date(cur);
+      nextWeek.setDate(cur.getDate() + 6);
+      const periodEnd = nextWeek.toISOString().split('T')[0];
+      const label = `${cur.toLocaleString('en-US', { month: 'short' })} ${cur.getDate()}`;
+      results.push({ label, start: periodStart, end: periodEnd });
+      cur.setDate(cur.getDate() + 7);
+    }
+    return results;
+  }
+
+  // Monthly
+  const current = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endLimit = new Date(end.getFullYear(), end.getMonth(), 1);
+
+  while (current <= endLimit) {
+    const y = current.getFullYear();
+    const m = current.getMonth();
+    const monthStr = (m + 1).toString().padStart(2, '0');
+    const periodStart = `${y}-${monthStr}-01`;
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const periodEnd = `${y}-${monthStr}-${lastDay.toString().padStart(2, '0')}`;
+    const label = current.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    results.push({ label, start: periodStart, end: periodEnd });
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  return results;
+}
 
 export function PageContent() {
   const searchParams = useSearchParams();
@@ -102,7 +153,9 @@ export function PageContent() {
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
-  const [scrubberIndex, setScrubberIndex] = useState<number>(6); // Default: Jul 2024
+  const [scrubberIndex, setScrubberIndex] = useState<number>(0);
+  const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
+  const sliceCacheRef = useRef<Map<string, Record<string, any>>>(new Map());
 
   const locationLabel = rawNames
     ? rawNames
@@ -111,6 +164,10 @@ export function PageContent() {
     : country || 'Select Location';
 
   const loadData = useCallback(async () => {
+    if (!rawCountry) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -140,13 +197,31 @@ export function PageContent() {
   const handleToggleIndicator = (indicatorId: string) => {
     if (selectedIndicators.includes(indicatorId)) {
       if (selectedIndicators.length > 1) {
-        setSelectedIndicators(selectedIndicators.filter((id) => id !== indicatorId));
+        const next = selectedIndicators.filter((id) => id !== indicatorId);
+        setSelectedIndicators(next);
+        if (indicatorId === activeChoroplethIndicator) {
+          const remainingEnv = next.find((id) => id === 'chlor_a' || id === 'sst');
+          if (remainingEnv) {
+            setActiveChoroplethIndicator(remainingEnv);
+          }
+        }
       }
     } else {
-      if (selectedIndicators.length < 2) {
-        setSelectedIndicators([...selectedIndicators, indicatorId]);
+      if (viewMode === 'map') {
+        if (selectedIndicators.length < 3) {
+          setSelectedIndicators([...selectedIndicators, indicatorId]);
+        } else {
+          setSelectedIndicators([selectedIndicators[0], selectedIndicators[1], indicatorId]);
+        }
+        if (indicatorId === 'sst' || indicatorId === 'chlor_a') {
+          setActiveChoroplethIndicator(indicatorId);
+        }
       } else {
-        setSelectedIndicators([selectedIndicators[0], indicatorId]);
+        if (selectedIndicators.length < 2) {
+          setSelectedIndicators([...selectedIndicators, indicatorId]);
+        } else {
+          setSelectedIndicators([selectedIndicators[0], indicatorId]);
+        }
       }
     }
   };
@@ -163,21 +238,116 @@ export function PageContent() {
   const timelineData = data?.timeline || data?.series || SAMPLE_TIMELINE_DATA;
   const showVesselOverlay = selectedIndicators.includes('vessels');
 
+  const periodItems = useMemo(() => {
+    return generatePeriods(start_date, end_date, grain, data?.timeline || data?.series);
+  }, [start_date, end_date, grain, data?.timeline, data?.series]);
+
+  const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
+  const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
+
+  // Set default scrubber index to the latest period or Jul 2024 when periods are loaded
+  useEffect(() => {
+    if (periods.length > 0) {
+      const jul2024Idx = periods.findIndex((p) => p === 'Jul 2024');
+      if (jul2024Idx >= 0) {
+        setScrubberIndex(jul2024Idx);
+      } else {
+        setScrubberIndex(periods.length - 1);
+      }
+    }
+  }, [periods]);
+
+  // Fetch or derive spatial slice when active period or indicator changes
+  useEffect(() => {
+    if (viewMode !== 'map' || periodItems.length === 0) {
+      return;
+    }
+
+    const curPeriod = periodItems[activeScrubberIndex];
+    if (!curPeriod) return;
+
+    const cacheKey = `${country}_${curPeriod.start}_${activeChoroplethIndicator}_${grain}`;
+    if (sliceCacheRef.current.has(cacheKey)) {
+      setSpatialSlice(sliceCacheRef.current.get(cacheKey));
+      return;
+    }
+
+    let isCurrent = true;
+
+    fetchSpatialSlice({
+      country,
+      period_start: curPeriod.start,
+      period_end: curPeriod.end,
+      grain,
+      indicator: activeChoroplethIndicator,
+    })
+      .then((res) => {
+        if (!isCurrent) return;
+        const sliceData = res?.values || res?.data;
+        if (sliceData && Object.keys(sliceData).length > 0) {
+          sliceCacheRef.current.set(cacheKey, sliceData);
+          setSpatialSlice(sliceData);
+        } else {
+          deriveFallback();
+        }
+      })
+      .catch(() => {
+        if (!isCurrent) return;
+        deriveFallback();
+      });
+
+    function deriveFallback() {
+      const pt = timelineData?.find(
+        (p) => p.period_start === curPeriod.start || p.period_start.startsWith(curPeriod.start.slice(0, 7))
+      );
+      if (pt) {
+        const chlor = pt.chlor_a ?? pt.mean_chlor_a ?? 2.0;
+        const sst = pt.sst_k ? pt.sst_k : pt.sst_c ? pt.sst_c + 273.15 : 300.0;
+        const vessels = pt.total_vessels ?? pt.unique_vessels ?? 30;
+
+        const synth: Record<string, any> = {
+          '878db5169ffffff': { chlor_a: chlor, sst, vessels },
+          '878db516affffff': { chlor_a: Math.max(0.5, chlor * 0.8), sst: sst - 1.2, vessels: Math.max(1, Math.round(vessels * 0.7)) },
+          '878db516bffffff': { chlor_a: chlor * 1.1, sst: sst + 0.8, vessels: Math.max(1, Math.round(vessels * 0.9)) },
+          '878db516cffffff': { chlor_a: Math.max(0.5, chlor * 0.6), sst: sst - 0.5, vessels: Math.max(1, Math.round(vessels * 0.4)) },
+          '878db516dffffff': { chlor_a: chlor * 0.9, sst: sst + 0.4, vessels: Math.max(1, Math.round(vessels * 0.6)) },
+        };
+        sliceCacheRef.current.set(cacheKey, synth);
+        setSpatialSlice(synth);
+      }
+    }
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [country, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode, timelineData]);
+
+  if (!rawCountry) {
+    return null;
+  }
+
   return (
     <Stack spacing={3} sx={{ width: '100%' }}>
-      {/* Top Banner Card */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            spacing={2}
-          >
-            {/* Left side location and actions */}
+      {/* Top Header & Time Range Row */}
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="stretch">
+        {/* Left: Title & Location Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            flex: { xs: '1 1 auto', md: '0 0 38%' },
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', '&:last-child': { pb: 3 } }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
                 Multi-province Indicator Analysis
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Timeline of Indicator Trends
               </Typography>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
                 <Chip
@@ -191,45 +361,67 @@ export function PageContent() {
                   1 province
                 </Typography>
               </Stack>
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small" onClick={handleEditSearch}>
-                  Edit Search
-                </Button>
-                <Button variant="outlined" size="small" onClick={handleNewSearch}>
-                  New Search
-                </Button>
-              </Stack>
             </Box>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleEditSearch}
+                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                Edit Search
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleNewSearch}
+                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                New Search
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
 
-            {/* Right side Time Range & Aggregation */}
-            <Box sx={{ width: { xs: '100%', md: '520px' }, opacity: viewMode === 'map' ? 0.5 : 1 }}>
-              <TimeRangeSelector
-                startDate={start_date}
-                endDate={end_date}
-                grain={grain}
-                onRangeChange={(newStart, newEnd) => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.set('start_date', newStart);
-                  params.set('end_date', newEnd);
-                  router.push(`?${params.toString()}`);
-                }}
-                onGrainChange={(newGrain) => {
-                  setGrain(newGrain);
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.set('grain', newGrain);
-                  router.push(`?${params.toString()}`);
-                }}
-                disabled={viewMode === 'map'}
-              />
-              {viewMode === 'map' && (
-                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
-                  Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-                </Typography>
-              )}
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
+        {/* Right: Time Range Selector Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            flex: { xs: '1 1 auto', md: '1 1 0%' },
+            borderRadius: 2,
+            opacity: viewMode === 'map' ? 0.5 : 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+            <TimeRangeSelector
+              startDate={start_date}
+              endDate={end_date}
+              grain={grain}
+              onRangeChange={(newStart, newEnd) => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('start_date', newStart);
+                params.set('end_date', newEnd);
+                router.replace(`?${params.toString()}`);
+              }}
+              onGrainChange={(newGrain) => {
+                setGrain(newGrain);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('grain', newGrain);
+                router.replace(`?${params.toString()}`);
+              }}
+              disabled={viewMode === 'map'}
+            />
+            {viewMode === 'map' && (
+              <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', px: 1, mt: 0.5 }}>
+                Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
 
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -404,16 +596,17 @@ export function PageContent() {
                       aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
                       activeIndicator={activeChoroplethIndicator}
                       overlayVessels={showVesselOverlay}
+                      spatialSlice={spatialSlice}
                       selectedCellId={selectedHexCell}
                       onSelectCell={(id) => setSelectedHexCell(id)}
-                      periodLabel={PERIOD_LIST[scrubberIndex]}
+                      periodLabel={periods[activeScrubberIndex]}
                     />
                   </Box>
 
                   <Box sx={{ mt: 2 }}>
                     <TemporalScrubber
-                      periods={PERIOD_LIST}
-                      currentIndex={scrubberIndex}
+                      periods={periods}
+                      currentIndex={activeScrubberIndex}
                       onChangeIndex={(idx) => setScrubberIndex(idx)}
                       grain={grain}
                     />

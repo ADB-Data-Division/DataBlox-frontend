@@ -24,12 +24,12 @@ describe('Coastal Spatial Grid & Color Scales', () => {
     });
 
     it('maps SST values accurately', () => {
-      expect(getSSTColor(290).toLowerCase()).toBe('#a855f7');
-      expect(getSSTColor(310).toLowerCase()).toBe('#ef4444');
-      expect(getSSTColor(300).toLowerCase()).toBe('#cc4d9e');
+      expect(getSSTColor(290).toLowerCase()).toBe('#fee2e2');
+      expect(getSSTColor(310).toLowerCase()).toBe('#b91c1c');
+      expect(getSSTColor(300).toLowerCase()).toBe('#f87171');
       // Clamping checks
-      expect(getSSTColor(280).toLowerCase()).toBe('#a855f7');
-      expect(getSSTColor(320).toLowerCase()).toBe('#ef4444');
+      expect(getSSTColor(280).toLowerCase()).toBe('#fee2e2');
+      expect(getSSTColor(320).toLowerCase()).toBe('#b91c1c');
     });
 
     it('interpolates intermediate colors accurately', () => {

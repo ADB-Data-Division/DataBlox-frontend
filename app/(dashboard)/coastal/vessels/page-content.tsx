@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -35,6 +34,7 @@ import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
 import { formatDisplayName } from '../data/provinces';
+import { generatePeriods } from '../indicators/page-content';
 
 
 const MOCK_DISTRIBUTION_DATA = {
@@ -59,22 +59,6 @@ const MOCK_DISTRIBUTION_DATA = {
   ],
 };
 
-const PERIOD_LIST = [
-  'Jan 2024',
-  'Feb 2024',
-  'Mar 2024',
-  'Apr 2024',
-  'May 2024',
-  'Jun 2024',
-  'Jul 2024',
-  'Aug 2024',
-  'Sep 2024',
-  'Oct 2024',
-  'Nov 2024',
-  'Dec 2024',
-  'Jan 2025',
-];
-
 export function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,8 +81,26 @@ export function PageContent() {
   const [activeTab, setActiveTab] = useState<number>(0);
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
-  const [scrubberIndex, setScrubberIndex] = useState<number>(6);
+  const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+
+  const periodItems = useMemo(() => {
+    return generatePeriods(start_date, end_date, grain);
+  }, [start_date, end_date, grain]);
+
+  const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
+  const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
+
+  useEffect(() => {
+    if (periods.length > 0) {
+      const jul2024Idx = periods.findIndex((p) => p === 'Jul 2024');
+      if (jul2024Idx >= 0) {
+        setScrubberIndex(jul2024Idx);
+      } else {
+        setScrubberIndex(periods.length - 1);
+      }
+    }
+  }, [periods]);
 
   const locationLabel = rawNames
     ? rawNames
@@ -124,20 +126,32 @@ export function PageContent() {
     router.push('/coastal');
   };
 
+  if (!rawCountry) {
+    return null;
+  }
+
   return (
     <Stack spacing={3} sx={{ width: '100%' }}>
-      {/* Top Header Card */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            spacing={2}
-          >
+      {/* Top Header & Time Range Row */}
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="stretch">
+        {/* Left: Title & Location Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            flex: { xs: '1 1 auto', md: '0 0 38%' },
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', '&:last-child': { pb: 3 } }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
                 Multi-province Maritime Analysis
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Timeline of Maritime Vessels
               </Typography>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
                 <Chip
@@ -151,44 +165,67 @@ export function PageContent() {
                   1 province
                 </Typography>
               </Stack>
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small" onClick={handleEditSearch}>
-                  Edit Search
-                </Button>
-                <Button variant="outlined" size="small" onClick={handleNewSearch}>
-                  New Search
-                </Button>
-              </Stack>
             </Box>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleEditSearch}
+                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                Edit Search
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleNewSearch}
+                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+              >
+                New Search
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
 
-            <Box sx={{ width: { xs: '100%', md: '520px' }, opacity: activeTab === 2 ? 0.5 : 1 }}>
-              <TimeRangeSelector
-                startDate={start_date}
-                endDate={end_date}
-                grain={grain}
-                onRangeChange={(newStart, newEnd) => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.set('start_date', newStart);
-                  params.set('end_date', newEnd);
-                  router.push(`?${params.toString()}`);
-                }}
-                onGrainChange={(newGrain) => {
-                  setGrain(newGrain);
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.set('grain', newGrain);
-                  router.push(`?${params.toString()}`);
-                }}
-                disabled={activeTab === 2}
-              />
-              {activeTab === 2 && (
-                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
-                  Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-                </Typography>
-              )}
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
+        {/* Right: Time Range Selector Card */}
+        <Card
+          variant="outlined"
+          sx={{
+            flex: { xs: '1 1 auto', md: '1 1 0%' },
+            borderRadius: 2,
+            opacity: activeTab === 2 ? 0.5 : 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+            <TimeRangeSelector
+              startDate={start_date}
+              endDate={end_date}
+              grain={grain}
+              onRangeChange={(newStart, newEnd) => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('start_date', newStart);
+                params.set('end_date', newEnd);
+                router.replace(`?${params.toString()}`);
+              }}
+              onGrainChange={(newGrain) => {
+                setGrain(newGrain);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('grain', newGrain);
+                router.replace(`?${params.toString()}`);
+              }}
+              disabled={activeTab === 2}
+            />
+            {activeTab === 2 && (
+              <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', px: 1, mt: 0.5 }}>
+                Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
 
       {/* 3-Pill Switcher */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -404,10 +441,10 @@ export function PageContent() {
             onSelectCell={(id) => setSelectedHexCell(id)}
           />
           <TemporalScrubber
-            periods={PERIOD_LIST}
-            currentIndex={scrubberIndex}
+            periods={periods}
+            currentIndex={activeScrubberIndex}
             onChangeIndex={(idx) => setScrubberIndex(idx)}
-            grain="monthly"
+            grain={grain}
           />
         </Stack>
       )}

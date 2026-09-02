@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -74,13 +74,21 @@ export default function TemporalScrubber({
     }
   }, [currentIndex, periods.length, isPlaying]);
 
-  const marks = periods.map((_, index) => ({ value: index }));
+  const marks = useMemo(() => {
+    if (periods.length <= 24) {
+      return periods.map((_, index) => ({ value: index }));
+    }
+    const interval = periods.length > 60 ? 12 : 6;
+    return periods
+      .map((_, index) => ({ value: index }))
+      .filter((m) => m.value === 0 || m.value === periods.length - 1 || m.value % interval === 0);
+  }, [periods]);
 
   const startYearMatch = periods.length > 0 ? periods[0].match(/\d{4}/) : null;
-  const startYear = startYearMatch ? startYearMatch[0] : '2024';
+  const startYear = startYearMatch ? startYearMatch[0] : '';
 
   const endYearMatch = periods.length > 0 ? periods[periods.length - 1].match(/\d{4}/) : null;
-  const endYear = endYearMatch ? endYearMatch[0] : '2025';
+  const endYear = endYearMatch ? endYearMatch[0] : '';
 
   return (
     <Box sx={{ width: '100%', p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>

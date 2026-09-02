@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react';
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -57,7 +59,8 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     const parts = dateStr.split('-');
     const y = parseInt(parts[0], 10);
     const m = parseInt(parts[1], 10);
-    return (y - minYear) * 12 + (m - minMonth);
+    const idx = (y - minYear) * 12 + (m - minMonth);
+    return Math.max(0, Math.min(totalMonths - 1, idx));
   };
 
   const indexToDateStr = (index: number) => {
@@ -67,53 +70,79 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     return `${y}-${mStr}-01`;
   };
 
-  const startIdx = dateToIndex(startDate);
-  const endIdx = dateToIndex(endDate);
+  const formatEndDateFromIndex = (index: number) => {
+    const baseDate = indexToDateStr(index);
+    const parts = baseDate.split('-');
+    const endYearNum = parseInt(parts[0], 10);
+    const endMonthNum = parseInt(parts[1], 10);
+    const lastDay = new Date(endYearNum, endMonthNum, 0).getDate();
+    return `${parts[0]}-${parts[1]}-${lastDay < 10 ? '0' + lastDay : lastDay}`;
+  };
 
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+  // Local range state tracks slider during drag to avoid continuous API requests
+  const [localRange, setLocalRange] = useState<[number, number]>(() => [
+    dateToIndex(startDate),
+    dateToIndex(endDate),
+  ]);
+
+  // Synchronize local state when parent props change
+  useEffect(() => {
+    setLocalRange([dateToIndex(startDate), dateToIndex(endDate)]);
+  }, [startDate, endDate]);
+
+  // Derive visible start and end values from local range for immediate UI response
+  const currentStartStr = indexToDateStr(localRange[0]);
+  const currentEndStr = formatEndDateFromIndex(localRange[1]);
+
+  const startYear = parseInt(currentStartStr.split('-')[0], 10) || minYear;
+  const startMonth = parseInt(currentStartStr.split('-')[1], 10) || minMonth;
+  const endYear = parseInt(currentEndStr.split('-')[0], 10) || maxYear;
+  const endMonth = parseInt(currentEndStr.split('-')[1], 10) || maxMonth;
+
+  // Active dragging: update local state only
+  const handleSliderChange = (_event: Event | React.SyntheticEvent, newValue: number | number[]) => {
+    if (Array.isArray(newValue)) {
+      setLocalRange([newValue[0], newValue[1]]);
+    }
+  };
+
+  // Drag released: notify parent once
+  const handleSliderCommit = (_event: Event | React.SyntheticEvent, newValue: number | number[]) => {
     if (Array.isArray(newValue)) {
       const newStart = indexToDateStr(newValue[0]);
-      let newEnd = indexToDateStr(newValue[1]);
-      
-      const endParts = newEnd.split('-');
-      const endYearNum = parseInt(endParts[0], 10);
-      const endMonthNum = parseInt(endParts[1], 10);
-      const lastDay = new Date(endYearNum, endMonthNum, 0).getDate();
-      newEnd = `${endParts[0]}-${endParts[1]}-${lastDay < 10 ? '0' + lastDay : lastDay}`;
-      
+      const newEnd = formatEndDateFromIndex(newValue[1]);
       onRangeChange(newStart, newEnd);
     }
   };
 
-  const startYear = parseInt(startDate.split('-')[0], 10) || minYear;
-  const startMonth = parseInt(startDate.split('-')[1], 10) || minMonth;
-  const endYear = parseInt(endDate.split('-')[0], 10) || maxYear;
-  const endMonth = parseInt(endDate.split('-')[1], 10) || maxMonth;
-
   const handleStartYearChange = (e: any) => {
     const y = parseInt(e.target.value, 10);
     const newStart = `${y}-${startMonth < 10 ? '0' + startMonth : startMonth}-01`;
-    onRangeChange(newStart, endDate);
+    setLocalRange([dateToIndex(newStart), localRange[1]]);
+    onRangeChange(newStart, currentEndStr);
   };
 
   const handleStartMonthChange = (e: any) => {
     const m = parseInt(e.target.value, 10);
     const newStart = `${startYear}-${m < 10 ? '0' + m : m}-01`;
-    onRangeChange(newStart, endDate);
+    setLocalRange([dateToIndex(newStart), localRange[1]]);
+    onRangeChange(newStart, currentEndStr);
   };
 
   const handleEndYearChange = (e: any) => {
     const y = parseInt(e.target.value, 10);
     const lastDay = new Date(y, endMonth, 0).getDate();
     const newEnd = `${y}-${endMonth < 10 ? '0' + endMonth : endMonth}-${lastDay}`;
-    onRangeChange(startDate, newEnd);
+    setLocalRange([localRange[0], dateToIndex(newEnd)]);
+    onRangeChange(currentStartStr, newEnd);
   };
 
   const handleEndMonthChange = (e: any) => {
     const m = parseInt(e.target.value, 10);
     const lastDay = new Date(endYear, m, 0).getDate();
     const newEnd = `${endYear}-${m < 10 ? '0' + m : m}-${lastDay}`;
-    onRangeChange(startDate, newEnd);
+    setLocalRange([localRange[0], dateToIndex(newEnd)]);
+    onRangeChange(currentStartStr, newEnd);
   };
 
   const handleGrainChange = (e: any) => {
@@ -142,9 +171,9 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   }, [totalMonths, minYear, minMonth, maxYear, maxMonth]);
 
   return (
-    <Box sx={{ width: '100%', p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
-        <Typography variant="h6" component="div">
+    <Box sx={{ width: '100%' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
+        <Typography variant="h6" component="div" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
           Time Range
         </Typography>
         
@@ -198,10 +227,11 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         </Stack>
       </Stack>
 
-      <Box sx={{ px: 3 }}>
+      <Box sx={{ px: 3, pb: 2 }}>
         <Slider
-          value={[startIdx, endIdx]}
+          value={localRange}
           onChange={handleSliderChange}
+          onChangeCommitted={handleSliderCommit}
           min={0}
           max={totalMonths - 1}
           step={1}
@@ -212,6 +242,32 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             const y = minYear + Math.floor((val + minMonth - 1) / 12);
             const m = ((val + minMonth - 1) % 12);
             return `${MONTHS[m]} ${y}`;
+          }}
+          sx={{
+            '&:not(.Mui-disabled) .MuiSlider-thumb': {
+              backgroundColor: '#2563eb',
+            },
+            '&:not(.Mui-disabled) .MuiSlider-track': {
+              backgroundColor: '#2563eb',
+            },
+            '& .MuiSlider-rail': {
+              backgroundColor: '#e2e8f0',
+            },
+            '& .MuiSlider-mark': {
+              backgroundColor: '#94a3b8',
+            },
+            '& .MuiSlider-markLabel': {
+              fontSize: '11px',
+              color: '#64748b',
+              transform: 'rotate(-45deg)',
+              transformOrigin: 'top left',
+              whiteSpace: 'nowrap',
+              marginTop: '8px',
+            },
+            '& .MuiSlider-valueLabel': {
+              fontSize: '12px',
+              backgroundColor: '#1f2937',
+            },
           }}
         />
       </Box>

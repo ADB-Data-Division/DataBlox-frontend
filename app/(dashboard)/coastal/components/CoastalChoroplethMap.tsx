@@ -59,7 +59,11 @@ export const getChlorophyllColor = (value: number) => {
 
 export const getSSTColor = (value: number) => {
   const clamped = Math.max(290, Math.min(310, value));
-  return interpolateColor('#a855f7', '#ef4444', (clamped - 290) / 20);
+  const ratio = (clamped - 290) / 20;
+  if (ratio < 0.5) {
+    return interpolateColor('#fee2e2', '#f87171', ratio * 2);
+  }
+  return interpolateColor('#f87171', '#b91c1c', (ratio - 0.5) * 2);
 };
 
 // Location centers
@@ -205,6 +209,9 @@ function CoastalChoroplethMapClient({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
   const layerGroupRef = useRef<any>(null);
+  const hasFittedRef = useRef<boolean>(false);
+  const fittedBoundsRef = useRef<[[number, number], [number, number]] | null>(null);
+  const resetViewRef = useRef<() => void>(() => {});
   const [L, setL] = useState<any>(null);
   const [genuineCells, setGenuineCells] = useState<HexCellData[] | null>(null);
 
@@ -228,15 +235,20 @@ function CoastalChoroplethMapClient({
   // Fetch and load genuine polygons for the country and filter by aoiIds
   useEffect(() => {
     let isCurrent = true;
+    setGenuineCells(null);
+    hasFittedRef.current = false;
 
     let targetAois = aoiIds && aoiIds.length > 0 ? aoiIds : undefined;
     if (!targetAois && locationName) {
       const locLower = locationName.toLowerCase();
+      const matchedAois: string[] = [];
       for (const [key, aois] of Object.entries(KNOWN_LOCATION_AOIS)) {
         if (locLower.includes(key)) {
-          targetAois = aois;
-          break;
+          matchedAois.push(...aois);
         }
+      }
+      if (matchedAois.length > 0) {
+        targetAois = matchedAois;
       }
     }
 
@@ -303,8 +315,13 @@ function CoastalChoroplethMapClient({
 
   // Generate or merge grid data
   const gridCells = useMemo(() => {
+    // If genuine cells are loading, do not draw fallback grid to avoid flash of default content
+    if (genuineCells === null) {
+      return [];
+    }
+
     const baseGrid =
-      genuineCells && genuineCells.length > 0
+      genuineCells.length > 0
         ? genuineCells
         : generateCoastalHexGrid(centerConfig.lat, centerConfig.lng);
 
@@ -373,12 +390,41 @@ function CoastalChoroplethMapClient({
       minZoom: 4,
       maxZoom: 14,
       zoomControl: false,
+      preferCanvas: true,
     });
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
+    const ResetViewControl = L.Control.extend({
+      options: { position: 'topright' },
+      onAdd() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Reset view';
+        link.setAttribute('role', 'button');
+        link.setAttribute('aria-label', 'Reset view');
+        link.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>';
+        link.style.display = 'flex';
+        link.style.alignItems = 'center';
+        link.style.justifyContent = 'center';
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(link, 'click', (e: Event) => {
+          L.DomEvent.preventDefault(e);
+          resetViewRef.current();
+        });
+        return container;
+      },
+    });
+    new ResetViewControl().addTo(map);
+
     // CartoDB Voyager tile layer matching wireframe cartography
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY;
+    const tileUrl = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${
+      cartoApiKey ? `?key=${cartoApiKey}` : ''
+    }`;
+    L.tileLayer(tileUrl, {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',
       maxZoom: 18,
@@ -426,20 +472,40 @@ function CoastalChoroplethMapClient({
           [minLat, minLng],
           [maxLat, maxLng],
         ];
+        fittedBoundsRef.current = bounds;
+        const isFirst = !hasFittedRef.current;
+        hasFittedRef.current = true;
         map.fitBounds(bounds, {
           padding: [24, 24],
           maxZoom: 12,
-          animate: true,
+          animate: !isFirst,
         });
         return;
       }
     }
 
-    // Graceful fallback to center coordinates if loading or no AOIs match
-    map.setView([centerConfig.lat, centerConfig.lng], centerConfig.zoom, {
-      animate: true,
-    });
+    // Graceful fallback to center coordinates only when genuineCells has finished loading with 0 cells
+    if (genuineCells !== null && genuineCells.length === 0) {
+      fittedBoundsRef.current = null;
+      map.setView([centerConfig.lat, centerConfig.lng], centerConfig.zoom, {
+        animate: false,
+      });
+    }
   }, [genuineCells, centerConfig]);
+
+  // Keep the Leaflet reset control's click handler pointed at the latest bounds/center
+  useEffect(() => {
+    resetViewRef.current = () => {
+      const map = leafletMapRef.current;
+      if (!map) return;
+
+      if (fittedBoundsRef.current) {
+        map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12 });
+      } else {
+        map.setView([centerConfig.lat, centerConfig.lng], centerConfig.zoom);
+      }
+    };
+  }, [centerConfig]);
 
   // Redraw hexagons and vessel labels when data or indicators change
   useEffect(() => {
@@ -570,6 +636,27 @@ function CoastalChoroplethMapClient({
           Interactive Map
         </Typography>
       </Box>
+
+      {/* Loading overlay while genuine cells are loading */}
+      {(genuineCells === null || loading) && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 998,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'rgba(248, 250, 252, 0.45)',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <CircularProgress size={32} />
+        </Box>
+      )}
 
       {/* Map container */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />

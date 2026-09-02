@@ -31,7 +31,7 @@ const INDICATORS_CONFIG: Record<string, { label: string; unit: string; color: st
   sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#EF4444' },
 };
 
-function getPointValue(point: IndicatorTimelinePoint, indicatorKey: string): number {
+export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: string): number {
   if (indicatorKey === 'chlor_a') {
     return point.chlor_a ?? point.mean_chlor_a ?? 0;
   }
@@ -65,7 +65,7 @@ function getPointValue(point: IndicatorTimelinePoint, indicatorKey: string): num
   return 0;
 }
 
-function formatPeriodLabel(isoString: string): string {
+export function formatPeriodLabel(isoString: string): string {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return isoString;
@@ -377,14 +377,21 @@ export function IndicatorTimelineChart({
   return (
     <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
       <CardContent sx={{ pb: 2 }}>
-        <Box sx={{ mb: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            {chartTitle}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {dateRange.start} to {dateRange.end}
-          </Typography>
-        </Box>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {chartTitle}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {dateRange.start} to {dateRange.end}
+            </Typography>
+          </Box>
+          {indicators.length > 2 && (
+            <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 600 }}>
+              Note: Only up to two lines can be displayed at a time.
+            </Typography>
+          )}
+        </Stack>
 
         {loading ? (
           <Skeleton variant="rectangular" height={360} sx={{ borderRadius: 1 }} />
