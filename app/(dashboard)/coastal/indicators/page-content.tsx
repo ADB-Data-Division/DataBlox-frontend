@@ -362,20 +362,51 @@ export function PageContent() {
                 <CardContent sx={{ p: 2 }}>
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      Average {activeChoroplethIndicator === 'sst' ? 'Sea Surface Temperature' : 'Chlorophyll-a Concentration'} ({grain}) : {locationLabel}
+                      {(() => {
+                        const grainLabel = grain ? grain.charAt(0).toUpperCase() + grain.slice(1) : 'Monthly';
+                        const hasVessels = selectedIndicators.includes('vessels');
+                        const hasChlor = selectedIndicators.includes('chlor_a');
+                        const hasSST = selectedIndicators.includes('sst');
+
+                        if (hasVessels && hasChlor && hasSST) {
+                          return `Vessel Count, Average Chlorophyll-a Concentration & Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                        }
+                        if (hasVessels && hasChlor) {
+                          return `Vessel Count & Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
+                        }
+                        if (hasVessels && hasSST) {
+                          return `Vessel Count & Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                        }
+                        if (activeChoroplethIndicator === 'sst') {
+                          return `Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                        }
+                        if (hasVessels && selectedIndicators.length === 1) {
+                          return `Vessel Count (${grainLabel}) - ${locationLabel}`;
+                        }
+                        return `Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
+                      })()}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {start_date} to {end_date}
+                      {(() => {
+                        const formatMY = (d: string) => {
+                          const dt = new Date(d);
+                          return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        };
+                        return `${formatMY(start_date)} - ${formatMY(end_date)}`;
+                      })()}
                     </Typography>
                   </Box>
 
-                  <Box sx={{ minHeight: 380, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ minHeight: 420 }}>
                     <CoastalChoroplethMap
                       country={country}
+                      locationName={locationLabel}
+                      aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
                       activeIndicator={activeChoroplethIndicator}
                       overlayVessels={showVesselOverlay}
                       selectedCellId={selectedHexCell}
                       onSelectCell={(id) => setSelectedHexCell(id)}
+                      periodLabel={PERIOD_LIST[scrubberIndex]}
                     />
                   </Box>
 
