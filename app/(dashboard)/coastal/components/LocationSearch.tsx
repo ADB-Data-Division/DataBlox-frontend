@@ -48,7 +48,7 @@ interface LocationSearchProps {
 }
 
 export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
-  const { locations, loading, error, refetch } = useCoastalLocations(countryIso);
+  const { locations, provinces, loading, error, refetch } = useCoastalLocations(countryIso);
   const [selected, setSelected] = useState<CoastalLocation[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [recents, setRecents] = useState<CoastalRecentSearchEntry[]>([]);
@@ -61,6 +61,17 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
 
   const query = inputValue.trim().toLowerCase();
 
+  const allLocations = useMemo<CoastalLocation[]>(() => {
+    const pseudoProvinces: CoastalLocation[] = provinces.map((p) => ({
+      aoi_id: `prov:${p.name}`,
+      name: p.name,
+      display_name: p.name,
+      country_iso: p.country_iso || p.countryIso || countryIso,
+      type: 'province',
+    }));
+    return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
+  }, [provinces, locations, countryIso]);
+
   const options = useMemo<SearchOption[]>(() => {
     if (query.length === 0) {
       if (recents.length === 0) {
@@ -71,11 +82,11 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
         { kind: 'clear-recents' as const },
       ];
     }
-    return filterCoastalLocations(locations, inputValue).map((location) => ({
+    return filterCoastalLocations(allLocations, inputValue).map((location) => ({
       kind: 'location' as const,
       location,
     }));
-  }, [query, recents, locations, inputValue]);
+  }, [query, recents, allLocations, inputValue]);
 
   const handleOptionChange = (_event: React.SyntheticEvent, option: SearchOption | null) => {
     if (!option) {
@@ -92,7 +103,7 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
       return;
     }
     if (option.kind === 'recent') {
-      setSelected(mapAoiIdsToLocations(option.entry.aoi_ids, locations));
+      setSelected(mapAoiIdsToLocations(option.entry.aoi_ids, allLocations));
       setInputValue('');
       return;
     }
@@ -138,27 +149,30 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
             {formatSelectionCount(selected.length)}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-            {selected.map((location) => (
-              <Chip
-                key={location.aoi_id}
-                icon={<TagIcon size={13} />}
-                label={location.name}
-                size="small"
-                onDelete={() => handleRemoveChip(location.aoi_id)}
-                deleteIcon={<XIcon size={13} />}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  borderRadius: '9px',
-                  fontWeight: 600,
-                  '& .MuiChip-icon': { color: 'primary.contrastText' },
-                  '& .MuiChip-deleteIcon': {
-                    color: 'rgba(255, 255, 255, 0.85)',
-                    '&:hover': { color: '#fff' },
-                  },
-                }}
-              />
-            ))}
+            {selected.map((location) => {
+              const label = location.name;
+              return (
+                <Chip
+                  key={location.aoi_id}
+                  icon={<TagIcon size={13} />}
+                  label={label}
+                  size="small"
+                  onDelete={() => handleRemoveChip(location.aoi_id)}
+                  deleteIcon={<XIcon size={13} />}
+                  sx={{
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    borderRadius: '9px',
+                    fontWeight: 600,
+                    '& .MuiChip-icon': { color: 'primary.contrastText' },
+                    '& .MuiChip-deleteIcon': {
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      '&:hover': { color: '#fff' },
+                    },
+                  }}
+                />
+              );
+            })}
           </Box>
         </Box>
       )}
@@ -202,18 +216,41 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
           renderOption={(props, option) => {
             const { key, ...restProps } = props as typeof props & { key?: string };
             if (option.kind === 'location') {
-              const { name, aoi_id } = option.location;
+              const isProv = option.location.type === 'province';
+              const name = option.location.name;
+              
+              let subText = '';
+              if (isProv) {
+                const prov = provinces.find((p) => p.name === name);
+                subText = prov ? `${prov.aois.length} Coastal AOIs` : 'Province';
+              } else {
+                subText = option.location.province || String(option.location.aoi_id).toUpperCase();
+              }
+              
+              const badgeLabel = isProv ? 'PROVINCE' : 'PORT';
+              
               return (
-                <li {...restProps} key={`loc-${aoi_id}`} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <li {...restProps} key={`loc-${option.location.aoi_id}`} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <MapPinIcon size={18} style={{ color: 'text.secondary', flexShrink: 0 }} />
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" component="div" sx={{ fontWeight: 600 }}>
                       {name}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {String(aoi_id).toUpperCase()}
+                      {subText}
                     </Typography>
                   </Box>
+                  <Chip
+                    label={badgeLabel}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      bgcolor: isProv ? 'primary.50' : 'grey.100',
+                      color: isProv ? 'primary.700' : 'text.secondary',
+                    }}
+                  />
                 </li>
               );
             }
@@ -262,7 +299,7 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
           renderInput={(params) => (
             <TextField
               {...params}
-              placeholder="Search for provinces"
+              placeholder="Search for provinces or ports"
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               slotProps={{
                 input: {
@@ -311,3 +348,4 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
     </Box>
   );
 }
+

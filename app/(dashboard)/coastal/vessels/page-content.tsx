@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -32,6 +33,9 @@ import VesselTimelineChart from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import TemporalScrubber from '../components/TemporalScrubber';
+import { TimeRangeSelector } from '../components/TimeRangeSelector';
+import { formatDisplayName } from '../data/provinces';
+
 
 const MOCK_DISTRIBUTION_DATA = {
   total: 200,
@@ -75,18 +79,32 @@ export function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const country = searchParams.get('country') || 'IDN';
+  const rawCountry = searchParams.get('country');
+  const country = rawCountry || '';
   const aoi_id = searchParams.get('aois') || undefined;
+  const rawNames = searchParams.get('names');
   const start_date = searchParams.get('start_date') || '2019-01-01';
   const end_date = searchParams.get('end_date') || '2024-12-31';
+  const grainParam = (searchParams.get('grain') as any) || 'monthly';
 
+  useEffect(() => {
+    if (!rawCountry) {
+      router.replace('/coastal');
+    }
+  }, [rawCountry, router]);
+
+  const [grain, setGrain] = useState<'weekly' | 'monthly' | 'annually'>(grainParam);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(6);
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
 
-  const locationLabel = aoi_id ? `${aoi_id} (${country})` : country === 'IDN' ? 'Bali' : country;
+  const locationLabel = rawNames
+    ? rawNames
+    : aoi_id
+    ? aoi_id.split(',').map((id) => formatDisplayName(id)).join(', ')
+    : country || 'Select Location';
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -143,33 +161,31 @@ export function PageContent() {
               </Stack>
             </Box>
 
-            <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap">
-              <Box sx={{ opacity: activeTab === 2 ? 0.5 : 1 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                  Time Range
+            <Box sx={{ width: { xs: '100%', md: '520px' }, opacity: activeTab === 2 ? 0.5 : 1 }}>
+              <TimeRangeSelector
+                startDate={start_date}
+                endDate={end_date}
+                grain={grain}
+                onRangeChange={(newStart, newEnd) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('start_date', newStart);
+                  params.set('end_date', newEnd);
+                  router.push(`?${params.toString()}`);
+                }}
+                onGrainChange={(newGrain) => {
+                  setGrain(newGrain);
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('grain', newGrain);
+                  router.push(`?${params.toString()}`);
+                }}
+                disabled={activeTab === 2}
+              />
+              {activeTab === 2 && (
+                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
+                  Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {start_date} to {end_date}
-                </Typography>
-                {activeTab === 2 && (
-                  <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5, maxWidth: 240 }}>
-                    Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-                  </Typography>
-                )}
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                  Agg. Level
-                </Typography>
-                <FormControl size="small">
-                  <Select defaultValue="Monthly" sx={{ minWidth: 120, height: 36 }}>
-                    <MenuItem value="Monthly">Monthly</MenuItem>
-                    <MenuItem value="Weekly">Weekly</MenuItem>
-                    <MenuItem value="Annually">Annually</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Stack>
+              )}
+            </Box>
           </Stack>
         </CardContent>
       </Card>

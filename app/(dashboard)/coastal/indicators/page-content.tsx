@@ -31,9 +31,12 @@ import { SummaryCards } from '../components/SummaryCards';
 import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
+import { TimeRangeSelector } from '../components/TimeRangeSelector';
 import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import HexCellDetailModal from '../components/HexCellDetailModal';
+import { formatDisplayName } from '../data/provinces';
+
 
 const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
   { period_start: '2019-01-01', period_end: '2019-01-31', chlor_a: 2.1, total_vessels: 45, sst_c: 28.1, port_call_duration_hours: 50 },
@@ -72,12 +75,20 @@ export function PageContent() {
   const router = useRouter();
 
   // URL Parameters
-  const country = searchParams.get('country') || 'IDN';
+  const rawCountry = searchParams.get('country');
+  const country = rawCountry || '';
   const aoi_id = searchParams.get('aois') || undefined;
+  const rawNames = searchParams.get('names');
   const start_date = searchParams.get('start_date') || '2019-01-01';
   const end_date = searchParams.get('end_date') || '2025-12-31';
   const grainParam = (searchParams.get('grain') as CoastalGrain) || 'monthly';
   const initialView = searchParams.get('view') === 'map' ? 'map' : 'timeline';
+
+  useEffect(() => {
+    if (!rawCountry) {
+      router.replace('/coastal');
+    }
+  }, [rawCountry, router]);
 
   // State
   const [viewMode, setViewMode] = useState<'timeline' | 'map'>(initialView);
@@ -93,7 +104,11 @@ export function PageContent() {
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
   const [scrubberIndex, setScrubberIndex] = useState<number>(6); // Default: Jul 2024
 
-  const locationLabel = aoi_id ? `${aoi_id} (${country})` : country === 'IDN' ? 'Bali' : country;
+  const locationLabel = rawNames
+    ? rawNames
+    : aoi_id
+    ? aoi_id.split(',').map((id) => formatDisplayName(id)).join(', ')
+    : country || 'Select Location';
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -187,37 +202,31 @@ export function PageContent() {
             </Box>
 
             {/* Right side Time Range & Aggregation */}
-            <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap">
-              <Box sx={{ opacity: viewMode === 'map' ? 0.5 : 1 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                  Time Range
+            <Box sx={{ width: { xs: '100%', md: '520px' }, opacity: viewMode === 'map' ? 0.5 : 1 }}>
+              <TimeRangeSelector
+                startDate={start_date}
+                endDate={end_date}
+                grain={grain}
+                onRangeChange={(newStart, newEnd) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('start_date', newStart);
+                  params.set('end_date', newEnd);
+                  router.push(`?${params.toString()}`);
+                }}
+                onGrainChange={(newGrain) => {
+                  setGrain(newGrain);
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('grain', newGrain);
+                  router.push(`?${params.toString()}`);
+                }}
+                disabled={viewMode === 'map'}
+              />
+              {viewMode === 'map' && (
+                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
+                  Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {start_date} to {end_date}
-                </Typography>
-                {viewMode === 'map' && (
-                  <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5, maxWidth: 240 }}>
-                    Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-                  </Typography>
-                )}
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                  Agg. Level
-                </Typography>
-                <FormControl size="small">
-                  <Select
-                    value={grain}
-                    onChange={(e) => setGrain(e.target.value as CoastalGrain)}
-                    sx={{ minWidth: 120, height: 36 }}
-                  >
-                    <MenuItem value="monthly">Monthly</MenuItem>
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                    <MenuItem value="annually">Annually</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Stack>
+              )}
+            </Box>
           </Stack>
         </CardContent>
       </Card>
