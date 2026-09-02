@@ -6,6 +6,9 @@ import {
   getChlorophyllColor,
   getSSTColor,
   interpolateColor,
+  getChlorophyllColorRgba,
+  getSSTColorRgba,
+  getCellColorRgba,
 } from '@/app/(dashboard)/coastal/components/CoastalChoroplethMap';
 
 describe('Coastal Spatial Grid & Color Scales', () => {
@@ -35,6 +38,28 @@ describe('Coastal Spatial Grid & Color Scales', () => {
     it('interpolates intermediate colors accurately', () => {
       const mid = interpolateColor('#000000', '#ffffff', 0.5);
       expect(mid.toLowerCase()).toBe('#808080');
+    });
+
+    it('maps Chlorophyll-a and SST values to valid RGBA tuples', () => {
+      const chlorRgba = getChlorophyllColorRgba(10);
+      expect(chlorRgba).toHaveLength(4);
+      expect(chlorRgba[0]).toBe(234);
+      expect(chlorRgba[1]).toBe(179);
+      expect(chlorRgba[2]).toBe(8);
+      expect(chlorRgba[3]).toBe(215);
+
+      const sstRgba = getSSTColorRgba(300);
+      expect(sstRgba).toHaveLength(4);
+      expect(sstRgba[0]).toBe(248);
+      expect(sstRgba[1]).toBe(113);
+      expect(sstRgba[2]).toBe(113);
+      expect(sstRgba[3]).toBe(215);
+
+      const cellChlor = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 290, vessels: 0 }, true, false);
+      expect(cellChlor).toEqual([34, 197, 94, 215]);
+
+      const cellSst = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 310, vessels: 0 }, false, true);
+      expect(cellSst).toEqual([185, 28, 28, 215]);
     });
   });
 

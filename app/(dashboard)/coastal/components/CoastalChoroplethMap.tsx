@@ -66,6 +66,62 @@ export const getSSTColor = (value: number) => {
   return interpolateColor('#f87171', '#b91c1c', (ratio - 0.5) * 2);
 };
 
+export const getChlorophyllColorRgba = (value: number): [number, number, number, number] => {
+  const clamped = Math.max(0, Math.min(20, value));
+  if (clamped <= 10) {
+    const t = clamped / 10;
+    return [
+      Math.round(34 + (234 - 34) * t),
+      Math.round(197 + (179 - 197) * t),
+      Math.round(94 + (8 - 94) * t),
+      215,
+    ];
+  }
+  const t = (clamped - 10) / 10;
+  return [
+    Math.round(234 + (239 - 234) * t),
+    Math.round(179 + (68 - 179) * t),
+    Math.round(8 + (68 - 8) * t),
+    215,
+  ];
+};
+
+export const getSSTColorRgba = (value: number): [number, number, number, number] => {
+  const clamped = Math.max(290, Math.min(310, value));
+  const ratio = (clamped - 290) / 20;
+  if (ratio < 0.5) {
+    const t = ratio * 2;
+    return [
+      Math.round(254 + (248 - 254) * t),
+      Math.round(226 + (113 - 226) * t),
+      Math.round(226 + (113 - 226) * t),
+      215,
+    ];
+  }
+  const t = (ratio - 0.5) * 2;
+  return [
+    Math.round(248 + (185 - 248) * t),
+    Math.round(113 + (28 - 113) * t),
+    Math.round(113 + (28 - 113) * t),
+    215,
+  ];
+};
+
+export const getCellColorRgba = (
+  cell: HexCellData,
+  isChlor: boolean,
+  isSST: boolean
+): [number, number, number, number] => {
+  if (isChlor) {
+    return getChlorophyllColorRgba(cell.chlor_a);
+  }
+  if (isSST) {
+    return getSSTColorRgba(cell.sst);
+  }
+  return [148, 163, 184, 215];
+};
+
+
 // Location centers
 const LOCATION_COORDINATES: Record<string, { lat: number; lng: number; zoom: number }> = {
   bali: { lat: -8.52, lng: 115.22, zoom: 11 },
@@ -208,12 +264,20 @@ function CoastalChoroplethMapClient({
 }: CoastalChoroplethMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
+  const deckOverlayRef = useRef<any>(null);
   const layerGroupRef = useRef<any>(null);
   const hasFittedRef = useRef<boolean>(false);
   const fittedBoundsRef = useRef<[[number, number], [number, number]] | null>(null);
   const resetViewRef = useRef<() => void>(() => {});
   const [L, setL] = useState<any>(null);
+  const [deckModules, setDeckModules] = useState<{
+    DeckOverlay: any;
+    PolygonLayer: any;
+    TextLayer: any;
+  } | null>(null);
   const [genuineCells, setGenuineCells] = useState<HexCellData[] | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<HexCellData | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   // Determine indicator type
   const isChlor = useMemo(() => {
@@ -362,17 +426,33 @@ function CoastalChoroplethMapClient({
     });
   }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST]);
 
-  // Dynamically load Leaflet and stylesheet on client
+  // Dynamically load Leaflet and Deck.gl WebGL on client
   useEffect(() => {
     let mounted = true;
     Promise.all([
       import('leaflet'),
+      import('@deck.gl-community/leaflet'),
+      import('deck.gl'),
       typeof window !== 'undefined' ? import('leaflet/dist/leaflet.css') : Promise.resolve(),
-    ]).then(([leafletModule]) => {
-      if (mounted) {
-        setL(leafletModule.default);
-      }
-    });
+    ])
+      .then(([leafletModule, deckCommunityModule, deckGlModule]) => {
+        if (mounted) {
+          setL(leafletModule.default);
+          setDeckModules({
+            DeckOverlay: deckCommunityModule.DeckOverlay,
+            PolygonLayer: deckGlModule.PolygonLayer,
+            TextLayer: deckGlModule.TextLayer,
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn('Deck.gl WebGL load failed, falling back to Leaflet Canvas:', err);
+        import('leaflet').then((leafletModule) => {
+          if (mounted) {
+            setL(leafletModule.default);
+          }
+        });
+      });
     return () => {
       mounted = false;
     };
@@ -430,6 +510,18 @@ function CoastalChoroplethMapClient({
       maxZoom: 18,
     }).addTo(map);
 
+    if (deckModules) {
+      try {
+        const overlay = new deckModules.DeckOverlay({
+          layers: [],
+        });
+        overlay.addTo(map);
+        deckOverlayRef.current = overlay;
+      } catch (err) {
+        console.warn('Failed to attach DeckOverlay to Leaflet:', err);
+      }
+    }
+
     const layerGroup = L.layerGroup().addTo(map);
     layerGroupRef.current = layerGroup;
     leafletMapRef.current = map;
@@ -439,12 +531,20 @@ function CoastalChoroplethMapClient({
     }
 
     return () => {
+      if (deckOverlayRef.current) {
+        try {
+          deckOverlayRef.current.remove();
+        } catch {
+          // Ignore unmount error
+        }
+        deckOverlayRef.current = null;
+      }
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }
     };
-  }, [L, centerConfig]);
+  }, [L, centerConfig, deckModules]);
 
   // Update bounds or fallback center when genuine cells or location change
   useEffect(() => {
@@ -511,9 +611,99 @@ function CoastalChoroplethMapClient({
     };
   }, [centerConfig]);
 
-  // Redraw hexagons and vessel labels when data or indicators change
+  // WebGL hardware-accelerated rendering via Deck.gl
   useEffect(() => {
-    if (!L || !layerGroupRef.current) {
+    if (!deckOverlayRef.current || !deckModules) {
+      return;
+    }
+
+    // Clear fallback Leaflet layers if Deck.gl is active
+    if (layerGroupRef.current) {
+      layerGroupRef.current.clearLayers();
+    }
+
+    const { PolygonLayer, TextLayer } = deckModules;
+
+    const layers: any[] = [
+      new PolygonLayer({
+        id: 'h3-hexagons-webgl',
+        data: gridCells,
+        getPolygon: (d: HexCellData) =>
+          d.coords ? d.coords.map(([lat, lng]) => [lng, lat]) : [],
+        getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
+        getLineColor: (d: HexCellData) =>
+          d.id === selectedCellId ? [239, 68, 68, 255] : [255, 255, 255, 200],
+        getLineWidth: (d: HexCellData) => (d.id === selectedCellId ? 3.5 : 1),
+        lineWidthUnits: 'pixels',
+        filled: true,
+        stroked: true,
+        pickable: true,
+        autoHighlight: true,
+        highlightColor: [255, 255, 255, 90],
+        onClick: (info: any) => {
+          if (info.object && onSelectCell) {
+            onSelectCell(info.object.id);
+          }
+        },
+        onHover: (info: any) => {
+          if (info.object) {
+            setHoveredCell(info.object);
+            setTooltipPos({ x: info.x, y: info.y });
+          } else {
+            setHoveredCell(null);
+            setTooltipPos(null);
+          }
+        },
+        updateTriggers: {
+          getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
+          getLineColor: [selectedCellId],
+          getLineWidth: [selectedCellId],
+        },
+      }),
+    ];
+
+    if (overlayVessels) {
+      const vesselCells = gridCells.filter((c) => c.vessels !== undefined && c.vessels > 0);
+      layers.push(
+        new TextLayer({
+          id: 'vessel-labels-webgl',
+          data: vesselCells,
+          getPosition: (d: HexCellData) => [d.lng, d.lat],
+          getText: (d: HexCellData) => String(d.vessels),
+          getSize: 12,
+          getColor: [17, 24, 39, 255],
+          getTextAnchor: 'middle',
+          getAlignmentBaseline: 'center',
+          fontWeight: 800,
+          background: true,
+          backgroundColor: [255, 255, 255, 220],
+          backgroundPadding: [4, 2],
+          sizeUnits: 'pixels',
+          pickable: false,
+          updateTriggers: {
+            data: [gridCells, spatialSlice],
+            getText: [gridCells, spatialSlice],
+          },
+        })
+      );
+    }
+
+    deckOverlayRef.current.setProps({ layers });
+  }, [
+    deckModules,
+    gridCells,
+    isChlor,
+    isSST,
+    overlayVessels,
+    selectedCellId,
+    onSelectCell,
+    spatialSlice,
+    activeIndicator,
+  ]);
+
+  // Fallback rendering via Leaflet Canvas (only when WebGL / Deck.gl is unavailable)
+  useEffect(() => {
+    if (deckModules || !L || !layerGroupRef.current) {
       return;
     }
 
@@ -592,7 +782,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [L, gridCells, isChlor, isSST, overlayVessels, selectedCellId, onSelectCell]);
+  }, [deckModules, L, gridCells, isChlor, isSST, overlayVessels, selectedCellId, onSelectCell]);
 
   if (loading) {
     return (
@@ -664,6 +854,39 @@ function CoastalChoroplethMapClient({
 
       {/* Map container */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+
+      {/* WebGL Hardware-Accelerated Tooltip */}
+      {hoveredCell && tooltipPos && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: Math.min(tooltipPos.x + 12, 380),
+            top: Math.max(10, Math.min(tooltipPos.y + 12, 260)),
+            zIndex: 1000,
+            pointerEvents: 'none',
+            bgcolor: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(4px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: 1.5,
+            p: 1.25,
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            fontSize: 12,
+            lineHeight: 1.45,
+            color: '#1e293b',
+            minWidth: 180,
+          }}
+        >
+          <Box sx={{ fontWeight: 700, mb: 0.25 }}>Hex: {hoveredCell.id}</Box>
+          <Box sx={{ color: '#64748b' }}>Resolution: 7</Box>
+          <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
+          {overlayVessels && (
+            <Box>Total Vessels: <strong>{hoveredCell.vessels}</strong></Box>
+          )}
+          <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
+          <Box>Sea Surface Temp (Avg.): <strong>{hoveredCell.sst.toFixed(1)} K</strong></Box>
+        </Box>
+      )}
     </Box>
   );
 }
