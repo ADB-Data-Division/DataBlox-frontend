@@ -243,10 +243,12 @@ function CategoryCard({ category, locationsParam }: { category: Category; locati
         <Collapse in={showSubPages} timeout={250}>
           <Stack spacing={0.5} sx={{ mt: 1.5, mb: 0.5 }}>
             {category.subPages.map((page) => {
-              const href =
-                page.preserveParams && locationsParam
-                  ? `${page.href}?locations=${encodeURIComponent(locationsParam)}`
-                  : page.href;
+              const isCoastal = page.href.startsWith('/coastal');
+              const href = isCoastal
+                ? '/coastal'
+                : page.preserveParams && locationsParam
+                ? `${page.href}?locations=${encodeURIComponent(locationsParam)}`
+                : page.href;
 
               return (
                 <Link key={page.href} href={href} style={{ textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>

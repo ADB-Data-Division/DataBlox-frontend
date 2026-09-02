@@ -51,9 +51,17 @@ interface NavCategoryItemProps {
   category: NavCategory;
   pathname: string;
   locationsParam: string | null;
+  hasCoastalCountry: boolean;
+  coastalParamsString: string;
 }
 
-function NavCategoryItem({ category, pathname, locationsParam }: NavCategoryItemProps) {
+function NavCategoryItem({
+  category,
+  pathname,
+  locationsParam,
+  hasCoastalCountry,
+  coastalParamsString,
+}: NavCategoryItemProps) {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -218,11 +226,17 @@ function NavCategoryItem({ category, pathname, locationsParam }: NavCategoryItem
         {category.links.map((link) => {
           const isActive = pathname === link.href;
 
-          // Preserve location params when navigating between migration pages
-          const href =
-            link.preserveParams && locationsParam
-              ? `${link.href}?locations=${encodeURIComponent(locationsParam)}`
-              : link.href;
+          // Preserve location params for migration/tourism, or coastal params when active search exists
+          let href = link.href;
+          if (link.href.startsWith('/coastal')) {
+            if (hasCoastalCountry && coastalParamsString) {
+              href = `${link.href}?${coastalParamsString}`;
+            } else {
+              href = '/coastal';
+            }
+          } else if (link.preserveParams && locationsParam) {
+            href = `${link.href}?locations=${encodeURIComponent(locationsParam)}`;
+          }
 
           return (
             <Link key={link.href} href={href} style={{ textDecoration: 'none' }}>
@@ -270,6 +284,8 @@ export function Header() {
 
   // Get current location params
   const locationsParam = useMemo(() => searchParams.get('locations'), [searchParams]);
+  const hasCoastalCountry = useMemo(() => Boolean(searchParams.get('country')), [searchParams]);
+  const coastalParamsString = useMemo(() => searchParams.toString(), [searchParams]);
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -342,6 +358,8 @@ export function Header() {
             category={category}
             pathname={pathname}
             locationsParam={locationsParam}
+            hasCoastalCountry={hasCoastalCountry}
+            coastalParamsString={coastalParamsString}
           />
         ))}
       </Stack>
