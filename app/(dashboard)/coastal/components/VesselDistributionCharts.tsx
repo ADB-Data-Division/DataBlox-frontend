@@ -92,8 +92,20 @@ export function VesselDistributionCharts({
                     faded: { innerRadius: 30, additionalRadius: -30 },
                     innerRadius: 0,
                     outerRadius: 100,
+                    cx: 110,
+                    cy: 140,
                   },
                 ]}
+                margin={{ top: 10, bottom: 10, left: 10, right: 230 }}
+                slotProps={{
+                  legend: {
+                    direction: 'column',
+                    position: { vertical: 'middle', horizontal: 'right' },
+                    itemGap: 8,
+                    markGap: 8,
+                    labelStyle: { fontSize: 12 },
+                  },
+                }}
                 onItemClick={(event, d) => {
                    const item = parentData[d.dataIndex];
                    if (item) setSelectedParentId(item.id);
