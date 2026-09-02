@@ -10,6 +10,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { IndicatorSummaryCard, IndicatorTimelinePoint, IndicatorTimelineSummary } from '@/types/coastal';
 
 export interface SummaryCardsProps {
@@ -117,6 +119,8 @@ function SingleSummaryCard({
     <Card
       variant="outlined"
       sx={{
+        position: 'relative',
+        overflow: 'hidden',
         height: '100%',
         borderRadius: 2,
         backgroundColor: 'background.paper',
@@ -124,9 +128,79 @@ function SingleSummaryCard({
         flexDirection: 'column',
         justifyContent: 'space-between',
         p: 0.5,
+        '&:hover .nav-arrow-left': { opacity: 1 },
+        '&:hover .nav-arrow-right': { opacity: 1 },
       }}
     >
-      <CardContent sx={{ pb: 1 }}>
+      <Box
+        className="nav-arrow-left"
+        onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+        role="button"
+        tabIndex={0}
+        aria-label="Previous slide"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+          }
+        }}
+        sx={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          '&:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.12)',
+          },
+          cursor: 'pointer',
+          zIndex: 2,
+          opacity: 0,
+          transition: 'opacity 0.2s ease, background-color 0.2s ease',
+        }}
+      >
+        <ChevronLeftIcon fontSize="small" />
+      </Box>
+
+      <Box
+        className="nav-arrow-right"
+        onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+        role="button"
+        tabIndex={0}
+        aria-label="Next slide"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+          }
+        }}
+        sx={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          '&:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.12)',
+          },
+          cursor: 'pointer',
+          zIndex: 2,
+          opacity: 0,
+          transition: 'opacity 0.2s ease, background-color 0.2s ease',
+        }}
+      >
+        <ChevronRightIcon fontSize="small" />
+      </Box>
+
+      <CardContent sx={{ px: 3.5, pt: 1, pb: 1, '&:last-child': { pb: 1 } }}>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
           <Typography sx={{ fontSize: '1.4rem', lineHeight: 1 }}>{cfg.icon}</Typography>
           <Box>
