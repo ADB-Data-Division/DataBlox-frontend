@@ -122,19 +122,44 @@ export const getCellColorRgba = (
 };
 
 
+// Module-level caches to avoid dynamic import delay on remounts
+let cachedL: any = null;
+let cachedDeckModules: {
+  DeckOverlay: any;
+  PolygonLayer: any;
+  TextLayer: any;
+} | null = null;
+
 // Location centers
 const LOCATION_COORDINATES: Record<string, { lat: number; lng: number; zoom: number }> = {
   bali: { lat: -8.52, lng: 115.22, zoom: 11 },
   denpasar: { lat: -8.68, lng: 115.23, zoom: 11 },
+  jakarta: { lat: -6.18, lng: 106.83, zoom: 11 },
+  surabaya: { lat: -7.25, lng: 112.75, zoom: 11 },
+  semarang: { lat: -6.97, lng: 110.42, zoom: 11 },
+  medan: { lat: 3.59, lng: 98.67, zoom: 11 },
+  makassar: { lat: -5.14, lng: 119.43, zoom: 11 },
   idn: { lat: -8.52, lng: 115.22, zoom: 10 },
   laguna: { lat: 14.35, lng: 121.25, zoom: 11 },
   pangasinan: { lat: 16.03, lng: 120.33, zoom: 11 },
+  subic: { lat: 14.82, lng: 120.28, zoom: 11 },
+  batangas: { lat: 13.76, lng: 121.06, zoom: 11 },
+  cebu: { lat: 10.31, lng: 123.89, zoom: 11 },
+  manila: { lat: 14.59, lng: 120.98, zoom: 11 },
+  davao: { lat: 7.07, lng: 125.61, zoom: 11 },
+  iloilo: { lat: 10.72, lng: 122.56, zoom: 11 },
   phl: { lat: 15.95, lng: 120.35, zoom: 10 },
   bangkok: { lat: 13.48, lng: 100.58, zoom: 11 },
   'chon buri': { lat: 13.1, lng: 100.85, zoom: 11 },
   chonburi: { lat: 13.1, lng: 100.85, zoom: 11 },
+  phuket: { lat: 7.88, lng: 98.39, zoom: 11 },
+  songkhla: { lat: 7.20, lng: 100.60, zoom: 11 },
+  rayong: { lat: 12.68, lng: 101.28, zoom: 11 },
+  'samut prakan': { lat: 13.60, lng: 100.60, zoom: 11 },
   tha: { lat: 13.45, lng: 100.6, zoom: 10 },
   chittagong: { lat: 22.28, lng: 91.80, zoom: 11 },
+  'cox\'s bazar': { lat: 21.43, lng: 91.98, zoom: 11 },
+  mongla: { lat: 22.49, lng: 89.60, zoom: 11 },
   bgd: { lat: 22.28, lng: 91.80, zoom: 10 },
 };
 
@@ -158,6 +183,44 @@ function resolveCenter(locationName?: string, country?: string) {
     }
   }
   return { lat: -8.52, lng: 115.22, zoom: 11 };
+}
+
+function fitMapToCells(map: any, cells: HexCellData[]): [[number, number], [number, number]] | null {
+  if (!map || !cells || cells.length === 0) return null;
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  for (const cell of cells) {
+    if (cell.coords) {
+      for (const [lat, lng] of cell.coords) {
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+      }
+    } else if (cell.lat !== undefined && cell.lng !== undefined) {
+      if (cell.lat < minLat) minLat = cell.lat;
+      if (cell.lat > maxLat) maxLat = cell.lat;
+      if (cell.lng < minLng) minLng = cell.lng;
+      if (cell.lng > maxLng) maxLng = cell.lng;
+    }
+  }
+
+  if (minLat !== Infinity && maxLat !== -Infinity) {
+    const bounds: [[number, number], [number, number]] = [
+      [minLat, minLng],
+      [maxLat, maxLng],
+    ];
+    map.fitBounds(bounds, {
+      padding: [24, 24],
+      maxZoom: 12,
+      animate: false,
+    });
+    return bounds;
+  }
+  return null;
 }
 
 // Generate polygon vertices for a regular hexagon in geographic coordinates
@@ -269,12 +332,12 @@ function CoastalChoroplethMapClient({
   const hasFittedRef = useRef<boolean>(false);
   const fittedBoundsRef = useRef<[[number, number], [number, number]] | null>(null);
   const resetViewRef = useRef<() => void>(() => {});
-  const [L, setL] = useState<any>(null);
+  const [L, setL] = useState<any>(cachedL);
   const [deckModules, setDeckModules] = useState<{
     DeckOverlay: any;
     PolygonLayer: any;
     TextLayer: any;
-  } | null>(null);
+  } | null>(cachedDeckModules);
   const [genuineCells, setGenuineCells] = useState<HexCellData[] | null>(null);
   const [hoveredCell, setHoveredCell] = useState<HexCellData | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -436,13 +499,15 @@ function CoastalChoroplethMapClient({
       typeof window !== 'undefined' ? import('leaflet/dist/leaflet.css') : Promise.resolve(),
     ])
       .then(([leafletModule, deckCommunityModule, deckGlModule]) => {
+        cachedL = leafletModule.default;
+        cachedDeckModules = {
+          DeckOverlay: deckCommunityModule.DeckOverlay,
+          PolygonLayer: deckGlModule.PolygonLayer,
+          TextLayer: deckGlModule.TextLayer,
+        };
         if (mounted) {
-          setL(leafletModule.default);
-          setDeckModules({
-            DeckOverlay: deckCommunityModule.DeckOverlay,
-            PolygonLayer: deckGlModule.PolygonLayer,
-            TextLayer: deckGlModule.TextLayer,
-          });
+          setL(cachedL);
+          setDeckModules(cachedDeckModules);
         }
       })
       .catch((err) => {
@@ -526,7 +591,13 @@ function CoastalChoroplethMapClient({
     layerGroupRef.current = layerGroup;
     leafletMapRef.current = map;
 
-    if (fittedBoundsRef.current) {
+    // Immediately fit to genuineCells if already resolved, or stored fittedBounds
+    if (genuineCells && genuineCells.length > 0) {
+      const bounds = fitMapToCells(map, genuineCells);
+      if (bounds) {
+        fittedBoundsRef.current = bounds;
+      }
+    } else if (fittedBoundsRef.current) {
       map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12, animate: false });
     }
 
@@ -546,44 +617,26 @@ function CoastalChoroplethMapClient({
     };
   }, [L, centerConfig, deckModules]);
 
-  // Update bounds or fallback center when genuine cells or location change
+  // Immediately reset map view when a new location or search is received
   useEffect(() => {
-    if (!leafletMapRef.current) {
+    fittedBoundsRef.current = null;
+    const map = leafletMapRef.current;
+    if (map) {
+      map.setView([centerConfig.lat, centerConfig.lng], centerConfig.zoom, { animate: false });
+    }
+  }, [locationName, country, aoiKey, centerConfig]);
+
+  // Update bounds or fallback center when genuine cells change
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map) {
       return;
     }
 
-    const map = leafletMapRef.current;
-
     if (genuineCells && genuineCells.length > 0) {
-      let minLat = Infinity;
-      let maxLat = -Infinity;
-      let minLng = Infinity;
-      let maxLng = -Infinity;
-
-      for (const cell of genuineCells) {
-        if (cell.coords) {
-          for (const [lat, lng] of cell.coords) {
-            if (lat < minLat) minLat = lat;
-            if (lat > maxLat) maxLat = lat;
-            if (lng < minLng) minLng = lng;
-            if (lng > maxLng) maxLng = lng;
-          }
-        }
-      }
-
-      if (minLat !== Infinity && maxLat !== -Infinity) {
-        const bounds: [[number, number], [number, number]] = [
-          [minLat, minLng],
-          [maxLat, maxLng],
-        ];
+      const bounds = fitMapToCells(map, genuineCells);
+      if (bounds) {
         fittedBoundsRef.current = bounds;
-        const isFirst = !hasFittedRef.current;
-        hasFittedRef.current = true;
-        map.fitBounds(bounds, {
-          padding: [24, 24],
-          maxZoom: 12,
-          animate: false,
-        });
         return;
       }
     }
