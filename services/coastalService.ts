@@ -6,6 +6,7 @@
 import {
   CoastalCountry,
   CoastalLocation,
+  CoastalProvince,
   IndicatorTimelineResponse,
   GeoJSONFeatureCollection,
   SpatialSliceResponse,
@@ -107,6 +108,17 @@ export async function fetchCoastalLocations(
 ): Promise<CoastalLocation[]> {
   return fetchCoastalApi<CoastalLocation[]>("/locations", { country }, engine);
 }
+
+/**
+ * Fetch coastal provinces and constituent seaport AOIs for a country.
+ */
+export async function fetchCoastalProvinces(
+  country: string,
+  engine?: "duckdb" | "postgres"
+): Promise<CoastalProvince[]> {
+  return fetchCoastalApi<CoastalProvince[]>("/provinces", { country }, engine);
+}
+
 
 /**
  * 3. Fetch multi-indicator timeline data, summary cards, and percentage deltas.

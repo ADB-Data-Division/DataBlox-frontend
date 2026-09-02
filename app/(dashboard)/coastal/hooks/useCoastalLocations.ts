@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { fetchCoastalLocations } from '@/services/coastalService';
-import { CoastalLocation } from '@/types/coastal';
+import { fetchCoastalLocations, fetchCoastalProvinces } from '@/services/coastalService';
+import { CoastalLocation, CoastalProvince } from '@/types/coastal';
+import { getProvincesByCountry } from '../data/provinces';
+
 
 export interface CoastalRecentSearchEntry {
   id: string;
@@ -193,6 +195,7 @@ export function clearCoastalRecentSearches(countryIso: string): void {
 
 export interface UseCoastalLocationsResult {
   locations: CoastalLocation[];
+  provinces: CoastalProvince[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -200,6 +203,9 @@ export interface UseCoastalLocationsResult {
 
 export function useCoastalLocations(countryIso: string): UseCoastalLocationsResult {
   const [locations, setLocations] = useState<CoastalLocation[]>([]);
+  const [provinces, setProvinces] = useState<CoastalProvince[]>(() =>
+    getProvincesByCountry(countryIso)
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState<number>(0);
@@ -207,6 +213,7 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
   useEffect(() => {
     if (!countryIso) {
       setLocations([]);
+      setProvinces([]);
       setLoading(false);
       setError(null);
       return;
@@ -214,21 +221,36 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
     let active = true;
     setLoading(true);
     setError(null);
-    fetchCoastalLocations(countryIso)
-      .then((data) => {
-        if (!active) {
-          return;
+
+    const staticProvs = getProvincesByCountry(countryIso);
+    if (staticProvs.length > 0) {
+      setProvinces(staticProvs);
+    }
+
+    Promise.allSettled([
+      fetchCoastalLocations(countryIso),
+      fetchCoastalProvinces(countryIso),
+    ])
+      .then(([locResult, provResult]) => {
+        if (!active) return;
+        if (locResult.status === 'fulfilled' && Array.isArray(locResult.value)) {
+          setLocations(dedupeSelections(locResult.value));
         }
-        setLocations(dedupeSelections(Array.isArray(data) ? data : []));
+        if (
+          provResult.status === 'fulfilled' &&
+          Array.isArray(provResult.value) &&
+          provResult.value.length > 0
+        ) {
+          setProvinces(provResult.value);
+        }
         setLoading(false);
       })
       .catch((err: unknown) => {
-        if (!active) {
-          return;
-        }
+        if (!active) return;
         setError(err instanceof Error ? err.message : 'Could not load locations.');
         setLoading(false);
       });
+
     return () => {
       active = false;
     };
@@ -239,7 +261,8 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
   }, []);
 
   return useMemo(
-    () => ({ locations, loading, error, refetch }),
-    [locations, loading, error, refetch]
+    () => ({ locations, provinces, loading, error, refetch }),
+    [locations, provinces, loading, error, refetch]
   );
 }
+

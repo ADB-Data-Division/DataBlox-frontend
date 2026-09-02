@@ -6,6 +6,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import CountrySelector, { FlagBadge } from './components/CountrySelector';
 import { LocationSearch } from './components/LocationSearch';
 import type { CoastalCountry } from '@/types/coastal';
+import { resolveCoastalLocations } from './data/provinces';
 
 function resolveIso(country: CoastalCountry | null): string {
   return country ? country.iso || country.country_iso || '' : '';
@@ -47,10 +48,11 @@ export default function CoastalPage() {
               <LocationSearch
                 countryIso={iso}
                 onSubmit={(locations) => {
-                  const aoiIds = locations.map((location) => location.aoi_id);
+                  const { aoiIds, names } = resolveCoastalLocations(locations, iso);
                   const params = new URLSearchParams();
                   params.set('country', iso);
                   params.set('aois', aoiIds.join(','));
+                  params.set('names', names.join(','));
                   router.push(`/coastal/indicators?${params.toString()}`);
                 }}
               />

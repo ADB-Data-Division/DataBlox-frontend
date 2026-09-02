@@ -56,11 +56,21 @@ export interface CoastalCountry {
   };
 }
 
+export interface CoastalProvince {
+  name: string;
+  country_iso: string;
+  countryIso?: string;
+  aois: string[];
+  aoi_count?: number;
+  total_hexagons?: number;
+}
+
 export interface CoastalLocation {
   id?: string | null;
   aoi_id: string;
   name: string;
   display_name?: string;
+  province?: string;
   country_iso: string;
   type?: string;
   hexagon_count?: number;
