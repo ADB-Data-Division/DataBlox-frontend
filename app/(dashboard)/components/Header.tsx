@@ -1,52 +1,278 @@
 'use client';
 
-import { Typography, Box, Stack, Paper } from '@mui/material';
+import { Typography, Box, Stack, Popover } from '@mui/material';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ConnectivityStatus } from './ConnectivityStatus';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowRight } from '@phosphor-icons/react/dist/ssr';
 
-interface NavChild {
+interface NavSubLink {
   label: string;
   href: string;
+  preserveParams?: boolean;
 }
 
-interface NavLink {
-  label: string;
-  href: string;
-  segment: string;
-  preserveParams: boolean;
-  children?: NavChild[];
+interface NavCategory {
+  title: string;
+  href?: string;
+  links: NavSubLink[];
 }
 
-const navigationLinks: NavLink[] = [
-  { label: 'Migration Flow', href: '/migration-flows', segment: 'migration-flows', preserveParams: true },
-  { label: 'Migration Trends', href: '/migration-analysis', segment: 'migration-analysis', preserveParams: true },
-  { label: 'Migration Sankey', href: '/sankey', segment: 'sankey', preserveParams: true },
-  { label: 'Tourism Flow', href: '/tourism', segment: 'tourism', preserveParams: true },
-  { label: 'Tourism Trends', href: '/tourism-trend', segment: 'tourism-trend', preserveParams: true },
-  { label: 'Overtourism', href: '/overtourism', segment: 'overtourism', preserveParams: true },
+const navigationLinks: NavCategory[] = [
   {
-    label: 'Water Quality',
-    href: '/coastal',
-    segment: 'coastal',
-    preserveParams: false,
-    children: [
-      { label: 'Indicators', href: '/coastal/indicators' },
-      { label: 'Vessel Types', href: '/coastal/vessels' },
+    title: 'Migration',
+    links: [
+      { label: 'Migration Flow', href: '/migration-flows', preserveParams: true },
+      { label: 'Migration Trends', href: '/migration-analysis', preserveParams: true },
+      { label: 'Migration Sankey', href: '/sankey', preserveParams: true },
     ],
   },
-  { label: 'DataBlox-OD Python Library', href: '/lib/index.html', segment: 'about', preserveParams: false },
+  {
+    title: 'Tourism',
+    links: [
+      { label: 'Tourism Flow', href: '/tourism', preserveParams: true },
+      { label: 'Tourism Trends', href: '/tourism-trend', preserveParams: true },
+      { label: 'Overtourism', href: '/overtourism', preserveParams: true },
+    ],
+  },
+  {
+    title: 'Water Quality',
+    href: '/coastal',
+    links: [
+      { label: 'Indicators', href: '/coastal/indicators', preserveParams: true },
+      { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
+    ],
+  },
+  {
+    title: '',
+    links: [
+      { label: 'DataBlox-OD Python Library', href: '/lib/index.html', preserveParams: false },
+    ],
+  },
 ];
+
+interface NavCategoryItemProps {
+  category: NavCategory;
+  pathname: string;
+  locationsParam: string | null;
+}
+
+function NavCategoryItem({ category, pathname, locationsParam }: NavCategoryItemProps) {
+  const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+  const isCategoryActive = useMemo(() => {
+    if (category.href && (pathname === category.href || pathname.startsWith(`${category.href}/`))) {
+      return true;
+    }
+    return category.links.some(
+      (link) => pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+    );
+  }, [category, pathname]);
+
+  const handleTrigger = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(true);
+  };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  if (!category.title) {
+    return (
+      <Box>
+        {category.links.map((link) => (
+          <Link key={link.href} href={link.href} style={{ textDecoration: 'none' }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '16px',
+                fontFamily: 'var(--font-asap), sans-serif',
+                fontWeight: '400',
+                color: '#666666',
+                cursor: 'pointer',
+                borderBottom: '2px solid transparent',
+                px: 2,
+                pb: '2px',
+                transition: 'color 0.2s ease',
+                '&:hover': {
+                  color: '#0077BE',
+                },
+              }}
+            >
+              {link.label}
+            </Typography>
+          </Link>
+        ))}
+      </Box>
+    );
+  }
+
+  const categoryTitleContent = (
+    <Typography
+      variant="body1"
+      onMouseOver={handleTrigger}
+      onMouseLeave={handleClose}
+      sx={{
+        fontSize: '16px',
+        fontFamily: 'var(--font-asap), sans-serif',
+        fontWeight: isCategoryActive ? '700' : '400',
+        color: isCategoryActive ? '#0077BE' : '#666666',
+        cursor: 'pointer',
+        borderBottom: isCategoryActive ? '2px solid #0077BE' : '2px solid transparent',
+        px: 2,
+        pb: '2px',
+        transition: 'color 0.2s ease',
+        '&:hover': {
+          color: '#0077BE',
+        },
+      }}
+    >
+      {category.title}
+    </Typography>
+  );
+
+  return (
+    <Box>
+      {/* Category Title (Unhovered) */}
+      {category.href ? (
+        <Link href={category.href} style={{ textDecoration: 'none' }}>
+          {categoryTitleContent}
+        </Link>
+      ) : (
+        categoryTitleContent
+      )}
+
+      {/* Dropdown Container */}
+      <Popover
+        anchorEl={anchorEl}
+        open={open}
+        slotProps={{
+          root: {
+            style: { pointerEvents: 'none' },
+          },
+          paper: {
+            onMouseEnter: handleOpen,
+            onMouseLeave: handleClose,
+            sx: {
+              minWidth: 190,
+              pt: '6px',
+              pb: '6px',
+              px: '12px',
+              mt: '-6px',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px -6px rgba(0,52,104,0.18)',
+            },
+            style: { pointerEvents: 'auto' },
+          },
+        }}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+      >
+        {/* Category Title (Hovered) */}
+        {category.href ? (
+          <Link href={category.href} style={{ textDecoration: 'none' }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '16px',
+                fontFamily: 'var(--font-asap), sans-serif',
+                fontWeight: '700',
+                color: '#0077BE',
+                borderBottom: '2px solid #0077BE',
+                textAlign: 'center',
+                pb: '2px',
+                cursor: 'pointer',
+              }}
+            >
+              {category.title}
+            </Typography>
+          </Link>
+        ) : (
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: '16px',
+              fontFamily: 'var(--font-asap), sans-serif',
+              fontWeight: '700',
+              color: '#0077BE',
+              borderBottom: '2px solid #0077BE',
+              textAlign: 'center',
+              pb: '2px',
+            }}
+          >
+            {category.title}
+          </Typography>
+        )}
+
+        {/* Navigation Links */}
+        {category.links.map((link) => {
+          const isActive = pathname === link.href;
+
+          // Preserve location params when navigating between migration pages
+          const href =
+            link.preserveParams && locationsParam
+              ? `${link.href}?locations=${encodeURIComponent(locationsParam)}`
+              : link.href;
+
+          return (
+            <Link key={link.href} href={href} style={{ textDecoration: 'none' }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{
+                  px: '12px',
+                  py: '8px',
+                  borderRadius: '8px',
+                  my: '4px',
+                  backgroundColor: isActive ? '#0077BE14' : 'transparent',
+                  transition: 'background-color 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: '#0077BE14',
+                  },
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontSize: '15px',
+                    fontFamily: 'var(--font-asap), sans-serif',
+                    fontWeight: isActive ? '600' : '400',
+                    color: isActive ? '#0077BE' : '#333333',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {link.label}
+                </Typography>
+                <ArrowRight size={14} style={{ color: '#0077BE', flexShrink: 0 }} />
+              </Stack>
+            </Link>
+          );
+        })}
+      </Popover>
+    </Box>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  // Extract the current segment from pathname
-  const currentSegment = pathname.split('/').filter(Boolean)[0] || '';
 
   // Get current location params
   const locationsParam = useMemo(() => searchParams.get('locations'), [searchParams]);
@@ -59,7 +285,6 @@ export function Header() {
         justifyContent="space-between"
         sx={{ mb: 0 }}
       >
-
         <Link href="/home" style={{ textDecoration: 'none' }}>
           <Typography
             variant="h3"
@@ -74,8 +299,20 @@ export function Header() {
               cursor: 'pointer',
             }}
           >
-            <Image src="/images/adb-jfpr-japan.webp" alt="ADB-JFPR Japan" width={774} height={198} style={{ maxWidth: '200px', maxHeight: '54px', transform: 'translateY(13px)', marginRight: '1rem' }} />
-            Datablo<Box
+            <Image
+              src="/images/adb-jfpr-japan.webp"
+              alt="ADB-JFPR Japan"
+              width={774}
+              height={198}
+              style={{
+                maxWidth: '200px',
+                maxHeight: '54px',
+                transform: 'translateY(13px)',
+                marginRight: '1rem',
+              }}
+            />
+            Datablo
+            <Box
               component="span"
               sx={{
                 backgroundColor: '#0077BE',
@@ -83,7 +320,7 @@ export function Header() {
                 padding: '0px 2px',
                 borderRadius: '4px',
                 marginLeft: '1px',
-                display: 'inline-block'
+                display: 'inline-block',
               }}
             >
               x
@@ -93,122 +330,23 @@ export function Header() {
         <ConnectivityStatus />
       </Stack>
 
-      {/* Navigation Links */}
+      {/* Navigation Bar */}
       <Stack
         direction="row"
-        spacing={3}
+        spacing={2}
         sx={{
           mt: 2,
-          mb: 1
+          mb: 1,
         }}
       >
-        {navigationLinks.map((link) => {
-          const isActive = currentSegment === link.segment;
-
-          // Preserve location params when navigating between migration pages
-          const href = link.preserveParams && locationsParam
-            ? `${link.href}?locations=${encodeURIComponent(locationsParam)}`
-            : link.href;
-
-          return (
-            <Box
-              key={link.href}
-              sx={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                '&:hover .coastal-dropdown, &:focus-within .coastal-dropdown': {
-                  opacity: 1,
-                  visibility: 'visible',
-                  transform: 'translateY(0)',
-                },
-              }}
-            >
-              <Link href={href} style={{ textDecoration: 'none' }}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontSize: '16px',
-                    fontFamily: 'var(--font-asap), sans-serif',
-                    fontWeight: isActive ? '700' : '400',
-                    color: isActive ? '#0077BE' : '#666666',
-                    cursor: 'pointer',
-                    transition: 'color 0.2s ease',
-                    '&:hover': {
-                      color: '#0077BE',
-                    },
-                    borderBottom: isActive ? '2px solid #0077BE' : '2px solid transparent',
-                    paddingBottom: '2px',
-                  }}
-                >
-                  {link.label}
-                </Typography>
-              </Link>
-              {link.children && (
-                <Box
-                  className="coastal-dropdown"
-                  sx={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    pt: 1,
-                    minWidth: 200,
-                    opacity: 0,
-                    visibility: 'hidden',
-                    transform: 'translateY(4px)',
-                    transition: 'all 0.2s ease',
-                    zIndex: 10,
-                  }}
-                >
-                  <Paper
-                    sx={{
-                      borderRadius: '8px',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      py: 1,
-                      px: 0.5,
-                      boxShadow: '0 8px 24px -6px rgba(0,52,104,0.18)',
-                    }}
-                  >
-                    {link.children.map((child) => {
-                      const childActive = pathname === child.href;
-                      return (
-                        <Link key={child.href} href={child.href} style={{ textDecoration: 'none', display: 'block' }}>
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            justifyContent="space-between"
-                            sx={{
-                              px: 1.5,
-                              py: 1,
-                              borderRadius: '6px',
-                              backgroundColor: childActive ? '#0077BE14' : 'transparent',
-                              transition: 'background 0.2s',
-                              '&:hover': { backgroundColor: '#0077BE14' },
-                            }}
-                          >
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: childActive ? 600 : 400,
-                                color: childActive ? '#0077BE' : 'text.primary',
-                                fontFamily: 'var(--font-asap), sans-serif',
-                                fontSize: '14px',
-                              }}
-                            >
-                              {child.label}
-                            </Typography>
-                            <ArrowRight size={16} style={{ color: '#0077BE', flexShrink: 0 }} />
-                          </Stack>
-                        </Link>
-                      );
-                    })}
-                  </Paper>
-                </Box>
-              )}
-            </Box>
-          );
-        })}
+        {navigationLinks.map((category, index) => (
+          <NavCategoryItem
+            key={category.title || `nav-${index}`}
+            category={category}
+            pathname={pathname}
+            locationsParam={locationsParam}
+          />
+        ))}
       </Stack>
     </Box>
   );
