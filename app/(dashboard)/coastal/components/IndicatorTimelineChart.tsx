@@ -74,7 +74,7 @@ function formatPeriodLabel(isoString: string): string {
   return `${month} ${year}`;
 }
 
-const MARGINS = { top: 30, right: 60, bottom: 50, left: 60 };
+const MARGINS = { top: 30, right: 75, bottom: 50, left: 60 };
 
 export function IndicatorTimelineChart({
   data,
@@ -156,7 +156,16 @@ export function IndicatorTimelineChart({
 
     // Grid lines (vertical dashed)
     const stepCount = Math.min(10, Math.max(4, Math.floor(data.length / 4)));
-    const tickIndices = data.map((_, i) => i).filter((i) => i % Math.ceil(data.length / stepCount) === 0 || i === data.length - 1);
+    const stepSize = Math.ceil(data.length / stepCount);
+    let tickIndices = data.map((_, i) => i).filter((i) => i % stepSize === 0);
+    const lastIndex = data.length - 1;
+    if (tickIndices.length > 0 && tickIndices[tickIndices.length - 1] !== lastIndex) {
+      if (lastIndex - tickIndices[tickIndices.length - 1] < stepSize / 2) {
+        tickIndices[tickIndices.length - 1] = lastIndex;
+      } else {
+        tickIndices.push(lastIndex);
+      }
+    }
 
     g.append('g')
       .selectAll('line.v-grid')
@@ -224,10 +233,10 @@ export function IndicatorTimelineChart({
       rightAxisG.selectAll('text').attr('font-size', '11px').attr('fill', '#4b5563');
 
       g.append('text')
-        .attr('transform', 'rotate(90)')
-        .attr('y', -MARGINS.right + 15)
-        .attr('x', innerHeight / 2)
+        .attr('transform', `translate(${innerWidth + 52}, ${innerHeight / 2}) rotate(90)`)
         .attr('text-anchor', 'middle')
+        .attr('y', 0)
+        .attr('x', 0)
         .attr('font-size', '11px')
         .attr('fill', '#374151')
         .attr('font-weight', 600)
