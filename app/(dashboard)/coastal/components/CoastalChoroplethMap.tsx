@@ -434,6 +434,10 @@ function CoastalChoroplethMapClient({
     layerGroupRef.current = layerGroup;
     leafletMapRef.current = map;
 
+    if (fittedBoundsRef.current) {
+      map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12, animate: false });
+    }
+
     return () => {
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
@@ -478,7 +482,7 @@ function CoastalChoroplethMapClient({
         map.fitBounds(bounds, {
           padding: [24, 24],
           maxZoom: 12,
-          animate: !isFirst,
+          animate: false,
         });
         return;
       }

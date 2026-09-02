@@ -591,6 +591,7 @@ export function PageContent() {
 
                   <Box sx={{ minHeight: 420 }}>
                     <CoastalChoroplethMap
+                      key={`${country}_${aoi_id || ''}_${locationLabel}`}
                       country={country}
                       locationName={locationLabel}
                       aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}

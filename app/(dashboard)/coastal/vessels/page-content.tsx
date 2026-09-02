@@ -435,6 +435,7 @@ export function PageContent() {
       {activeTab === 2 && (
         <Stack spacing={2}>
           <VesselSpatialMap
+            key={`${country}_${locationLabel}`}
             country={country}
             locationName={locationLabel}
             selectedCellId={selectedHexCell}
