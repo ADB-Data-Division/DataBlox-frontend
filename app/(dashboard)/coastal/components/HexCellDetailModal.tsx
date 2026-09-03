@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Card } from '@mui/material';
+import { Box, Typography, IconButton, Card, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
@@ -54,64 +54,6 @@ function formatMonthYear(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-// Generate multi-year monthly series (2019 to 2026) for the selected hex cell
-function generateCellTimeSeries(cellId: string) {
-  const months: string[] = [];
-  const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
-  const chlorData: number[] = [];
-  const vesselData: number[] = [];
-  const sstData: number[] = [];
-  const durationData: number[] = [];
-
-  // Seed based on cellId to give consistent values
-  let seed = 0;
-  for (let i = 0; i < cellId.length; i++) {
-    seed = (seed + cellId.charCodeAt(i)) % 100;
-  }
-
-  let index = 0;
-  for (const year of years) {
-    for (let m = 1; m <= 12; m++) {
-      if (year === 2026 && m > 3) break;
-      const monthStr = `${year}-${m.toString().padStart(2, '0')}`;
-      months.push(monthStr);
-
-      const seasonal = Math.sin((m / 12) * Math.PI * 2);
-      const trend = (index / 80) * 0.4;
-      const noise = Math.sin((index + seed) * 1.7) * 0.2;
-
-      // Chlorophyll-a: 0.6 to 3.2 mg/m3 with peak in 2020
-      let chlor = 1.1 + seasonal * 0.8 + noise + trend;
-      if (year === 2020 && m >= 6 && m <= 8) {
-        chlor += 2.1; // Peak in 2020 matching wireframe
-      }
-      chlorData.push(Math.round(Math.max(0.4, chlor) * 100) / 100);
-
-      // Vessel Count: 80 to 150 with gradual upward trend
-      const vessel = 85 + seasonal * 22 + trend * 40 + Math.sin(index * 2.3) * 12;
-      vesselData.push(Math.round(Math.max(30, vessel)));
-
-      // SST (Kelvin): 297 to 304 K
-      const sst = 299.5 + seasonal * 2.5 + noise;
-      sstData.push(Math.round(sst * 10) / 10);
-
-      // Duration: 40 to 90 hours
-      const dur = 55 + seasonal * 15 + noise * 10;
-      durationData.push(Math.round(Math.max(15, dur) * 10) / 10);
-
-      index++;
-    }
-  }
-
-  return {
-    months,
-    chlor_a: chlorData,
-    vessels: vesselData,
-    sst: sstData,
-    duration: durationData,
-  };
-}
-
 export default function HexCellDetailModal({
   cellId,
   locationName,
@@ -122,13 +64,16 @@ export default function HexCellDetailModal({
   onClose,
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!cellId || !country) {
       setRealPoints(null);
+      setLoading(false);
       return;
     }
     let isMounted = true;
+    setLoading(true);
     fetchHexCellTimeSeries({
       country,
       cell_id: cellId,
@@ -138,14 +83,17 @@ export default function HexCellDetailModal({
     })
       .then((res) => {
         if (!isMounted) return;
-        if (res?.series && res.series.length > 0) {
+        if (res?.series && Array.isArray(res.series)) {
           setRealPoints(res.series);
         } else {
-          setRealPoints(null);
+          setRealPoints([]);
         }
       })
       .catch(() => {
-        if (isMounted) setRealPoints(null);
+        if (isMounted) setRealPoints([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
       });
 
     return () => {
@@ -154,20 +102,17 @@ export default function HexCellDetailModal({
   }, [cellId, country, dateRange.start, dateRange.end, grain]);
 
   const timeSeries = useMemo(() => {
-    if (realPoints && realPoints.length > 0) {
-      return {
-        months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
-        chlor_a: realPoints.map((pt) => pt.chlor_a ?? 0),
-        vessels: realPoints.map((pt) => pt.vessels ?? 0),
-        sst: realPoints.map((pt) => pt.sst ?? 0),
-        duration: realPoints.map((pt) => pt.duration ?? 0),
-      };
-    }
-    if (!cellId) {
+    if (!realPoints || realPoints.length === 0) {
       return { months: [], chlor_a: [], vessels: [], sst: [], duration: [] };
     }
-    return generateCellTimeSeries(cellId);
-  }, [realPoints, cellId]);
+    return {
+      months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
+      chlor_a: realPoints.map((pt) => (pt.chlor_a !== null && pt.chlor_a !== undefined ? pt.chlor_a : 0)),
+      vessels: realPoints.map((pt) => (pt.vessels !== null && pt.vessels !== undefined ? pt.vessels : 0)),
+      sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : 0)),
+      duration: realPoints.map((pt) => (pt.duration !== null && pt.duration !== undefined ? pt.duration : 0)),
+    };
+  }, [realPoints]);
 
   if (!cellId) {
     return (
@@ -302,44 +247,56 @@ export default function HexCellDetailModal({
       </Box>
 
       <Box sx={{ width: '100%', height: 260 }}>
-        <LineChart
-          series={series}
-          xAxis={[
-            {
-              data: timeSeries.months,
-              scaleType: 'point',
-              valueFormatter: (value: string) => {
-                const parts = value.split('-');
-                if (parts[1] === '01') return parts[0];
-                return '';
+        {loading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <CircularProgress size={32} />
+          </Box>
+        ) : timeSeries.months.length === 0 ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Typography variant="body2" color="text.secondary">
+              No historical data available for this cell.
+            </Typography>
+          </Box>
+        ) : (
+          <LineChart
+            series={series}
+            xAxis={[
+              {
+                data: timeSeries.months,
+                scaleType: 'point',
+                valueFormatter: (value: string) => {
+                  const parts = value.split('-');
+                  if (parts[1] === '01') return parts[0];
+                  return '';
+                },
               },
-            },
-          ]}
-          yAxis={yAxisConfig}
-          margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
-          slotProps={{ legend: { hidden: true } }}
-          sx={{
-            [`& .MuiMarkElement-series-${primaryId}`]: {
-              fill: `${primaryConfig.color} !important`,
-              stroke: `${primaryConfig.color} !important`,
-              strokeWidth: 1,
-              scale: '0.55',
-            },
-            ...(secondaryConfig
-              ? {
-                  [`& .MuiMarkElement-series-${secondaryId}`]: {
-                    fill: `${secondaryConfig.color} !important`,
-                    stroke: `${secondaryConfig.color} !important`,
-                    strokeWidth: 1,
-                    scale: '0.55',
-                  },
-                }
-              : {}),
-            '& .MuiLineElement-root': {
-              strokeWidth: 2,
-            },
-          }}
-        />
+            ]}
+            yAxis={yAxisConfig}
+            margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
+            slotProps={{ legend: { hidden: true } }}
+            sx={{
+              [`& .MuiMarkElement-series-${primaryId}`]: {
+                fill: `${primaryConfig.color} !important`,
+                stroke: `${primaryConfig.color} !important`,
+                strokeWidth: 1,
+                scale: '0.55',
+              },
+              ...(secondaryConfig
+                ? {
+                    [`& .MuiMarkElement-series-${secondaryId}`]: {
+                      fill: `${secondaryConfig.color} !important`,
+                      stroke: `${secondaryConfig.color} !important`,
+                      strokeWidth: 1,
+                      scale: '0.55',
+                    },
+                  }
+                : {}),
+              '& .MuiLineElement-root': {
+                strokeWidth: 2,
+              },
+            }}
+          />
+        )}
       </Box>
     </Card>
   );

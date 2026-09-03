@@ -265,11 +265,11 @@ function generateCoastalHexGrid(centerLat: number, centerLng: number): HexCellDa
       const lng = centerLng + colPos * dx;
       const coords = getGeographicHexagon(lat, lng, radiusLat * 0.96);
 
-      // Default baseline values matching wireframe sample
+      // Default baseline values before slice data arrives
       let hexId = `878db516${(index + 1).toString(16).padStart(2, '0')}ffffff`;
-      let chlor_a = 2.0 + Math.sin(index * 1.3) * 1.8;
-      let sst = 296.5 + (index % 5) * 1.8;
-      let vessels = Math.floor(1 + (index % 7) * 2);
+      let chlor_a = 0;
+      let sst = 0;
+      let vessels = 0;
 
       // Page 36 and Page 38 reference hex cell: 878db5169ffffff
       if (r === 2 && c === 2) {
@@ -425,17 +425,14 @@ function CoastalChoroplethMapClient({
             }
 
             const hexId = String(feature.properties?.h3_index || feature.id || '');
-            const baselineChlor = 2.0 + Math.sin(idx * 1.3) * 1.8;
-            const baselineSST = 296.5 + (idx % 5) * 1.8;
-            const baselineVessels = Math.floor(1 + (idx % 7) * 2);
 
             return {
               id: hexId,
               lat,
               lng,
-              chlor_a: Math.max(0.5, baselineChlor),
-              sst: baselineSST,
-              vessels: baselineVessels,
+              chlor_a: 0,
+              sst: 0,
+              vessels: 0,
               coords,
             };
           });
