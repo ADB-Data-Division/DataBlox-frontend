@@ -52,4 +52,44 @@ describe('Maritime Vessel Types Analysis Logic', () => {
       expect(filterSubCategories('unknown')).toHaveLength(0);
     });
   });
+
+  describe('Vessel Summary Card Metrics and Mathematical Formulas', () => {
+    function computePeriodDelta(current: number, baseline: number): number | null {
+      if (baseline <= 0) return null;
+      return ((current - baseline) / baseline) * 100;
+    }
+
+    function computePeriodAverage(total: number, count: number): number {
+      if (count <= 0) return 0;
+      return Math.round(total / count);
+    }
+
+    it('computes cumulative sum and period average correctly', () => {
+      const totalVessels = 12500;
+      const periodCount = 24;
+      const periodAvg = computePeriodAverage(totalVessels, periodCount);
+      expect(periodAvg).toBe(521);
+    });
+
+    it('computes period percentage change with correct direction', () => {
+      const current = 1200;
+      const previous = 1000;
+      const delta = computePeriodDelta(current, previous);
+      expect(delta).toBe(20.0);
+    });
+
+    it('returns null when baseline count is zero', () => {
+      const current = 500;
+      const previous = 0;
+      const delta = computePeriodDelta(current, previous);
+      expect(delta).toBeNull();
+    });
+
+    it('calculates negative delta accurately', () => {
+      const current = 800;
+      const previous = 1000;
+      const delta = computePeriodDelta(current, previous);
+      expect(delta).toBe(-20.0);
+    });
+  });
 });
