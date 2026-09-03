@@ -85,12 +85,30 @@ export function PageContent() {
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
 
+  const [weeklyYear, setWeeklyYear] = useState<number>(() => {
+    const d = new Date(start_date);
+    return isNaN(d.getTime()) ? 2024 : d.getFullYear();
+  });
+
   const periodItems = useMemo(() => {
+    if (grain === 'weekly') {
+      return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
+    }
     return generatePeriods(start_date, end_date, grain);
-  }, [start_date, end_date, grain]);
+  }, [start_date, end_date, grain, weeklyYear]);
 
   const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
   const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
+
+  const handlePrevYear = () => {
+    setWeeklyYear((y) => y - 1);
+    setScrubberIndex(0);
+  };
+
+  const handleNextYear = () => {
+    setWeeklyYear((y) => y + 1);
+    setScrubberIndex(0);
+  };
 
   useEffect(() => {
     if (periods.length > 0) {
@@ -485,6 +503,11 @@ export function PageContent() {
               currentIndex={activeScrubberIndex}
               onChangeIndex={(idx) => setScrubberIndex(idx)}
               grain={grain}
+              activeYear={grain === 'weekly' ? weeklyYear : undefined}
+              onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
+              onNextYear={grain === 'weekly' ? handleNextYear : undefined}
+              canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
+              canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
             />
           </Stack>
         </Box>

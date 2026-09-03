@@ -20,7 +20,12 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
-import { fetchIndicatorTimeline, fetchSpatialGrid, fetchSpatialSlice } from '@/services/coastalService';
+import {
+  fetchIndicatorTimeline,
+  fetchSpatialGrid,
+  fetchSpatialSlice,
+  fetchSpatialSeries,
+} from '@/services/coastalService';
 import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
 import type {
   CoastalAggFunc,
@@ -91,14 +96,17 @@ export function generatePeriods(
 
   if (grain === 'weekly') {
     const cur = new Date(start);
+    let weekNum = 1;
     while (cur <= end) {
       const periodStart = cur.toISOString().split('T')[0];
       const nextWeek = new Date(cur);
       nextWeek.setDate(cur.getDate() + 6);
       const periodEnd = nextWeek.toISOString().split('T')[0];
-      const label = `${cur.toLocaleString('en-US', { month: 'short' })} ${cur.getDate()}`;
+      const [ey, em, ed] = periodEnd.split('-');
+      const label = `Week ${weekNum}: ${em}/${ed}/${ey}`;
       results.push({ label, start: periodStart, end: periodEnd });
       cur.setDate(cur.getDate() + 7);
+      weekNum++;
     }
     return results;
   }
@@ -273,12 +281,30 @@ export function PageContent() {
   const timelineData = data?.timeline || data?.series || SAMPLE_TIMELINE_DATA;
   const showVesselOverlay = selectedIndicators.includes('vessels');
 
+  const [weeklyYear, setWeeklyYear] = useState<number>(() => {
+    const d = new Date(start_date);
+    return isNaN(d.getTime()) ? 2024 : d.getFullYear();
+  });
+
   const periodItems = useMemo(() => {
+    if (grain === 'weekly') {
+      return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
+    }
     return generatePeriods(start_date, end_date, grain, data?.timeline || data?.series);
-  }, [start_date, end_date, grain, data?.timeline, data?.series]);
+  }, [start_date, end_date, grain, weeklyYear, data?.timeline, data?.series]);
 
   const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
   const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
+
+  const handlePrevYear = () => {
+    setWeeklyYear((y) => y - 1);
+    setScrubberIndex(0);
+  };
+
+  const handleNextYear = () => {
+    setWeeklyYear((y) => y + 1);
+    setScrubberIndex(0);
+  };
 
   // Set default scrubber index to the latest period or Jul 2024 when periods are loaded
   useEffect(() => {
@@ -291,6 +317,47 @@ export function PageContent() {
       }
     }
   }, [periods]);
+
+  // Pre-fetch batch spatial series across all periods for instant 60 FPS playback
+  useEffect(() => {
+    if (viewMode !== 'map' || !country || periodItems.length === 0) {
+      return;
+    }
+
+    let isMounted = true;
+
+    fetchSpatialSeries({
+      country,
+      start_date: periodItems[0].start,
+      end_date: periodItems[periodItems.length - 1].end,
+      grain,
+      indicator: activeChoroplethIndicator,
+      aoi_id: aoi_id || undefined,
+    })
+      .then((res) => {
+        if (!isMounted || !res?.series) return;
+        Object.entries(res.series).forEach(([periodStart, cellMap]) => {
+          const key = `${country}_${periodStart}_${activeChoroplethIndicator}_${grain}`;
+          sliceCacheRef.current.set(key, cellMap as Record<string, any>);
+        });
+
+        const cur = periodItems[activeScrubberIndex];
+        if (cur) {
+          const curKey = `${country}_${cur.start}_${activeChoroplethIndicator}_${grain}`;
+          const cached = sliceCacheRef.current.get(curKey);
+          if (cached) {
+            setSpatialSlice(cached);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Batch spatial series pre-fetch failed, falling back to slice queries:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [country, grain, activeChoroplethIndicator, aoi_id, viewMode, periodItems, activeScrubberIndex]);
 
   // Fetch or derive spatial slice when active period or indicator changes
   useEffect(() => {
@@ -645,6 +712,11 @@ export function PageContent() {
                       currentIndex={activeScrubberIndex}
                       onChangeIndex={(idx) => setScrubberIndex(idx)}
                       grain={grain}
+                      activeYear={grain === 'weekly' ? weeklyYear : undefined}
+                      onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
+                      onNextYear={grain === 'weekly' ? handleNextYear : undefined}
+                      canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
+                      canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
                     />
                   </Box>
                 </CardContent>

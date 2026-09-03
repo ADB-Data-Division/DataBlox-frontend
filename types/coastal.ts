@@ -208,6 +208,17 @@ export interface SpatialSliceResponse {
   data?: Record<string, SpatialCellMetrics | number | null>;
 }
 
+export interface SpatialSeriesResponse {
+  country?: string;
+  country_iso?: string;
+  start_date: string;
+  end_date?: string;
+  grain: CoastalGrain;
+  indicator?: string;
+  aoi_id?: string;
+  series: Record<string, Record<string, SpatialCellMetrics>>;
+}
+
 export interface VesselTimelinePoint {
   period_start: string;
   period_end: string;
@@ -280,6 +291,16 @@ export interface SpatialSliceParams {
   period_end?: string;
   grain?: CoastalGrain;
   indicator?: string;
+  engine?: "duckdb" | "postgres";
+}
+
+export interface SpatialSeriesParams {
+  country: string;
+  start_date: string;
+  end_date?: string;
+  grain?: CoastalGrain;
+  indicator?: string;
+  aoi_id?: string;
   engine?: "duckdb" | "postgres";
 }
 
