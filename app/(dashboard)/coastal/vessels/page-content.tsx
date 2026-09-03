@@ -146,6 +146,10 @@ export function PageContent() {
     ? aoi_id.split(',').map((id) => formatDisplayName(id)).join(', ')
     : country || 'Select Location';
 
+  const aoiCount = aoi_id ? aoi_id.split(',').filter(Boolean).length : 0;
+  const provinceCountText =
+    aoiCount > 1 ? `${aoiCount} provinces` : aoiCount === 1 ? '1 province' : 'National';
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -391,14 +395,18 @@ interface Card2Slide {
     return [
       {
         title: 'Top Vessel Type (Entire Time Range)',
-        value: summary?.top_vessel_type || 'Trade',
-        count: `${(summary?.top_vessel_type_count ?? 0).toLocaleString()} vessels`,
+        value: summary?.top_vessel_type || '-',
+        count: summary?.top_vessel_type
+          ? `${(summary?.top_vessel_type_count ?? 0).toLocaleString()} vessels`
+          : undefined,
         color: '#6366f1',
       },
       {
         title: 'Top Vessel Sub-type (Entire Time Range)',
-        value: summary?.top_vessel_subtype || 'Cargo',
-        count: `${(summary?.top_vessel_subtype_count ?? 0).toLocaleString()} vessels`,
+        value: summary?.top_vessel_subtype || '-',
+        count: summary?.top_vessel_subtype
+          ? `${(summary?.top_vessel_subtype_count ?? 0).toLocaleString()} vessels`
+          : undefined,
         color: '#6366f1',
       },
       {
@@ -571,7 +579,7 @@ interface Card2Slide {
                   sx={{ fontWeight: 600 }}
                 />
                 <Typography variant="body2" color="text.secondary">
-                  1 province
+                  {provinceCountText}
                 </Typography>
               </Stack>
             </Box>

@@ -249,66 +249,6 @@ function fitMapToCells(map: any, cells: HexCellData[]): [[number, number], [numb
   return null;
 }
 
-// Generate polygon vertices for a regular hexagon in geographic coordinates
-function getGeographicHexagon(centerLat: number, centerLng: number, radiusLat: number): [number, number][] {
-  const lngFactor = 1.0 / Math.cos((centerLat * Math.PI) / 180);
-  const coords: [number, number][] = [];
-  for (let i = 0; i < 6; i++) {
-    const angleDeg = 60 * i - 30;
-    const angleRad = (Math.PI / 180) * angleDeg;
-    const lat = centerLat + radiusLat * Math.sin(angleRad);
-    const lng = centerLng + radiusLat * lngFactor * Math.cos(angleRad);
-    coords.push([lat, lng]);
-  }
-  return coords;
-}
-
-// Build coastal honeycomb grid around center coordinates
-function generateCoastalHexGrid(centerLat: number, centerLng: number): HexCellData[] {
-  const radiusLat = 0.022; // approx 2.5km radius for H3 Resolution 7 scale
-  const lngFactor = 1.0 / Math.cos((centerLat * Math.PI) / 180);
-  const dx = radiusLat * Math.sqrt(3) * lngFactor;
-  const dy = radiusLat * 1.5;
-
-  // Grid layout matching the wireframe cluster (5 rows)
-  const clusterLayout = [
-    { row: 0, count: 7, colStart: -3 },
-    { row: 1, count: 8, colStart: -3.5 },
-    { row: 2, count: 7, colStart: -3 },
-    { row: 3, count: 5, colStart: -2 },
-    { row: 4, count: 3, colStart: -1 },
-  ];
-
-  const cells: HexCellData[] = [];
-  let index = 0;
-
-  for (const rowDef of clusterLayout) {
-    const r = rowDef.row;
-    for (let c = 0; c < rowDef.count; c++) {
-      const colPos = rowDef.colStart + c;
-      const lat = centerLat - r * dy + 0.04;
-      const lng = centerLng + colPos * dx;
-      const coords = getGeographicHexagon(lat, lng, radiusLat * 0.96);
-
-      // Default baseline values before slice data arrives
-      const hexId = `878db516${(index + 1).toString(16).padStart(2, '0')}ffffff`;
-
-      cells.push({
-        id: hexId,
-        lat,
-        lng,
-        chlor_a: 0,
-        sst: 0,
-        vessels: 0,
-        coords,
-      });
-      index++;
-    }
-  }
-
-  return cells;
-}
-
 function CoastalChoroplethMapClient({
   country,
   locationName,
@@ -454,10 +394,7 @@ function CoastalChoroplethMapClient({
       return [];
     }
 
-    const baseGrid =
-      genuineCells.length > 0
-        ? genuineCells
-        : generateCoastalHexGrid(centerConfig.lat, centerConfig.lng);
+    const baseGrid = genuineCells && genuineCells.length > 0 ? genuineCells : [];
 
     if (!spatialSlice || Object.keys(spatialSlice).length === 0) {
       return baseGrid;
