@@ -108,6 +108,31 @@ export const getSSTColorRgba = (value: number): [number, number, number, number]
   ];
 };
 
+export const getVesselColorRgba = (vessels: number): [number, number, number, number] => {
+  const maxDensity = 50;
+  const clamped = Math.max(0, Math.min(maxDensity, vessels));
+  if (clamped === 0) {
+    return [241, 245, 249, 120];
+  }
+  const ratio = clamped / maxDensity;
+  if (ratio < 0.5) {
+    const t = ratio * 2;
+    return [
+      Math.round(254 + (248 - 254) * t),
+      Math.round(226 + (113 - 226) * t),
+      Math.round(226 + (113 - 226) * t),
+      215,
+    ];
+  }
+  const t = (ratio - 0.5) * 2;
+  return [
+    Math.round(248 + (153 - 248) * t),
+    Math.round(113 + (27 - 113) * t),
+    Math.round(113 + (27 - 113) * t),
+    215,
+  ];
+};
+
 export const getCellColorRgba = (
   cell: HexCellData,
   isChlor: boolean,
@@ -119,7 +144,7 @@ export const getCellColorRgba = (
   if (isSST) {
     return getSSTColorRgba(cell.sst);
   }
-  return [148, 163, 184, 215];
+  return getVesselColorRgba(cell.vessels);
 };
 
 
@@ -914,8 +939,8 @@ function CoastalChoroplethMapClient({
           <Box sx={{ fontWeight: 700, mb: 0.25 }}>Hex: {hoveredCell.id}</Box>
           <Box sx={{ color: '#64748b' }}>Resolution: 7</Box>
           <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
-          {overlayVessels && (
-            <Box>Total Vessels: <strong>{hoveredCell.vessels}</strong></Box>
+          {(overlayVessels || activeIndicator === 'vessels') && (
+            <Box>Total Vessels: <strong>{hoveredCell.vessels} vessels</strong></Box>
           )}
           {hasChlor && (
             <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
