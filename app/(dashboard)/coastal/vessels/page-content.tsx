@@ -28,8 +28,9 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import VesselTimelineChart from '../components/VesselTimelineChart';
+import VesselTimelineChart, { chartData } from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
+import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
@@ -124,6 +125,41 @@ export function PageContent() {
 
   const handleNewSearch = () => {
     router.push('/coastal');
+  };
+
+  const handleExportCsv = () => {
+    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.csv`;
+    const exportHeaders = [
+      { key: 'label', label: 'Period' },
+      { key: 'trade', label: 'Trade Vessels' },
+      { key: 'harbor', label: 'Harbor Vessels' },
+      { key: 'recreation', label: 'Recreation Vessels' },
+      { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
+    ];
+    exportToCsv(filename, chartData as Record<string, any>[], exportHeaders);
+  };
+
+  const handleExportExcel = () => {
+    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.xls`;
+    const exportHeaders = [
+      { key: 'label', label: 'Period' },
+      { key: 'trade', label: 'Trade Vessels' },
+      { key: 'harbor', label: 'Harbor Vessels' },
+      { key: 'recreation', label: 'Recreation Vessels' },
+      { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
+    ];
+    exportToExcel(filename, 'Vessels', chartData as Record<string, any>[], exportHeaders);
+  };
+
+  const handleExportGraph = () => {
+    const containerId =
+      activeTab === 2
+        ? 'coastal-vessels-map-container'
+        : activeTab === 1
+        ? 'coastal-vessels-distribution-container'
+        : 'coastal-vessels-chart-container';
+    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
+    exportGraphAsPng(containerId, filename);
   };
 
   if (!rawCountry) {
@@ -302,7 +338,7 @@ export function PageContent() {
                 <Typography variant="caption" color="text.secondary">
                   {start_date} to {end_date}
                 </Typography>
-                <Box sx={{ height: 400, mt: 2 }}>
+                <Box id="coastal-vessels-chart-container" sx={{ height: 400, mt: 2 }}>
                   <VesselTimelineChart />
                 </Box>
               </CardContent>
@@ -423,31 +459,35 @@ export function PageContent() {
 
       {/* Tab 1: Type Distribution */}
       {activeTab === 1 && (
-        <VesselDistributionCharts
-          country={country}
-          locationName={locationLabel}
-          dateRange={{ start: start_date, end: end_date }}
-          data={MOCK_DISTRIBUTION_DATA}
-        />
+        <Box id="coastal-vessels-distribution-container">
+          <VesselDistributionCharts
+            country={country}
+            locationName={locationLabel}
+            dateRange={{ start: start_date, end: end_date }}
+            data={MOCK_DISTRIBUTION_DATA}
+          />
+        </Box>
       )}
 
       {/* Tab 2: Choropleth Map */}
       {activeTab === 2 && (
-        <Stack spacing={2}>
-          <VesselSpatialMap
-            key={`${country}_${locationLabel}`}
-            country={country}
-            locationName={locationLabel}
-            selectedCellId={selectedHexCell}
-            onSelectCell={(id) => setSelectedHexCell(id)}
-          />
-          <TemporalScrubber
-            periods={periods}
-            currentIndex={activeScrubberIndex}
-            onChangeIndex={(idx) => setScrubberIndex(idx)}
-            grain={grain}
-          />
-        </Stack>
+        <Box id="coastal-vessels-map-container">
+          <Stack spacing={2}>
+            <VesselSpatialMap
+              key={`${country}_${locationLabel}`}
+              country={country}
+              locationName={locationLabel}
+              selectedCellId={selectedHexCell}
+              onSelectCell={(id) => setSelectedHexCell(id)}
+            />
+            <TemporalScrubber
+              periods={periods}
+              currentIndex={activeScrubberIndex}
+              onChangeIndex={(idx) => setScrubberIndex(idx)}
+              grain={grain}
+            />
+          </Stack>
+        </Box>
       )}
 
       {/* Download Data Footer */}
@@ -468,13 +508,28 @@ export function PageContent() {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Button variant="contained" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportGraph}
+              >
                 Graph
               </Button>
-              <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportCsv}
+              >
                 CSV
               </Button>
-              <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportExcel}
+              >
                 Excel
               </Button>
             </Stack>

@@ -21,6 +21,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
 import { fetchIndicatorTimeline, fetchSpatialGrid, fetchSpatialSlice } from '@/services/coastalService';
+import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -233,6 +234,40 @@ export function PageContent() {
 
   const handleNewSearch = () => {
     router.push('/coastal');
+  };
+
+  const handleExportCsv = () => {
+    const filename = `coastal_indicators_${country}_${start_date}_${end_date}.csv`;
+    const exportHeaders = [
+      { key: 'period_start', label: 'Period Start' },
+      { key: 'period_end', label: 'Period End' },
+      { key: 'chlor_a', label: 'Chlorophyll-a (mg/m³)' },
+      { key: 'sst_c', label: 'Sea Surface Temp (°C)' },
+      { key: 'sst_k', label: 'Sea Surface Temp (K)' },
+      { key: 'total_vessels', label: 'Total Maritime Vessels' },
+      { key: 'port_call_duration_hours', label: 'Port Call Duration (Hours)' },
+    ];
+    exportToCsv(filename, timelineData as Record<string, any>[], exportHeaders);
+  };
+
+  const handleExportExcel = () => {
+    const filename = `coastal_indicators_${country}_${start_date}_${end_date}.xls`;
+    const exportHeaders = [
+      { key: 'period_start', label: 'Period Start' },
+      { key: 'period_end', label: 'Period End' },
+      { key: 'chlor_a', label: 'Chlorophyll-a (mg/m³)' },
+      { key: 'sst_c', label: 'Sea Surface Temp (°C)' },
+      { key: 'sst_k', label: 'Sea Surface Temp (K)' },
+      { key: 'total_vessels', label: 'Total Maritime Vessels' },
+      { key: 'port_call_duration_hours', label: 'Port Call Duration (Hours)' },
+    ];
+    exportToExcel(filename, 'Indicators', timelineData as Record<string, any>[], exportHeaders);
+  };
+
+  const handleExportGraph = () => {
+    const containerId = viewMode === 'map' ? 'coastal-map-container' : 'coastal-chart-container';
+    const filename = `coastal_${viewMode}_${country}_${start_date}_${end_date}.png`;
+    exportGraphAsPng(containerId, filename);
   };
 
   const timelineData = data?.timeline || data?.series || SAMPLE_TIMELINE_DATA;
@@ -508,7 +543,7 @@ export function PageContent() {
 
           {/* Middle Row: Indicator Timeline Chart and Sidebar Controls */}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
-            <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <Box id="coastal-chart-container" sx={{ flex: 1, minWidth: 0, width: '100%' }}>
               <IndicatorTimelineChart
                 data={timelineData}
                 indicators={selectedIndicators}
@@ -589,7 +624,7 @@ export function PageContent() {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ minHeight: 420 }}>
+                  <Box id="coastal-map-container" sx={{ minHeight: 420 }}>
                     <CoastalChoroplethMap
                       key={`${country}_${aoi_id || ''}_${locationLabel}`}
                       country={country}
@@ -649,13 +684,28 @@ export function PageContent() {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Button variant="contained" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportGraph}
+              >
                 Graph
               </Button>
-              <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportCsv}
+              >
                 CSV
               </Button>
-              <Button variant="outlined" size="small" startIcon={<DownloadIcon />}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportExcel}
+              >
                 Excel
               </Button>
             </Stack>
