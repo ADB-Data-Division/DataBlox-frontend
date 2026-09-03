@@ -398,6 +398,12 @@ export function IndicatorTimelineChart({
 
         {loading ? (
           <Skeleton variant="rectangular" height={360} sx={{ borderRadius: 1 }} />
+        ) : !data || data.length === 0 ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 360 }}>
+            <Typography variant="body2" color="text.secondary">
+              No timeline observations available for this location and date range.
+            </Typography>
+          </Box>
         ) : (
           <Box
             ref={containerRef}

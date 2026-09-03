@@ -36,29 +36,7 @@ import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
 import { formatDisplayName } from '../data/provinces';
 import { generatePeriods } from '../indicators/page-content';
-
-
-const MOCK_DISTRIBUTION_DATA = {
-  total: 200,
-  parentCategories: [
-    { id: 'trade', label: 'Trade', value: 92, color: '#6366f1' },
-    { id: 'recreation', label: 'Recreation', value: 52, color: '#f59e0b' },
-    { id: 'harbor', label: 'Harbor', value: 28, color: '#ef4444' },
-    { id: 'miscellaneous', label: 'Miscellaneous', value: 28, color: '#9ca3af' },
-  ],
-  subCategories: [
-    { id: 'cargo', parentId: 'trade', label: 'Cargo', value: 69 },
-    { id: 'tanker', parentId: 'trade', label: 'Tanker', value: 23 },
-    { id: 'tug_tow', parentId: 'harbor', label: 'Tug & Tow', value: 18 },
-    { id: 'dredger', parentId: 'harbor', label: 'Dredger', value: 10 },
-    { id: 'passenger', parentId: 'recreation', label: 'Passenger', value: 30 },
-    { id: 'pleasure_craft', parentId: 'recreation', label: 'Pleasure Craft', value: 15 },
-    { id: 'high_speed_craft', parentId: 'recreation', label: 'High-Speed Craft', value: 7 },
-    { id: 'fishing', parentId: 'miscellaneous', label: 'Fishing', value: 16 },
-    { id: 'sailing', parentId: 'miscellaneous', label: 'Sailing', value: 8 },
-    { id: 'others', parentId: 'miscellaneous', label: 'Others', value: 4 },
-  ],
-};
+import { fetchVesselDistribution } from '@/services/coastalService';
 
 export function PageContent() {
   const router = useRouter();
@@ -84,6 +62,8 @@ export function PageContent() {
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [distributionData, setDistributionData] = useState<any>(null);
+  const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -130,6 +110,60 @@ export function PageContent() {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
+
+  useEffect(() => {
+    if (activeTab !== 1 || !country) return;
+    let isCurrent = true;
+    setDistributionLoading(true);
+    fetchVesselDistribution({
+      country,
+      start_date,
+      end_date,
+    })
+      .then((res) => {
+        if (!isCurrent) return;
+        const colors: Record<string, string> = {
+          Trade: '#6366f1',
+          Recreation: '#f59e0b',
+          Harbor: '#ef4444',
+          Miscellaneous: '#9ca3af',
+        };
+        const total = res.total_records || res.total_vessels || 0;
+        const parentCategories = (res.pie_chart || []).map((item: any) => ({
+          id: (item.category || item.name || '').toLowerCase(),
+          label: item.category || item.name,
+          value: item.count || item.value || 0,
+          color: colors[item.category || item.name] || '#3b82f6',
+        }));
+        const subCategories: Array<{ id: string; parentId: string; label: string; value: number }> = [];
+        if (res.drilldown) {
+          Object.entries(res.drilldown).forEach(([parent, subs]: [string, any]) => {
+            if (Array.isArray(subs)) {
+              subs.forEach((sub: any) => {
+                subCategories.push({
+                  id: (sub.sub_type || sub.granular_type || '').toLowerCase().replace(/\s+/g, '_'),
+                  parentId: parent.toLowerCase(),
+                  label: sub.sub_type || sub.granular_type,
+                  value: sub.count || 0,
+                });
+              });
+            }
+          });
+        }
+        setDistributionData({ total, parentCategories, subCategories });
+      })
+      .catch((err) => {
+        console.error('Failed to load vessel distribution:', err);
+        if (isCurrent) setDistributionData(null);
+      })
+      .finally(() => {
+        if (isCurrent) setDistributionLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeTab, country, start_date, end_date]);
 
   const handleAccordionChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -482,7 +516,8 @@ export function PageContent() {
             country={country}
             locationName={locationLabel}
             dateRange={{ start: start_date, end: end_date }}
-            data={MOCK_DISTRIBUTION_DATA}
+            data={distributionData || undefined}
+            loading={distributionLoading}
           />
         </Box>
       )}

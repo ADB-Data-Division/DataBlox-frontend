@@ -43,22 +43,6 @@ import TemporalScrubber from '../components/TemporalScrubber';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import { formatDisplayName } from '../data/provinces';
 
-const SAMPLE_TIMELINE_DATA: IndicatorTimelinePoint[] = [
-  { period_start: '2019-01-01', period_end: '2019-01-31', chlor_a: 2.1, total_vessels: 45, sst_c: 28.1, port_call_duration_hours: 50 },
-  { period_start: '2019-06-01', period_end: '2019-06-30', chlor_a: 3.4, total_vessels: 48, sst_c: 27.5, port_call_duration_hours: 52 },
-  { period_start: '2019-12-01', period_end: '2019-12-31', chlor_a: 2.6, total_vessels: 52, sst_c: 29.0, port_call_duration_hours: 58 },
-  { period_start: '2020-06-01', period_end: '2020-06-30', chlor_a: 6.84, total_vessels: 46, sst_c: 28.2, port_call_duration_hours: 49 },
-  { period_start: '2021-01-01', period_end: '2021-01-31', chlor_a: 2.8, total_vessels: 55, sst_c: 28.6, port_call_duration_hours: 60 },
-  { period_start: '2021-06-01', period_end: '2021-06-30', chlor_a: 4.2, total_vessels: 50, sst_c: 27.9, port_call_duration_hours: 55 },
-  { period_start: '2022-01-01', period_end: '2022-01-31', chlor_a: 2.3, total_vessels: 58, sst_c: 28.8, port_call_duration_hours: 65 },
-  { period_start: '2022-09-01', period_end: '2022-09-30', chlor_a: 5.01, total_vessels: 62, sst_c: 28.4, port_call_duration_hours: 70 },
-  { period_start: '2023-01-01', period_end: '2023-01-31', chlor_a: 2.5, total_vessels: 59, sst_c: 29.1, port_call_duration_hours: 68 },
-  { period_start: '2023-06-01', period_end: '2023-06-30', chlor_a: 3.8, total_vessels: 61, sst_c: 28.0, port_call_duration_hours: 72 },
-  { period_start: '2024-01-01', period_end: '2024-01-31', chlor_a: 2.9, total_vessels: 65, sst_c: 29.4, port_call_duration_hours: 75 },
-  { period_start: '2024-06-01', period_end: '2024-06-30', chlor_a: 4.5, total_vessels: 64, sst_c: 28.5, port_call_duration_hours: 74 },
-  { period_start: '2025-06-01', period_end: '2025-06-30', chlor_a: 3.9, total_vessels: 69, sst_c: 28.9, port_call_duration_hours: 78 },
-];
-
 export function generatePeriods(
   startDate: string,
   endDate: string,
@@ -192,7 +176,7 @@ export function PageContent() {
       setData(response);
     } catch (err) {
       console.error(err);
-      setError('Live API data unavailable. Showing baseline historical data.');
+      setError('Unable to load coastal indicators data from the live API.');
       setData(null);
     } finally {
       setLoading(false);
@@ -278,7 +262,7 @@ export function PageContent() {
     exportGraphAsPng(containerId, filename);
   };
 
-  const timelineData = data?.timeline || data?.series || SAMPLE_TIMELINE_DATA;
+  const timelineData = data?.timeline || data?.series || [];
   const showVesselOverlay = selectedIndicators.includes('vessels');
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
@@ -390,39 +374,18 @@ export function PageContent() {
           sliceCacheRef.current.set(cacheKey, sliceData);
           setSpatialSlice(sliceData);
         } else {
-          deriveFallback();
+          setSpatialSlice({});
         }
       })
       .catch(() => {
         if (!isCurrent) return;
-        deriveFallback();
+        setSpatialSlice({});
       });
-
-    function deriveFallback() {
-      const pt = timelineData?.find(
-        (p) => p.period_start === curPeriod.start || p.period_start.startsWith(curPeriod.start.slice(0, 7))
-      );
-      if (pt) {
-        const chlor = pt.chlor_a ?? pt.mean_chlor_a ?? 2.0;
-        const sst = pt.sst_k ? pt.sst_k : pt.sst_c ? pt.sst_c + 273.15 : 300.0;
-        const vessels = pt.total_vessels ?? pt.unique_vessels ?? 30;
-
-        const synth: Record<string, any> = {
-          '878db5169ffffff': { chlor_a: chlor, sst, vessels },
-          '878db516affffff': { chlor_a: Math.max(0.5, chlor * 0.8), sst: sst - 1.2, vessels: Math.max(1, Math.round(vessels * 0.7)) },
-          '878db516bffffff': { chlor_a: chlor * 1.1, sst: sst + 0.8, vessels: Math.max(1, Math.round(vessels * 0.9)) },
-          '878db516cffffff': { chlor_a: Math.max(0.5, chlor * 0.6), sst: sst - 0.5, vessels: Math.max(1, Math.round(vessels * 0.4)) },
-          '878db516dffffff': { chlor_a: chlor * 0.9, sst: sst + 0.4, vessels: Math.max(1, Math.round(vessels * 0.6)) },
-        };
-        sliceCacheRef.current.set(cacheKey, synth);
-        setSpatialSlice(synth);
-      }
-    }
 
     return () => {
       isCurrent = false;
     };
-  }, [country, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode, timelineData]);
+  }, [country, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode]);
 
   if (!rawCountry) {
     return null;

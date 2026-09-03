@@ -266,46 +266,15 @@ function generateCoastalHexGrid(centerLat: number, centerLng: number): HexCellDa
       const coords = getGeographicHexagon(lat, lng, radiusLat * 0.96);
 
       // Default baseline values before slice data arrives
-      let hexId = `878db516${(index + 1).toString(16).padStart(2, '0')}ffffff`;
-      let chlor_a = 0;
-      let sst = 0;
-      let vessels = 0;
-
-      // Page 36 and Page 38 reference hex cell: 878db5169ffffff
-      if (r === 2 && c === 2) {
-        hexId = '878db5169ffffff';
-        chlor_a = 19.22;
-        sst = 303.1;
-        vessels = 49;
-      } else if (r === 2 && c === 3) {
-        chlor_a = 13.8;
-        sst = 302.2;
-        vessels = 31;
-      } else if (r === 2 && c === 5) {
-        chlor_a = 14.1;
-        sst = 301.8;
-        vessels = 34;
-      } else if (r === 3 && c === 3) {
-        chlor_a = 10.5;
-        sst = 300.9;
-        vessels = 17;
-      } else if (r === 3 && c === 1) {
-        chlor_a = 8.2;
-        sst = 299.7;
-        vessels = 6;
-      } else if (r === 1 && c === 1) {
-        chlor_a = 4.1;
-        sst = 298.4;
-        vessels = 3;
-      }
+      const hexId = `878db516${(index + 1).toString(16).padStart(2, '0')}ffffff`;
 
       cells.push({
         id: hexId,
         lat,
         lng,
-        chlor_a: Math.max(0.5, chlor_a),
-        sst,
-        vessels,
+        chlor_a: 0,
+        sst: 0,
+        vessels: 0,
         coords,
       });
       index++;
