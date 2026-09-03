@@ -65,10 +65,13 @@ export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: strin
   return 0;
 }
 
-export function formatPeriodLabel(isoString: string): string {
+export function formatPeriodLabel(isoString: string, grain?: string): string {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return isoString;
+  if (grain && grain.toLowerCase() === 'annually') {
+    return String(date.getFullYear());
+  }
   const month = date.toLocaleString('en-US', { month: 'short' });
   const year = date.getFullYear();
   return `${month} ${year}`;
@@ -198,7 +201,7 @@ export function IndicatorTimelineChart({
       .tickValues(tickIndices)
       .tickFormat((i) => {
         const item = data[i as number];
-        return item ? formatPeriodLabel(item.period_start) : '';
+        return item ? formatPeriodLabel(item.period_start, grain) : '';
       });
 
     g.append('g')
@@ -427,7 +430,7 @@ export function IndicatorTimelineChart({
                   {locationName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                  Period: {formatPeriodLabel(hoverPoint.period_start)}
+                  Period: {formatPeriodLabel(hoverPoint.period_start, grain)}
                 </Typography>
                 {indicators.map((indKey) => {
                   const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '' };

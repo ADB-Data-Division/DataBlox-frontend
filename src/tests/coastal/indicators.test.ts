@@ -63,9 +63,12 @@ describe('Coastal Indicators Logic', () => {
   });
 
   describe('Period Label Formatting', () => {
-    function formatPeriod(iso: string): string {
+    function formatPeriod(iso: string, grain?: string): string {
       const date = new Date(iso);
       if (isNaN(date.getTime())) return iso;
+      if (grain && grain.toLowerCase() === 'annually') {
+        return String(date.getFullYear());
+      }
       const month = date.toLocaleString('en-US', { month: 'short' });
       const year = date.getFullYear();
       return `${month} ${year}`;
@@ -74,6 +77,11 @@ describe('Coastal Indicators Logic', () => {
     it('formats ISO period string to Month Year', () => {
       expect(formatPeriod('2022-09-01')).toBe('Sep 2022');
       expect(formatPeriod('2019-01-15')).toBe('Jan 2019');
+    });
+
+    it('formats ISO period string to Year when grain is annually', () => {
+      expect(formatPeriod('2022-09-01', 'annually')).toBe('2022');
+      expect(formatPeriod('2019-01-15', 'annually')).toBe('2019');
     });
 
     it('returns original string if invalid date', () => {

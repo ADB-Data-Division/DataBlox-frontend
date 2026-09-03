@@ -67,7 +67,7 @@ export function generatePeriods(
 ): Array<{ label: string; start: string; end: string }> {
   if (timeline && timeline.length > 0) {
     return timeline.map((pt) => ({
-      label: formatPeriodLabel(pt.period_start),
+      label: formatPeriodLabel(pt.period_start, grain),
       start: pt.period_start,
       end: pt.period_end || pt.period_start,
     }));

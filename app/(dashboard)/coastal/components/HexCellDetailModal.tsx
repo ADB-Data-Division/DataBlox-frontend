@@ -163,6 +163,7 @@ export default function HexCellDetailModal({
   if (primaryConfig) {
     const dataArray = (timeSeries as any)[primaryId] || timeSeries.chlor_a;
     series.push({
+      id: primaryId,
       data: dataArray,
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
@@ -178,6 +179,7 @@ export default function HexCellDetailModal({
   if (secondaryConfig) {
     const dataArray = (timeSeries as any)[secondaryId] || timeSeries.vessels;
     series.push({
+      id: secondaryId,
       data: dataArray,
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
@@ -263,10 +265,24 @@ export default function HexCellDetailModal({
           margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
           slotProps={{ legend: { hidden: true } }}
           sx={{
-            '& .MuiMarkElement-root': {
-              stroke: '#ffffff',
-              strokeWidth: 1.5,
-              scale: '0.65',
+            [`& .MuiMarkElement-series-${primaryId}`]: {
+              fill: `${primaryConfig.color} !important`,
+              stroke: `${primaryConfig.color} !important`,
+              strokeWidth: 1,
+              scale: '0.55',
+            },
+            ...(secondaryConfig
+              ? {
+                  [`& .MuiMarkElement-series-${secondaryId}`]: {
+                    fill: `${secondaryConfig.color} !important`,
+                    stroke: `${secondaryConfig.color} !important`,
+                    strokeWidth: 1,
+                    scale: '0.55',
+                  },
+                }
+              : {}),
+            '& .MuiLineElement-root': {
+              strokeWidth: 2,
             },
           }}
         />
