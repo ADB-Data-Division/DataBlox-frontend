@@ -32,23 +32,15 @@ function CoastalPageContent() {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box
-        sx={{
-          mb: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Typography variant="h3" sx={{ fontWeight: 700 }}>
+      <Box sx={{ mb: 3.5 }}>
+        <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
           Coastal Waters Analysis
         </Typography>
         <Tabs
           value={dashboardTarget}
           onChange={(_, val) => setDashboardTarget(val)}
           sx={{
+            display: 'inline-flex',
             bgcolor: 'background.paper',
             borderRadius: 2,
             border: '1px solid',
@@ -57,7 +49,7 @@ function CoastalPageContent() {
             '& .MuiTab-root': {
               minHeight: 40,
               py: 0.5,
-              px: 2,
+              px: 2.5,
               fontWeight: 600,
               textTransform: 'none',
               fontSize: '14px',
