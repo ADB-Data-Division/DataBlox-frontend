@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Box, Paper, Stack, Typography } from '@mui/material';
+import React, { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import CountrySelector, { FlagBadge } from './components/CountrySelector';
 import { LocationSearch } from './components/LocationSearch';
 import type { CoastalCountry } from '@/types/coastal';
@@ -12,16 +12,66 @@ function resolveIso(country: CoastalCountry | null): string {
   return country ? country.iso || country.country_iso || '' : '';
 }
 
-export default function CoastalPage() {
+function CoastalPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetParam = searchParams.get('target');
+
   const [selectedCountry, setSelectedCountry] = useState<CoastalCountry | null>(null);
+  const [dashboardTarget, setDashboardTarget] = useState<'indicators' | 'vessels'>(
+    targetParam === 'vessels' ? 'vessels' : 'indicators'
+  );
+
+  useEffect(() => {
+    if (targetParam === 'vessels' || targetParam === 'indicators') {
+      setDashboardTarget(targetParam);
+    }
+  }, [targetParam]);
+
   const iso = resolveIso(selectedCountry);
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
+        <Typography variant="h3" sx={{ fontWeight: 700 }}>
+          Coastal Waters Analysis
+        </Typography>
+        <Tabs
+          value={dashboardTarget}
+          onChange={(_, val) => setDashboardTarget(val)}
+          sx={{
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            minHeight: 40,
+            '& .MuiTab-root': {
+              minHeight: 40,
+              py: 0.5,
+              px: 2,
+              fontWeight: 600,
+              textTransform: 'none',
+              fontSize: '14px',
+            },
+          }}
+        >
+          <Tab value="indicators" label="Indicators Analysis" />
+          <Tab value="vessels" label="Vessel Types" />
+        </Tabs>
+      </Box>
+
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="flex-start">
         <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
-          <Typography variant="h3" sx={{ fontWeight: 700, mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
             Select a Country
           </Typography>
           <CountrySelector selectedIso={iso || null} onSelect={setSelectedCountry} />
@@ -53,7 +103,8 @@ export default function CoastalPage() {
                   params.set('country', iso);
                   params.set('aois', aoiIds.join(','));
                   params.set('names', names.join(','));
-                  router.push(`/coastal/indicators?${params.toString()}`);
+                  const targetRoute = dashboardTarget === 'vessels' ? '/coastal/vessels' : '/coastal/indicators';
+                  router.push(`${targetRoute}?${params.toString()}`);
                 }}
               />
             </>
@@ -76,3 +127,12 @@ export default function CoastalPage() {
     </Box>
   );
 }
+
+export default function CoastalPage() {
+  return (
+    <Suspense fallback={null}>
+      <CoastalPageContent />
+    </Suspense>
+  );
+}
+

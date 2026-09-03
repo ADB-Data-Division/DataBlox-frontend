@@ -52,7 +52,7 @@ export function PageContent() {
 
   useEffect(() => {
     if (!rawCountry) {
-      router.replace('/coastal');
+      router.replace('/coastal?target=vessels');
     }
   }, [rawCountry, router]);
 
@@ -172,11 +172,12 @@ export function PageContent() {
 
   const handleEditSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
+    params.set('target', 'vessels');
     router.push(`/coastal?${params.toString()}`);
   };
 
   const handleNewSearch = () => {
-    router.push('/coastal');
+    router.push('/coastal?target=vessels');
   };
 
   const handleExportCsv = () => {

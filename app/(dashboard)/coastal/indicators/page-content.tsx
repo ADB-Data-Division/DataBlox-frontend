@@ -130,7 +130,7 @@ export function PageContent() {
 
   useEffect(() => {
     if (!rawCountry) {
-      router.replace('/coastal');
+      router.replace('/coastal?target=indicators');
     }
   }, [rawCountry, router]);
 
@@ -221,11 +221,12 @@ export function PageContent() {
 
   const handleEditSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
+    params.set('target', 'indicators');
     router.push(`/coastal?${params.toString()}`);
   };
 
   const handleNewSearch = () => {
-    router.push('/coastal');
+    router.push('/coastal?target=indicators');
   };
 
   const handleExportCsv = () => {

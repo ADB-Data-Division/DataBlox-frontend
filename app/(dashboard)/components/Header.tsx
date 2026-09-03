@@ -39,7 +39,6 @@ const navigationLinks: NavCategory[] = [
   },
   {
     title: 'Water Quality',
-    href: '/coastal',
     links: [
       { label: 'Indicators', href: '/coastal/indicators', preserveParams: true },
       { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
@@ -67,6 +66,9 @@ function NavCategoryItem({
 
   const isCategoryActive = useMemo(() => {
     if (category.href && (pathname === category.href || pathname.startsWith(`${category.href}/`))) {
+      return true;
+    }
+    if (category.title === 'Water Quality' && pathname.startsWith('/coastal')) {
       return true;
     }
     return category.links.some(
@@ -232,7 +234,8 @@ function NavCategoryItem({
             if (hasCoastalCountry && coastalParamsString) {
               href = `${link.href}?${coastalParamsString}`;
             } else {
-              href = '/coastal';
+              const target = link.href.includes('/vessels') ? 'vessels' : 'indicators';
+              href = `/coastal?target=${target}`;
             }
           } else if (link.preserveParams && locationsParam) {
             href = `${link.href}?locations=${encodeURIComponent(locationsParam)}`;
