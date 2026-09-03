@@ -241,9 +241,21 @@ export interface VesselTimelinePoint {
   period_start: string;
   period_end: string;
   total_vessels: number;
+  unique_vessels?: number;
+  trade?: number;
+  harbor?: number;
+  recreation?: number;
+  miscellaneous?: number;
+  cargo?: number;
+  tanker?: number;
+  categories?: Record<string, number>;
+  sub_types?: Record<string, number>;
   total_presence_hours: number;
   total_stationary_hours: number;
-  avg_stationary_hours_per_cell: number;
+  stationary_hours?: number;
+  transit_hours?: number;
+  average_stationary_hours_per_cell?: number;
+  average_duration_hours?: number;
 }
 
 export interface VesselTimelineResponse {
@@ -255,10 +267,20 @@ export interface VesselTimelineResponse {
   grain: CoastalGrain;
   metric: CoastalVesselMetric;
   summary?: {
+    total_periods?: number;
     cumulative_vessels?: number;
     peak_vessels?: number;
+    peak_period?: string;
     total_presence_hours?: number;
     total_stationary_hours?: number;
+    average_duration_hours?: number;
+    top_vessel_type?: string;
+    top_vessel_type_count?: number;
+    top_vessel_subtype?: string;
+    top_vessel_subtype_count?: number;
+    category_totals?: Record<string, number>;
+    category_peaks?: Record<string, { peak_count: number; peak_period: string; peak_vessels?: number }>;
+    category_durations?: Record<string, { average_duration_hours: number; peak_duration_hours: number; peak_period: string }>;
   };
   timeline?: VesselTimelinePoint[];
   series?: VesselTimelinePoint[];

@@ -28,15 +28,21 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import VesselTimelineChart, { chartData } from '../components/VesselTimelineChart';
+import VesselTimelineChart from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
+import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
 import { formatDisplayName } from '../data/provinces';
 import { generatePeriods } from '../indicators/page-content';
-import { fetchVesselDistribution } from '@/services/coastalService';
+import {
+  fetchVesselDistribution,
+  fetchVesselTimeline,
+  fetchSpatialSlice,
+} from '@/services/coastalService';
+import type { VesselTimelineResponse } from '@/types/coastal';
 
 export function PageContent() {
   const router = useRouter();
@@ -64,6 +70,39 @@ export function PageContent() {
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
+
+  // Vessel Timeline State
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(false);
+  const [timelineResponse, setTimelineResponse] = useState<VesselTimelineResponse | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
+  const [summaryCard1Slide, setSummaryCard1Slide] = useState<number>(0);
+  const [summaryCard2Slide, setSummaryCard2Slide] = useState<number>(0);
+
+  // Visible Categories State
+  const [visibleSeries, setVisibleSeries] = useState({
+    trade: true,
+    harbor: true,
+    recreation: true,
+    miscellaneous: true,
+  });
+
+  const [visibleSubtypes, setVisibleSubtypes] = useState({
+    cargo: true,
+    tanker: true,
+    tug: true,
+    dredge: true,
+    passenger: true,
+    pleasure_craft: true,
+    high_speed: true,
+    fishing: true,
+    sailing: true,
+    others: true,
+  });
+
+  // Spatial Choropleth Map State
+  const sliceCacheRef = React.useRef<Map<string, Record<string, any>>>(new Map());
+  const [spatialSlice, setSpatialSlice] = useState<Record<string, any>>({});
+  const [spatialLoading, setSpatialLoading] = useState<boolean>(false);
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -165,6 +204,89 @@ export function PageContent() {
     };
   }, [activeTab, country, start_date, end_date]);
 
+  // Fetch Vessel Timeline Data
+  useEffect(() => {
+    if (!country) return;
+    let isCurrent = true;
+    setTimelineLoading(true);
+
+    const metricParam = metric === 'Port Call Duration' ? 'duration' : 'vessel_count';
+
+    fetchVesselTimeline({
+      country,
+      aoi_id,
+      start_date,
+      end_date,
+      grain,
+      metric: metricParam,
+    })
+      .then((res) => {
+        if (!isCurrent) return;
+        setTimelineResponse(res);
+      })
+      .catch((err) => {
+        console.error('Failed to load vessel timeline:', err);
+        if (isCurrent) setTimelineResponse(null);
+      })
+      .finally(() => {
+        if (isCurrent) setTimelineLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [country, aoi_id, start_date, end_date, grain, metric]);
+
+  const timelineData = useMemo(() => {
+    return timelineResponse?.timeline || timelineResponse?.series || [];
+  }, [timelineResponse]);
+
+  const summary = timelineResponse?.summary;
+
+  // Fetch Spatial Slice for Tab 2
+  useEffect(() => {
+    if (activeTab !== 2 || !country) return;
+    const curPeriod = periodItems[activeScrubberIndex];
+    if (!curPeriod) return;
+
+    const cacheKey = `${country}_${curPeriod.start}_vessels_${grain}`;
+    if (sliceCacheRef.current.has(cacheKey)) {
+      setSpatialSlice(sliceCacheRef.current.get(cacheKey)!);
+      return;
+    }
+
+    let isCurrent = true;
+    setSpatialLoading(true);
+    fetchSpatialSlice({
+      country,
+      period_start: curPeriod.start,
+      period_end: curPeriod.end,
+      grain,
+      indicator: 'vessels',
+    })
+      .then((res) => {
+        if (!isCurrent) return;
+        const sliceData = res?.values || res?.data;
+        if (sliceData && Object.keys(sliceData).length > 0) {
+          sliceCacheRef.current.set(cacheKey, sliceData);
+          setSpatialSlice(sliceData);
+        } else {
+          setSpatialSlice({});
+        }
+      })
+      .catch(() => {
+        if (!isCurrent) return;
+        setSpatialSlice({});
+      })
+      .finally(() => {
+        if (isCurrent) setSpatialLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [country, activeScrubberIndex, periodItems, grain, activeTab]);
+
   const handleAccordionChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
@@ -183,25 +305,35 @@ export function PageContent() {
   const handleExportCsv = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.csv`;
     const exportHeaders = [
-      { key: 'label', label: 'Period' },
+      { key: 'period_start', label: 'Period Start' },
+      { key: 'period_end', label: 'Period End' },
       { key: 'trade', label: 'Trade Vessels' },
+      { key: 'cargo', label: 'Cargo Vessels' },
+      { key: 'tanker', label: 'Tanker Vessels' },
       { key: 'harbor', label: 'Harbor Vessels' },
       { key: 'recreation', label: 'Recreation Vessels' },
       { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
+      { key: 'total_vessels', label: 'Total Vessels' },
+      { key: 'average_duration_hours', label: 'Average Duration (Hours)' },
     ];
-    exportToCsv(filename, chartData as Record<string, any>[], exportHeaders);
+    exportToCsv(filename, timelineData as Record<string, any>[], exportHeaders);
   };
 
   const handleExportExcel = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.xls`;
     const exportHeaders = [
-      { key: 'label', label: 'Period' },
+      { key: 'period_start', label: 'Period Start' },
+      { key: 'period_end', label: 'Period End' },
       { key: 'trade', label: 'Trade Vessels' },
+      { key: 'cargo', label: 'Cargo Vessels' },
+      { key: 'tanker', label: 'Tanker Vessels' },
       { key: 'harbor', label: 'Harbor Vessels' },
       { key: 'recreation', label: 'Recreation Vessels' },
       { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
+      { key: 'total_vessels', label: 'Total Vessels' },
+      { key: 'average_duration_hours', label: 'Average Duration (Hours)' },
     ];
-    exportToExcel(filename, 'Vessels', chartData as Record<string, any>[], exportHeaders);
+    exportToExcel(filename, 'Vessels', timelineData as Record<string, any>[], exportHeaders);
   };
 
   const handleExportGraph = () => {
@@ -214,6 +346,194 @@ export function PageContent() {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
     exportGraphAsPng(containerId, filename);
   };
+
+interface Card1Slide {
+  title: string;
+  value: string;
+  count?: string;
+  color: string;
+}
+
+interface Card2Slide {
+  title: string;
+  value: string;
+  observed?: string;
+  color: string;
+}
+
+  const card1Slides: Card1Slide[] = useMemo(() => {
+    const isDuration = metric === 'Port Call Duration';
+    if (isDuration) {
+      return [
+        {
+          title: 'Trade: Average Duration',
+          value: `${summary?.category_durations?.['Trade']?.average_duration_hours ?? 0} hrs`,
+          color: '#6366f1',
+        },
+        {
+          title: 'Harbor: Average Duration',
+          value: `${summary?.category_durations?.['Harbor']?.average_duration_hours ?? 0} hrs`,
+          color: '#ef4444',
+        },
+        {
+          title: 'Recreation: Average Duration',
+          value: `${summary?.category_durations?.['Recreation']?.average_duration_hours ?? 0} hrs`,
+          color: '#f59e0b',
+        },
+        {
+          title: 'Miscellaneous: Average Duration',
+          value: `${summary?.category_durations?.['Miscellaneous']?.average_duration_hours ?? 0} hrs`,
+          color: '#9ca3af',
+        },
+      ];
+    }
+
+    return [
+      {
+        title: 'Top Vessel Type (Entire Time Range)',
+        value: summary?.top_vessel_type || 'Trade',
+        count: `${(summary?.top_vessel_type_count ?? 0).toLocaleString()} vessels`,
+        color: '#6366f1',
+      },
+      {
+        title: 'Top Vessel Sub-type (Entire Time Range)',
+        value: summary?.top_vessel_subtype || 'Cargo',
+        count: `${(summary?.top_vessel_subtype_count ?? 0).toLocaleString()} vessels`,
+        color: '#6366f1',
+      },
+      {
+        title: 'Trade (Entire Time Range)',
+        value: 'Trade',
+        count: `${(summary?.category_totals?.['Trade'] ?? 0).toLocaleString()} vessels`,
+        color: '#6366f1',
+      },
+      {
+        title: 'Harbor (Entire Time Range)',
+        value: 'Harbor',
+        count: `${(summary?.category_totals?.['Harbor'] ?? 0).toLocaleString()} vessels`,
+        color: '#ef4444',
+      },
+      {
+        title: 'Recreation (Entire Time Range)',
+        value: 'Recreation',
+        count: `${(summary?.category_totals?.['Recreation'] ?? 0).toLocaleString()} vessels`,
+        color: '#f59e0b',
+      },
+      {
+        title: 'Miscellaneous (Entire Time Range)',
+        value: 'Miscellaneous',
+        count: `${(summary?.category_totals?.['Miscellaneous'] ?? 0).toLocaleString()} vessels`,
+        color: '#9ca3af',
+      },
+    ];
+  }, [summary, metric]);
+
+  const card2Slides: Card2Slide[] = useMemo(() => {
+    const isDuration = metric === 'Port Call Duration';
+    if (isDuration) {
+      return [
+        {
+          title: 'Trade: Peak Duration',
+          value: `${summary?.category_durations?.['Trade']?.peak_duration_hours ?? 0} hrs`,
+          observed: summary?.category_durations?.['Trade']?.peak_period || '-',
+          color: '#6366f1',
+        },
+        {
+          title: 'Harbor: Peak Duration',
+          value: `${summary?.category_durations?.['Harbor']?.peak_duration_hours ?? 0} hrs`,
+          observed: summary?.category_durations?.['Harbor']?.peak_period || '-',
+          color: '#ef4444',
+        },
+        {
+          title: 'Recreation: Peak Duration',
+          value: `${summary?.category_durations?.['Recreation']?.peak_duration_hours ?? 0} hrs`,
+          observed: summary?.category_durations?.['Recreation']?.peak_period || '-',
+          color: '#f59e0b',
+        },
+        {
+          title: 'Miscellaneous: Peak Duration',
+          value: `${summary?.category_durations?.['Miscellaneous']?.peak_duration_hours ?? 0} hrs`,
+          observed: summary?.category_durations?.['Miscellaneous']?.peak_period || '-',
+          color: '#9ca3af',
+        },
+      ];
+    }
+
+    return [
+      {
+        title: 'Trade: Peak Vessel Count',
+        value: `${(summary?.category_peaks?.['Trade']?.peak_count ?? 0).toLocaleString()} vessels`,
+        observed: summary?.category_peaks?.['Trade']?.peak_period || '-',
+        color: '#6366f1',
+      },
+      {
+        title: 'Harbor: Peak Vessel Count',
+        value: `${(summary?.category_peaks?.['Harbor']?.peak_count ?? 0).toLocaleString()} vessels`,
+        observed: summary?.category_peaks?.['Harbor']?.peak_period || '-',
+        color: '#ef4444',
+      },
+      {
+        title: 'Recreation: Peak Vessel Count',
+        value: `${(summary?.category_peaks?.['Recreation']?.peak_count ?? 0).toLocaleString()} vessels`,
+        observed: summary?.category_peaks?.['Recreation']?.peak_period || '-',
+        color: '#f59e0b',
+      },
+      {
+        title: 'Miscellaneous: Peak Vessel Count',
+        value: `${(summary?.category_peaks?.['Miscellaneous']?.peak_count ?? 0).toLocaleString()} vessels`,
+        observed: summary?.category_peaks?.['Miscellaneous']?.peak_period || '-',
+        color: '#9ca3af',
+      },
+    ];
+  }, [summary, metric]);
+
+  const selectedDetails = useMemo(() => {
+    if (!selectedPeriod || !timelineData.length) return null;
+    const curIdx = timelineData.findIndex((p) => p.period_start === selectedPeriod);
+    if (curIdx < 0) return null;
+
+    const cur = timelineData[curIdx];
+    const prev = curIdx > 0 ? timelineData[curIdx - 1] : null;
+
+    const curDate = new Date(cur.period_start);
+    const prevYear = timelineData.find((p) => {
+      const d = new Date(p.period_start);
+      return (
+        d.getFullYear() === curDate.getFullYear() - 1 &&
+        d.getMonth() === curDate.getMonth()
+      );
+    });
+
+    const formatP = (iso: string) => {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    };
+
+    const prevPct =
+      prev && prev.total_vessels > 0
+        ? ((cur.total_vessels - prev.total_vessels) / prev.total_vessels) * 100
+        : null;
+
+    const prevYearPct =
+      prevYear && prevYear.total_vessels > 0
+        ? ((cur.total_vessels - prevYear.total_vessels) / prevYear.total_vessels) * 100
+        : null;
+
+    return {
+      period: formatP(cur.period_start),
+      totalVessels: cur.total_vessels,
+      trade: cur.trade ?? 0,
+      cargo: cur.cargo ?? 0,
+      tanker: cur.tanker ?? 0,
+      prevLabel: prev ? formatP(prev.period_start) : null,
+      prevTotal: prev?.total_vessels ?? 0,
+      prevPct,
+      prevYearLabel: prevYear ? formatP(prevYear.period_start) : null,
+      prevYearTotal: prevYear?.total_vessels ?? 0,
+      prevYearPct,
+    };
+  }, [selectedPeriod, timelineData]);
 
   if (!rawCountry) {
     return null;
@@ -330,55 +650,179 @@ export function PageContent() {
         <Stack spacing={3}>
           {/* Quick Summary Cards */}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            {/* Card 1: Top Vessel Types / Totals Carousel */}
             <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
-              <CardContent>
+              <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  Top Vessel Type (Entire Time Range)
+                  {card1Slides[summaryCard1Slide]?.title}
                 </Typography>
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ mt: 1 }}>
-                  <Typography variant="h4" sx={{ color: '#6366f1', fontWeight: 800 }}>
-                    Trade
+                  <Typography variant="h4" sx={{ color: card1Slides[summaryCard1Slide]?.color || '#6366f1', fontWeight: 800 }}>
+                    {card1Slides[summaryCard1Slide]?.value}
                   </Typography>
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Total Count:
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#6366f1', fontWeight: 700 }}>
-                      16,865 vessels
-                    </Typography>
-                  </Box>
+                  {card1Slides[summaryCard1Slide]?.count && (
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Total Count:
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: card1Slides[summaryCard1Slide]?.color || '#6366f1', fontWeight: 700 }}>
+                        {card1Slides[summaryCard1Slide]?.count}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+                {/* Carousel Dots */}
+                <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 1.5 }}>
+                  {card1Slides.map((_, sIdx) => (
+                    <Box
+                      key={sIdx}
+                      onClick={() => setSummaryCard1Slide(sIdx)}
+                      sx={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        bgcolor: sIdx === summaryCard1Slide ? '#6366f1' : 'action.disabled',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  ))}
                 </Stack>
               </CardContent>
             </Card>
 
+            {/* Card 2: Peak Vessel Count / Duration Carousel */}
             <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
-              <CardContent>
+              <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2 } }}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  Trade: Peak Vessel Count (Monthly)
+                  {card2Slides[summaryCard2Slide]?.title}
                 </Typography>
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ mt: 1 }}>
-                  <Typography variant="h4" sx={{ color: '#6366f1', fontWeight: 800 }}>
-                    285 vessels
+                  <Typography variant="h4" sx={{ color: card2Slides[summaryCard2Slide]?.color || '#6366f1', fontWeight: 800 }}>
+                    {card2Slides[summaryCard2Slide]?.value}
                   </Typography>
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      Observed on:
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                      Dec 2025
-                    </Typography>
-                  </Box>
+                  {card2Slides[summaryCard2Slide]?.observed && (
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Observed on:
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
+                        {card2Slides[summaryCard2Slide]?.observed}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+                {/* Carousel Dots */}
+                <Stack direction="row" spacing={0.75} justifyContent="center" sx={{ mt: 1.5 }}>
+                  {card2Slides.map((_, sIdx) => (
+                    <Box
+                      key={sIdx}
+                      onClick={() => setSummaryCard2Slide(sIdx)}
+                      sx={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        bgcolor: sIdx === summaryCard2Slide ? '#6366f1' : 'action.disabled',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  ))}
                 </Stack>
               </CardContent>
             </Card>
 
-            <Card variant="outlined" sx={{ flex: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Select a period on the graph to view more details
-                </Typography>
-              </CardContent>
-            </Card>
+            {/* Card 3: Interactive Period Details Inspection */}
+            {selectedDetails ? (
+              <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
+                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                      Selected: {selectedDetails.period} ({selectedDetails.totalVessels.toLocaleString()} vessels)
+                    </Typography>
+                    <Button
+                      size="small"
+                      sx={{ fontSize: 11, py: 0, minWidth: 'auto', textTransform: 'none' }}
+                      onClick={() => setSelectedPeriod(null)}
+                    >
+                      Clear
+                    </Button>
+                  </Stack>
+                  <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Change from Previous Period
+                      </Typography>
+                      {selectedDetails.prevPct !== null ? (
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 800,
+                            color: selectedDetails.prevPct >= 0 ? '#16a34a' : '#dc2626',
+                          }}
+                        >
+                          {selectedDetails.prevPct >= 0 ? '↑ +' : '↓ '}
+                          {selectedDetails.prevPct.toFixed(1)}%
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          -
+                        </Typography>
+                      )}
+                      {selectedDetails.prevLabel && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          vs {selectedDetails.prevLabel} ({selectedDetails.prevTotal.toLocaleString()})
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Change from Previous Year
+                      </Typography>
+                      {selectedDetails.prevYearPct !== null ? (
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 800,
+                            color: selectedDetails.prevYearPct >= 0 ? '#16a34a' : '#dc2626',
+                          }}
+                        >
+                          {selectedDetails.prevYearPct >= 0 ? '↑ +' : '↓ '}
+                          {selectedDetails.prevYearPct.toFixed(1)}%
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          -
+                        </Typography>
+                      )}
+                      {selectedDetails.prevYearLabel && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          vs {selectedDetails.prevYearLabel} ({selectedDetails.prevYearTotal.toLocaleString()})
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    Select a period on the graph to view more details
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
           </Stack>
 
           {/* Main Chart Area and Sidebar */}
@@ -386,13 +830,21 @@ export function PageContent() {
             <Card variant="outlined" sx={{ flex: 1, minWidth: 0, width: '100%', borderRadius: 2 }}>
               <CardContent>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Vessel Count By Type (Monthly) : {locationLabel}
+                  {metric} By Type ({grain.charAt(0).toUpperCase() + grain.slice(1)}) : {locationLabel}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {start_date} to {end_date}
                 </Typography>
                 <Box id="coastal-vessels-chart-container" sx={{ height: 400, mt: 2 }}>
-                  <VesselTimelineChart />
+                  <VesselTimelineChart
+                    data={timelineData}
+                    loading={timelineLoading}
+                    locationName={locationLabel}
+                    selectedPeriod={selectedPeriod}
+                    onSelectPeriod={(p) => setSelectedPeriod(p)}
+                    visibleSeries={visibleSeries}
+                    metric={metric}
+                  />
                 </Box>
               </CardContent>
             </Card>
@@ -434,15 +886,42 @@ export function PageContent() {
                   <Accordion expanded={expanded === 'trade'} onChange={handleAccordionChange('trade')} disableGutters elevation={0}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
                       <FormControlLabel
-                        control={<Checkbox defaultChecked size="small" />}
+                        control={
+                          <Checkbox
+                            checked={visibleSeries.trade}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setVisibleSeries((v) => ({ ...v, trade: e.target.checked }));
+                            }}
+                            size="small"
+                          />
+                        }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Trade</Typography>}
                         onClick={(e) => e.stopPropagation()}
                       />
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
                       <FormGroup>
-                        <FormControlLabel control={<Checkbox defaultChecked size="small" />} label={<Typography variant="caption">Cargo</Typography>} />
-                        <FormControlLabel control={<Checkbox defaultChecked size="small" />} label={<Typography variant="caption">Tanker</Typography>} />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.cargo}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, cargo: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Cargo</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.tanker}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tanker: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Tanker</Typography>}
+                        />
                       </FormGroup>
                     </AccordionDetails>
                   </Accordion>
@@ -450,15 +929,42 @@ export function PageContent() {
                   <Accordion expanded={expanded === 'harbor'} onChange={handleAccordionChange('harbor')} disableGutters elevation={0}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
                       <FormControlLabel
-                        control={<Checkbox size="small" />}
+                        control={
+                          <Checkbox
+                            checked={visibleSeries.harbor}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setVisibleSeries((v) => ({ ...v, harbor: e.target.checked }));
+                            }}
+                            size="small"
+                          />
+                        }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Harbor</Typography>}
                         onClick={(e) => e.stopPropagation()}
                       />
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
                       <FormGroup>
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Tug & Tow</Typography>} />
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Dredger</Typography>} />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.tug}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tug: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Tug & Tow</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.dredge}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, dredge: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Dredger</Typography>}
+                        />
                       </FormGroup>
                     </AccordionDetails>
                   </Accordion>
@@ -466,16 +972,52 @@ export function PageContent() {
                   <Accordion expanded={expanded === 'recreation'} onChange={handleAccordionChange('recreation')} disableGutters elevation={0}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
                       <FormControlLabel
-                        control={<Checkbox size="small" />}
+                        control={
+                          <Checkbox
+                            checked={visibleSeries.recreation}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setVisibleSeries((v) => ({ ...v, recreation: e.target.checked }));
+                            }}
+                            size="small"
+                          />
+                        }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Recreation</Typography>}
                         onClick={(e) => e.stopPropagation()}
                       />
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
                       <FormGroup>
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Passenger</Typography>} />
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Pleasure Craft</Typography>} />
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">High-Speed Craft</Typography>} />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.passenger}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, passenger: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Passenger</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.pleasure_craft}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, pleasure_craft: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Pleasure Craft</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.high_speed}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, high_speed: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">High-Speed Craft</Typography>}
+                        />
                       </FormGroup>
                     </AccordionDetails>
                   </Accordion>
@@ -483,16 +1025,52 @@ export function PageContent() {
                   <Accordion expanded={expanded === 'miscellaneous'} onChange={handleAccordionChange('miscellaneous')} disableGutters elevation={0}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
                       <FormControlLabel
-                        control={<Checkbox size="small" />}
+                        control={
+                          <Checkbox
+                            checked={visibleSeries.miscellaneous}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setVisibleSeries((v) => ({ ...v, miscellaneous: e.target.checked }));
+                            }}
+                            size="small"
+                          />
+                        }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Miscellaneous</Typography>}
                         onClick={(e) => e.stopPropagation()}
                       />
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
                       <FormGroup>
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Fishing</Typography>} />
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Sailing</Typography>} />
-                        <FormControlLabel control={<Checkbox size="small" />} label={<Typography variant="caption">Others</Typography>} />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.fishing}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, fishing: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Fishing</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.sailing}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, sailing: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Sailing</Typography>}
+                        />
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={visibleSubtypes.others}
+                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, others: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label={<Typography variant="caption">Others</Typography>}
+                        />
                       </FormGroup>
                     </AccordionDetails>
                   </Accordion>
@@ -527,13 +1105,31 @@ export function PageContent() {
       {activeTab === 2 && (
         <Box id="coastal-vessels-map-container">
           <Stack spacing={2}>
+            {/* Top Row: Hex Cell Detail Modal / Card */}
+            <Box sx={{ width: '100%' }}>
+              <HexCellDetailModal
+                cellId={selectedHexCell}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={['vessels']}
+                onClose={() => setSelectedHexCell(null)}
+              />
+            </Box>
+
             <VesselSpatialMap
               key={`${country}_${locationLabel}`}
               country={country}
               locationName={locationLabel}
+              aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
+              spatialSlice={spatialSlice}
               selectedCellId={selectedHexCell}
               onSelectCell={(id) => setSelectedHexCell(id)}
+              loading={spatialLoading}
+              periodLabel={periods[activeScrubberIndex]}
             />
+
             <TemporalScrubber
               periods={periods}
               currentIndex={activeScrubberIndex}
