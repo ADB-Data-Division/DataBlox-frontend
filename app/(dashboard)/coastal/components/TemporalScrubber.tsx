@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
+import { Box, IconButton, Slider, Stack, Typography, Tooltip } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 export interface TemporalScrubberProps {
   periods: string[];
@@ -11,6 +13,11 @@ export interface TemporalScrubberProps {
   onChangeIndex: (index: number) => void;
   grain: string;
   disabled?: boolean;
+  activeYear?: number;
+  onPrevYear?: () => void;
+  onNextYear?: () => void;
+  canPrevYear?: boolean;
+  canNextYear?: boolean;
 }
 
 export default function TemporalScrubber({
@@ -19,6 +26,11 @@ export default function TemporalScrubber({
   onChangeIndex,
   grain,
   disabled = false,
+  activeYear,
+  onPrevYear,
+  onNextYear,
+  canPrevYear = true,
+  canNextYear = true,
 }: TemporalScrubberProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,7 +54,7 @@ export default function TemporalScrubber({
     }
   }, [periods, onChangeIndex]);
 
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
     onChangeIndex(newValue as number);
   };
 
@@ -54,7 +66,7 @@ export default function TemporalScrubber({
         } else {
           onChangeIndex(currentIndexRef.current + 1);
         }
-      }, 800);
+      }, 700);
     } else {
       if (playIntervalRef.current) {
         clearInterval(playIntervalRef.current);
@@ -74,7 +86,14 @@ export default function TemporalScrubber({
     }
   }, [currentIndex, periods.length, isPlaying]);
 
+  const isWeekly = grain.toLowerCase() === 'weekly';
+
   const marks = useMemo(() => {
+    if (isWeekly) {
+      return periods
+        .map((_, index) => ({ value: index }))
+        .filter((m) => m.value === 0 || m.value === periods.length - 1 || m.value % 4 === 0);
+    }
     if (periods.length <= 24) {
       return periods.map((_, index) => ({ value: index }));
     }
@@ -82,21 +101,58 @@ export default function TemporalScrubber({
     return periods
       .map((_, index) => ({ value: index }))
       .filter((m) => m.value === 0 || m.value === periods.length - 1 || m.value % interval === 0);
-  }, [periods]);
+  }, [periods, isWeekly]);
 
   const startYearMatch = periods.length > 0 ? periods[0].match(/\d{4}/) : null;
-  const startYear = startYearMatch ? startYearMatch[0] : '';
-
-  const endYearMatch = periods.length > 0 ? periods[periods.length - 1].match(/\d{4}/) : null;
-  const endYear = endYearMatch ? endYearMatch[0] : '';
+  const derivedStartYear = activeYear ? String(activeYear) : startYearMatch ? startYearMatch[0] : '';
+  const derivedEndYear = activeYear
+    ? String(activeYear + 1)
+    : periods.length > 0
+    ? periods[periods.length - 1].match(/\d{4}/)?.[0] || ''
+    : '';
 
   return (
-    <Box sx={{ width: '100%', p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-      <Stack direction="row" alignItems="center" spacing={2}>
-        <IconButton onClick={handleJumpToStart} disabled={disabled || currentIndex === 0} size="small" aria-label="Jump to start">
-          <SkipPreviousIcon />
-        </IconButton>
-        <IconButton onClick={handlePlayPause} disabled={disabled || periods.length === 0 || (currentIndex === periods.length - 1 && !isPlaying)} size="small" aria-label="Play or pause">
+    <Box
+      sx={{
+        width: '100%',
+        p: 2,
+        bgcolor: 'background.paper',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1.5}>
+        {isWeekly && onPrevYear ? (
+          <Tooltip title="Previous Year">
+            <span>
+              <IconButton
+                onClick={onPrevYear}
+                disabled={disabled || !canPrevYear}
+                size="small"
+                aria-label="Previous year"
+              >
+                <ChevronLeftIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : (
+          <IconButton
+            onClick={handleJumpToStart}
+            disabled={disabled || currentIndex === 0}
+            size="small"
+            aria-label="Jump to start"
+          >
+            <SkipPreviousIcon />
+          </IconButton>
+        )}
+
+        <IconButton
+          onClick={handlePlayPause}
+          disabled={disabled || periods.length === 0 || (currentIndex === periods.length - 1 && !isPlaying)}
+          size="small"
+          aria-label="Play or pause"
+        >
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
         </IconButton>
 
@@ -114,7 +170,7 @@ export default function TemporalScrubber({
             sx={{
               '& .MuiSlider-valueLabel': {
                 fontSize: 12,
-                fontWeight: 'normal',
+                fontWeight: 600,
                 top: -6,
                 backgroundColor: 'background.paper',
                 color: 'text.primary',
@@ -123,6 +179,8 @@ export default function TemporalScrubber({
                 borderRadius: 1,
                 px: 1,
                 py: 0.5,
+                boxShadow: 1,
+                whiteSpace: 'nowrap',
                 '&::before': {
                   display: 'none',
                 },
@@ -139,15 +197,39 @@ export default function TemporalScrubber({
               },
             }}
           />
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: -1 }}>
-            <Typography variant="caption" color="text.secondary">{startYear}</Typography>
-            <Typography variant="caption" color="text.secondary">{endYear}</Typography>
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: -0.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {derivedStartYear}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {derivedEndYear}
+            </Typography>
           </Stack>
         </Box>
 
-        <IconButton onClick={handleJumpToEnd} disabled={disabled || currentIndex === periods.length - 1} size="small" aria-label="Jump to end">
-          <SkipNextIcon />
-        </IconButton>
+        {isWeekly && onNextYear ? (
+          <Tooltip title="Next Year">
+            <span>
+              <IconButton
+                onClick={onNextYear}
+                disabled={disabled || !canNextYear}
+                size="small"
+                aria-label="Next year"
+              >
+                <ChevronRightIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : (
+          <IconButton
+            onClick={handleJumpToEnd}
+            disabled={disabled || currentIndex === periods.length - 1}
+            size="small"
+            aria-label="Jump to end"
+          >
+            <SkipNextIcon />
+          </IconButton>
+        )}
       </Stack>
     </Box>
   );

@@ -28,7 +28,7 @@ const generateData = () => {
   return data;
 };
 
-const chartData = generateData();
+export const chartData = generateData();
 
 const CustomTooltip = (props: any) => {
   const { active, payload, label } = props;

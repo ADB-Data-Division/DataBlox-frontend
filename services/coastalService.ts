@@ -11,10 +11,12 @@ import {
   GeoJSONFeature,
   GeoJSONFeatureCollection,
   SpatialSliceResponse,
+  SpatialSeriesResponse,
   VesselTimelineResponse,
   VesselDistributionResponse,
   CoastalTimelineParams,
   SpatialSliceParams,
+  SpatialSeriesParams,
   VesselTimelineParams,
   VesselDistributionParams,
 } from "../types/coastal";
@@ -307,6 +309,26 @@ export async function fetchSpatialSlice(
       period_end: params.period_end,
       grain: params.grain || "monthly",
       indicator: params.indicator || "chlor_a",
+    },
+    params.engine
+  );
+}
+
+/**
+ * 5b. Fetch batch spatial timeline series across a date range for memory caching.
+ */
+export async function fetchSpatialSeries(
+  params: SpatialSeriesParams
+): Promise<SpatialSeriesResponse> {
+  return fetchCoastalApi<SpatialSeriesResponse>(
+    "/indicators/spatial/series",
+    {
+      country: params.country,
+      start_date: params.start_date,
+      end_date: params.end_date,
+      grain: params.grain || "monthly",
+      indicator: params.indicator || "chlor_a",
+      aoi_id: params.aoi_id,
     },
     params.engine
   );

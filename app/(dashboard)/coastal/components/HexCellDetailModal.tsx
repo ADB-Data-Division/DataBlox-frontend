@@ -167,7 +167,7 @@ export default function HexCellDetailModal({
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
       label: primaryConfig.label,
-      showMark: false,
+      showMark: true,
     });
     yAxisConfig.push({
       id: 'leftAxis',
@@ -182,7 +182,7 @@ export default function HexCellDetailModal({
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
       label: secondaryConfig.label,
-      showMark: false,
+      showMark: true,
     });
     yAxisConfig.push({
       id: 'rightAxis',
@@ -262,6 +262,13 @@ export default function HexCellDetailModal({
           yAxis={yAxisConfig}
           margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
           slotProps={{ legend: { hidden: true } }}
+          sx={{
+            '& .MuiMarkElement-root': {
+              stroke: '#ffffff',
+              strokeWidth: 1.5,
+              scale: '0.65',
+            },
+          }}
         />
       </Box>
     </Card>
