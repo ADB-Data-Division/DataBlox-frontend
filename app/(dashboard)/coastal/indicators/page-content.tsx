@@ -595,6 +595,7 @@ export function PageContent() {
                 locationName={locationLabel}
                 dateRange={{ start: start_date, end: end_date }}
                 timeline={timelineData}
+                grain={grain}
               />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -643,6 +644,8 @@ export function PageContent() {
             <HexCellDetailModal
               cellId={selectedHexCell}
               locationName={locationLabel}
+              country={country}
+              grain={grain}
               dateRange={{ start: start_date, end: end_date }}
               indicators={selectedIndicators}
               onClose={() => setSelectedHexCell(null)}
@@ -703,6 +706,7 @@ export function PageContent() {
                       selectedCellId={selectedHexCell}
                       onSelectCell={(id) => setSelectedHexCell(id)}
                       periodLabel={periods[activeScrubberIndex]}
+                      indicators={selectedIndicators}
                     />
                   </Box>
 

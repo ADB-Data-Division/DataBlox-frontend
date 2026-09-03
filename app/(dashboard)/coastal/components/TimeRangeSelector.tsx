@@ -22,6 +22,7 @@ export interface TimeRangeSelectorProps {
   onRangeChange: (startDate: string, endDate: string) => void;
   onGrainChange: (grain: CoastalGrain) => void;
   disabled?: boolean;
+  disabledGrain?: boolean;
 }
 
 const MONTHS = [
@@ -38,6 +39,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   onRangeChange,
   onGrainChange,
   disabled = false,
+  disabledGrain = false,
 }) => {
   const minYear = parseInt(minDate.split('-')[0], 10);
   const minMonth = parseInt(minDate.split('-')[1], 10);
@@ -217,7 +219,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
 
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="body2" color="text.secondary">Agg. Level</Typography>
-          <FormControl size="small" disabled={disabled}>
+          <FormControl size="small" disabled={disabledGrain}>
             <Select value={grain} onChange={handleGrainChange}>
               <MenuItem value="weekly">Weekly</MenuItem>
               <MenuItem value="monthly">Monthly</MenuItem>

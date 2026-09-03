@@ -17,6 +17,7 @@ export interface CoastalChoroplethMapProps {
   onSelectCell: (cellId: string) => void;
   loading?: boolean;
   periodLabel?: string;
+  indicators?: string[];
 }
 
 interface HexCellData {
@@ -324,6 +325,7 @@ function CoastalChoroplethMapClient({
   selectedCellId,
   onSelectCell,
   loading = false,
+  indicators,
 }: CoastalChoroplethMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
@@ -352,6 +354,20 @@ function CoastalChoroplethMapClient({
     const key = (activeIndicator || '').toLowerCase();
     return key.includes('sst') || key.includes('temp') || key.includes('surface');
   }, [activeIndicator]);
+
+  const hasSST = useMemo(() => {
+    if (indicators && indicators.length > 0) {
+      return indicators.includes('sst');
+    }
+    return isSST;
+  }, [indicators, isSST]);
+
+  const hasChlor = useMemo(() => {
+    if (indicators && indicators.length > 0) {
+      return indicators.includes('chlor_a');
+    }
+    return true;
+  }, [indicators]);
 
   const centerConfig = useMemo(() => {
     return resolveCenter(locationName, country);
@@ -935,8 +951,12 @@ function CoastalChoroplethMapClient({
           {overlayVessels && (
             <Box>Total Vessels: <strong>{hoveredCell.vessels}</strong></Box>
           )}
-          <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
-          <Box>Sea Surface Temp (Avg.): <strong>{hoveredCell.sst.toFixed(1)} K</strong></Box>
+          {hasChlor && (
+            <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
+          )}
+          {hasSST && (
+            <Box>Sea Surface Temp (Avg.): <strong>{hoveredCell.sst.toFixed(1)} K</strong></Box>
+          )}
         </Box>
       )}
     </Box>

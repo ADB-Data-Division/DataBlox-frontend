@@ -22,6 +22,7 @@ export interface SummaryCardsProps {
   locationName: string;
   dateRange: { start: string; end: string };
   timeline?: IndicatorTimelinePoint[];
+  grain?: string;
   loading?: boolean;
 }
 
@@ -423,6 +424,7 @@ function SingleSummaryCard({
   locationName,
   dateRange,
   timeline,
+  grain,
   loading,
 }: {
   indicatorKey: string;
@@ -430,6 +432,7 @@ function SingleSummaryCard({
   locationName: string;
   dateRange: { start: string; end: string };
   timeline?: IndicatorTimelinePoint[];
+  grain?: string;
   loading?: boolean;
 }) {
   const theme = useTheme();
@@ -442,6 +445,9 @@ function SingleSummaryCard({
     peakLabel: 'Peak Value:',
     zeroPeakReason: 'No data was recorded in this time range',
   };
+
+  const grainLabel = grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
+  const dynamicPeakLabel = cfg.peakLabel.replace('Monthly', grainLabel);
 
   const isVessel = indicatorKey === 'vessels';
   const count = timeline ? timeline.length : 0;
@@ -653,7 +659,7 @@ function SingleSummaryCard({
             >
               <Box sx={{ cursor: 'help' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                  {cfg.peakLabel}
+                  {dynamicPeakLabel}
                 </Typography>
                 {loading ? (
                   <Skeleton variant="text" width={140} height={48} />
@@ -724,6 +730,7 @@ export function SummaryCards({
   locationName,
   dateRange,
   timeline,
+  grain,
   loading,
 }: SummaryCardsProps) {
   if (!indicators || indicators.length === 0) {
@@ -751,6 +758,7 @@ export function SummaryCards({
               locationName={locationName}
               dateRange={dateRange}
               timeline={timeline}
+              grain={grain}
               loading={loading}
             />
           </Box>

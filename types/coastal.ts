@@ -219,6 +219,24 @@ export interface SpatialSeriesResponse {
   series: Record<string, Record<string, SpatialCellMetrics>>;
 }
 
+export interface HexCellTimeSeriesPoint {
+  period_start: string;
+  period_end?: string;
+  chlor_a?: number | null;
+  sst?: number | null;
+  vessels?: number;
+  duration?: number;
+}
+
+export interface HexCellTimeSeriesResponse {
+  country: string;
+  cell_id: string;
+  start_date: string;
+  end_date: string;
+  grain: CoastalGrain;
+  series: HexCellTimeSeriesPoint[];
+}
+
 export interface VesselTimelinePoint {
   period_start: string;
   period_end: string;

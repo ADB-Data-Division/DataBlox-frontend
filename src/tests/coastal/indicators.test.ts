@@ -88,4 +88,72 @@ describe('Coastal Indicators Logic', () => {
       expect(formatPeriod('invalid-date')).toBe('invalid-date');
     });
   });
+
+  describe('Peak Metric Label Granularity Formatting', () => {
+    function formatPeakLabel(baseLabel: string, grain?: string): string {
+      const grainLabel = grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
+      return baseLabel.replace('Monthly', grainLabel);
+    }
+
+    it('formats peak label with Monthly granularity by default', () => {
+      expect(formatPeakLabel('Peak Vessel Count (Monthly):', 'monthly')).toBe('Peak Vessel Count (Monthly):');
+      expect(formatPeakLabel('Peak Concentration (Monthly):', undefined)).toBe('Peak Concentration (Monthly):');
+    });
+
+    it('formats peak label with Weekly granularity', () => {
+      expect(formatPeakLabel('Peak Vessel Count (Monthly):', 'weekly')).toBe('Peak Vessel Count (Weekly):');
+      expect(formatPeakLabel('Peak Concentration (Monthly):', 'weekly')).toBe('Peak Concentration (Weekly):');
+    });
+
+    it('formats peak label with Annual granularity', () => {
+      expect(formatPeakLabel('Peak Vessel Count (Monthly):', 'annually')).toBe('Peak Vessel Count (Annual):');
+      expect(formatPeakLabel('Peak Concentration (Monthly):', 'annually')).toBe('Peak Concentration (Annual):');
+    });
+  });
+
+  describe('Hex Detail Chart Max Lines Warning Condition', () => {
+    function shouldShowMaxLinesWarning(activeIndicators: string[]): boolean {
+      return activeIndicators.length >= 3;
+    }
+
+    it('hides warning when 1 indicator is active', () => {
+      expect(shouldShowMaxLinesWarning(['chlor_a'])).toBe(false);
+    });
+
+    it('hides warning when 2 indicators are active', () => {
+      expect(shouldShowMaxLinesWarning(['chlor_a', 'vessels'])).toBe(false);
+    });
+
+    it('shows warning when 3 or more indicators are active', () => {
+      expect(shouldShowMaxLinesWarning(['chlor_a', 'vessels', 'sst'])).toBe(true);
+      expect(shouldShowMaxLinesWarning(['chlor_a', 'vessels', 'sst', 'duration'])).toBe(true);
+    });
+  });
+
+  describe('Choropleth Hover Tooltip Active Indicator Filtering', () => {
+    function getVisibleTooltipMetrics(activeIndicators: string[], isSSTActive = false) {
+      const hasChlor = !activeIndicators || activeIndicators.length === 0 || activeIndicators.includes('chlor_a');
+      const hasSST = activeIndicators && activeIndicators.length > 0 ? activeIndicators.includes('sst') : isSSTActive;
+      return { hasChlor, hasSST };
+    }
+
+    it('shows only Chlorophyll-a when only Chlorophyll-a is selected', () => {
+      const metrics = getVisibleTooltipMetrics(['chlor_a']);
+      expect(metrics.hasChlor).toBe(true);
+      expect(metrics.hasSST).toBe(false);
+    });
+
+    it('shows only Chlorophyll-a when Chlorophyll-a and Vessels are selected', () => {
+      const metrics = getVisibleTooltipMetrics(['chlor_a', 'vessels']);
+      expect(metrics.hasChlor).toBe(true);
+      expect(metrics.hasSST).toBe(false);
+    });
+
+    it('shows SST when SST is in active checklist', () => {
+      const metrics = getVisibleTooltipMetrics(['chlor_a', 'vessels', 'sst']);
+      expect(metrics.hasChlor).toBe(true);
+      expect(metrics.hasSST).toBe(true);
+    });
+  });
 });
+

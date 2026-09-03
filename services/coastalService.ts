@@ -10,6 +10,7 @@ import {
   IndicatorTimelineResponse,
   GeoJSONFeature,
   GeoJSONFeatureCollection,
+  HexCellTimeSeriesResponse,
   SpatialSliceResponse,
   SpatialSeriesResponse,
   VesselTimelineResponse,
@@ -372,8 +373,37 @@ export async function fetchVesselDistribution(
 }
 
 /**
+ * 8. Fetch historical time series observations for an individual H3 grid cell.
+ */
+export interface HexCellTimeSeriesParams {
+  country: string;
+  cell_id: string;
+  start_date?: string;
+  end_date?: string;
+  grain?: string;
+  engine?: "duckdb" | "postgres";
+}
+
+export async function fetchHexCellTimeSeries(
+  params: HexCellTimeSeriesParams
+): Promise<HexCellTimeSeriesResponse> {
+  return fetchCoastalApi<HexCellTimeSeriesResponse>(
+    "/indicators/spatial/cell/series",
+    {
+      country: params.country,
+      cell_id: params.cell_id,
+      start_date: params.start_date || "2019-01-01",
+      end_date: params.end_date || "2025-12-31",
+      grain: params.grain || "monthly",
+    },
+    params.engine
+  );
+}
+
+/**
  * Clear cached GeoJSON grids from memory if needed.
  */
 export function clearSpatialGridCache(): void {
   _gridCache.clear();
 }
+

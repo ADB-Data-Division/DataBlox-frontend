@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Card } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { fetchHexCellTimeSeries } from '@/services/coastalService';
+import type { HexCellTimeSeriesPoint } from '@/types/coastal';
 
 export interface HexCellDetailModalProps {
   cellId?: string | null;
   locationName: string;
+  country?: string;
+  grain?: string;
   dateRange: { start: string; end: string };
   indicators: string[];
   onClose: () => void;
@@ -111,10 +115,60 @@ function generateCellTimeSeries(cellId: string) {
 export default function HexCellDetailModal({
   cellId,
   locationName,
+  country,
+  grain = 'monthly',
   dateRange,
   indicators,
   onClose,
 }: HexCellDetailModalProps) {
+  const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
+
+  useEffect(() => {
+    if (!cellId || !country) {
+      setRealPoints(null);
+      return;
+    }
+    let isMounted = true;
+    fetchHexCellTimeSeries({
+      country,
+      cell_id: cellId,
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+      grain,
+    })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res?.series && res.series.length > 0) {
+          setRealPoints(res.series);
+        } else {
+          setRealPoints(null);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setRealPoints(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cellId, country, dateRange.start, dateRange.end, grain]);
+
+  const timeSeries = useMemo(() => {
+    if (realPoints && realPoints.length > 0) {
+      return {
+        months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
+        chlor_a: realPoints.map((pt) => pt.chlor_a ?? 0),
+        vessels: realPoints.map((pt) => pt.vessels ?? 0),
+        sst: realPoints.map((pt) => pt.sst ?? 0),
+        duration: realPoints.map((pt) => pt.duration ?? 0),
+      };
+    }
+    if (!cellId) {
+      return { months: [], chlor_a: [], vessels: [], sst: [], duration: [] };
+    }
+    return generateCellTimeSeries(cellId);
+  }, [realPoints, cellId]);
+
   if (!cellId) {
     return (
       <Card
@@ -134,8 +188,6 @@ export default function HexCellDetailModal({
       </Card>
     );
   }
-
-  const timeSeries = useMemo(() => generateCellTimeSeries(cellId), [cellId]);
 
   const activeIndicators = indicators.length > 0 ? indicators.slice(0, 2) : ['chlor_a', 'vessels'];
   const primaryId = activeIndicators[0] || 'chlor_a';
@@ -217,9 +269,11 @@ export default function HexCellDetailModal({
         </Box>
 
         <Box sx={{ flex: 1, textAlign: 'center', px: 2 }}>
-          <Typography variant="body2" sx={{ color: '#ea580c', fontWeight: 600 }}>
-            Note: Only up to two lines can be displayed at a time.
-          </Typography>
+          {indicators.length >= 3 && (
+            <Typography variant="body2" sx={{ color: '#ea580c', fontWeight: 600 }}>
+              Note: Only up to two lines can be displayed at a time.
+            </Typography>
+          )}
         </Box>
 
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 2 }}>
