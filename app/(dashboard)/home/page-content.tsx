@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Card, CardContent, Stack, Collapse, useTheme, useMediaQuery } from '@mui/material';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   ArrowsLeftRight,
@@ -12,8 +12,10 @@ import {
   AirplaneTilt,
   TrendUp,
   Warning,
-  Code,
   ArrowRight,
+  Boat,
+  Leaf,
+  Sailboat,
 } from '@phosphor-icons/react/dist/ssr';
 import { ConnectivityStatus } from '../components/ConnectivityStatus';
 
@@ -33,6 +35,7 @@ interface Category {
   icon: React.ReactNode;
   color: string;
   gradient: string;
+  href?: string;
   subPages: SubPage[];
 }
 
@@ -98,17 +101,25 @@ const categories: Category[] = [
     ],
   },
   {
-    title: 'DataBlox-OD Python Library',
-    description: 'Python Toolkit for efficiently mining rich information from GPS data.',
-    icon: <Code size={36} weight="duotone" />,
-    color: '#22C55E',
-    gradient: 'linear-gradient(135deg, #15803d 0%, #22C55E 100%)',
+    title: 'Coastal Waters',
+    description: 'Examine water quality surrounding global seaports',
+    icon: <Boat size={36} weight="duotone" />,
+    color: '#3399D3',
+    gradient: 'linear-gradient(135deg, #005A94 0%, #3399D3 100%)',
+    href: '/coastal',
     subPages: [
       {
-        label: 'View Documentation',
-        href: '/lib/index.html',
-        icon: <Code size={20} weight="duotone" />,
-        description: 'API reference and usage guide',
+        label: 'Indicators',
+        href: '/coastal/indicators',
+        icon: <Leaf size={20} weight="duotone" />,
+        description: 'Environment and human impact trends',
+        preserveParams: false,
+      },
+      {
+        label: 'Vessel Types',
+        href: '/coastal/vessels',
+        icon: <Sailboat size={20} weight="duotone" />,
+        description: 'Marine traffic by vessel type',
         preserveParams: false,
       },
     ],
@@ -141,6 +152,7 @@ function useIsTouchDevice() {
 
 function CategoryCard({ category, locationsParam }: { category: Category; locationsParam: string | null }) {
   const isTouch = useIsTouchDevice();
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
 
@@ -148,8 +160,18 @@ function CategoryCard({ category, locationsParam }: { category: Category; locati
   const showSubPages = isTouch ? expanded : hovered;
 
   const handleClick = useCallback(() => {
-    if (isTouch) setExpanded((prev) => !prev);
-  }, [isTouch]);
+    if (isTouch) {
+      if (expanded && category.href) {
+        router.push(category.href);
+        return;
+      }
+      setExpanded((prev) => !prev);
+      return;
+    }
+    if (category.href) {
+      router.push(category.href);
+    }
+  }, [category.href, expanded, isTouch, router]);
 
   return (
     <Card
@@ -221,10 +243,13 @@ function CategoryCard({ category, locationsParam }: { category: Category; locati
         <Collapse in={showSubPages} timeout={250}>
           <Stack spacing={0.5} sx={{ mt: 1.5, mb: 0.5 }}>
             {category.subPages.map((page) => {
-              const href =
-                page.preserveParams && locationsParam
-                  ? `${page.href}?locations=${encodeURIComponent(locationsParam)}`
-                  : page.href;
+              const isCoastal = page.href.startsWith('/coastal');
+              const target = page.href.includes('/vessels') ? 'vessels' : 'indicators';
+              const href = isCoastal
+                ? `/coastal?target=${target}`
+                : page.preserveParams && locationsParam
+                ? `${page.href}?locations=${encodeURIComponent(locationsParam)}`
+                : page.href;
 
               return (
                 <Link key={page.href} href={href} style={{ textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>

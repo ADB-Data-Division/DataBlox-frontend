@@ -56,11 +56,21 @@ export interface CoastalCountry {
   };
 }
 
+export interface CoastalProvince {
+  name: string;
+  country_iso: string;
+  countryIso?: string;
+  aois: string[];
+  aoi_count?: number;
+  total_hexagons?: number;
+}
+
 export interface CoastalLocation {
   id?: string | null;
   aoi_id: string;
   name: string;
   display_name?: string;
+  province?: string;
   country_iso: string;
   type?: string;
   hexagon_count?: number;
@@ -198,13 +208,54 @@ export interface SpatialSliceResponse {
   data?: Record<string, SpatialCellMetrics | number | null>;
 }
 
+export interface SpatialSeriesResponse {
+  country?: string;
+  country_iso?: string;
+  start_date: string;
+  end_date?: string;
+  grain: CoastalGrain;
+  indicator?: string;
+  aoi_id?: string;
+  series: Record<string, Record<string, SpatialCellMetrics>>;
+}
+
+export interface HexCellTimeSeriesPoint {
+  period_start: string;
+  period_end?: string;
+  chlor_a?: number | null;
+  sst?: number | null;
+  vessels?: number;
+  duration?: number;
+}
+
+export interface HexCellTimeSeriesResponse {
+  country: string;
+  cell_id: string;
+  start_date: string;
+  end_date: string;
+  grain: CoastalGrain;
+  series: HexCellTimeSeriesPoint[];
+}
+
 export interface VesselTimelinePoint {
   period_start: string;
   period_end: string;
   total_vessels: number;
+  unique_vessels?: number;
+  trade?: number;
+  harbor?: number;
+  recreation?: number;
+  miscellaneous?: number;
+  cargo?: number;
+  tanker?: number;
+  categories?: Record<string, number>;
+  sub_types?: Record<string, number>;
   total_presence_hours: number;
   total_stationary_hours: number;
-  avg_stationary_hours_per_cell: number;
+  stationary_hours?: number;
+  transit_hours?: number;
+  average_stationary_hours_per_cell?: number;
+  average_duration_hours?: number;
 }
 
 export interface VesselTimelineResponse {
@@ -216,10 +267,20 @@ export interface VesselTimelineResponse {
   grain: CoastalGrain;
   metric: CoastalVesselMetric;
   summary?: {
+    total_periods?: number;
     cumulative_vessels?: number;
     peak_vessels?: number;
+    peak_period?: string;
     total_presence_hours?: number;
     total_stationary_hours?: number;
+    average_duration_hours?: number;
+    top_vessel_type?: string;
+    top_vessel_type_count?: number;
+    top_vessel_subtype?: string;
+    top_vessel_subtype_count?: number;
+    category_totals?: Record<string, number>;
+    category_peaks?: Record<string, { peak_count: number; peak_period: string; peak_vessels?: number }>;
+    category_durations?: Record<string, { average_duration_hours: number; peak_duration_hours: number; peak_period: string }>;
   };
   timeline?: VesselTimelinePoint[];
   series?: VesselTimelinePoint[];
@@ -270,6 +331,16 @@ export interface SpatialSliceParams {
   period_end?: string;
   grain?: CoastalGrain;
   indicator?: string;
+  engine?: "duckdb" | "postgres";
+}
+
+export interface SpatialSeriesParams {
+  country: string;
+  start_date: string;
+  end_date?: string;
+  grain?: CoastalGrain;
+  indicator?: string;
+  aoi_id?: string;
   engine?: "duckdb" | "postgres";
 }
 

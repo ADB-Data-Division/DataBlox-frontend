@@ -13,6 +13,7 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage for
 import { isBrowser } from './utils';
 import datasetReducer from './features/datasetSlice';
 import userPreferencesReducer from './features/userPreferencesSlice';
+import coastalReducer from './features/coastalSlice';
 
 // Configure persistence for dataset
 const datasetPersistConfig = {
@@ -37,6 +38,7 @@ export const store = configureStore({
   reducer: {
     dataset: persistedDatasetReducer,
     userPreferences: persistedUserPreferencesReducer,
+    coastal: coastalReducer,
     // Add other reducers here as needed
   },
   // Add middleware to handle redux-persist actions
