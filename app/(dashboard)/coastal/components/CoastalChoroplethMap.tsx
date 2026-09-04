@@ -18,6 +18,7 @@ export interface CoastalChoroplethMapProps {
   loading?: boolean;
   periodLabel?: string;
   indicators?: string[];
+  height?: number | string;
 }
 
 interface HexCellData {
@@ -260,6 +261,7 @@ function CoastalChoroplethMapClient({
   onSelectCell,
   loading = false,
   indicators,
+  height = 420,
 }: CoastalChoroplethMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
@@ -605,6 +607,13 @@ function CoastalChoroplethMapClient({
     };
   }, [centerConfig]);
 
+  // Adjust Leaflet map size when container height changes
+  useEffect(() => {
+    if (leafletMapRef.current) {
+      leafletMapRef.current.invalidateSize();
+    }
+  }, [height]);
+
   // WebGL hardware-accelerated rendering via Deck.gl
   useEffect(() => {
     if (!deckOverlayRef.current || !deckModules) {
@@ -779,7 +788,7 @@ function CoastalChoroplethMapClient({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height={420} width="100%">
+      <Box display="flex" justifyContent="center" alignItems="center" height={height} width="100%">
         <CircularProgress />
       </Box>
     );
@@ -790,7 +799,7 @@ function CoastalChoroplethMapClient({
       sx={{
         position: 'relative',
         width: '100%',
-        height: 420,
+        height,
         borderRadius: 2,
         overflow: 'hidden',
         border: '1px solid',
@@ -854,7 +863,13 @@ function CoastalChoroplethMapClient({
           sx={{
             position: 'absolute',
             left: Math.min(tooltipPos.x + 12, (mapContainerRef.current?.clientWidth || 400) - 220),
-            top: Math.max(10, Math.min(tooltipPos.y + 12, (mapContainerRef.current?.clientHeight || 420) - 160)),
+            top: Math.max(
+              10,
+              Math.min(
+                tooltipPos.y + 12,
+                (mapContainerRef.current?.clientHeight || (typeof height === 'number' ? height : 420)) - 160
+              )
+            ),
             zIndex: 1000,
             pointerEvents: 'none',
             bgcolor: 'rgba(255, 255, 255, 0.96)',
@@ -891,7 +906,7 @@ function CoastalChoroplethMapClient({
 const CoastalChoroplethMap = dynamic(() => Promise.resolve(CoastalChoroplethMapClient), {
   ssr: false,
   loading: () => (
-    <Box display="flex" justifyContent="center" alignItems="center" height={420} width="100%">
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight={420} height="100%" width="100%">
       <CircularProgress />
     </Box>
   ),

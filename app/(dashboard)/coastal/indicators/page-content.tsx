@@ -658,7 +658,7 @@ export function PageContent() {
                     </Typography>
                   </Box>
 
-                  <Box id="coastal-map-container" sx={{ minHeight: 420 }}>
+                  <Box id="coastal-map-container" sx={{ minHeight: 1260 }}>
                     <CoastalChoroplethMap
                       key={`${country}_${aoi_id || ''}_${locationLabel}`}
                       country={country}
@@ -671,6 +671,7 @@ export function PageContent() {
                       onSelectCell={(id) => setSelectedHexCell(id)}
                       periodLabel={periods[activeScrubberIndex]}
                       indicators={selectedIndicators}
+                      height={1260}
                     />
                   </Box>
 
