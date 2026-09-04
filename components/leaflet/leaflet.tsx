@@ -272,10 +272,11 @@ const ThailandMapClient: React.FC<ThailandMapProps> = ({
       maxBoundsViscosity: 1.0 // Makes the bounds completely solid (prevents dragging outside)
     });
     
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
+    // Add tile layer (OpenTopoMap)
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution:
+        'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+      subdomains: 'abc',
       maxZoom: 12,
       bounds: biggerBounds // Also restrict the tile loading to Thailand bounds
     }).addTo(map);
