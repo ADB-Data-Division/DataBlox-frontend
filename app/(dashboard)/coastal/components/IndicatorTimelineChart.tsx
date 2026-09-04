@@ -24,10 +24,10 @@ export interface IndicatorTimelineChartProps {
   loading?: boolean;
 }
 
-const INDICATORS_CONFIG: Record<string, { label: string; unit: string; color: string }> = {
-  chlor_a: { label: 'Chlorophyll-a', unit: 'mg/m³', color: '#3B82F6' },
-  vessels: { label: 'Maritime Vessels', unit: 'vessels', color: '#EF4444' },
-  duration: { label: 'Port Call Duration', unit: 'hours', color: '#EF4444' },
+export const INDICATORS_CONFIG: Record<string, { label: string; unit: string; color: string }> = {
+  chlor_a: { label: 'Chlorophyll-a', unit: 'mg/m³', color: '#10B981' },
+  vessels: { label: 'Vessel Count', unit: 'vessels', color: '#8B5CF6' },
+  duration: { label: 'Vessel Port Call Duration', unit: 'hours', color: '#3B82F6' },
   sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#EF4444' },
 };
 
@@ -214,16 +214,18 @@ export function IndicatorTimelineChart({
     // Left Y Axis
     const yAxisLeft = d3.axisLeft(y1).ticks(6);
     const leftAxisG = g.append('g').call(yAxisLeft);
-    leftAxisG.selectAll('text').attr('font-size', '11px').attr('fill', '#4b5563');
+    leftAxisG.selectAll('text').attr('font-size', '11px').attr('fill', ind1Cfg.color).attr('font-weight', 600);
+    leftAxisG.select('.domain').attr('stroke', ind1Cfg.color);
+    leftAxisG.selectAll('.tick line').attr('stroke', ind1Cfg.color);
 
     g.append('text')
       .attr('transform', 'rotate(-90)')
       .attr('y', -MARGINS.left + 15)
       .attr('x', -innerHeight / 2)
       .attr('text-anchor', 'middle')
-      .attr('font-size', '11px')
-      .attr('fill', '#374151')
-      .attr('font-weight', 600)
+      .attr('font-size', '12px')
+      .attr('fill', ind1Cfg.color)
+      .attr('font-weight', 700)
       .text(`${ind1Cfg.label} (${ind1Cfg.unit})`);
 
     // Right Y Axis
@@ -233,16 +235,18 @@ export function IndicatorTimelineChart({
         .append('g')
         .attr('transform', `translate(${innerWidth},0)`)
         .call(yAxisRight);
-      rightAxisG.selectAll('text').attr('font-size', '11px').attr('fill', '#4b5563');
+      rightAxisG.selectAll('text').attr('font-size', '11px').attr('fill', ind2Cfg.color).attr('font-weight', 600);
+      rightAxisG.select('.domain').attr('stroke', ind2Cfg.color);
+      rightAxisG.selectAll('.tick line').attr('stroke', ind2Cfg.color);
 
       g.append('text')
         .attr('transform', `translate(${innerWidth + 52}, ${innerHeight / 2}) rotate(90)`)
         .attr('text-anchor', 'middle')
         .attr('y', 0)
         .attr('x', 0)
-        .attr('font-size', '11px')
-        .attr('fill', '#374151')
-        .attr('font-weight', 600)
+        .attr('font-size', '12px')
+        .attr('fill', ind2Cfg.color)
+        .attr('font-weight', 700)
         .text(`${ind2Cfg.label} (${ind2Cfg.unit})`);
     }
 
@@ -439,8 +443,10 @@ export function IndicatorTimelineChart({
                   Period: {formatPeriodLabel(hoverPoint.period_start, grain)}
                 </Typography>
                 {indicators.map((indKey) => {
-                  const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '' };
+                  const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '', color: '#3B82F6' };
                   const val = getPointValue(hoverPoint, indKey);
+                  const formattedVal =
+                    indKey === 'vessels' ? Math.round(val).toLocaleString() : val.toFixed(2);
                   return (
                     <Stack
                       key={indKey}
@@ -449,9 +455,11 @@ export function IndicatorTimelineChart({
                       spacing={2}
                       sx={{ mb: 0.5 }}
                     >
-                      <Typography variant="caption">{cfg.label} (Avg.):</Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                        {val.toFixed(2)} {cfg.unit}
+                      <Typography variant="caption" sx={{ color: cfg.color, fontWeight: 600 }}>
+                        {cfg.label}:
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: cfg.color }}>
+                        {formattedVal} {cfg.unit}
                       </Typography>
                     </Stack>
                   );

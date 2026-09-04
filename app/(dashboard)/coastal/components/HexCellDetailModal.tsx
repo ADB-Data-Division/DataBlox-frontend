@@ -24,26 +24,26 @@ const INDICATOR_CONFIG: Record<
   chlor_a: {
     label: 'Chlorophyll-a',
     unit: 'mg/m³',
-    color: '#3B82F6',
+    color: '#10B981',
     defaultRange: [0, 5],
   },
   vessels: {
     label: 'Vessel Count',
     unit: 'vessels',
-    color: '#EF4444',
+    color: '#8B5CF6',
     defaultRange: [0, 200],
-  },
-  sst: {
-    label: 'Sea Surface Temp.',
-    unit: 'K',
-    color: '#A855F7',
-    defaultRange: [290, 310],
   },
   duration: {
     label: 'Port Call Duration',
     unit: 'hours',
-    color: '#F59E0B',
+    color: '#3B82F6',
     defaultRange: [0, 150],
+  },
+  sst: {
+    label: 'Sea Surface Temp.',
+    unit: 'K',
+    color: '#EF4444',
+    defaultRange: [290, 310],
   },
 };
 
@@ -281,6 +281,20 @@ export default function HexCellDetailModal({
                 strokeWidth: 1,
                 scale: '0.55',
               },
+              '& .MuiChartsAxis-left .MuiChartsAxis-label': {
+                fill: `${primaryConfig.color} !important`,
+                fontWeight: 700,
+              },
+              '& .MuiChartsAxis-left .MuiChartsAxis-tickLabel': {
+                fill: `${primaryConfig.color} !important`,
+                fontWeight: 600,
+              },
+              '& .MuiChartsAxis-left .MuiChartsAxis-line': {
+                stroke: `${primaryConfig.color} !important`,
+              },
+              '& .MuiChartsAxis-left .MuiChartsAxis-tick': {
+                stroke: `${primaryConfig.color} !important`,
+              },
               ...(secondaryConfig
                 ? {
                     [`& .MuiMarkElement-series-${secondaryId}`]: {
@@ -288,6 +302,20 @@ export default function HexCellDetailModal({
                       stroke: `${secondaryConfig.color} !important`,
                       strokeWidth: 1,
                       scale: '0.55',
+                    },
+                    '& .MuiChartsAxis-right .MuiChartsAxis-label': {
+                      fill: `${secondaryConfig.color} !important`,
+                      fontWeight: 700,
+                    },
+                    '& .MuiChartsAxis-right .MuiChartsAxis-tickLabel': {
+                      fill: `${secondaryConfig.color} !important`,
+                      fontWeight: 600,
+                    },
+                    '& .MuiChartsAxis-right .MuiChartsAxis-line': {
+                      stroke: `${secondaryConfig.color} !important`,
+                    },
+                    '& .MuiChartsAxis-right .MuiChartsAxis-tick': {
+                      stroke: `${secondaryConfig.color} !important`,
                     },
                   }
                 : {}),

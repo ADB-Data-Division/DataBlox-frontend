@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { CoastalAggFunc } from '@/types/coastal';
+import { INDICATORS_CONFIG } from './IndicatorTimelineChart';
 
 export interface IndicatorSidebarProps {
   selectedIndicators: string[];
@@ -60,9 +61,11 @@ export function IndicatorSidebar({
 
           {mode === 'timeline' ? (
             <Stack spacing={1}>
-              {selectedIndicators.map((ind, i) => {
+              {selectedIndicators.map((ind) => {
                 const item = AVAILABLE_INDICATORS.find((x) => x.id === ind);
-                const color = i === 0 ? '#3B82F6' : '#EF4444';
+                const cfg = INDICATORS_CONFIG[ind];
+                const color = cfg?.color || '#3B82F6';
+                const label = cfg?.label || item?.label || ind;
                 return (
                   <Stack key={ind} direction="row" spacing={1.5} alignItems="center">
                     <Box
@@ -73,7 +76,7 @@ export function IndicatorSidebar({
                         backgroundColor: color,
                       }}
                     />
-                    <Typography variant="body2">{item?.label || ind}</Typography>
+                    <Typography variant="body2">{label}</Typography>
                   </Stack>
                 );
               })}
@@ -201,6 +204,7 @@ export function IndicatorSidebar({
             {AVAILABLE_INDICATORS.map((ind) => {
               const isSelected = selectedIndicators.includes(ind.id);
               const disabled = !isSelected && atMax;
+              const cfg = INDICATORS_CONFIG[ind.id];
               return (
                 <FormControlLabel
                   key={ind.id}
@@ -210,6 +214,15 @@ export function IndicatorSidebar({
                       checked={isSelected}
                       disabled={disabled}
                       onChange={() => onToggleIndicator(ind.id)}
+                      sx={
+                        cfg?.color
+                          ? {
+                              '&.Mui-checked': {
+                                color: cfg.color,
+                              },
+                            }
+                          : undefined
+                      }
                     />
                   }
                   label={
