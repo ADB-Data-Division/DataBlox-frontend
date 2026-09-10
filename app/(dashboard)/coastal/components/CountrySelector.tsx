@@ -24,109 +24,20 @@ function resolveIso(country: CoastalCountry): string {
   return (country.iso || country.country_iso || '').toUpperCase();
 }
 
+const FLAG_EMOJI: Record<string, string> = {
+  BGD: '🇧🇩',
+  FJI: '🇫🇯',
+  IDN: '🇮🇩',
+  IND: '🇮🇳',
+  LKA: '🇱🇰',
+  MYS: '🇲🇾',
+  PHL: '🇵🇭',
+  SGP: '🇸🇬',
+  THA: '🇹🇭',
+};
+
 export function FlagBadge({ iso }: { iso: string }) {
-  if (iso === 'BGD') {
-    return (
-      <Box
-        aria-hidden
-        sx={{
-          width: 34,
-          height: 22,
-          flexShrink: 0,
-          borderRadius: 0.5,
-          overflow: 'hidden',
-          position: 'relative',
-          backgroundColor: '#006A4E',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '38%',
-            transform: 'translate(-50%, -50%)',
-            width: 11,
-            height: 11,
-            borderRadius: '50%',
-            backgroundColor: '#F42A41',
-          }}
-        />
-      </Box>
-    );
-  }
-
-  if (iso === 'IDN') {
-    return (
-      <Box
-        aria-hidden
-        sx={{
-          width: 34,
-          height: 22,
-          flexShrink: 0,
-          borderRadius: 0.5,
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <Box sx={{ height: '50%', backgroundColor: '#CE1126' }} />
-        <Box sx={{ height: '50%', backgroundColor: '#FFFFFF' }} />
-      </Box>
-    );
-  }
-
-  if (iso === 'PHL') {
-    return (
-      <Box
-        aria-hidden
-        sx={{
-          width: 34,
-          height: 22,
-          flexShrink: 0,
-          borderRadius: 0.5,
-          overflow: 'hidden',
-          position: 'relative',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        <Box sx={{ height: '50%', backgroundColor: '#0038A8' }} />
-        <Box sx={{ height: '50%', backgroundColor: '#CE1126' }} />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '55%',
-            height: '100%',
-            backgroundColor: '#FFFFFF',
-            clipPath: 'polygon(0 0, 62% 50%, 0 100%)',
-          }}
-        />
-      </Box>
-    );
-  }
-
-  if (iso === 'THA') {
-    return (
-      <Box
-        aria-hidden
-        sx={{
-          width: 34,
-          height: 22,
-          flexShrink: 0,
-          borderRadius: 0.5,
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: 'divider',
-          backgroundImage:
-            'linear-gradient(to bottom, #A51931 16.6%, #F4F5F8 16.6% 33.3%, #2D2A4A 33.3% 66.6%, #F4F5F8 66.6% 83.3%, #A51931 83.3%)',
-        }}
-      />
-    );
-  }
+  const emoji = FLAG_EMOJI[iso];
 
   return (
     <Box
@@ -135,19 +46,18 @@ export function FlagBadge({ iso }: { iso: string }) {
         width: 34,
         height: 22,
         flexShrink: 0,
-        borderRadius: 0.5,
-        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'grey.200',
-        border: '1px solid',
-        borderColor: 'divider',
       }}
     >
-      <Typography sx={{ fontSize: '0.5rem', fontWeight: 700, color: 'text.secondary' }}>
-        {iso}
-      </Typography>
+      {emoji ? (
+        <Typography sx={{ fontSize: '1.3rem', lineHeight: 1 }}>{emoji}</Typography>
+      ) : (
+        <Typography sx={{ fontSize: '0.5rem', fontWeight: 700, color: 'text.secondary' }}>
+          {iso}
+        </Typography>
+      )}
     </Box>
   );
 }
