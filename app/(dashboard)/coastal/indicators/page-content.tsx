@@ -660,7 +660,9 @@ export function PageContent() {
                   zIndex: 1300,
                   bgcolor: (theme) =>
                     theme.palette.mode === 'dark' ? '#0b0f19' : '#f8fafc',
-                  p: { xs: 1.5, md: 2.5 },
+                  pt: { xs: 0.75, md: 1 },
+                  px: { xs: 1.5, md: 2.5 },
+                  pb: { xs: 1.5, md: 2.5 },
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 2,
