@@ -2170,6 +2170,11 @@ export function resolveCoastalLocations(
 
   for (const loc of locations) {
     if (loc.type === 'province') {
+      if (Array.isArray(loc.aois) && loc.aois.length > 0) {
+        aoiIds.push(...loc.aois);
+        names.push(loc.name);
+        continue;
+      }
       const p = provinces.find((prov) => prov.name === loc.name);
       if (p) {
         aoiIds.push(...p.aois);

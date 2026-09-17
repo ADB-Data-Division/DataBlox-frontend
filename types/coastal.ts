@@ -77,6 +77,7 @@ export interface CoastalLocation {
   grid_cell_count?: number;
   center?: Coordinates | number[] | null;
   bounding_box?: BoundingBox | number[] | null;
+  aois?: string[];
 }
 
 export interface PercentageDeltas {

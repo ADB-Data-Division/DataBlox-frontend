@@ -68,6 +68,7 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
       display_name: p.name,
       country_iso: p.country_iso || p.countryIso || countryIso,
       type: 'province',
+      aois: p.aois,
     }));
     return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
   }, [provinces, locations, countryIso]);
