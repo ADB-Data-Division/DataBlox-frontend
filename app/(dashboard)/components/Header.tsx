@@ -38,7 +38,7 @@ const navigationLinks: NavCategory[] = [
     ],
   },
   {
-    title: 'Water Quality',
+    title: 'Coastal Waters',
     links: [
       { label: 'Indicators', href: '/coastal/indicators', preserveParams: true },
       { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
@@ -68,7 +68,7 @@ function NavCategoryItem({
     if (category.href && (pathname === category.href || pathname.startsWith(`${category.href}/`))) {
       return true;
     }
-    if (category.title === 'Water Quality' && pathname.startsWith('/coastal')) {
+    if (category.title === 'Coastal Waters' && pathname.startsWith('/coastal')) {
       return true;
     }
     return category.links.some(
