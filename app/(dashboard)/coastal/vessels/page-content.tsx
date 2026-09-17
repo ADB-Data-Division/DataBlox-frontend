@@ -12,8 +12,7 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Tabs,
-  Tab,
+  Paper,
   Stack,
   Checkbox,
   FormGroup,
@@ -148,10 +147,6 @@ export function PageContent() {
   const aoiCount = aoi_id ? aoi_id.split(',').filter(Boolean).length : 0;
   const provinceCountText =
     aoiCount > 1 ? `${aoiCount} provinces` : aoiCount === 1 ? '1 province' : 'National';
-
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
 
   useEffect(() => {
     if (activeTab !== 1 || !country) return;
@@ -451,14 +446,80 @@ export function PageContent() {
         </Card>
       </Stack>
 
-      {/* 3-Pill Switcher */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable">
-          <Tab icon={<TimelineIcon />} iconPosition="start" label="Vessel Timeline" />
-          <Tab icon={<PieChartIcon />} iconPosition="start" label="Type Distribution" />
-          <Tab icon={<MapIcon />} iconPosition="start" label="Choropleth Map" />
-        </Tabs>
-      </Box>
+      {/* Segmented Pill Switcher */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <Paper
+          variant="outlined"
+          onClick={() => setActiveTab(0)}
+          sx={{
+            flex: 1,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: activeTab === 0 ? 'primary.main' : 'background.paper',
+            color: activeTab === 0 ? 'primary.contrastText' : 'text.primary',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          <TimelineIcon sx={{ fontSize: 28 }} />
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Vessel Timeline
+            </Typography>
+          </Box>
+        </Paper>
+
+        <Paper
+          variant="outlined"
+          onClick={() => setActiveTab(1)}
+          sx={{
+            flex: 1,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: activeTab === 1 ? 'primary.main' : 'background.paper',
+            color: activeTab === 1 ? 'primary.contrastText' : 'text.primary',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          <PieChartIcon sx={{ fontSize: 28 }} />
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Type Distribution
+            </Typography>
+          </Box>
+        </Paper>
+
+        <Paper
+          variant="outlined"
+          onClick={() => setActiveTab(2)}
+          sx={{
+            flex: 1,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: activeTab === 2 ? 'teal' : 'background.paper',
+            color: activeTab === 2 ? '#ffffff' : 'text.primary',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          <MapIcon sx={{ fontSize: 28 }} />
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Choropleth Map
+            </Typography>
+          </Box>
+        </Paper>
+      </Stack>
 
       {/* Tab 0: Vessel Timeline */}
       {activeTab === 0 && (

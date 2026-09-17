@@ -1111,18 +1111,8 @@ export function VesselSummaryCards({
           </CardContent>
         </Card>
       ) : (
-        <Card
-          variant="outlined"
-          sx={{
-            flex: 1,
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 2,
-          }}
-        >
-          <CardContent sx={{ p: 0, textAlign: 'center' }}>
+        <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
+          <CardContent sx={{ px: 3, pt: 1.5, pb: 1, '&:last-child': { pb: 1 } }}>
             <Typography variant="body2" color="text.secondary">
               Select a period on the graph to view more details
             </Typography>
