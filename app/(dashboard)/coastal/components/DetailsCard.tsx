@@ -5,6 +5,7 @@ import {
   Box,
   Card,
   CardContent,
+  Skeleton,
   Stack,
   Tooltip,
   Typography,
@@ -21,6 +22,7 @@ export interface DetailsCardProps {
   activeIndicator?: string;
   locationName: string;
   grain: string;
+  loading?: boolean;
 }
 
 function pctChange(curr: number, prev: number): number | null {
@@ -252,6 +254,7 @@ export function DetailsCard({
   activeIndicator = 'chlor_a',
   locationName,
   grain,
+  loading = false,
 }: DetailsCardProps) {
   const theme = useTheme();
   const [activeSlide, setActiveSlide] = useState<number>(0);
@@ -381,6 +384,31 @@ export function DetailsCard({
 
     return { momData, yoyData };
   }, [activePoint, timeline, activeIndicator]);
+
+  if (loading) {
+    return (
+      <Card
+        variant="outlined"
+        sx={{
+          height: '100%',
+          minHeight: 180,
+          borderRadius: 2,
+          p: 2,
+        }}
+      >
+        <Skeleton variant="text" width="50%" height={28} />
+        <Skeleton variant="text" width="70%" height={20} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width="40%" height={20} />
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+          <Skeleton variant="text" width={80} height={48} />
+          <Stack spacing={0.75} sx={{ flex: 1 }}>
+            <Skeleton variant="text" width="100%" height={16} />
+            <Skeleton variant="text" width="100%" height={16} />
+          </Stack>
+        </Stack>
+      </Card>
+    );
+  }
 
   if (!activePoint || !slideData) {
     return (

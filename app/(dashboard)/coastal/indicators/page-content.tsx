@@ -10,16 +10,20 @@ import {
   CardContent,
   Chip,
   FormControl,
+  IconButton,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import MapIcon from '@mui/icons-material/Map';
 import DownloadIcon from '@mui/icons-material/Download';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import {
   fetchIndicatorTimeline,
   fetchSpatialGrid,
@@ -140,7 +144,7 @@ export function PageContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'vessels']);
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'sst']);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
@@ -148,7 +152,47 @@ export function PageContent() {
   const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const sliceCacheRef = useRef<Map<string, Record<string, any>>>(new Map());
+
+  // Handle escape key and body overflow for fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
+
+  // Dispatch resize event when toggling fullscreen or selecting a hex cell
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isFullscreen, selectedHexCell]);
+
+  // Reset fullscreen when switching view mode
+  useEffect(() => {
+    if (viewMode !== 'map') {
+      setIsFullscreen(false);
+    }
+  }, [viewMode]);
+
+  const mapHeight = useMemo(() => {
+    if (!isFullscreen) return 630;
+    return selectedHexCell ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
+  }, [isFullscreen, selectedHexCell]);
 
   const locationLabel = rawNames
     ? rawNames
@@ -560,6 +604,7 @@ export function PageContent() {
                 dateRange={{ start: start_date, end: end_date }}
                 timeline={timelineData}
                 grain={grain}
+                loading={loading}
               />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -569,6 +614,7 @@ export function PageContent() {
                 activeIndicator={selectedIndicators[0]}
                 locationName={locationLabel}
                 grain={grain}
+                loading={loading}
               />
             </Box>
           </Stack>
@@ -602,63 +648,129 @@ export function PageContent() {
 
       {/* VIEW MODE 2: CHOROPLETH MAP */}
       {viewMode === 'map' && (
-        <>
+        <Box
+          sx={
+            isFullscreen
+              ? {
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1300,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#0b0f19' : '#f8fafc',
+                  p: { xs: 1.5, md: 2.5 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  overflowY: 'auto',
+                }
+              : {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  width: '100%',
+                }
+          }
+        >
           {/* Top Row: Hex Cell Detail Inspection Card */}
-          <Box sx={{ width: '100%' }}>
-            <HexCellDetailModal
-              cellId={selectedHexCell}
-              locationName={locationLabel}
-              country={country}
-              grain={grain}
-              dateRange={{ start: start_date, end: end_date }}
-              indicators={selectedIndicators}
-              onClose={() => setSelectedHexCell(null)}
-            />
-          </Box>
+          {(!isFullscreen || selectedHexCell) && (
+            <Box sx={{ width: '100%' }}>
+              <HexCellDetailModal
+                cellId={selectedHexCell}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={selectedIndicators}
+                onClose={() => setSelectedHexCell(null)}
+              />
+            </Box>
+          )}
 
           {/* Middle Row: Choropleth Map + Scrubber and Sidebar */}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems="flex-start"
+            sx={{ flex: 1, minWidth: 0 }}
+          >
             <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
               <Card variant="outlined" sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ p: 2 }}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {(() => {
-                        const grainLabel = grain ? grain.charAt(0).toUpperCase() + grain.slice(1) : 'Monthly';
-                        const hasVessels = selectedIndicators.includes('vessels');
-                        const hasChlor = selectedIndicators.includes('chlor_a');
-                        const hasSST = selectedIndicators.includes('sst');
+                  <Box
+                    sx={{
+                      mb: 2,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: 2,
+                    }}
+                  >
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {(() => {
+                          const grainLabel = grain ? grain.charAt(0).toUpperCase() + grain.slice(1) : 'Monthly';
+                          const hasVessels = selectedIndicators.includes('vessels');
+                          const hasChlor = selectedIndicators.includes('chlor_a');
+                          const hasSST = selectedIndicators.includes('sst');
 
-                        if (hasVessels && hasChlor && hasSST) {
-                          return `Vessel Count, Average Chlorophyll-a Concentration & Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
-                        }
-                        if (hasVessels && hasChlor) {
-                          return `Vessel Count & Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
-                        }
-                        if (hasVessels && hasSST) {
-                          return `Vessel Count & Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
-                        }
-                        if (activeChoroplethIndicator === 'sst') {
-                          return `Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
-                        }
-                        if (hasVessels && selectedIndicators.length === 1) {
-                          return `Vessel Count (${grainLabel}) - ${locationLabel}`;
-                        }
-                        return `Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
-                      })()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {(() => {
-                        const formatMY = (d: string) => {
-                          const dt = new Date(d);
-                          return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                        };
-                        return `${formatMY(start_date)} - ${formatMY(end_date)}`;
-                      })()}
-                    </Typography>
+                          if (hasVessels && hasChlor && hasSST) {
+                            return `Vessel Count, Average Chlorophyll-a Concentration & Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                          }
+                          if (hasVessels && hasChlor) {
+                            return `Vessel Count & Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
+                          }
+                          if (hasVessels && hasSST) {
+                            return `Vessel Count & Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                          }
+                          if (activeChoroplethIndicator === 'sst') {
+                            return `Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                          }
+                          if (hasVessels && selectedIndicators.length === 1) {
+                            return `Vessel Count (${grainLabel}) - ${locationLabel}`;
+                          }
+                          return `Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
+                        })()}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {(() => {
+                          const formatMY = (d: string) => {
+                            const dt = new Date(d);
+                            return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                          };
+                          return `${formatMY(start_date)} - ${formatMY(end_date)}`;
+                        })()}
+                      </Typography>
+                    </Box>
+
+                    <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+                      <IconButton
+                        onClick={() => setIsFullscreen((prev) => !prev)}
+                        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                        size="small"
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1.5,
+                          bgcolor: isFullscreen ? 'action.selected' : 'background.paper',
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          },
+                        }}
+                      >
+                        {isFullscreen ? <FullscreenExitIcon fontSize="small" /> : <FullscreenIcon fontSize="small" />}
+                      </IconButton>
+                    </Tooltip>
                   </Box>
 
-                  <Box id="coastal-map-container" sx={{ minHeight: 1260 }}>
+                  <Box
+                    id="coastal-map-container"
+                    sx={{
+                      minHeight: isFullscreen ? (selectedHexCell ? 380 : 500) : 630,
+                    }}
+                  >
                     <CoastalChoroplethMap
                       key={`${country}_${aoi_id || ''}_${locationLabel}`}
                       country={country}
@@ -671,7 +783,7 @@ export function PageContent() {
                       onSelectCell={(id) => setSelectedHexCell(id)}
                       periodLabel={periods[activeScrubberIndex]}
                       indicators={selectedIndicators}
-                      height={1260}
+                      height={mapHeight}
                     />
                   </Box>
 
@@ -692,7 +804,16 @@ export function PageContent() {
               </Card>
             </Box>
 
-            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}>
+            <Box
+              sx={{
+                width: { xs: '100%', md: 260 },
+                flexShrink: 0,
+                ...(isFullscreen && {
+                  maxHeight: 'calc(100vh - 48px)',
+                  overflowY: 'auto',
+                }),
+              }}
+            >
               <IndicatorSidebar
                 selectedIndicators={selectedIndicators}
                 onToggleIndicator={handleToggleIndicator}
@@ -704,7 +825,7 @@ export function PageContent() {
               />
             </Box>
           </Stack>
-        </>
+        </Box>
       )}
 
       {/* Bottom Row: Download Data Card */}
