@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Box, Typography, Card, CardContent, Stack, Collapse, useTheme, useMediaQuery } from '@mui/material';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -126,57 +126,21 @@ const categories: Category[] = [
   },
 ];
 
-// ── Touch device hook ──────────────────────────────────────────────────────────
-
-function useIsTouchDevice() {
-  const [isTouch, setIsTouch] = useState(false);
-
-  useEffect(() => {
-    const check = () => {
-      setIsTouch(
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(pointer: coarse)').matches
-      );
-    };
-    check();
-    // Re-check on resize (e.g. tablet rotation / desktop ↔ mobile emulation)
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  return isTouch;
-}
-
 // ── CategoryCard ───────────────────────────────────────────────────────────────
 
 function CategoryCard({ category, locationsParam }: { category: Category; locationsParam: string | null }) {
-  const isTouch = useIsTouchDevice();
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
-  // On touch devices, toggle on tap; on pointer devices, expand on hover
-  const showSubPages = isTouch ? expanded : hovered;
+  const showSubPages = true;
 
   const handleClick = useCallback(() => {
-    if (isTouch) {
-      if (expanded && category.href) {
-        router.push(category.href);
-        return;
-      }
-      setExpanded((prev) => !prev);
-      return;
-    }
     if (category.href) {
       router.push(category.href);
     }
-  }, [category.href, expanded, isTouch, router]);
+  }, [category.href, router]);
 
   return (
     <Card
-      onMouseEnter={() => !isTouch && setHovered(true)}
-      onMouseLeave={() => !isTouch && setHovered(false)}
       onClick={handleClick}
       sx={{
         position: 'relative',
