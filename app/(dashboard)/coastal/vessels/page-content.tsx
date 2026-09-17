@@ -820,7 +820,7 @@ export function PageContent() {
             {/* Top Row: Hex Cell Detail Modal / Card */}
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
-                cellId={selectedHexCell}
+                cellIds={selectedHexCell ? [selectedHexCell] : []}
                 locationName={locationLabel}
                 country={country}
                 grain={grain}

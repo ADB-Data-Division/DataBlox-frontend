@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, Typography, CircularProgress, IconButton } from '@mui/material';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
+import DeleteIcon from '@mui/icons-material/Delete';
 import dynamic from 'next/dynamic';
 import { fetchSpatialGrid } from '@/services/coastalService';
 
@@ -13,8 +14,9 @@ export interface CoastalChoroplethMapProps {
   activeIndicator: string;
   overlayVessels?: boolean;
   spatialSlice?: Record<string, any>;
-  selectedCellId?: string | null;
+  selectedCellIds?: string[];
   onSelectCell: (cellId: string) => void;
+  onClearSelection?: () => void;
   loading?: boolean;
   periodLabel?: string;
   indicators?: string[];
@@ -268,8 +270,9 @@ function CoastalChoroplethMapClient({
   activeIndicator,
   overlayVessels = false,
   spatialSlice,
-  selectedCellId,
+  selectedCellIds = [],
   onSelectCell,
+  onClearSelection,
   loading = false,
   indicators,
   height = 420,
@@ -646,8 +649,8 @@ function CoastalChoroplethMapClient({
           d.coords ? d.coords.map(([lat, lng]) => [lng, lat]) : [],
         getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
         getLineColor: (d: HexCellData) =>
-          d.id === selectedCellId ? [239, 68, 68, 255] : [255, 255, 255, 200],
-        getLineWidth: (d: HexCellData) => (d.id === selectedCellId ? 3.5 : 1),
+          selectedCellIds.includes(d.id) ? [239, 68, 68, 255] : [255, 255, 255, 200],
+        getLineWidth: (d: HexCellData) => (selectedCellIds.includes(d.id) ? 3.5 : 1),
         lineWidthUnits: 'pixels',
         filled: true,
         stroked: true,
@@ -670,8 +673,8 @@ function CoastalChoroplethMapClient({
         },
         updateTriggers: {
           getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
-          getLineColor: [selectedCellId],
-          getLineWidth: [selectedCellId],
+          getLineColor: [selectedCellIds],
+          getLineWidth: [selectedCellIds],
         },
       }),
     ];
@@ -711,7 +714,7 @@ function CoastalChoroplethMapClient({
     isChlor,
     isSST,
     overlayVessels,
-    selectedCellId,
+    selectedCellIds,
     onSelectCell,
     spatialSlice,
     activeIndicator,
@@ -731,7 +734,7 @@ function CoastalChoroplethMapClient({
     gridCells.forEach((cell) => {
       if (!cell.coords) return;
 
-      const isSelected = selectedCellId === cell.id;
+      const isSelected = selectedCellIds.includes(cell.id);
 
       // Color mapping
       let fillColor = '#94a3b8';
@@ -800,7 +803,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [deckModules, L, gridCells, isChlor, isSST, overlayVessels, selectedCellId, onSelectCell]);
+  }, [deckModules, L, gridCells, isChlor, isSST, overlayVessels, selectedCellIds, onSelectCell]);
 
   if (loading) {
     return (
@@ -812,6 +815,7 @@ function CoastalChoroplethMapClient({
 
   return (
     <Box
+      className="coastal-map-root"
       sx={{
         position: 'relative',
         width: '100%',
@@ -848,6 +852,43 @@ function CoastalChoroplethMapClient({
           Interactive Map
         </Typography>
       </Box>
+
+      {/* Selection count + clear-all control */}
+      {selectedCellIds.length > 0 && (
+        <>
+          <style>{`.coastal-map-root .leaflet-top.leaflet-right { margin-top: 46px; }`}</style>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 14,
+              right: 14,
+              zIndex: 999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              bgcolor: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(4px)',
+              px: 1.25,
+              py: 0.5,
+              borderRadius: 1.5,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+              border: '1px solid rgba(0,0,0,0.08)',
+            }}
+          >
+            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              {selectedCellIds.length} selection/s
+            </Typography>
+            <IconButton
+              size="small"
+              aria-label="Clear selections"
+              onClick={onClearSelection}
+              sx={{ p: 0.5 }}
+            >
+              <DeleteIcon sx={{ fontSize: 16, color: '#ef4444' }} />
+            </IconButton>
+          </Box>
+        </>
+      )}
 
       {/* Loading overlay while genuine cells are loading */}
       {(genuineCells === null || loading) && (

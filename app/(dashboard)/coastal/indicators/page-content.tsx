@@ -149,7 +149,7 @@ export function PageContent() {
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
-  const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -180,7 +180,7 @@ export function PageContent() {
       window.dispatchEvent(new Event('resize'));
     }, 150);
     return () => clearTimeout(timer);
-  }, [isFullscreen, selectedHexCell]);
+  }, [isFullscreen, selectedHexCells]);
 
   // Reset fullscreen when switching view mode
   useEffect(() => {
@@ -191,8 +191,8 @@ export function PageContent() {
 
   const mapHeight = useMemo(() => {
     if (!isFullscreen) return 630;
-    return selectedHexCell ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
-  }, [isFullscreen, selectedHexCell]);
+    return selectedHexCells.length > 0 ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
+  }, [isFullscreen, selectedHexCells]);
 
   const locationLabel = rawNames
     ? rawNames
@@ -677,16 +677,16 @@ export function PageContent() {
           }
         >
           {/* Top Row: Hex Cell Detail Inspection Card */}
-          {(!isFullscreen || selectedHexCell) && (
+          {(!isFullscreen || selectedHexCells.length > 0) && (
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
-                cellId={selectedHexCell}
+                cellIds={selectedHexCells}
                 locationName={locationLabel}
                 country={country}
                 grain={grain}
                 dateRange={{ start: start_date, end: end_date }}
                 indicators={selectedIndicators}
-                onClose={() => setSelectedHexCell(null)}
+                onClose={() => setSelectedHexCells([])}
               />
             </Box>
           )}
@@ -770,7 +770,7 @@ export function PageContent() {
                   <Box
                     id="coastal-map-container"
                     sx={{
-                      minHeight: isFullscreen ? (selectedHexCell ? 380 : 500) : 630,
+                      minHeight: isFullscreen ? (selectedHexCells.length > 0 ? 380 : 500) : 630,
                     }}
                   >
                     <CoastalChoroplethMap
@@ -781,8 +781,13 @@ export function PageContent() {
                       activeIndicator={activeChoroplethIndicator}
                       overlayVessels={showVesselOverlay}
                       spatialSlice={spatialSlice}
-                      selectedCellId={selectedHexCell}
-                      onSelectCell={(id) => setSelectedHexCell(id)}
+                      selectedCellIds={selectedHexCells}
+                      onSelectCell={(id) =>
+                        setSelectedHexCells((prev) =>
+                          prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+                        )
+                      }
+                      onClearSelection={() => setSelectedHexCells([])}
                       periodLabel={periods[activeScrubberIndex]}
                       indicators={selectedIndicators}
                       height={mapHeight}

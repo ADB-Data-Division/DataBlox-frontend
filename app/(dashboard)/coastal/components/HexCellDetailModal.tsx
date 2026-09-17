@@ -1,20 +1,30 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Card, CircularProgress } from '@mui/material';
+import { Box, Typography, IconButton, Card, CircularProgress, Chip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
 import type { HexCellTimeSeriesPoint } from '@/types/coastal';
 
 export interface HexCellDetailModalProps {
-  cellId?: string | null;
+  cellIds?: string[];
   locationName: string;
   country?: string;
   grain?: string;
   dateRange: { start: string; end: string };
   indicators: string[];
   onClose: () => void;
+}
+
+const MAX_VISIBLE_HEX_CHIPS = 3;
+
+// Vessel/duration counts add up across hexes; concentration/temperature readings are averaged.
+function aggregatePoint(points: HexCellTimeSeriesPoint[], field: 'chlor_a' | 'sst' | 'vessels' | 'duration') {
+  const values = points.map((p) => (p as any)[field]).filter((v) => v !== null && v !== undefined);
+  if (values.length === 0) return 0;
+  const sum = values.reduce((acc: number, v: number) => acc + v, 0);
+  return field === 'vessels' || field === 'duration' ? sum : sum / values.length;
 }
 
 const INDICATOR_CONFIG: Record<
@@ -55,7 +65,7 @@ function formatMonthYear(dateStr: string): string {
 }
 
 export default function HexCellDetailModal({
-  cellId,
+  cellIds = [],
   locationName,
   country,
   grain = 'monthly',
@@ -67,27 +77,54 @@ export default function HexCellDetailModal({
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!cellId || !country) {
+    if (cellIds.length === 0 || !country) {
       setRealPoints(null);
       setLoading(false);
       return;
     }
     let isMounted = true;
     setLoading(true);
-    fetchHexCellTimeSeries({
-      country,
-      cell_id: cellId,
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-      grain,
-    })
-      .then((res) => {
+    Promise.all(
+      cellIds.map((cell_id) =>
+        fetchHexCellTimeSeries({
+          country,
+          cell_id,
+          start_date: dateRange.start,
+          end_date: dateRange.end,
+          grain,
+        }).catch(() => null)
+      )
+    )
+      .then((results) => {
         if (!isMounted) return;
-        if (res?.series && Array.isArray(res.series)) {
-          setRealPoints(res.series);
-        } else {
+        const seriesList = results
+          .map((res) => (res?.series && Array.isArray(res.series) ? res.series : []))
+          .filter((series) => series.length > 0);
+
+        if (seriesList.length === 0) {
           setRealPoints([]);
+          return;
         }
+        if (seriesList.length === 1) {
+          setRealPoints(seriesList[0]);
+          return;
+        }
+
+        // Aggregate across selected hexes, aligning points by index (they share the same date range/grain).
+        const pointCount = Math.max(...seriesList.map((s) => s.length));
+        const combined: HexCellTimeSeriesPoint[] = [];
+        for (let i = 0; i < pointCount; i++) {
+          const pointsAtIndex = seriesList.map((s) => s[i]).filter(Boolean);
+          if (pointsAtIndex.length === 0) continue;
+          combined.push({
+            ...pointsAtIndex[0],
+            chlor_a: aggregatePoint(pointsAtIndex, 'chlor_a'),
+            sst: aggregatePoint(pointsAtIndex, 'sst'),
+            vessels: aggregatePoint(pointsAtIndex, 'vessels'),
+            duration: aggregatePoint(pointsAtIndex, 'duration'),
+          });
+        }
+        setRealPoints(combined);
       })
       .catch(() => {
         if (isMounted) setRealPoints([]);
@@ -99,7 +136,7 @@ export default function HexCellDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [cellId, country, dateRange.start, dateRange.end, grain]);
+  }, [cellIds, country, dateRange.start, dateRange.end, grain]);
 
   const timeSeries = useMemo(() => {
     if (!realPoints || realPoints.length === 0) {
@@ -114,7 +151,7 @@ export default function HexCellDetailModal({
     };
   }, [realPoints]);
 
-  if (!cellId) {
+  if (cellIds.length === 0) {
     return (
       <Card
         variant="outlined"
@@ -205,9 +242,19 @@ export default function HexCellDetailModal({
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Hex: {cellId}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Hex:
+            </Typography>
+            {cellIds.slice(0, MAX_VISIBLE_HEX_CHIPS).map((id) => (
+              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+            ))}
+            {cellIds.length > MAX_VISIBLE_HEX_CHIPS && (
+              <Typography variant="body2" color="text.secondary">
+                {cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...
+              </Typography>
+            )}
+          </Box>
           <Typography variant="body2" color="text.secondary">
             {locationName} · {dateSubtitle}
           </Typography>

@@ -51,7 +51,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
           aoiIds={aoiIds}
           activeIndicator="vessels"
           spatialSlice={spatialSlice}
-          selectedCellId={selectedCellId}
+          selectedCellIds={selectedCellId ? [selectedCellId] : []}
           onSelectCell={(id) => onSelectCell?.(id)}
           loading={loading}
           periodLabel={periodLabel}
