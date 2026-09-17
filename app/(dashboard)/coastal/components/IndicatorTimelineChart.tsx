@@ -118,6 +118,7 @@ export function IndicatorTimelineChart({
 
     const svg = d3.select(chartRef.current);
     svg.selectAll('*').remove();
+    svg.attr('font-family', '"Inter", "Roboto", "Helvetica", "Arial", sans-serif');
 
     const g = svg
       .append('g')

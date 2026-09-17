@@ -735,7 +735,7 @@ function CoastalChoroplethMapClient({
       });
 
       const tooltipContent = `
-        <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
+        <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
           <div style="font-weight: 700; margin-bottom: 2px;">Hex: ${cell.id}</div>
           <div style="color: #64748b;">Resolution: 7</div>
           <div style="color: #64748b;">Area: 4.5 km²</div>
@@ -878,7 +878,7 @@ function CoastalChoroplethMapClient({
             border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: 1.5,
             p: 1.25,
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
             fontSize: 12,
             lineHeight: 1.45,
             color: '#1e293b',
