@@ -176,11 +176,10 @@ function CategoryCard({ category, locationsParam }: { category: Category; locati
               width: 56,
               height: 56,
               borderRadius: '12px',
-              background: `${category.color}14`,
+              background: `${category.color}${showSubPages ? '22' : '14'}`,
               color: category.color,
               flexShrink: 0,
               transition: 'background 0.3s',
-              ...(showSubPages && { background: `${category.color}22` }),
             }}
           >
             {category.icon}
