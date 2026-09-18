@@ -28,7 +28,8 @@ export const INDICATORS_CONFIG: Record<string, { label: string; unit: string; co
   chlor_a: { label: 'Chlorophyll-a', unit: 'mg/m³', color: '#10B981' },
   vessels: { label: 'Vessel Count', unit: 'vessels', color: '#8B5CF6' },
   duration: { label: 'Vessel Port Call Duration', unit: 'hours', color: '#3B82F6' },
-  sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#EF4444' },
+  // Not red: red is reserved for "increasing chlorophyll-a" in the delta cards.
+  sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#F97316' },
 };
 
 // Missing chlor_a/sst readings (cloud cover, sensor gaps) come back as null.

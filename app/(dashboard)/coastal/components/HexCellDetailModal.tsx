@@ -52,7 +52,7 @@ const INDICATOR_CONFIG: Record<
   sst: {
     label: 'Sea Surface Temp.',
     unit: 'K',
-    color: '#EF4444',
+    color: '#F97316',
     defaultRange: [290, 310],
   },
 };

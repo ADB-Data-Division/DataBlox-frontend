@@ -42,7 +42,10 @@ function findSameMonthPoint(
   });
 }
 
-function formatDelta(pct: number | null): { text: string; color: string } {
+// Chlorophyll-a's own line/legend color is green, so a "decreasing" delta in
+// the usual green would read as if it meant chlorophyll-a itself, not a
+// direction. Use blue there instead; every other indicator keeps green/red.
+function formatDelta(pct: number | null, indicatorKey?: string): { text: string; color: string } {
   if (pct === null || isNaN(pct)) {
     return { text: 'N/A', color: 'text.secondary' };
   }
@@ -52,7 +55,8 @@ function formatDelta(pct: number | null): { text: string; color: string } {
   if (pct > 0) {
     return { text: `↑ +${Math.round(pct)}%`, color: '#ef4444' };
   }
-  return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: '#16a34a' };
+  const decreaseColor = indicatorKey === 'chlor_a' ? '#2563eb' : '#16a34a';
+  return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: decreaseColor };
 }
 
 function formatVal(val: number | undefined, unit: string): string {
@@ -315,7 +319,7 @@ export function DetailsCard({
     const yoyData = {
       title: 'Current vs Same Month of Previous Year (%)',
       primary: {
-        delta: formatDelta(yoyPct0),
+        delta: formatDelta(yoyPct0, activeIndicator),
         afterLabel: `${monthShort} ${currYear}`,
         afterVal: yoyV0,
         beforeLabel: `${monthShort} ${currYear - 1}`,
@@ -323,7 +327,7 @@ export function DetailsCard({
       },
       comp1: {
         label: `${monthShort} ${currYear - 1} vs ${currYear - 2}:`,
-        delta: formatDelta(yoyPct1),
+        delta: formatDelta(yoyPct1, activeIndicator),
         afterLabel: `${monthShort} ${currYear - 1}`,
         afterVal: yoyV1,
         beforeLabel: `${monthShort} ${currYear - 2}`,
@@ -331,7 +335,7 @@ export function DetailsCard({
       },
       comp2: {
         label: `${monthShort} ${currYear - 2} vs ${currYear - 3}:`,
-        delta: formatDelta(yoyPct2),
+        delta: formatDelta(yoyPct2, activeIndicator),
         afterLabel: `${monthShort} ${currYear - 2}`,
         afterVal: yoyV2,
         beforeLabel: `${monthShort} ${currYear - 3}`,
@@ -358,7 +362,7 @@ export function DetailsCard({
     const momData = {
       title: 'Current vs Previous Month (%)',
       primary: {
-        delta: formatDelta(momPct0),
+        delta: formatDelta(momPct0, activeIndicator),
         afterLabel: formatPeriodLabel(momP0.period_start),
         afterVal: momV0,
         beforeLabel: momP1 ? formatPeriodLabel(momP1.period_start) : 'Previous Period',
@@ -366,7 +370,7 @@ export function DetailsCard({
       },
       comp1: {
         label: formatMoMLabel(momP1, momP2),
-        delta: formatDelta(momPct1),
+        delta: formatDelta(momPct1, activeIndicator),
         afterLabel: momP1 ? formatPeriodLabel(momP1.period_start) : 'Period A',
         afterVal: momV1,
         beforeLabel: momP2 ? formatPeriodLabel(momP2.period_start) : 'Period B',
@@ -374,7 +378,7 @@ export function DetailsCard({
       },
       comp2: {
         label: formatMoMLabel(momP2, momP3),
-        delta: formatDelta(momPct2),
+        delta: formatDelta(momPct2, activeIndicator),
         afterLabel: momP2 ? formatPeriodLabel(momP2.period_start) : 'Period B',
         afterVal: momV2,
         beforeLabel: momP3 ? formatPeriodLabel(momP3.period_start) : 'Period C',
