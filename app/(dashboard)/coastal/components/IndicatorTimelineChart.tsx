@@ -31,9 +31,13 @@ export const INDICATORS_CONFIG: Record<string, { label: string; unit: string; co
   sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#EF4444' },
 };
 
+// Missing chlor_a/sst readings (cloud cover, sensor gaps) come back as null.
+// They must stay NaN here, not 0, so the chart renders a gap instead of a
+// fake reading of zero. Vessel/duration counts have no such gap: absence
+// there means a real zero, so those keep defaulting to 0.
 export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: string): number {
   if (indicatorKey === 'chlor_a') {
-    return point.chlor_a ?? point.mean_chlor_a ?? 0;
+    return point.chlor_a ?? point.mean_chlor_a ?? NaN;
   }
   if (indicatorKey === 'vessels') {
     return (
@@ -56,13 +60,13 @@ export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: strin
       point.sst_c ??
       point.sst_k ??
       point.mean_sea_surface_temperature ??
-      0
+      NaN
     );
   }
   if (point.values && point.values[indicatorKey] !== undefined) {
-    return point.values[indicatorKey] ?? 0;
+    return point.values[indicatorKey] ?? NaN;
   }
-  return 0;
+  return NaN;
 }
 
 export function formatPeriodLabel(isoString: string, grain?: string): string {
@@ -79,6 +83,12 @@ export function formatPeriodLabel(isoString: string, grain?: string): string {
 
 const MARGINS = { top: 30, right: 75, bottom: 50, left: 60 };
 
+const CHLOR_COVERAGE_CHANGE = {
+  date: '2024-06-07',
+  note:
+    'From 7 June 2024 the satellite product starts seeing murky near-shore water it used to skip. A rise after this date is extra coverage, not dirtier water.',
+};
+
 export function IndicatorTimelineChart({
   data,
   indicators,
@@ -93,6 +103,7 @@ export function IndicatorTimelineChart({
   const chartRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 420 });
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [coverageAnnotationHover, setCoverageAnnotationHover] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -108,13 +119,15 @@ export function IndicatorTimelineChart({
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [loading, data]);
 
   const innerWidth = Math.max(0, dimensions.width - MARGINS.left - MARGINS.right);
   const innerHeight = Math.max(0, dimensions.height - MARGINS.top - MARGINS.bottom);
 
   useEffect(() => {
     if (!chartRef.current || !data || data.length === 0 || indicators.length === 0) return;
+
+    setCoverageAnnotationHover(false);
 
     const svg = d3.select(chartRef.current);
     svg.selectAll('*').remove();
@@ -136,6 +149,27 @@ export function IndicatorTimelineChart({
       .domain(data.map((_, i) => i))
       .range([0, innerWidth])
       .padding(0.2);
+
+    // Chlor-a satellite coverage change marker (only relevant when chlor_a is plotted,
+    // and only if the date actually falls inside the currently displayed range)
+    let coverageAnnotationIdx = -1;
+    if (indicators.includes('chlor_a')) {
+      const target = new Date(CHLOR_COVERAGE_CHANGE.date).getTime();
+      const firstT = new Date(data[0].period_start).getTime();
+      const lastT = new Date(data[data.length - 1].period_start).getTime();
+      if (target >= firstT && target <= lastT) {
+        let minDiff = Infinity;
+        data.forEach((d, i) => {
+          const t = new Date(d.period_start).getTime();
+          if (isNaN(t)) return;
+          const diff = Math.abs(t - target);
+          if (diff < minDiff) {
+            minDiff = diff;
+            coverageAnnotationIdx = i;
+          }
+        });
+      }
+    }
 
     // Y1 Scale (Left axis)
     const maxVal1 = d3.max(data, (d) => getPointValue(d, ind1)) || 10;
@@ -254,6 +288,7 @@ export function IndicatorTimelineChart({
     // Series 1 Line
     const line1 = d3
       .line<{ item: IndicatorTimelinePoint; index: number }>()
+      .defined((d) => !isNaN(getPointValue(d.item, ind1)))
       .x((d) => x(d.index) || 0)
       .y((d) => y1(getPointValue(d.item, ind1)))
       .curve(d3.curveMonotoneX);
@@ -267,9 +302,9 @@ export function IndicatorTimelineChart({
       .attr('stroke-width', 2.2)
       .attr('d', line1);
 
-    // Series 1 Points
+    // Series 1 Points (missing readings are gaps, not dots at 0)
     g.selectAll('circle.dot1')
-      .data(line1Data)
+      .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind1))))
       .enter()
       .append('circle')
       .attr('class', 'dot1')
@@ -284,6 +319,7 @@ export function IndicatorTimelineChart({
     if (ind2 && ind2Cfg) {
       const line2 = d3
         .line<{ item: IndicatorTimelinePoint; index: number }>()
+        .defined((d) => !isNaN(getPointValue(d.item, ind2)))
         .x((d) => x(d.index) || 0)
         .y((d) => y2(getPointValue(d.item, ind2)))
         .curve(d3.curveMonotoneX);
@@ -296,7 +332,7 @@ export function IndicatorTimelineChart({
         .attr('d', line2);
 
       g.selectAll('circle.dot2')
-        .data(line1Data)
+        .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind2))))
         .enter()
         .append('circle')
         .attr('class', 'dot2')
@@ -326,6 +362,23 @@ export function IndicatorTimelineChart({
       }
     }
 
+    // Coverage change marker line (dashed, dim until hovered)
+    let coverageAnnotationLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null;
+    if (coverageAnnotationIdx >= 0) {
+      const annoX = x(coverageAnnotationIdx) || 0;
+      coverageAnnotationLine = g
+        .append('line')
+        .attr('x1', annoX)
+        .attr('x2', annoX)
+        .attr('y1', 0)
+        .attr('y2', innerHeight)
+        .attr('stroke', '#6b7280')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '4 3')
+        .attr('opacity', 0.3)
+        .attr('pointer-events', 'none');
+    }
+
     // Overlay for hover and click interaction
     const overlay = g
       .append('rect')
@@ -347,10 +400,23 @@ export function IndicatorTimelineChart({
         }
       });
       setHoverIndex(closestIdx);
+
+      if (coverageAnnotationIdx >= 0) {
+        const annoX = x(coverageAnnotationIdx) || 0;
+        const nearAnnotation = Math.abs(annoX - mx) <= 8;
+        coverageAnnotationLine?.attr('opacity', nearAnnotation ? 1 : 0.3);
+        overlay.style('cursor', nearAnnotation ? 'help' : 'default');
+        setCoverageAnnotationHover(nearAnnotation);
+      }
     });
 
     overlay.on('mouseleave', () => {
       setHoverIndex(null);
+      if (coverageAnnotationIdx >= 0) {
+        coverageAnnotationLine?.attr('opacity', 0.3);
+        overlay.style('cursor', 'default');
+        setCoverageAnnotationHover(false);
+      }
     });
 
     overlay.on('click', (event) => {
@@ -386,13 +452,37 @@ export function IndicatorTimelineChart({
     <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
       <CardContent sx={{ pb: 2 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-          <Box>
+          <Box sx={{ position: 'relative' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {chartTitle}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {dateRange.start} to {dateRange.end}
             </Typography>
+
+            {coverageAnnotationHover && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  mt: 0.5,
+                  width: 260,
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: 2,
+                  p: 1.25,
+                  borderRadius: 1,
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                }}
+              >
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  {CHLOR_COVERAGE_CHANGE.note}
+                </Typography>
+              </Box>
+            )}
           </Box>
           {indicators.length > 2 && (
             <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 600 }}>
@@ -446,8 +536,11 @@ export function IndicatorTimelineChart({
                 {indicators.map((indKey) => {
                   const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '', color: '#3B82F6' };
                   const val = getPointValue(hoverPoint, indKey);
-                  const formattedVal =
-                    indKey === 'vessels' ? Math.round(val).toLocaleString() : val.toFixed(2);
+                  const formattedVal = isNaN(val)
+                    ? 'N/A'
+                    : indKey === 'vessels'
+                    ? Math.round(val).toLocaleString()
+                    : val.toFixed(2);
                   return (
                     <Stack
                       key={indKey}

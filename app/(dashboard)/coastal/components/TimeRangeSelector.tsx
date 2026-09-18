@@ -158,7 +158,8 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
       const m = ((i + minMonth - 1) % 12);
       mks.push({
         value: i,
-        label: `${MONTHS[m]} ${y}`,
+        // Every yearly mark falls on January, so the month name is redundant here.
+        label: `${y}`,
       });
     }
     if (totalMonths - 1 > mks[mks.length - 1].value + 6) {
@@ -261,10 +262,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             '& .MuiSlider-markLabel': {
               fontSize: '11px',
               color: '#64748b',
-              transform: 'rotate(-45deg)',
-              transformOrigin: 'top left',
               whiteSpace: 'nowrap',
-              marginTop: '8px',
             },
             '& .MuiSlider-valueLabel': {
               fontSize: '12px',

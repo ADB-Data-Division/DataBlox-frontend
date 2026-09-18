@@ -538,10 +538,7 @@ export const MigrationAnalysisDuration: React.FC<MigrationAnalysisDurationProps>
           '& .MuiSlider-markLabel': {
             fontSize: '11px',
             color: '#64748b',
-            transform: 'rotate(-45deg)',
-            transformOrigin: 'top left',
             whiteSpace: 'nowrap',
-            marginTop: '8px'
           },
           '& .MuiSlider-valueLabel': {
             fontSize: '12px',

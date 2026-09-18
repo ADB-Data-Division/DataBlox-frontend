@@ -76,16 +76,16 @@ function findPeakPoint(
   indicatorKey: string
 ): { value: number; period: string } | undefined {
   if (!timeline || timeline.length === 0) return undefined;
-  let best = timeline[0];
-  let bestVal = getPointValue(best, indicatorKey);
+  let best: IndicatorTimelinePoint | undefined;
+  let bestVal = -Infinity;
   for (const point of timeline) {
     const val = getPointValue(point, indicatorKey);
-    if (val > bestVal) {
+    if (!isNaN(val) && val > bestVal) {
       bestVal = val;
       best = point;
     }
   }
-  return { value: bestVal, period: best.period_start };
+  return best ? { value: bestVal, period: best.period_start } : undefined;
 }
 
 function MathFraction({
