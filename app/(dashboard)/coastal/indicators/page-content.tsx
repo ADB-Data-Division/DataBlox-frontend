@@ -9,11 +9,7 @@ import {
   Card,
   CardContent,
   Chip,
-  FormControl,
   IconButton,
-  MenuItem,
-  Paper,
-  Select,
   Stack,
   Tooltip,
   Typography,
@@ -21,9 +17,10 @@ import {
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import MapIcon from '@mui/icons-material/Map';
-import DownloadIcon from '@mui/icons-material/Download';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import { ViewModeTab } from '../components/ViewModeTab';
+import { DownloadDataCard } from '../components/DownloadDataCard';
 import {
   fetchIndicatorTimeline,
   fetchSpatialGrid,
@@ -535,53 +532,24 @@ export function PageContent() {
 
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <Paper
-          variant="outlined"
+        <ViewModeTab
+          active={viewMode === 'timeline'}
+          title="Environment Timeline"
+          subtitle="Line trends by variable"
+          icon={<TimelineIcon />}
+          vectorSrc="/images/coastal/bar-chart.png"
+          gradient="blue"
           onClick={() => setViewMode('timeline')}
-          sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: viewMode === 'timeline' ? 'primary.main' : 'background.paper',
-            color: viewMode === 'timeline' ? 'primary.contrastText' : 'text.primary',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <TimelineIcon sx={{ fontSize: 28 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Environment Timeline
-            </Typography>
-          </Box>
-        </Paper>
-
-        <Paper
-          variant="outlined"
+        />
+        <ViewModeTab
+          active={viewMode === 'map'}
+          title="Choropleth Map"
+          subtitle="Spatial visualization"
+          icon={<MapIcon />}
+          vectorSrc="/images/coastal/map-pin.png"
+          gradient="teal"
           onClick={() => setViewMode('map')}
-          sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: viewMode === 'map' ? 'teal' : 'background.paper',
-            color: viewMode === 'map' ? '#ffffff' : 'text.primary',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <MapIcon sx={{ fontSize: 28 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Choropleth Map
-            </Typography>
-          </Box>
-        </Paper>
+        />
       </Stack>
 
       {/* Alert if offline */}
@@ -836,51 +804,11 @@ export function PageContent() {
       )}
 
       {/* Bottom Row: Download Data Card */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 2 }}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            spacing={2}
-          >
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Download Data
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Sources: NOAA CoastWatch, Copernicus Climate Data Store, United Nations Global Platform, VesselBot
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportGraph}
-              >
-                Graph
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportCsv}
-              >
-                CSV
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportExcel}
-              >
-                Excel
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+      <DownloadDataCard
+        onExportGraph={handleExportGraph}
+        onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
+      />
     </Stack>
   );
 }

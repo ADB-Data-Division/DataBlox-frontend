@@ -12,7 +12,6 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Paper,
   Stack,
   Checkbox,
   FormGroup,
@@ -25,8 +24,9 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import MapIcon from '@mui/icons-material/Map';
-import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ViewModeTab } from '../components/ViewModeTab';
+import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import VesselSummaryCards from '../components/VesselSummaryCards';
@@ -448,77 +448,33 @@ export function PageContent() {
 
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <Paper
-          variant="outlined"
+        <ViewModeTab
+          active={activeTab === 0}
+          title="Vessel Timeline"
+          subtitle="Line trends by type"
+          icon={<TimelineIcon />}
+          vectorSrc="/images/coastal/bar-chart.png"
+          gradient="blue"
           onClick={() => setActiveTab(0)}
-          sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: activeTab === 0 ? 'primary.main' : 'background.paper',
-            color: activeTab === 0 ? 'primary.contrastText' : 'text.primary',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <TimelineIcon sx={{ fontSize: 28 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Vessel Timeline
-            </Typography>
-          </Box>
-        </Paper>
-
-        <Paper
-          variant="outlined"
+        />
+        <ViewModeTab
+          active={activeTab === 1}
+          title="Type Distribution"
+          subtitle="Pie charts by type"
+          icon={<PieChartIcon />}
+          vectorSrc="/images/coastal/pie-chart.png"
+          gradient="teal"
           onClick={() => setActiveTab(1)}
-          sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: activeTab === 1 ? 'primary.main' : 'background.paper',
-            color: activeTab === 1 ? 'primary.contrastText' : 'text.primary',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <PieChartIcon sx={{ fontSize: 28 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Type Distribution
-            </Typography>
-          </Box>
-        </Paper>
-
-        <Paper
-          variant="outlined"
+        />
+        <ViewModeTab
+          active={activeTab === 2}
+          title="Choropleth Map"
+          subtitle="Spatial visualization"
+          icon={<MapIcon />}
+          vectorSrc="/images/coastal/map-pin.png"
+          gradient="teal"
           onClick={() => setActiveTab(2)}
-          sx={{
-            flex: 1,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: activeTab === 2 ? 'teal' : 'background.paper',
-            color: activeTab === 2 ? '#ffffff' : 'text.primary',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-        >
-          <MapIcon sx={{ fontSize: 28 }} />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Choropleth Map
-            </Typography>
-          </Box>
-        </Paper>
+        />
       </Stack>
 
       {/* Tab 0: Vessel Timeline */}
@@ -858,51 +814,11 @@ export function PageContent() {
       )}
 
       {/* Download Data Footer */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 2 }}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            spacing={2}
-          >
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Download Data
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Sources: NOAA CoastWatch, Copernicus Climate Data Store, United Nations Global Platform, VesselBot
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportGraph}
-              >
-                Graph
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportCsv}
-              >
-                CSV
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportExcel}
-              >
-                Excel
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+      <DownloadDataCard
+        onExportGraph={handleExportGraph}
+        onExportCsv={handleExportCsv}
+        onExportExcel={handleExportExcel}
+      />
     </Stack>
   );
 }
