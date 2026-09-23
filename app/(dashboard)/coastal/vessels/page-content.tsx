@@ -30,7 +30,7 @@ import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import VesselSummaryCards from '../components/VesselSummaryCards';
-import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
+import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
@@ -335,13 +335,15 @@ export function PageContent() {
   };
 
   const handleExportGraph = () => {
+    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
+    if (activeTab === 2) {
+      exportLeafletMapAsPng('coastal-vessels-map-container', filename);
+      return;
+    }
     const containerId =
-      activeTab === 2
-        ? 'coastal-vessels-map-container'
-        : activeTab === 1
+      activeTab === 1
         ? 'coastal-vessels-distribution-container'
         : 'coastal-vessels-chart-container';
-    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
     exportGraphAsPng(containerId, filename);
   };
 

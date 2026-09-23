@@ -538,6 +538,9 @@ function CoastalChoroplethMapClient({
       try {
         const overlay = new deckModules.DeckOverlay({
           layers: [],
+          // Keep the WebGL drawing buffer readable so the Download Graph
+          // PNG export can composite the hex layer via drawImage.
+          glOptions: { preserveDrawingBuffer: true },
         });
         overlay.addTo(map);
         deckOverlayRef.current = overlay;

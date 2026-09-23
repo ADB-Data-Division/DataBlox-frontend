@@ -167,6 +167,163 @@ export function exportToExcel(
 }
 
 /**
+ * Load an image with CORS so drawing it to canvas does not taint the export.
+ * Esri World Imagery serves `Access-Control-Allow-Origin: *`, so tiles reload
+ * cleanly with `crossOrigin = 'anonymous'`.
+ */
+function loadCORSImage(src: string, timeoutMs = 8000): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    const timer = window.setTimeout(() => reject(new Error(`Timed out loading ${src}`)), timeoutMs);
+    img.onload = () => {
+      window.clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      window.clearTimeout(timer);
+      reject(new Error(`Failed to load ${src}`));
+    };
+    img.src = src;
+  });
+}
+
+/**
+ * Capture a Leaflet map (satellite tile <img> layers + Deck.gl / Leaflet
+ * overlay <canvas> layers) by compositing them onto one export canvas.
+ *
+ * Why this exists: the generic `exportGraphAsPng` below only grabs the first
+ * `<canvas>` in the container. For the coastal choropleth that is the Deck.gl
+ * WebGL hex layer, so the Esri satellite basemap (rendered as `<img>` tiles)
+ * is missing and the PNG comes out as hexes on a black background.
+ */
+export async function exportLeafletMapAsPng(
+  containerElementOrId: HTMLElement | string,
+  filename: string,
+  options?: { scale?: number; background?: string; attribution?: string }
+): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const container: HTMLElement | null =
+    typeof containerElementOrId === 'string'
+      ? document.getElementById(containerElementOrId) ||
+        document.querySelector(containerElementOrId)
+      : containerElementOrId;
+
+  if (!container) {
+    console.warn(`Export container not found: ${containerElementOrId}`);
+    return;
+  }
+
+  // The Leaflet map root holds the tile pane, overlay panes, and Deck overlay.
+  const mapEl =
+    (container.querySelector('.leaflet-container') as HTMLElement | null) ?? container;
+  const mapRect = mapEl.getBoundingClientRect();
+  const width = Math.max(100, Math.round(mapRect.width));
+  const height = Math.max(100, Math.round(mapRect.height));
+  const scale = options?.scale ?? 2;
+
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = Math.round(width * scale);
+  exportCanvas.height = Math.round(height * scale);
+  const ctx = exportCanvas.getContext('2d');
+  if (!ctx) return;
+  ctx.scale(scale, scale);
+  ctx.fillStyle = options?.background ?? '#000000';
+  ctx.fillRect(0, 0, width, height);
+
+  const offsetOf = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return { dx: r.left - mapRect.left, dy: r.top - mapRect.top, dw: r.width, dh: r.height };
+  };
+
+  // 1. Basemap tiles (<img class="leaflet-tile">). Reload with CORS so the
+  // export canvas is not tainted; draw at each tile's on-screen position.
+  const tileImgs = Array.from(mapEl.querySelectorAll('img.leaflet-tile')) as HTMLImageElement[];
+  await Promise.all(
+    tileImgs.map(async (tile) => {
+      const src = tile.currentSrc || tile.src;
+      if (!src) return;
+      const { dx, dy, dw, dh } = offsetOf(tile);
+      if (dw <= 0 || dh <= 0) return;
+      // Skip tiles fully outside the viewport.
+      if (dx + dw < 0 || dy + dh < 0 || dx > width || dy > height) return;
+      try {
+        const img = await loadCORSImage(src);
+        ctx.drawImage(img, dx, dy, dw, dh);
+      } catch (err) {
+        console.warn('Skipping basemap tile for export:', err);
+      }
+    })
+  );
+
+  // 2. Overlay canvases: Deck.gl WebGL hex layer + Leaflet Canvas renderer.
+  // Requires the Deck canvas to use preserveDrawingBuffer, otherwise
+  // drawImage may read back a blank buffer.
+  const overlayCanvases = Array.from(mapEl.querySelectorAll('canvas')) as HTMLCanvasElement[];
+  for (const c of overlayCanvases) {
+    try {
+      const { dx, dy, dw, dh } = offsetOf(c);
+      if (dw <= 0 || dh <= 0 || c.width === 0 || c.height === 0) continue;
+      ctx.drawImage(c, dx, dy, dw, dh);
+    } catch (err) {
+      console.warn('Skipping overlay canvas for export (likely tainted WebGL):', err);
+    }
+  }
+
+  // 3. Inline SVG overlays (Leaflet SVG renderer fallback path).
+  const svgEls = Array.from(
+    mapEl.querySelectorAll('.leaflet-overlay-pane svg')
+  ) as SVGSVGElement[];
+  for (const svg of svgEls) {
+    try {
+      const { dx, dy, dw, dh } = offsetOf(svg);
+      if (dw <= 0 || dh <= 0) continue;
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svg);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      try {
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = url;
+        });
+        ctx.drawImage(img, dx, dy, dw, dh);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.warn('Skipping SVG overlay for export:', err);
+    }
+  }
+
+  // 4. Attribution footer so the Esri credit survives the export.
+  const attribution =
+    options?.attribution ??
+    'Tiles (c) Esri, Maxar, Earthstar Geographics and the GIS User Community';
+  try {
+    ctx.font = '11px Inter, Roboto, Helvetica, Arial, sans-serif';
+    const textWidth = ctx.measureText(attribution).width;
+    const pad = 6;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillRect(width - textWidth - pad * 2, height - 22, textWidth + pad * 2, 22);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(attribution, width - textWidth - pad, height - 7);
+  } catch {
+    // Attribution is best-effort only.
+  }
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    exportCanvas.toBlob(resolve, 'image/png')
+  );
+  if (blob) {
+    downloadBlob(blob, filename.endsWith('.png') ? filename : `${filename}.png`);
+  }
+}
+
+/**
  * Capture an SVG or Canvas chart element and export as a PNG image download.
  */
 export async function exportGraphAsPng(

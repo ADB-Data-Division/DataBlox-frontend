@@ -27,7 +27,7 @@ import {
   fetchSpatialSlice,
   fetchSpatialSeries,
 } from '@/services/coastalService';
-import { exportToCsv, exportToExcel, exportGraphAsPng } from '@/src/utils/coastalExport';
+import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -299,7 +299,12 @@ export function PageContent() {
   };
 
   const handleExportGraph = () => {
-    const containerId = viewMode === 'map' ? 'coastal-map-container' : 'coastal-chart-container';
+    if (viewMode === 'map') {
+      const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
+      exportLeafletMapAsPng('coastal-map-container', filename);
+      return;
+    }
+    const containerId = 'coastal-chart-container';
     const filename = `coastal_${viewMode}_${country}_${start_date}_${end_date}.png`;
     exportGraphAsPng(containerId, filename);
   };
