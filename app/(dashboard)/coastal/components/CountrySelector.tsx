@@ -122,7 +122,7 @@ export default function CountrySelector({ selectedIso, onSelect }: CountrySelect
   if (status === 'loading') {
     return (
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, maxWidth: 560 }}>
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: 9 }).map((_, index) => (
           <Skeleton key={index} variant="rounded" sx={{ width: 168, height: 56, borderRadius: 2 }} />
         ))}
       </Box>
