@@ -5,6 +5,7 @@ import { Box, Typography, CircularProgress, IconButton } from '@mui/material';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dynamic from 'next/dynamic';
+import { cellToParent, cellToLatLng, isValidCell } from 'h3-js';
 import { fetchSpatialGrid } from '@/services/coastalService';
 
 export interface CoastalChoroplethMapProps {
@@ -31,6 +32,25 @@ interface HexCellData {
   sst: number;
   vessels: number;
   coords?: [number, number][];
+  // Set when this entry is an aggregated H3 parent rendered at far zoom.
+  isCluster?: boolean;
+  childCount?: number;
+  // Seed parent ids absorbed into a merged circle (for selection highlight).
+  memberIds?: string[];
+}
+
+// Native resolution of the grid payload.
+const NATIVE_H3_RES = 7;
+
+// Single cluster mode (no intermediate hex levels): below this Leaflet zoom
+// the hexes are replaced by magnitude circles grouped at CLUSTER_PARENT_RES.
+const CLUSTER_ZOOM_THRESHOLD = 9;
+const CLUSTER_PARENT_RES = 4;
+
+// Circle radius in screen pixels from member count (sqrt keeps big groups
+// from exploding visually). Shared by the Deck and Leaflet render paths.
+function clusterRadiusPx(childCount: number): number {
+  return 10 + Math.sqrt(Math.max(childCount, 1)) * 5;
 }
 
 // Color scales
@@ -167,6 +187,7 @@ let cachedL: any = null;
 let cachedDeckModules: {
   DeckOverlay: any;
   PolygonLayer: any;
+  ScatterplotLayer: any;
   TextLayer: any;
 } | null = null;
 
@@ -263,6 +284,29 @@ function fitMapToCells(map: any, cells: HexCellData[]): [[number, number], [numb
   return null;
 }
 
+function fitMapToCoords(map: any, coords: [number, number][]): void {
+  if (!map || !coords || coords.length === 0) return;
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+  for (const [lat, lng] of coords) {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+  }
+  if (minLat !== Infinity && maxLat !== -Infinity) {
+    map.fitBounds(
+      [
+        [minLat, minLng],
+        [maxLat, maxLng],
+      ],
+      { padding: [48, 48], animate: true }
+    );
+  }
+}
+
 function CoastalChoroplethMapClient({
   country,
   locationName,
@@ -288,11 +332,13 @@ function CoastalChoroplethMapClient({
   const [deckModules, setDeckModules] = useState<{
     DeckOverlay: any;
     PolygonLayer: any;
+    ScatterplotLayer: any;
     TextLayer: any;
   } | null>(cachedDeckModules);
   const [genuineCells, setGenuineCells] = useState<HexCellData[] | null>(null);
   const [hoveredCell, setHoveredCell] = useState<HexCellData | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [mapZoom, setMapZoom] = useState<number | null>(null);
 
   // Determine indicator type
   const isChlor = useMemo(() => {
@@ -449,6 +495,165 @@ function CoastalChoroplethMapClient({
     });
   }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST]);
 
+  // Single cluster mode: far zoom shows one magnitude circle per parent
+  // region (centerpoint of nearby hexes); close zoom shows the raw hexes.
+  const showClusters = mapZoom !== null && mapZoom < CLUSTER_ZOOM_THRESHOLD;
+
+  const clusterPoints = useMemo(() => {
+    if (gridCells.length === 0) return [];
+
+    const groups = new Map<
+      string,
+      {
+        sumChlor: number;
+        sumSst: number;
+        sumVessels: number;
+        count: number;
+        minLat: number;
+        maxLat: number;
+        minLng: number;
+        maxLng: number;
+      }
+    >();
+    try {
+      for (const cell of gridCells) {
+        if (!isValidCell(cell.id)) throw new Error(`Invalid H3 index: ${cell.id}`);
+        const parent = cellToParent(cell.id, CLUSTER_PARENT_RES);
+        const g = groups.get(parent) || {
+          sumChlor: 0,
+          sumSst: 0,
+          sumVessels: 0,
+          count: 0,
+          minLat: Infinity,
+          maxLat: -Infinity,
+          minLng: Infinity,
+          maxLng: -Infinity,
+        };
+        g.sumChlor += Number(cell.chlor_a) || 0;
+        g.sumSst += Number(cell.sst) || 0;
+        g.sumVessels += Number(cell.vessels) || 0;
+        g.count += 1;
+        if (cell.lat < g.minLat) g.minLat = cell.lat;
+        if (cell.lat > g.maxLat) g.maxLat = cell.lat;
+        if (cell.lng < g.minLng) g.minLng = cell.lng;
+        if (cell.lng > g.maxLng) g.maxLng = cell.lng;
+        groups.set(parent, g);
+      }
+    } catch (err) {
+      // Non-H3 ids: no clusters, fall back to raw rendering.
+      console.warn('H3 clustering skipped:', err);
+      return [];
+    }
+
+    const points: HexCellData[] = [];
+    type Seed = {
+      id: string;
+      lat: number;
+      lng: number;
+      sumChlor: number;
+      sumSst: number;
+      sumVessels: number;
+      count: number;
+      minLat: number;
+      maxLat: number;
+      minLng: number;
+      maxLng: number;
+      memberIds: string[];
+    };
+    const seeds: Seed[] = [];
+    for (const [parent, g] of groups) {
+      const [lat, lng] = cellToLatLng(parent);
+      seeds.push({
+        id: parent,
+        lat,
+        lng,
+        sumChlor: g.sumChlor,
+        sumSst: g.sumSst,
+        sumVessels: g.sumVessels,
+        count: g.count,
+        minLat: g.minLat,
+        maxLat: g.maxLat,
+        minLng: g.minLng,
+        maxLng: g.maxLng,
+        memberIds: [parent],
+      });
+    }
+
+    // Greedy screen-space merge: biggest seeds absorb overlapping neighbors
+    // so rendered circles never overlap and only a few regions remain.
+    // Pixel scale from Web Mercator at the current zoom.
+    const zoom = mapZoom ?? CLUSTER_ZOOM_THRESHOLD;
+    const pxPerDeg = (256 * Math.pow(2, zoom)) / 360;
+    const distPx = (a: Seed, b: Seed) => {
+      const dx = (a.lng - b.lng) * pxPerDeg;
+      const midLat = (((a.lat + b.lat) / 2) * Math.PI) / 180;
+      const dy = ((a.lat - b.lat) * pxPerDeg) / Math.max(Math.cos(midLat), 0.2);
+      return Math.hypot(dx, dy);
+    };
+    seeds.sort((a, b) => b.count - a.count);
+    const merged: Seed[] = [];
+    for (const s of seeds) {
+      const rS = clusterRadiusPx(s.count);
+      let target: Seed | null = null;
+      for (const m of merged) {
+        if (distPx(s, m) < rS + clusterRadiusPx(m.count) + 6) {
+          target = m;
+          break;
+        }
+      }
+      if (!target) {
+        merged.push(s);
+        continue;
+      }
+      const total = target.count + s.count;
+      target.lat = (target.lat * target.count + s.lat * s.count) / total;
+      target.lng = (target.lng * target.count + s.lng * s.count) / total;
+      target.sumChlor += s.sumChlor;
+      target.sumSst += s.sumSst;
+      target.sumVessels += s.sumVessels;
+      target.count = total;
+      target.minLat = Math.min(target.minLat, s.minLat);
+      target.maxLat = Math.max(target.maxLat, s.maxLat);
+      target.minLng = Math.min(target.minLng, s.minLng);
+      target.maxLng = Math.max(target.maxLng, s.maxLng);
+      target.memberIds.push(...s.memberIds);
+    }
+
+    for (const m of merged) {
+      points.push({
+        id: m.id,
+        lat: m.lat,
+        lng: m.lng,
+        chlor_a: m.sumChlor / m.count,
+        sst: m.sumSst / m.count,
+        vessels: m.sumVessels,
+        // Bounds corners double as the zoom target via fitMapToCoords.
+        coords: [
+          [m.minLat, m.minLng],
+          [m.maxLat, m.maxLng],
+        ],
+        isCluster: true,
+        childCount: m.count,
+        memberIds: m.memberIds,
+      });
+    }
+    return points;
+  }, [gridCells, mapZoom]);
+
+  // Clusters containing a selected hex keep the highlight while zoomed out.
+  const selectedClusterIds = useMemo(() => {
+    if (!showClusters || selectedCellIds.length === 0) return new Set<string>();
+    const parents = new Set<string>();
+    for (const id of selectedCellIds) {
+      try {
+        if (isValidCell(id)) parents.add(cellToParent(id, CLUSTER_PARENT_RES));
+      } catch {
+        // Ignore ids that do not map to a parent.
+      }
+    }
+    return parents;
+  }, [showClusters, selectedCellIds]);
+
   // Dynamically load Leaflet and Deck.gl WebGL on client
   useEffect(() => {
     let mounted = true;
@@ -463,6 +668,7 @@ function CoastalChoroplethMapClient({
         cachedDeckModules = {
           DeckOverlay: deckCommunityModule.DeckOverlay,
           PolygonLayer: deckGlModule.PolygonLayer,
+          ScatterplotLayer: deckGlModule.ScatterplotLayer,
           TextLayer: deckGlModule.TextLayer,
         };
         if (mounted) {
@@ -553,6 +759,16 @@ function CoastalChoroplethMapClient({
     layerGroupRef.current = layerGroup;
     leafletMapRef.current = map;
 
+    // Track zoom so far levels can render aggregated H3 parents.
+    setMapZoom(map.getZoom());
+    const handleZoomEnd = () => {
+      setMapZoom(map.getZoom());
+      // Layer mode may have switched (circles <-> hexes); drop stale hover.
+      setHoveredCell(null);
+      setTooltipPos(null);
+    };
+    map.on('zoomend', handleZoomEnd);
+
     // Immediately fit to genuineCells if already resolved, or stored fittedBounds
     if (genuineCells && genuineCells.length > 0) {
       const bounds = fitMapToCells(map, genuineCells);
@@ -573,6 +789,11 @@ function CoastalChoroplethMapClient({
         deckOverlayRef.current = null;
       }
       if (leafletMapRef.current) {
+        try {
+          leafletMapRef.current.off('zoomend', handleZoomEnd);
+        } catch {
+          // Ignore unmount error
+        }
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }
@@ -644,47 +865,96 @@ function CoastalChoroplethMapClient({
       layerGroupRef.current.clearLayers();
     }
 
-    const { PolygonLayer, TextLayer } = deckModules;
+    const { PolygonLayer, ScatterplotLayer, TextLayer } = deckModules;
 
-    const layers: any[] = [
-      new PolygonLayer({
-        id: 'h3-hexagons-webgl',
-        data: gridCells,
-        getPolygon: (d: HexCellData) =>
-          d.coords ? d.coords.map(([lat, lng]) => [lng, lat]) : [],
-        getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
-        getLineColor: (d: HexCellData) =>
-          selectedCellIds.includes(d.id) ? [239, 68, 68, 255] : [255, 255, 255, 200],
-        getLineWidth: (d: HexCellData) => (selectedCellIds.includes(d.id) ? 3.5 : 1),
-        lineWidthUnits: 'pixels',
-        filled: true,
-        stroked: true,
-        pickable: true,
-        autoHighlight: true,
-        highlightColor: [255, 255, 255, 90],
-        onClick: (info: any) => {
-          if (info.object && onSelectCell) {
-            onSelectCell(info.object.id);
-          }
-        },
-        onHover: (info: any) => {
-          if (info.object) {
-            setHoveredCell(info.object);
-            setTooltipPos({ x: info.x, y: info.y });
-          } else {
-            setHoveredCell(null);
-            setTooltipPos(null);
-          }
-        },
-        updateTriggers: {
-          getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
-          getLineColor: [selectedCellIds],
-          getLineWidth: [selectedCellIds],
-        },
-      }),
-    ];
+    const handleHexClick = (d: HexCellData) => {
+      if (onSelectCell) {
+        onSelectCell(d.id);
+      }
+    };
 
-    if (overlayVessels) {
+    const handleClusterClick = (d: HexCellData) => {
+      // Zoom only, never select.
+      fitMapToCoords(leafletMapRef.current, d.coords || []);
+    };
+
+    const handleHover = (info: any) => {
+      if (info.object) {
+        setHoveredCell(info.object);
+        setTooltipPos({ x: info.x, y: info.y });
+      } else {
+        setHoveredCell(null);
+        setTooltipPos(null);
+      }
+    };
+
+    const layers: any[] = [];
+
+    if (showClusters) {
+      // Far zoom: magnitude circles at the centerpoint of nearby hexes.
+      layers.push(
+        new ScatterplotLayer({
+          id: 'h3-clusters-webgl',
+          data: clusterPoints,
+          getPosition: (d: HexCellData) => [d.lng, d.lat],
+          getRadius: (d: HexCellData) => clusterRadiusPx(d.childCount || 1),
+          radiusUnits: 'pixels',
+          radiusMinPixels: 14,
+          radiusMaxPixels: 64,
+          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
+          getLineColor: (d: HexCellData) =>
+            (d.memberIds || [d.id]).some((m) => selectedClusterIds.has(m))
+              ? [239, 68, 68, 255]
+              : [255, 255, 255, 230],
+          getLineWidth: 2,
+          lineWidthUnits: 'pixels',
+          stroked: true,
+          filled: true,
+          pickable: true,
+          autoHighlight: true,
+          highlightColor: [255, 255, 255, 90],
+          onClick: (info: any) => {
+            if (info.object) handleClusterClick(info.object);
+          },
+          onHover: handleHover,
+          updateTriggers: {
+            getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
+            getRadius: [clusterPoints],
+            getLineColor: [selectedClusterIds],
+          },
+        })
+      );
+    } else {
+      layers.push(
+        new PolygonLayer({
+          id: 'h3-hexagons-webgl',
+          data: gridCells,
+          getPolygon: (d: HexCellData) =>
+            d.coords ? d.coords.map(([lat, lng]) => [lng, lat]) : [],
+          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
+          getLineColor: (d: HexCellData) =>
+            selectedCellIds.includes(d.id) ? [239, 68, 68, 255] : [255, 255, 255, 200],
+          getLineWidth: (d: HexCellData) => (selectedCellIds.includes(d.id) ? 3.5 : 1),
+          lineWidthUnits: 'pixels',
+          filled: true,
+          stroked: true,
+          pickable: true,
+          autoHighlight: true,
+          highlightColor: [255, 255, 255, 90],
+          onClick: (info: any) => {
+            if (info.object) handleHexClick(info.object);
+          },
+          onHover: handleHover,
+          updateTriggers: {
+            getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
+            getLineColor: [selectedCellIds],
+            getLineWidth: [selectedCellIds],
+          },
+        })
+      );
+    }
+
+    if (overlayVessels && !showClusters) {
       const vesselCells = gridCells.filter((c) => c.vessels !== undefined && c.vessels > 0);
       const maxVessels = Math.max(...vesselCells.map((c) => c.vessels), 1);
       layers.push(
@@ -716,10 +986,13 @@ function CoastalChoroplethMapClient({
   }, [
     deckModules,
     gridCells,
+    clusterPoints,
+    showClusters,
     isChlor,
     isSST,
     overlayVessels,
     selectedCellIds,
+    selectedClusterIds,
     onSelectCell,
     spatialSlice,
     activeIndicator,
@@ -733,6 +1006,50 @@ function CoastalChoroplethMapClient({
 
     const layerGroup = layerGroupRef.current;
     layerGroup.clearLayers();
+
+    // Far zoom fallback: magnitude circles (radius is screen pixels, so they
+    // stay readable at any zoom). Zoom only, never select.
+    if (showClusters) {
+      clusterPoints.forEach((point) => {
+        const isSelected = (point.memberIds || [point.id]).some((m) =>
+          selectedClusterIds.has(m)
+        );
+
+        let fillColor = '#94a3b8';
+        if (isChlor) {
+          fillColor = getChlorophyllColor(point.chlor_a);
+        } else if (isSST) {
+          fillColor = getSSTColor(point.sst);
+        }
+
+        const circle = L.circleMarker([point.lat, point.lng], {
+          radius: clusterRadiusPx(point.childCount || 1),
+          fillColor,
+          fillOpacity: 0.86,
+          color: isSelected ? '#ef4444' : '#ffffff',
+          weight: isSelected ? 3.5 : 2,
+        });
+
+        circle.bindTooltip(
+          `
+          <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
+            <div style="font-weight: 700; margin-bottom: 2px;">${point.childCount} hexes (click to zoom in)</div>
+            ${overlayVessels ? `<div>Total Vessels: <strong>${point.vessels}</strong></div>` : ''}
+            <div>Chlor_a (Avg.): <strong>${point.chlor_a.toFixed(2)} mg/m³</strong></div>
+            <div>Sea Surface Temp (Avg.): <strong>${point.sst.toFixed(1)} K</strong></div>
+          </div>
+        `,
+          { sticky: true, direction: 'top', className: 'custom-hex-tooltip' }
+        );
+
+        circle.on('click', () => {
+          fitMapToCoords(leafletMapRef.current, point.coords || []);
+        });
+
+        layerGroup.addLayer(circle);
+      });
+      return;
+    }
 
     const maxVessels = Math.max(...gridCells.map((c) => c.vessels || 0), 1);
 
@@ -760,7 +1077,7 @@ function CoastalChoroplethMapClient({
       const tooltipContent = `
         <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
           <div style="font-weight: 700; margin-bottom: 2px;">Hex: ${cell.id}</div>
-          <div style="color: #64748b;">Resolution: 7</div>
+          <div style="color: #64748b;">Resolution: ${NATIVE_H3_RES}</div>
           <div style="color: #64748b;">Area: 4.5 km²</div>
           ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
           <div>Chlor_a (Avg.): <strong>${cell.chlor_a.toFixed(2)} mg/m³</strong></div>
@@ -808,7 +1125,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [deckModules, L, gridCells, isChlor, isSST, overlayVessels, selectedCellIds, onSelectCell]);
+  }, [deckModules, L, gridCells, clusterPoints, showClusters, isChlor, isSST, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell]);
 
   if (loading) {
     return (
@@ -947,9 +1264,17 @@ function CoastalChoroplethMapClient({
             minWidth: 180,
           }}
         >
-          <Box sx={{ fontWeight: 700, mb: 0.25 }}>Hex: {hoveredCell.id}</Box>
-          <Box sx={{ color: '#64748b' }}>Resolution: 7</Box>
-          <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
+          <Box sx={{ fontWeight: 700, mb: 0.25 }}>
+            {hoveredCell.isCluster ? `${hoveredCell.childCount} hexes` : `Hex: ${hoveredCell.id}`}
+          </Box>
+          {hoveredCell.isCluster ? (
+            <Box sx={{ color: '#64748b' }}>Click to zoom in</Box>
+          ) : (
+            <>
+              <Box sx={{ color: '#64748b' }}>Resolution: {NATIVE_H3_RES}</Box>
+              <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
+            </>
+          )}
           {(overlayVessels || activeIndicator === 'vessels') && (
             <Box>Total Vessels: <strong>{hoveredCell.vessels} vessels</strong></Box>
           )}
