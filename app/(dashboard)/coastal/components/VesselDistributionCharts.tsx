@@ -47,7 +47,7 @@ export function VesselDistributionCharts({
       return {
         id: cat.id,
         value: cat.value,
-        label: `${cat.label}: ${percentage}% (${cat.value})`,
+        label: `${cat.label}: ${percentage}% (${cat.value.toLocaleString('en-US')})`,
         color: cat.color,
       };
     });
