@@ -19,6 +19,10 @@ export interface HexCellDetailModalProps {
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
 
+// Shared fixed height so empty and filled states occupy the same slot and
+// selecting/clearing a hex does not shift the choropleth map below.
+const HEX_DETAIL_CARD_HEIGHT = 380;
+
 // Vessel/duration counts add up across hexes; concentration/temperature readings are averaged.
 // Missing chlor_a/sst stay null so the chart renders a gap, never a fake 0.
 function aggregatePoint(points: HexCellTimeSeriesPoint[], field: 'chlor_a' | 'sst' | 'vessels' | 'duration') {
@@ -161,7 +165,7 @@ export default function HexCellDetailModal({
           alignItems: 'center',
           justifyContent: 'center',
           p: 4,
-          minHeight: 180,
+          height: HEX_DETAIL_CARD_HEIGHT,
           borderRadius: 2,
         }}
       >
@@ -236,6 +240,7 @@ export default function HexCellDetailModal({
       sx={{
         borderRadius: 2,
         p: 2.5,
+        height: HEX_DETAIL_CARD_HEIGHT,
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
@@ -243,17 +248,20 @@ export default function HexCellDetailModal({
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', overflow: 'hidden', gap: 0.75 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Hex:
             </Typography>
             {cellIds.slice(0, MAX_VISIBLE_HEX_CHIPS).map((id) => (
-              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace', flexShrink: 0 }} />
             ))}
             {cellIds.length > MAX_VISIBLE_HEX_CHIPS && (
-              <Typography variant="body2" color="text.secondary">
-                {cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...
-              </Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={`${cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...`}
+                sx={{ flexShrink: 0 }}
+              />
             )}
           </Box>
           <Typography variant="body2" color="text.secondary">

@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Box, Typography, Button, CircularProgress, IconButton } from '@mui/material';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
-import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 import dynamic from 'next/dynamic';
 import { cellToParent, cellToLatLng, isValidCell } from 'h3-js';
 import { fetchSpatialGrid } from '@/services/coastalService';
@@ -799,6 +799,7 @@ function CoastalChoroplethMapClient({
       minZoom: 4,
       maxZoom: 14,
       zoomControl: false,
+      scrollWheelZoom: false,
       preferCanvas: true,
     });
 
@@ -814,7 +815,7 @@ function CoastalChoroplethMapClient({
         link.setAttribute('role', 'button');
         link.setAttribute('aria-label', 'Reset view');
         link.innerHTML =
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>';
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg>';
         link.style.display = 'flex';
         link.style.alignItems = 'center';
         link.style.justifyContent = 'center';
@@ -1346,7 +1347,7 @@ function CoastalChoroplethMapClient({
               onClick={onClearSelection}
               sx={{ p: 0.5 }}
             >
-              <DeleteIcon sx={{ fontSize: 16, color: '#ef4444' }} />
+              <CloseIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
             </IconButton>
           </Box>
         </>

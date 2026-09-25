@@ -45,6 +45,13 @@ import {
 } from '@/services/coastalService';
 import type { VesselTimelineResponse } from '@/types/coastal';
 
+const VESSEL_CATEGORY_COLORS: Record<string, string> = {
+  trade: '#6366f1',
+  harbor: '#ef4444',
+  recreation: '#f59e0b',
+  miscellaneous: '#9ca3af',
+};
+
 export function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -168,10 +175,10 @@ export function PageContent() {
       .then((res) => {
         if (!isCurrent) return;
         const colors: Record<string, string> = {
-          Trade: '#6366f1',
-          Recreation: '#f59e0b',
-          Harbor: '#ef4444',
-          Miscellaneous: '#9ca3af',
+          Trade: VESSEL_CATEGORY_COLORS.trade,
+          Recreation: VESSEL_CATEGORY_COLORS.recreation,
+          Harbor: VESSEL_CATEGORY_COLORS.harbor,
+          Miscellaneous: VESSEL_CATEGORY_COLORS.miscellaneous,
         };
         const total = res.total_records || res.total_vessels || 0;
         const parentCategories = (res.pie_chart || []).map((item: any) => ({
@@ -572,19 +579,19 @@ export function PageContent() {
                   </Typography>
                   <Stack spacing={1}>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: '#6366f1' }} />
+                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.trade }} />
                       <Typography variant="body2">Trade</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: '#ef4444' }} />
+                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.harbor }} />
                       <Typography variant="body2">Harbor</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: '#f59e0b' }} />
+                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.recreation }} />
                       <Typography variant="body2">Recreation</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: '#9ca3af' }} />
+                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.miscellaneous }} />
                       <Typography variant="body2">Miscellaneous</Typography>
                     </Stack>
                   </Stack>
@@ -608,6 +615,7 @@ export function PageContent() {
                               setVisibleSeries((v) => ({ ...v, trade: e.target.checked }));
                             }}
                             size="small"
+                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
                           />
                         }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Trade</Typography>}
@@ -622,6 +630,7 @@ export function PageContent() {
                               checked={visibleSubtypes.cargo}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, cargo: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
                             />
                           }
                           label={<Typography variant="caption">Cargo</Typography>}
@@ -632,6 +641,7 @@ export function PageContent() {
                               checked={visibleSubtypes.tanker}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tanker: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
                             />
                           }
                           label={<Typography variant="caption">Tanker</Typography>}
@@ -651,6 +661,7 @@ export function PageContent() {
                               setVisibleSeries((v) => ({ ...v, harbor: e.target.checked }));
                             }}
                             size="small"
+                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
                           />
                         }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Harbor</Typography>}
@@ -665,6 +676,7 @@ export function PageContent() {
                               checked={visibleSubtypes.tug}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tug: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
                             />
                           }
                           label={<Typography variant="caption">Tug & Tow</Typography>}
@@ -675,6 +687,7 @@ export function PageContent() {
                               checked={visibleSubtypes.dredge}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, dredge: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
                             />
                           }
                           label={<Typography variant="caption">Dredger</Typography>}
@@ -694,6 +707,7 @@ export function PageContent() {
                               setVisibleSeries((v) => ({ ...v, recreation: e.target.checked }));
                             }}
                             size="small"
+                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
                           />
                         }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Recreation</Typography>}
@@ -708,6 +722,7 @@ export function PageContent() {
                               checked={visibleSubtypes.passenger}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, passenger: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
                             />
                           }
                           label={<Typography variant="caption">Passenger</Typography>}
@@ -718,6 +733,7 @@ export function PageContent() {
                               checked={visibleSubtypes.pleasure_craft}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, pleasure_craft: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
                             />
                           }
                           label={<Typography variant="caption">Pleasure Craft</Typography>}
@@ -728,6 +744,7 @@ export function PageContent() {
                               checked={visibleSubtypes.high_speed}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, high_speed: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
                             />
                           }
                           label={<Typography variant="caption">High-Speed Craft</Typography>}
@@ -747,6 +764,7 @@ export function PageContent() {
                               setVisibleSeries((v) => ({ ...v, miscellaneous: e.target.checked }));
                             }}
                             size="small"
+                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
                           />
                         }
                         label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Miscellaneous</Typography>}
@@ -761,6 +779,7 @@ export function PageContent() {
                               checked={visibleSubtypes.fishing}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, fishing: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
                             />
                           }
                           label={<Typography variant="caption">Fishing</Typography>}
@@ -771,6 +790,7 @@ export function PageContent() {
                               checked={visibleSubtypes.sailing}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, sailing: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
                             />
                           }
                           label={<Typography variant="caption">Sailing</Typography>}
@@ -781,6 +801,7 @@ export function PageContent() {
                               checked={visibleSubtypes.others}
                               onChange={(e) => setVisibleSubtypes((s) => ({ ...s, others: e.target.checked }))}
                               size="small"
+                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
                             />
                           }
                           label={<Typography variant="caption">Others</Typography>}
