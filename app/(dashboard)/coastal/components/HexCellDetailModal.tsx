@@ -69,6 +69,26 @@ function formatMonthYear(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
+// X-axis labels must stay unique per data point. Truncating weekly
+// period_starts (YYYY-MM-DD) to YYYY-MM collapses 4-5 weeks onto one
+// point-scale category, which renders as vertical zigzag spikes.
+function toXLabel(periodStart: string, grainKey: string): string {
+  const raw = periodStart || '';
+  if (grainKey === 'annually') return raw.slice(0, 4);
+  if (grainKey === 'weekly') return raw.slice(0, 10);
+  return raw.slice(0, 7);
+}
+
+function formatXTick(value: string, grainKey: string): string {
+  if (!value) return '';
+  if (grainKey === 'annually') return value.slice(0, 4);
+  const parts = value.split('-');
+  // Monthly values are YYYY-MM; weekly values are YYYY-MM-DD.
+  // Label January ticks with the year, leave the rest blank.
+  if (parts.length >= 2 && parts[1] === '01') return parts[0];
+  return '';
+}
+
 export default function HexCellDetailModal({
   cellIds = [],
   locationName,
@@ -143,18 +163,20 @@ export default function HexCellDetailModal({
     };
   }, [cellIds, country, dateRange.start, dateRange.end, grain]);
 
+  const grainKey = (grain || 'monthly').toLowerCase();
+
   const timeSeries = useMemo(() => {
     if (!realPoints || realPoints.length === 0) {
-      return { months: [], chlor_a: [], vessels: [], sst: [], duration: [] };
+      return { xLabels: [], chlor_a: [], vessels: [], sst: [], duration: [] };
     }
     return {
-      months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
+      xLabels: realPoints.map((pt) => toXLabel(pt.period_start, grainKey)),
       chlor_a: realPoints.map((pt) => (pt.chlor_a !== null && pt.chlor_a !== undefined ? pt.chlor_a : null)),
       vessels: realPoints.map((pt) => (pt.vessels !== null && pt.vessels !== undefined ? pt.vessels : 0)),
       sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : null)),
       duration: realPoints.map((pt) => (pt.duration !== null && pt.duration !== undefined ? pt.duration : 0)),
     };
-  }, [realPoints]);
+  }, [realPoints, grain, grainKey]);
 
   if (cellIds.length === 0) {
     return (
@@ -199,6 +221,11 @@ export default function HexCellDetailModal({
   const series: any[] = [];
   const yAxisConfig: any[] = [];
 
+  // Weekly series carry ~350+ points; markers on every point overplot into
+  // vertical blobs, so only draw them on sparse (monthly/annual) series.
+  const pointCount = timeSeries.xLabels.length;
+  const showMarks = pointCount <= 120;
+
   if (primaryConfig) {
     const dataArray = (timeSeries as any)[primaryId] || timeSeries.chlor_a;
     series.push({
@@ -207,7 +234,8 @@ export default function HexCellDetailModal({
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
       label: primaryConfig.label,
-      showMark: true,
+      showMark: showMarks,
+      connectNulls: false,
     });
     yAxisConfig.push({
       id: 'leftAxis',
@@ -223,7 +251,8 @@ export default function HexCellDetailModal({
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
       label: secondaryConfig.label,
-      showMark: true,
+      showMark: showMarks,
+      connectNulls: false,
     });
     yAxisConfig.push({
       id: 'rightAxis',
@@ -233,6 +262,10 @@ export default function HexCellDetailModal({
   }
 
   const dateSubtitle = `${formatMonthYear(dateRange.start)} - ${formatMonthYear(dateRange.end)}`;
+
+  // Thin x-axis labels on dense (weekly) series so ticks and the right
+  // y-axis stay inside the card instead of overflowing its space.
+  const tickStep = Math.max(1, Math.ceil(pointCount / 14));
 
   return (
     <Card
@@ -307,7 +340,7 @@ export default function HexCellDetailModal({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <CircularProgress size={32} />
           </Box>
-        ) : timeSeries.months.length === 0 ? (
+        ) : timeSeries.xLabels.length === 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography variant="body2" color="text.secondary">
               No historical data available for this cell.
@@ -315,20 +348,18 @@ export default function HexCellDetailModal({
           </Box>
         ) : (
           <LineChart
+            height={260}
             series={series}
             xAxis={[
               {
-                data: timeSeries.months,
+                data: timeSeries.xLabels,
                 scaleType: 'point',
-                valueFormatter: (value: string) => {
-                  const parts = value.split('-');
-                  if (parts[1] === '01') return parts[0];
-                  return '';
-                },
+                tickLabelInterval: (_value: string, index: number) => index % tickStep === 0,
+                valueFormatter: (value: string) => formatXTick(value, grainKey),
               },
             ]}
             yAxis={yAxisConfig}
-            margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
+            margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 80 : 20 }}
             slotProps={{ legend: { hidden: true } }}
             sx={{
               [`& .MuiMarkElement-series-${primaryId}`]: {
