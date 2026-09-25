@@ -41,6 +41,7 @@ import {
   fetchVesselDistribution,
   fetchVesselTimeline,
   fetchSpatialSlice,
+  fetchSpatialSeries,
 } from '@/services/coastalService';
 import type { VesselTimelineResponse } from '@/types/coastal';
 
@@ -107,12 +108,19 @@ export function PageContent() {
     return isNaN(d.getTime()) ? 2024 : d.getFullYear();
   });
 
+  const timelineData = useMemo(() => {
+    return timelineResponse?.timeline || timelineResponse?.series || [];
+  }, [timelineResponse]);
+
+  const summary = timelineResponse?.summary;
+
   const periodItems = useMemo(() => {
     if (grain === 'weekly') {
       return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
     }
-    return generatePeriods(start_date, end_date, grain);
-  }, [start_date, end_date, grain, weeklyYear]);
+    // Prefer backend timeline periods so scrubber positions match available data.
+    return generatePeriods(start_date, end_date, grain, timelineData as any);
+  }, [start_date, end_date, grain, weeklyYear, timelineData]);
 
   const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
   const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
@@ -235,11 +243,46 @@ export function PageContent() {
     };
   }, [country, aoi_id, start_date, end_date, grain, metric]);
 
-  const timelineData = useMemo(() => {
-    return timelineResponse?.timeline || timelineResponse?.series || [];
-  }, [timelineResponse]);
+  // Pre-fetch batch spatial series across all periods for instant scrubbing
+  useEffect(() => {
+    if (activeTab !== 2 || !country || periodItems.length === 0) {
+      return;
+    }
 
-  const summary = timelineResponse?.summary;
+    let isMounted = true;
+
+    fetchSpatialSeries({
+      country,
+      start_date: periodItems[0].start,
+      end_date: periodItems[periodItems.length - 1].end,
+      grain,
+      indicator: 'vessels',
+      aoi_id: aoi_id || undefined,
+    })
+      .then((res) => {
+        if (!isMounted || !res?.series) return;
+        Object.entries(res.series).forEach(([periodStart, cellMap]) => {
+          const key = `${country}_${periodStart}_vessels_${grain}`;
+          sliceCacheRef.current.set(key, cellMap as Record<string, any>);
+        });
+
+        const cur = periodItems[activeScrubberIndex];
+        if (cur) {
+          const curKey = `${country}_${cur.start}_vessels_${grain}`;
+          const cached = sliceCacheRef.current.get(curKey);
+          if (cached) {
+            setSpatialSlice(cached);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Batch vessel spatial series pre-fetch failed, falling back to slice queries:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [country, grain, aoi_id, activeTab, periodItems, activeScrubberIndex]);
 
   // Fetch Spatial Slice for Tab 2
   useEffect(() => {
@@ -261,6 +304,7 @@ export function PageContent() {
       period_end: curPeriod.end,
       grain,
       indicator: 'vessels',
+      aoi_id: aoi_id || undefined,
     })
       .then((res) => {
         if (!isCurrent) return;
@@ -283,7 +327,7 @@ export function PageContent() {
     return () => {
       isCurrent = false;
     };
-  }, [country, activeScrubberIndex, periodItems, grain, activeTab]);
+  }, [country, activeScrubberIndex, periodItems, grain, activeTab, aoi_id]);
 
   const handleAccordionChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -796,6 +840,7 @@ export function PageContent() {
               spatialSlice={spatialSlice}
               selectedCellId={selectedHexCell}
               onSelectCell={(id) => setSelectedHexCell(id)}
+              onClearSelection={() => setSelectedHexCell(null)}
               loading={spatialLoading}
               periodLabel={periods[activeScrubberIndex]}
             />
