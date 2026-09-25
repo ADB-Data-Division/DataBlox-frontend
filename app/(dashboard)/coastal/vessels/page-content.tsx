@@ -75,7 +75,7 @@ export function PageContent() {
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
-  const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
@@ -867,13 +867,13 @@ export function PageContent() {
             {/* Top Row: Hex Cell Detail Modal / Card */}
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
-                cellIds={selectedHexCell ? [selectedHexCell] : []}
+                cellIds={selectedHexCells}
                 locationName={locationLabel}
                 country={country}
                 grain={grain}
                 dateRange={{ start: start_date, end: end_date }}
                 indicators={['vessels']}
-                onClose={() => setSelectedHexCell(null)}
+                onClose={() => setSelectedHexCells([])}
               />
             </Box>
 
@@ -883,9 +883,13 @@ export function PageContent() {
               locationName={locationLabel}
               aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
               spatialSlice={spatialSlice}
-              selectedCellId={selectedHexCell}
-              onSelectCell={(id) => setSelectedHexCell(id)}
-              onClearSelection={() => setSelectedHexCell(null)}
+              selectedCellIds={selectedHexCells}
+              onSelectCell={(id) =>
+                setSelectedHexCells((prev) =>
+                  prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+                )
+              }
+              onClearSelection={() => setSelectedHexCells([])}
               loading={spatialLoading}
               periodLabel={periods[activeScrubberIndex]}
             />
