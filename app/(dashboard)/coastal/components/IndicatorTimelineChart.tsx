@@ -87,7 +87,7 @@ const MARGINS = { top: 30, right: 75, bottom: 50, left: 60 };
 const CHLOR_COVERAGE_CHANGE = {
   date: '2024-06-07',
   note:
-    'From 7 June 2024 the satellite product starts seeing murky near-shore water it used to skip. A rise after this date is extra coverage, not dirtier water.',
+    'Since 7 June 2024, there was additional coverage in the NOAA water quality datasets along near-shore water due to adding an additional satellite sensor.',
 };
 
 export function IndicatorTimelineChart({
