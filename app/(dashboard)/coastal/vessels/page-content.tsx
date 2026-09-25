@@ -300,6 +300,8 @@ export function PageContent() {
     const cacheKey = `${country}_${curPeriod.start}_vessels_${grain}`;
     if (sliceCacheRef.current.has(cacheKey)) {
       setSpatialSlice(sliceCacheRef.current.get(cacheKey)!);
+      // A cancelled in-flight fetch never clears its loading flag.
+      setSpatialLoading(false);
       return;
     }
 
