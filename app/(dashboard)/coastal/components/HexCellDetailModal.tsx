@@ -19,6 +19,10 @@ export interface HexCellDetailModalProps {
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
 
+// Shared fixed height so empty and filled states occupy the same slot and
+// selecting/clearing a hex does not shift the choropleth map below.
+const HEX_DETAIL_CARD_HEIGHT = 380;
+
 // Vessel/duration counts add up across hexes; concentration/temperature readings are averaged.
 function aggregatePoint(points: HexCellTimeSeriesPoint[], field: 'chlor_a' | 'sst' | 'vessels' | 'duration') {
   const values = points.map((p) => (p as any)[field]).filter((v) => v !== null && v !== undefined);
@@ -160,7 +164,7 @@ export default function HexCellDetailModal({
           alignItems: 'center',
           justifyContent: 'center',
           p: 4,
-          minHeight: 180,
+          height: HEX_DETAIL_CARD_HEIGHT,
           borderRadius: 2,
         }}
       >
@@ -235,6 +239,7 @@ export default function HexCellDetailModal({
       sx={{
         borderRadius: 2,
         p: 2.5,
+        height: HEX_DETAIL_CARD_HEIGHT,
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
