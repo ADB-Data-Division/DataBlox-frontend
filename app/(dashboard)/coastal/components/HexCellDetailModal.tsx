@@ -80,6 +80,43 @@ function toXLabel(periodStart: string, grainKey: string): string {
 }
 
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const LONG_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function isoWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = (d.getUTCDay() + 6) % 7; // Monday = 0
+  d.setUTCDate(d.getUTCDate() - day + 3); // Thursday of this week
+  const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const firstDay = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDay + 3);
+  return 1 + Math.round((d.getTime() - firstThursday.getTime()) / (7 * 86400000));
+}
+
+// Full period stamp for the hover tooltip: week number + date range for
+// weekly backend weeks (Monday-anchored), month-year for monthly, year.
+function formatTooltipPeriod(xLabel: string, grainKey: string): string {
+  if (!xLabel) return '';
+  if (grainKey === 'annually') return xLabel.slice(0, 4);
+  if (grainKey === 'monthly') {
+    const [y, m] = xLabel.split('-');
+    const monthIdx = parseInt(m || '', 10);
+    if (!y || Number.isNaN(monthIdx) || monthIdx < 1 || monthIdx > 12) return xLabel;
+    return `${LONG_MONTHS[monthIdx - 1]} ${y}`;
+  }
+  const start = new Date(`${xLabel.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(start.getTime())) return xLabel;
+  const end = new Date(start.getTime() + 6 * 86400000);
+  const sYear = start.getUTCFullYear();
+  const eYear = end.getUTCFullYear();
+  const startPart =
+    sYear === eYear
+      ? `${SHORT_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}`
+      : `${SHORT_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}, ${sYear}`;
+  return `Week ${isoWeekNumber(start)} · ${startPart} – ${SHORT_MONTHS[end.getUTCMonth()]} ${end.getUTCDate()}, ${eYear}`;
+}
 
 function shortMonthYear(value: string): string {
   const [y, m] = (value || '').split('-');
@@ -300,6 +337,10 @@ export default function HexCellDetailModal({
       label: primaryConfig.label,
       showMark: showMarks,
       connectNulls: false,
+      valueFormatter: (v: number | null) =>
+        v === null || v === undefined || Number.isNaN(v)
+          ? 'N/A'
+          : `${formatAxisTick(primaryId, v)} ${primaryConfig.unit}`,
     });
     yAxisConfig.push({
       id: 'leftAxis',
@@ -321,6 +362,10 @@ export default function HexCellDetailModal({
       label: secondaryConfig.label,
       showMark: showMarks,
       connectNulls: false,
+      valueFormatter: (v: number | null) =>
+        v === null || v === undefined || Number.isNaN(v)
+          ? 'N/A'
+          : `${formatAxisTick(secondaryId as string, v)} ${secondaryConfig.unit}`,
     });
     yAxisConfig.push({
       id: 'rightAxis',
@@ -435,9 +480,14 @@ export default function HexCellDetailModal({
                 data: timeSeries.xLabels,
                 scaleType: 'point',
                 // Show only the picked year-boundary / mid-year ticks
-                // (the callback index here is the data index).
+                // (the callback index here is the data index). The hover
+                // tooltip gets the full period stamp instead via the
+                // location-aware branch below.
                 tickInterval: (value: string) => xTickLabels.has(value),
-                valueFormatter: (value: string) => xTickLabels.get(value) ?? '',
+                valueFormatter: (value: string, context?: { location?: string }) =>
+                  context?.location === 'tooltip'
+                    ? formatTooltipPeriod(value, grainKey)
+                    : xTickLabels.get(value) ?? '',
               },
             ]}
             yAxis={yAxisConfig}
@@ -447,6 +497,9 @@ export default function HexCellDetailModal({
             leftAxis="leftAxis"
             rightAxis={secondaryConfig ? 'rightAxis' : undefined}
             margin={{ top: 20, bottom: 25, left: 66, right: secondaryConfig ? 86 : 20 }}
+            // Axis trigger shows the hovered period plus both series values
+            // together; the period stamp comes from the x-axis formatter.
+            tooltip={{ trigger: 'axis' }}
             slotProps={{ legend: { hidden: true } }}
             sx={{
               [`& .MuiMarkElement-series-${primaryId}`]: {
