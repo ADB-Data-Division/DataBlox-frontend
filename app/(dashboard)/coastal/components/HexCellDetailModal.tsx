@@ -247,17 +247,20 @@ export default function HexCellDetailModal({
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', overflow: 'hidden', gap: 0.75 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Hex:
             </Typography>
             {cellIds.slice(0, MAX_VISIBLE_HEX_CHIPS).map((id) => (
-              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace', flexShrink: 0 }} />
             ))}
             {cellIds.length > MAX_VISIBLE_HEX_CHIPS && (
-              <Typography variant="body2" color="text.secondary">
-                {cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...
-              </Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={`${cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...`}
+                sx={{ flexShrink: 0 }}
+              />
             )}
           </Box>
           <Typography variant="body2" color="text.secondary">
