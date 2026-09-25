@@ -344,12 +344,12 @@ export default function HexCellDetailModal({
     });
     yAxisConfig.push({
       id: 'leftAxis',
-      label: `${primaryConfig.label} (${primaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(primaryId, value),
-      // Tick labels end ~14px out and run ~35px wide, while MUI centers
-      // the rotated title at a fixed -28px, landing it on top of the
-      // numbers. Pin the title further out instead.
-      slotProps: { axisTickLabel: { dx: -6 }, axisLabel: { x: -60 } },
+      // Tick labels end ~14px out and run ~35px wide. The axis title is
+      // rendered as HTML in the margin (see below) instead of MUI's
+      // rotated label, which centers at a fixed offset that collides
+      // with the tick numbers.
+      slotProps: { axisTickLabel: { dx: -6 } },
       ...axisBounds(dataArray, primaryConfig.defaultRange),
     });
   }
@@ -372,10 +372,9 @@ export default function HexCellDetailModal({
     yAxisConfig.push({
       id: 'rightAxis',
       position: 'right' as const,
-      label: `${secondaryConfig.label} (${secondaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
       // Same title/tick collision as the left axis, mirrored.
-      slotProps: { axisTickLabel: { dx: 6 }, axisLabel: { x: 60 } },
+      slotProps: { axisTickLabel: { dx: 6 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
     });
   }
@@ -474,7 +473,8 @@ export default function HexCellDetailModal({
             </Typography>
           </Box>
         ) : (
-          <LineChart
+          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            <LineChart
             height={260}
             series={series}
             xAxis={[
@@ -553,6 +553,47 @@ export default function HexCellDetailModal({
               },
             }}
           />
+            {/* Axis titles live in the margins as HTML (vertical text) so
+                their distance from the tick numbers is explicit. MUI's
+                built-in rotated label centers at a fixed offset that
+                collides with the ticks. */}
+            <Typography
+              variant="caption"
+              sx={{
+                position: 'absolute',
+                left: 4,
+                top: '50%',
+                transform: 'translateY(-50%) rotate(180deg)',
+                writingMode: 'vertical-rl',
+                color: primaryConfig.color,
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: '0.02em',
+                pointerEvents: 'none',
+              }}
+            >
+              {primaryConfig.label} ({primaryConfig.unit})
+            </Typography>
+            {secondaryConfig && (
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  right: 4,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  writingMode: 'vertical-rl',
+                  color: secondaryConfig.color,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  letterSpacing: '0.02em',
+                  pointerEvents: 'none',
+                }}
+              >
+                {secondaryConfig.label} ({secondaryConfig.unit})
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
     </Card>
