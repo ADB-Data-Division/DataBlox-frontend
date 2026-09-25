@@ -792,7 +792,27 @@ function CoastalChoroplethMapClient({
       map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12, animate: false });
     }
 
+    // First mount can race layout/CSS settling: Leaflet measures the container
+    // once at creation, so a map created before layout settles stays gray
+    // (tiles + Deck canvas) until a remount. Force a resize after paint.
+    const settleRaf = requestAnimationFrame(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    });
+    const settleTimer = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    }, 150);
+
     return () => {
+      cancelAnimationFrame(settleRaf);
+      clearTimeout(settleTimer);
       if (deckOverlayRef.current) {
         try {
           deckOverlayRef.current.remove();
@@ -866,6 +886,24 @@ function CoastalChoroplethMapClient({
       leafletMapRef.current.invalidateSize();
     }
   }, [height]);
+
+  // Re-assert map size once grid and slice data land. On first load the map is
+  // often initialized before layout settles, leaving gray tiles/hexes until a
+  // remount (e.g. switching tabs and back). The timeout is cleared while
+  // scrubbing so it only fires once the slider settles.
+  useEffect(() => {
+    if (!genuineCells || genuineCells.length === 0) return;
+    const map = leafletMapRef.current;
+    if (!map) return;
+    const t = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    }, 60);
+    return () => clearTimeout(t);
+  }, [genuineCells, spatialSlice]);
 
   // WebGL hardware-accelerated rendering via Deck.gl
   useEffect(() => {
