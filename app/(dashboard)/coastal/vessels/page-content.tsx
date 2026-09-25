@@ -123,6 +123,27 @@ export function PageContent() {
 
   const periodItems = useMemo(() => {
     if (grain === 'weekly') {
+      // Prefer backend timeline weeks (the same Monday-anchored grid the
+      // slice/series endpoints query) so the scrubber, the batch cache and
+      // per-period slices all agree. Fall back to generated weeks only when
+      // the timeline has not loaded yet.
+      if (timelineData && timelineData.length > 0) {
+        const yearStr = String(weeklyYear);
+        let weekNum = 1;
+        const items = timelineData
+          .filter((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            return s.slice(0, 4) === yearStr || e.slice(0, 4) === yearStr;
+          })
+          .map((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            const [ey, em, ed] = e.split('-');
+            return { label: `Week ${weekNum++}: ${em}/${ed}/${ey}`, start: s, end: e };
+          });
+        if (items.length > 0) return items;
+      }
       return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
     }
     // Prefer backend timeline periods so scrubber positions match available data.
@@ -269,7 +290,10 @@ export function PageContent() {
       .then((res) => {
         if (!isMounted || !res?.series) return;
         Object.entries(res.series).forEach(([periodStart, cellMap]) => {
-          const key = `${country}_${periodStart}_vessels_${grain}`;
+          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); normalize
+          // to the day so they hit the same cache keys the scrubber uses.
+          const day = String(periodStart).slice(0, 10);
+          const key = `${country}_${day}_vessels_${grain}`;
           sliceCacheRef.current.set(key, cellMap as Record<string, any>);
         });
 

@@ -176,7 +176,7 @@ export default function HexCellDetailModal({
       sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : null)),
       duration: realPoints.map((pt) => (pt.duration !== null && pt.duration !== undefined ? pt.duration : 0)),
     };
-  }, [realPoints, grain, grainKey]);
+  }, [realPoints, grainKey]);
 
   if (cellIds.length === 0) {
     return (
@@ -354,11 +354,17 @@ export default function HexCellDetailModal({
               {
                 data: timeSeries.xLabels,
                 scaleType: 'point',
+                tickInterval: (_value: string, index: number) => index % tickStep === 0,
                 tickLabelInterval: (_value: string, index: number) => index % tickStep === 0,
                 valueFormatter: (value: string) => formatXTick(value, grainKey),
               },
             ]}
             yAxis={yAxisConfig}
+            // ChartsAxis only draws the right axis when it is explicitly
+            // selected; without this the secondary series scales correctly
+            // but its axis never renders.
+            leftAxis="leftAxis"
+            rightAxis={secondaryConfig ? 'rightAxis' : undefined}
             margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 80 : 20 }}
             slotProps={{ legend: { hidden: true } }}
             sx={{
