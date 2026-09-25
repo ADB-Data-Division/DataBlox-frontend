@@ -346,8 +346,10 @@ export default function HexCellDetailModal({
       id: 'leftAxis',
       label: `${primaryConfig.label} (${primaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(primaryId, value),
-      // Push tick labels clear of the axis line (MUI defaults to ~8px).
-      slotProps: { axisTickLabel: { dx: -6 } },
+      // Tick labels end ~14px out and run ~35px wide, while MUI centers
+      // the rotated title at a fixed -28px, landing it on top of the
+      // numbers. Pin the title further out instead.
+      slotProps: { axisTickLabel: { dx: -6 }, axisLabel: { x: -60 } },
       ...axisBounds(dataArray, primaryConfig.defaultRange),
     });
   }
@@ -372,8 +374,8 @@ export default function HexCellDetailModal({
       position: 'right' as const,
       label: `${secondaryConfig.label} (${secondaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
-      // Push tick labels clear of the axis line (MUI defaults to ~8px).
-      slotProps: { axisTickLabel: { dx: 6 } },
+      // Same title/tick collision as the left axis, mirrored.
+      slotProps: { axisTickLabel: { dx: 6 }, axisLabel: { x: 60 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
     });
   }
@@ -496,7 +498,7 @@ export default function HexCellDetailModal({
             // but its axis never renders.
             leftAxis="leftAxis"
             rightAxis={secondaryConfig ? 'rightAxis' : undefined}
-            margin={{ top: 20, bottom: 25, left: 66, right: secondaryConfig ? 86 : 20 }}
+            margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
             // Axis trigger shows the hovered period plus both series values
             // together; the period stamp comes from the x-axis formatter.
             tooltip={{ trigger: 'axis' }}
