@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Box, Typography, CircularProgress, IconButton } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, IconButton } from '@mui/material';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dynamic from 'next/dynamic';
@@ -667,9 +667,15 @@ function CoastalChoroplethMapClient({
     return parents;
   }, [showClusters, selectedCellIds]);
 
-  // Dynamically load Leaflet and Deck.gl WebGL on client
+  // Dynamically load Leaflet and Deck.gl WebGL on client.
+  // The load is retried via libAttempt: a remount during Fast Refresh (or any
+  // orphaned import batch) can otherwise leave L unset forever, which renders
+  // as a permanently gray map with no error.
+  const [libAttempt, setLibAttempt] = useState(0);
+  const [mapLibError, setMapLibError] = useState(false);
   useEffect(() => {
     let mounted = true;
+    setMapLibError(false);
     Promise.all([
       import('leaflet'),
       import('@deck.gl-community/leaflet'),
@@ -691,16 +697,35 @@ function CoastalChoroplethMapClient({
       })
       .catch((err) => {
         console.warn('Deck.gl WebGL load failed, falling back to Leaflet Canvas:', err);
-        import('leaflet').then((leafletModule) => {
-          if (mounted) {
-            setL(leafletModule.default);
-          }
-        });
+        import('leaflet')
+          .then((leafletModule) => {
+            if (mounted) {
+              cachedL = leafletModule.default;
+              setL(cachedL);
+            }
+          })
+          .catch(() => {
+            if (mounted) {
+              setMapLibError(true);
+            }
+          });
       });
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [libAttempt]);
+
+  // Watchdog: if the map libraries never arrive (orphaned imports), retry a
+  // few times, then surface an error with a manual retry instead of gray.
+  useEffect(() => {
+    if (L) return;
+    if (libAttempt >= 3) {
+      setMapLibError(true);
+      return;
+    }
+    const t = setTimeout(() => setLibAttempt((a) => a + 1), 4000);
+    return () => clearTimeout(t);
+  }, [L, libAttempt]);
 
   // Initialize Map
   useEffect(() => {
@@ -1267,8 +1292,8 @@ function CoastalChoroplethMapClient({
         </>
       )}
 
-      {/* Loading overlay while genuine cells are loading */}
-      {(genuineCells === null || loading) && (
+      {/* Loading overlay while map libraries or genuine cells are loading */}
+      {(genuineCells === null || loading || (!L && !mapLibError)) && (
         <Box
           sx={{
             position: 'absolute',
@@ -1285,6 +1310,43 @@ function CoastalChoroplethMapClient({
           }}
         >
           <CircularProgress size={32} />
+        </Box>
+      )}
+
+      {/* Error state when map libraries fail to load: retry instead of gray */}
+      {mapLibError && !L && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 998,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            bgcolor: 'rgba(248, 250, 252, 0.9)',
+            p: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Map failed to load
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            The interactive map libraries could not be loaded. Check your connection and try again.
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setLibAttempt((a) => a + 1)}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Retry
+          </Button>
         </Box>
       )}
 
