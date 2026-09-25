@@ -93,6 +93,7 @@ All endpoints are available under both `/api/v1/coastal` (canonical) and `/api/c
   - `period_end` (optional, e.g. `2024-07-31`)
   - `grain` (optional, `monthly` | `weekly`)
   - `indicator` (optional, `chlor_a` | `sst` | `vessels`)
+  - `aoi_id` (optional; the indicators choropleth now sends it so AOI-scoped slices never hit the country-wide cache)
 - **Client Method**: `fetchSpatialSlice({ country: "THA", period_start: "2024-07-01" })`
 - **Response**: Lightweight mapping from `grid_index` to metric values for fast color updates.
 
@@ -125,7 +126,7 @@ The `summary` object from `fetchIndicatorTimeline()` provides pre-formatted valu
 
 ### B. H3 Choropleth Map with 60 FPS Playback Scrubber
 1. On component mount, call `fetchSpatialGrid(country)` once to load polygon shapes into Deck.gl or Mapbox.
-2. When the user scrubs the timeline slider or clicks Play, call `fetchSpatialSlice(params)`.
+2. The client batch-prefetches all periods once via `/spatial/series` per (country, grain, indicator, aoi) scope and serves slider scrubbing from that in-memory cache (zero additional series calls while scrubbing). `fetchSpatialSlice(params)` is fallback-only: skipped while the series prefetch is in flight and debounced 150 ms otherwise.
 3. In the Deck.gl `H3HexagonLayer` or Mapbox paint expression, map `sliceData.values[h3Index].chlor_a` to color scale RGB values.
 
 ### C. Fleet Donut and Drilldown Bar Charts
