@@ -20,10 +20,11 @@ export interface HexCellDetailModalProps {
 const MAX_VISIBLE_HEX_CHIPS = 3;
 
 // Vessel/duration counts add up across hexes; concentration/temperature readings are averaged.
+// Missing chlor_a/sst stay null so the chart renders a gap, never a fake 0.
 function aggregatePoint(points: HexCellTimeSeriesPoint[], field: 'chlor_a' | 'sst' | 'vessels' | 'duration') {
-  const values = points.map((p) => (p as any)[field]).filter((v) => v !== null && v !== undefined);
-  if (values.length === 0) return 0;
-  const sum = values.reduce((acc: number, v: number) => acc + v, 0);
+  const values = points.map((p) => (p as any)[field]).filter((v) => v !== null && v !== undefined && !Number.isNaN(Number(v)));
+  if (values.length === 0) return field === 'vessels' || field === 'duration' ? 0 : null;
+  const sum = values.reduce((acc: number, v: number) => acc + Number(v), 0);
   return field === 'vessels' || field === 'duration' ? sum : sum / values.length;
 }
 
@@ -144,9 +145,9 @@ export default function HexCellDetailModal({
     }
     return {
       months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
-      chlor_a: realPoints.map((pt) => (pt.chlor_a !== null && pt.chlor_a !== undefined ? pt.chlor_a : 0)),
+      chlor_a: realPoints.map((pt) => (pt.chlor_a !== null && pt.chlor_a !== undefined ? pt.chlor_a : null)),
       vessels: realPoints.map((pt) => (pt.vessels !== null && pt.vessels !== undefined ? pt.vessels : 0)),
-      sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : 0)),
+      sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : null)),
       duration: realPoints.map((pt) => (pt.duration !== null && pt.duration !== undefined ? pt.duration : 0)),
     };
   }, [realPoints]);

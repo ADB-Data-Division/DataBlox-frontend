@@ -28,8 +28,11 @@ interface HexCellData {
   id: string;
   lat: number;
   lng: number;
-  chlor_a: number;
-  sst: number;
+  // Environmental readings stay null when the satellite has no observation
+  // (cloud cover, sensor gaps). They must never fall back to 0: 0 K and
+  // 0 mg/m3 are not real measurements. Vessel counts are real zeros.
+  chlor_a: number | null;
+  sst: number | null;
   vessels: number;
   coords?: [number, number][];
   // Set when this entry is an aggregated H3 parent rendered at far zoom.
@@ -73,7 +76,10 @@ export const interpolateColor = (color1: string, color2: string, factor: number)
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 };
 
-export const getChlorophyllColor = (value: number) => {
+export const getChlorophyllColor = (value: number | null) => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '#cbd5e1';
+  }
   const clamped = Math.max(0, Math.min(20, value));
   if (clamped <= 10) {
     return interpolateColor('#22c55e', '#eab308', clamped / 10);
@@ -92,7 +98,10 @@ export const getVesselLabelSize = (vessels: number, maxVessels: number) => {
   return baseSize / (1 + (digits - 1) * 0.25);
 };
 
-export const getSSTColor = (value: number) => {
+export const getSSTColor = (value: number | null) => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '#cbd5e1';
+  }
   const clamped = Math.max(290, Math.min(310, value));
   const ratio = (clamped - 290) / 20;
   if (ratio < 0.5) {
@@ -101,7 +110,10 @@ export const getSSTColor = (value: number) => {
   return interpolateColor('#f87171', '#b91c1c', (ratio - 0.5) * 2);
 };
 
-export const getChlorophyllColorRgba = (value: number): [number, number, number, number] => {
+export const getChlorophyllColorRgba = (value: number | null): [number, number, number, number] => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return [203, 213, 225, 215];
+  }
   const clamped = Math.max(0, Math.min(20, value));
   if (clamped <= 10) {
     const t = clamped / 10;
@@ -121,7 +133,10 @@ export const getChlorophyllColorRgba = (value: number): [number, number, number,
   ];
 };
 
-export const getSSTColorRgba = (value: number): [number, number, number, number] => {
+export const getSSTColorRgba = (value: number | null): [number, number, number, number] => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return [203, 213, 225, 215];
+  }
   const clamped = Math.max(290, Math.min(310, value));
   const ratio = (clamped - 290) / 20;
   if (ratio < 0.5) {
@@ -192,6 +207,29 @@ export const getCellColorRgba = (
     return getSSTColorRgba(cell.sst);
   }
   return getVesselColorRgba(cell.vessels);
+};
+
+// Missing readings render as N/A in tooltips, never as 0.
+export const formatSST = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return 'N/A';
+  }
+  return `${value.toFixed(1)} K`;
+};
+
+export const formatChlor = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return 'N/A';
+  }
+  return `${value.toFixed(2)} mg/m³`;
+};
+
+const toNumberOrNull = (raw: unknown): number | null => {
+  if (raw === null || raw === undefined) {
+    return null;
+  }
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
 };
 
 
@@ -439,8 +477,8 @@ function CoastalChoroplethMapClient({
               id: hexId,
               lat,
               lng,
-              chlor_a: 0,
-              sst: 0,
+              chlor_a: null,
+              sst: null,
               vessels: 0,
               coords,
             };
@@ -479,28 +517,32 @@ function CoastalChoroplethMapClient({
       const sliceData = spatialSlice[cell.id];
       if (sliceData !== undefined && sliceData !== null) {
         if (typeof sliceData === 'number') {
+          const n = toNumberOrNull(sliceData);
           return {
             ...cell,
-            chlor_a: isChlor ? sliceData : cell.chlor_a,
-            sst: isSST ? sliceData : cell.sst,
-            vessels: !isChlor && !isSST ? sliceData : cell.vessels,
+            chlor_a: isChlor ? n : cell.chlor_a,
+            sst: isSST ? n : cell.sst,
+            vessels: !isChlor && !isSST ? Number(sliceData) || 0 : cell.vessels,
           };
         }
+        const hasChlorKey = 'chlor_a' in sliceData;
+        const hasSstKey =
+          'sst' in sliceData || 'sst_k' in sliceData || 'sst_c' in sliceData;
+        const chlor = hasChlorKey ? toNumberOrNull(sliceData.chlor_a) : cell.chlor_a;
+        const sst = hasSstKey
+          ? toNumberOrNull(sliceData.sst) ??
+            toNumberOrNull(sliceData.sst_k) ??
+            toNumberOrNull(sliceData.sst_c)
+          : cell.sst;
+        // When the slice carries the key with a null value, keep null (missing),
+        // never fall back to 0. Fall back to the cell only when the key is absent.
         return {
           ...cell,
-          chlor_a:
-            sliceData.chlor_a !== undefined && sliceData.chlor_a !== null
-              ? Number(sliceData.chlor_a)
-              : cell.chlor_a,
-          sst:
-            sliceData.sst !== undefined && sliceData.sst !== null
-              ? Number(sliceData.sst)
-              : sliceData.sst_k !== undefined && sliceData.sst_k !== null
-              ? Number(sliceData.sst_k)
-              : cell.sst,
+          chlor_a: chlor,
+          sst: sst,
           vessels:
             sliceData.vessels !== undefined && sliceData.vessels !== null
-              ? Number(sliceData.vessels)
+              ? Number(sliceData.vessels) || 0
               : cell.vessels,
         };
       }
@@ -519,7 +561,9 @@ function CoastalChoroplethMapClient({
       string,
       {
         sumChlor: number;
+        countChlor: number;
         sumSst: number;
+        countSst: number;
         sumVessels: number;
         count: number;
         minLat: number;
@@ -534,7 +578,9 @@ function CoastalChoroplethMapClient({
         const parent = cellToParent(cell.id, CLUSTER_PARENT_RES);
         const g = groups.get(parent) || {
           sumChlor: 0,
+          countChlor: 0,
           sumSst: 0,
+          countSst: 0,
           sumVessels: 0,
           count: 0,
           minLat: Infinity,
@@ -542,8 +588,16 @@ function CoastalChoroplethMapClient({
           minLng: Infinity,
           maxLng: -Infinity,
         };
-        g.sumChlor += Number(cell.chlor_a) || 0;
-        g.sumSst += Number(cell.sst) || 0;
+        const chlorN = toNumberOrNull(cell.chlor_a);
+        if (chlorN !== null) {
+          g.sumChlor += chlorN;
+          g.countChlor += 1;
+        }
+        const sstN = toNumberOrNull(cell.sst);
+        if (sstN !== null) {
+          g.sumSst += sstN;
+          g.countSst += 1;
+        }
         g.sumVessels += Number(cell.vessels) || 0;
         g.count += 1;
         if (cell.lat < g.minLat) g.minLat = cell.lat;
@@ -564,7 +618,9 @@ function CoastalChoroplethMapClient({
       lat: number;
       lng: number;
       sumChlor: number;
+      countChlor: number;
       sumSst: number;
+      countSst: number;
       sumVessels: number;
       count: number;
       minLat: number;
@@ -581,7 +637,9 @@ function CoastalChoroplethMapClient({
         lat,
         lng,
         sumChlor: g.sumChlor,
+        countChlor: g.countChlor,
         sumSst: g.sumSst,
+        countSst: g.countSst,
         sumVessels: g.sumVessels,
         count: g.count,
         minLat: g.minLat,
@@ -622,7 +680,9 @@ function CoastalChoroplethMapClient({
       target.lat = (target.lat * target.count + s.lat * s.count) / total;
       target.lng = (target.lng * target.count + s.lng * s.count) / total;
       target.sumChlor += s.sumChlor;
+      target.countChlor += s.countChlor;
       target.sumSst += s.sumSst;
+      target.countSst += s.countSst;
       target.sumVessels += s.sumVessels;
       target.count = total;
       target.minLat = Math.min(target.minLat, s.minLat);
@@ -637,8 +697,8 @@ function CoastalChoroplethMapClient({
         id: m.id,
         lat: m.lat,
         lng: m.lng,
-        chlor_a: m.sumChlor / m.count,
-        sst: m.sumSst / m.count,
+        chlor_a: m.countChlor > 0 ? m.sumChlor / m.countChlor : null,
+        sst: m.countSst > 0 ? m.sumSst / m.countSst : null,
         vessels: m.sumVessels,
         // Bounds corners double as the zoom target via fitMapToCoords.
         coords: [
@@ -1113,8 +1173,8 @@ function CoastalChoroplethMapClient({
           <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
             <div style="font-weight: 700; margin-bottom: 2px;">${point.childCount} hexes (click to zoom in)</div>
             ${overlayVessels ? `<div>Total Vessels: <strong>${point.vessels}</strong></div>` : ''}
-            <div>Chlor_a (Avg.): <strong>${point.chlor_a.toFixed(2)} mg/m³</strong></div>
-            <div>Sea Surface Temp (Avg.): <strong>${point.sst.toFixed(1)} K</strong></div>
+            <div>Chlor_a (Avg.): <strong>${formatChlor(point.chlor_a)}</strong></div>
+            <div>Sea Surface Temp (Avg.): <strong>${formatSST(point.sst)}</strong></div>
           </div>
         `,
           { sticky: true, direction: 'top', className: 'custom-hex-tooltip' }
@@ -1160,8 +1220,8 @@ function CoastalChoroplethMapClient({
           <div style="color: #64748b;">Resolution: ${NATIVE_H3_RES}</div>
           <div style="color: #64748b;">Area: 4.5 km²</div>
           ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
-          <div>Chlor_a (Avg.): <strong>${cell.chlor_a.toFixed(2)} mg/m³</strong></div>
-          <div>Sea Surface Temp (Avg.): <strong>${cell.sst.toFixed(1)} K</strong></div>
+          <div>Chlor_a (Avg.): <strong>${formatChlor(cell.chlor_a)}</strong></div>
+          <div>Sea Surface Temp (Avg.): <strong>${formatSST(cell.sst)}</strong></div>
         </div>
       `;
 
@@ -1396,10 +1456,10 @@ function CoastalChoroplethMapClient({
             <Box>Total Vessels: <strong>{hoveredCell.vessels} vessels</strong></Box>
           )}
           {hasChlor && (
-            <Box>Chlor_a (Avg.): <strong>{hoveredCell.chlor_a.toFixed(2)} mg/m³</strong></Box>
+            <Box>Chlor_a (Avg.): <strong>{formatChlor(hoveredCell.chlor_a)}</strong></Box>
           )}
           {hasSST && (
-            <Box>Sea Surface Temp (Avg.): <strong>{hoveredCell.sst.toFixed(1)} K</strong></Box>
+            <Box>Sea Surface Temp (Avg.): <strong>{formatSST(hoveredCell.sst)}</strong></Box>
           )}
         </Box>
       )}
