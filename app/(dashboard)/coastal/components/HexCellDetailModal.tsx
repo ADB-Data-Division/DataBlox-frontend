@@ -272,6 +272,8 @@ export default function HexCellDetailModal({
       id: 'leftAxis',
       label: `${primaryConfig.label} (${primaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(primaryId, value),
+      // Push tick labels clear of the axis line (MUI defaults to ~8px).
+      slotProps: { axisTickLabel: { dx: -6 } },
       ...axisBounds(dataArray, primaryConfig.defaultRange),
     });
   }
@@ -292,6 +294,8 @@ export default function HexCellDetailModal({
       position: 'right' as const,
       label: `${secondaryConfig.label} (${secondaryConfig.unit})`,
       valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
+      // Push tick labels clear of the axis line (MUI defaults to ~8px).
+      slotProps: { axisTickLabel: { dx: 6 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
     });
   }
@@ -408,7 +412,7 @@ export default function HexCellDetailModal({
             // but its axis never renders.
             leftAxis="leftAxis"
             rightAxis={secondaryConfig ? 'rightAxis' : undefined}
-            margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 80 : 20 }}
+            margin={{ top: 20, bottom: 25, left: 66, right: secondaryConfig ? 86 : 20 }}
             slotProps={{ legend: { hidden: true } }}
             sx={{
               [`& .MuiMarkElement-series-${primaryId}`]: {
