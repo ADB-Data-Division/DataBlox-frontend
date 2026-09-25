@@ -11,8 +11,10 @@ export interface VesselSpatialMapProps {
   spatialSlice?: Record<string, any>;
   selectedCellId?: string | null;
   onSelectCell?: (cellId: string) => void;
+  onClearSelection?: () => void;
   loading?: boolean;
   periodLabel?: string;
+  height?: number | string;
 }
 
 export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
@@ -22,8 +24,10 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
   spatialSlice,
   selectedCellId,
   onSelectCell,
+  onClearSelection,
   loading = false,
   periodLabel,
+  height,
 }) => {
   return (
     <Box
@@ -50,11 +54,15 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
           locationName={locationName}
           aoiIds={aoiIds}
           activeIndicator="vessels"
+          overlayVessels
+          indicators={['vessels']}
           spatialSlice={spatialSlice}
           selectedCellIds={selectedCellId ? [selectedCellId] : []}
           onSelectCell={(id) => onSelectCell?.(id)}
+          onClearSelection={onClearSelection}
           loading={loading}
           periodLabel={periodLabel}
+          height={height ?? 420}
         />
       </Box>
 

@@ -5,9 +5,11 @@ import {
 import {
   getChlorophyllColor,
   getSSTColor,
+  getVesselColor,
   interpolateColor,
   getChlorophyllColorRgba,
   getSSTColorRgba,
+  getVesselColorRgba,
   getCellColorRgba,
 } from '@/app/(dashboard)/coastal/components/CoastalChoroplethMap';
 
@@ -60,6 +62,20 @@ describe('Coastal Spatial Grid & Color Scales', () => {
 
       const cellSst = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 310, vessels: 0 }, false, true);
       expect(cellSst).toEqual([185, 28, 28, 215]);
+    });
+
+    it('keeps zero-vessel hexes visible against the light map background', () => {
+      // Regression test: zero vessel counts previously mapped to near-transparent
+      // slate, rendering the maritime choropleth as a blank map on empty slices.
+      expect(getVesselColorRgba(0)).toEqual([254, 226, 226, 215]);
+      expect(getVesselColor(0).toLowerCase()).toBe('#fee2e2');
+      expect(getVesselColor(50).toLowerCase()).toBe('#991b1b');
+      // Clamping checks
+      expect(getVesselColor(-5).toLowerCase()).toBe('#fee2e2');
+      expect(getVesselColor(500).toLowerCase()).toBe('#991b1b');
+
+      const cellVessel = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 0, vessels: 0 }, false, false);
+      expect(cellVessel).toEqual([254, 226, 226, 215]);
     });
   });
 

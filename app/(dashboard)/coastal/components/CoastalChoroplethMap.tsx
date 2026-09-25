@@ -142,11 +142,24 @@ export const getSSTColorRgba = (value: number): [number, number, number, number]
   ];
 };
 
+export const getVesselColor = (vessels: number) => {
+  const maxDensity = 50;
+  const clamped = Math.max(0, Math.min(maxDensity, vessels));
+  const ratio = clamped / maxDensity;
+  if (ratio < 0.5) {
+    return interpolateColor('#fee2e2', '#f87171', ratio * 2);
+  }
+  return interpolateColor('#f87171', '#991b1b', (ratio - 0.5) * 2);
+};
+
 export const getVesselColorRgba = (vessels: number): [number, number, number, number] => {
   const maxDensity = 50;
   const clamped = Math.max(0, Math.min(maxDensity, vessels));
   if (clamped === 0) {
-    return [241, 245, 249, 120];
+    // Zero-data hexes must stay visible against the light map background.
+    // Matches the low end of the scale (and the legend gradient) instead of
+    // near-transparent slate, which rendered as a blank map.
+    return [254, 226, 226, 215];
   }
   const ratio = clamped / maxDensity;
   if (ratio < 0.5) {
@@ -1020,6 +1033,8 @@ function CoastalChoroplethMapClient({
           fillColor = getChlorophyllColor(point.chlor_a);
         } else if (isSST) {
           fillColor = getSSTColor(point.sst);
+        } else {
+          fillColor = getVesselColor(point.vessels);
         }
 
         const circle = L.circleMarker([point.lat, point.lng], {
@@ -1064,6 +1079,8 @@ function CoastalChoroplethMapClient({
         fillColor = getChlorophyllColor(cell.chlor_a);
       } else if (isSST) {
         fillColor = getSSTColor(cell.sst);
+      } else {
+        fillColor = getVesselColor(cell.vessels);
       }
 
       // Draw hexagon polygon
