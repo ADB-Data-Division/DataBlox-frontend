@@ -24,40 +24,35 @@ function resolveIso(country: CoastalCountry): string {
   return (country.iso || country.country_iso || '').toUpperCase();
 }
 
-const FLAG_EMOJI: Record<string, string> = {
-  BGD: '🇧🇩',
-  FJI: '🇫🇯',
-  IDN: '🇮🇩',
-  IND: '🇮🇳',
-  LKA: '🇱🇰',
-  MYS: '🇲🇾',
-  PHL: '🇵🇭',
-  SGP: '🇸🇬',
-  THA: '🇹🇭',
-};
-
 export function FlagBadge({ iso }: { iso: string }) {
-  const emoji = FLAG_EMOJI[iso];
-
   return (
     <Box
       aria-hidden
       sx={{
-        width: 34,
-        height: 22,
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1,
+        px: 0.75,
+        py: 0.25,
+        bgcolor: 'action.hover',
       }}
     >
-      {emoji ? (
-        <Typography sx={{ fontSize: '1.3rem', lineHeight: 1 }}>{emoji}</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '0.5rem', fontWeight: 700, color: 'text.secondary' }}>
-          {iso}
-        </Typography>
-      )}
+      <Typography
+        sx={{
+          fontSize: '0.7rem',
+          fontWeight: 800,
+          letterSpacing: '0.04em',
+          color: 'text.secondary',
+          fontFamily: 'monospace',
+          lineHeight: 1.4,
+        }}
+      >
+        {iso.toUpperCase()}
+      </Typography>
     </Box>
   );
 }
