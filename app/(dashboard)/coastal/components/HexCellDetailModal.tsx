@@ -89,6 +89,37 @@ function formatXTick(value: string, grainKey: string): string {
   return '';
 }
 
+function isPlottableValue(value: unknown): value is number {
+  return typeof value === 'number' && !Number.isNaN(value);
+}
+
+// Keep axis ticks compact (counts as integers, SST to 1 decimal,
+// concentration to 2) instead of MUI's default 6-decimal formatting.
+function formatAxisTick(indicatorId: string, value: number): string {
+  if (!isPlottableValue(value)) return '';
+  if (indicatorId === 'vessels' || indicatorId === 'duration') return String(Math.round(value));
+  if (indicatorId === 'sst') return value.toFixed(1);
+  return value.toFixed(2);
+}
+
+// Bounds for an axis: autoscale when the series has real readings,
+// otherwise fall back to the indicator's typical range so an all-null
+// series renders a sane empty frame instead of a collapsed 0.000000 axis.
+function axisBounds(
+  dataArray: unknown[],
+  fallback: [number, number]
+): { min?: number; max?: number } {
+  const vals = dataArray.filter(isPlottableValue);
+  if (vals.length === 0) return { min: fallback[0], max: fallback[1] };
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  if (lo === hi) {
+    const pad = Math.abs(lo) * 0.1 || 1;
+    return { min: lo - pad, max: hi + pad };
+  }
+  return {};
+}
+
 export default function HexCellDetailModal({
   cellIds = [],
   locationName,
@@ -240,6 +271,8 @@ export default function HexCellDetailModal({
     yAxisConfig.push({
       id: 'leftAxis',
       label: `${primaryConfig.label} (${primaryConfig.unit})`,
+      valueFormatter: (value: number) => formatAxisTick(primaryId, value),
+      ...axisBounds(dataArray, primaryConfig.defaultRange),
     });
   }
 
@@ -258,8 +291,18 @@ export default function HexCellDetailModal({
       id: 'rightAxis',
       position: 'right' as const,
       label: `${secondaryConfig.label} (${secondaryConfig.unit})`,
+      valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
+      ...axisBounds(dataArray, secondaryConfig.defaultRange),
     });
   }
+
+  // Periods can exist with zero plottable readings (e.g. a hex with no
+  // sensor coverage): show an explicit empty state instead of a collapsed
+  // chart with 0.000000 axes. Zero-filled counts (vessels/duration) are
+  // real data, so only null/NaN readings count as missing here.
+  const hasChartData = series.some((s) =>
+    Array.isArray(s.data) ? s.data.some(isPlottableValue) : false
+  );
 
   const dateSubtitle = `${formatMonthYear(dateRange.start)} - ${formatMonthYear(dateRange.end)}`;
 
@@ -340,10 +383,10 @@ export default function HexCellDetailModal({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <CircularProgress size={32} />
           </Box>
-        ) : timeSeries.xLabels.length === 0 ? (
+        ) : timeSeries.xLabels.length === 0 || !hasChartData ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography variant="body2" color="text.secondary">
-              No historical data available for this cell.
+              No measurements recorded for this cell in the selected range.
             </Typography>
           </Box>
         ) : (
