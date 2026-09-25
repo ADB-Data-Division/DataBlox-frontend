@@ -24,7 +24,66 @@ function resolveIso(country: CoastalCountry): string {
   return (country.iso || country.country_iso || '').toUpperCase();
 }
 
+const ri = (c: string) =>
+  String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+
+const FLAG_EMOJI: Record<string, string> = {
+  BGD: ri('BD'),
+  FJI: ri('FJ'),
+  IDN: ri('ID'),
+  IND: ri('IN'),
+  LKA: ri('LK'),
+  MYS: ri('MY'),
+  PHL: ri('PH'),
+  SGP: ri('SG'),
+  THA: ri('TH'),
+};
+
+let flagSupportCache: boolean | null = null;
+function detectFlagEmojiSupport(): boolean {
+  if (flagSupportCache !== null) return flagSupportCache;
+  try {
+    if (typeof document === 'undefined') {
+      flagSupportCache = false;
+      return false;
+    }
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      flagSupportCache = false;
+      return false;
+    }
+    ctx.font = '32px sans-serif';
+    const flag = ctx.measureText('\u{1F1FA}\u{1F1F8}').width;
+    const broken = ctx.measureText('\u{1F1FA}\u200B\u{1F1F8}').width;
+    flagSupportCache = flag !== broken;
+  } catch {
+    flagSupportCache = false;
+  }
+  return flagSupportCache;
+}
+
 export function FlagBadge({ iso }: { iso: string }) {
+  const [flagsOk, setFlagsOk] = useState(false);
+  useEffect(() => {
+    setFlagsOk(detectFlagEmojiSupport());
+  }, []);
+  const emoji = FLAG_EMOJI[iso.toUpperCase()];
+  if (flagsOk && emoji) {
+    return (
+      <Box
+        aria-hidden
+        sx={{
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography sx={{ fontSize: '1.3rem', lineHeight: 1 }}>{emoji}</Typography>
+      </Box>
+    );
+  }
   return (
     <Box
       aria-hidden
