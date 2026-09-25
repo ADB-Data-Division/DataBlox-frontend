@@ -2,7 +2,8 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
+import ArrowForward from '@mui/icons-material/ArrowForward';
 import CountrySelector, { FlagBadge } from './components/CountrySelector';
 import { LocationSearch } from './components/LocationSearch';
 import type { CoastalCountry } from '@/types/coastal';
@@ -99,6 +100,20 @@ function CoastalPageContent() {
                   router.push(`${targetRoute}?${params.toString()}`);
                 }}
               />
+              <Button
+                variant="outlined"
+                endIcon={<ArrowForward />}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set('country', iso);
+                  const targetRoute = dashboardTarget === 'vessels' ? '/coastal/vessels' : '/coastal/indicators';
+                  router.push(`${targetRoute}?${params.toString()}`);
+                }}
+                sx={{ mt: 2, textTransform: 'none', fontWeight: 600 }}
+                fullWidth
+              >
+                View entire country
+              </Button>
             </>
           ) : (
             <Box

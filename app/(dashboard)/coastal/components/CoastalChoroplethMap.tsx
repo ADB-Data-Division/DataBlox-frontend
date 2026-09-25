@@ -1268,14 +1268,9 @@ function CoastalChoroplethMapClient({
     });
   }, [deckModules, L, gridCells, clusterPoints, showClusters, isChlor, isSST, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell]);
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height={height} width="100%">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
+  // Never early-return on `loading`: unmounting the map div orphans the
+  // Leaflet instance and the init effect does not re-run. The overlay below
+  // covers the loading state instead.
   return (
     <Box
       className="coastal-map-root"

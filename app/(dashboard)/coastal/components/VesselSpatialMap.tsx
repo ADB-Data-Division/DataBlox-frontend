@@ -43,7 +43,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
         sx={{
           flex: 1,
           minHeight: 420,
-          height: 440,
+          height: height ?? 440,
           position: 'relative',
           borderRadius: 2,
           overflow: 'hidden',
