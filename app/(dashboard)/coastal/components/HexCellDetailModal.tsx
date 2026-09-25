@@ -81,17 +81,45 @@ function toXLabel(periodStart: string, grainKey: string): string {
 
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function formatXTick(value: string, grainKey: string): string {
-  if (!value) return '';
-  if (grainKey === 'annually') return value.slice(0, 4);
-  // Values are YYYY-MM (monthly) or YYYY-MM-DD (weekly). Ticks are
-  // already thinned upstream, so label every rendered tick with a short
-  // month-year stamp instead of year-only-at-January (which left the axis
-  // almost blank when thinned ticks missed January weeks).
-  const [y, m] = value.split('-');
+function shortMonthYear(value: string): string {
+  const [y, m] = (value || '').split('-');
   const monthIdx = parseInt(m || '', 10);
   if (!y || Number.isNaN(monthIdx) || monthIdx < 1 || monthIdx > 12) return value;
   return `${SHORT_MONTHS[monthIdx - 1]} '${y.slice(2)}`;
+}
+
+// Pick which x values get a tick mark and what each is labeled. Year
+// boundaries get a year label, mid-year (July) gets an unlabeled mark for
+// orientation, everything else stays blank: a repeating Jan/Jul stamp on
+// every tick reads as noise. Short ranges with fewer than 4 such ticks
+// fall back to evenly spaced month-year stamps.
+function pickXTickLabels(xLabels: string[], grainKey: string): Map<string, string> {
+  const map = new Map<string, string>();
+  if (grainKey === 'annually') {
+    xLabels.forEach((v) => map.set(v, v.slice(0, 4)));
+    return map;
+  }
+  const seenJan = new Set<string>();
+  const seenJul = new Set<string>();
+  xLabels.forEach((v) => {
+    const [y, m] = (v || '').split('-');
+    if (!y || !m) return;
+    if (m === '01' && !seenJan.has(y)) {
+      seenJan.add(y);
+      if (!map.has(v)) map.set(v, y);
+    } else if (m === '07' && !seenJul.has(y)) {
+      seenJul.add(y);
+      if (!map.has(v)) map.set(v, '');
+    }
+  });
+  if (map.size < 4 && xLabels.length > 0) {
+    map.clear();
+    const step = Math.max(1, Math.ceil(xLabels.length / 8));
+    xLabels.forEach((v, i) => {
+      if (i % step === 0 && !map.has(v)) map.set(v, shortMonthYear(v));
+    });
+  }
+  return map;
 }
 
 function isPlottableValue(value: unknown): value is number {
@@ -315,9 +343,9 @@ export default function HexCellDetailModal({
 
   const dateSubtitle = `${formatMonthYear(dateRange.start)} - ${formatMonthYear(dateRange.end)}`;
 
-  // Thin x-axis labels on dense (weekly) series so ticks and the right
-  // y-axis stay inside the card instead of overflowing its space.
-  const tickStep = Math.max(1, Math.ceil(pointCount / 14));
+  // Year-boundary ticks with quiet mid-year marks (computed inline: this
+  // runs after an early return above, so it cannot be a hook).
+  const xTickLabels = pickXTickLabels(timeSeries.xLabels, grainKey);
 
   return (
     <Card
@@ -406,14 +434,10 @@ export default function HexCellDetailModal({
               {
                 data: timeSeries.xLabels,
                 scaleType: 'point',
-                // Thin tick MARKS to ~14 across the range (the callback
-                // index here is the data index). Labels are left to
-                // valueFormatter: every rendered tick gets a short
-                // month-year stamp. Note tickLabelInterval must NOT reuse
-                // this step function: its index counts rendered ticks,
-                // which would suppress every label past the first.
-                tickInterval: (_value: string, index: number) => index % tickStep === 0,
-                valueFormatter: (value: string) => formatXTick(value, grainKey),
+                // Show only the picked year-boundary / mid-year ticks
+                // (the callback index here is the data index).
+                tickInterval: (value: string) => xTickLabels.has(value),
+                valueFormatter: (value: string) => xTickLabels.get(value) ?? '',
               },
             ]}
             yAxis={yAxisConfig}
