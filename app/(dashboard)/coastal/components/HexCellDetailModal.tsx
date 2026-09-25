@@ -79,14 +79,19 @@ function toXLabel(periodStart: string, grainKey: string): string {
   return raw.slice(0, 7);
 }
 
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 function formatXTick(value: string, grainKey: string): string {
   if (!value) return '';
   if (grainKey === 'annually') return value.slice(0, 4);
-  const parts = value.split('-');
-  // Monthly values are YYYY-MM; weekly values are YYYY-MM-DD.
-  // Label January ticks with the year, leave the rest blank.
-  if (parts.length >= 2 && parts[1] === '01') return parts[0];
-  return '';
+  // Values are YYYY-MM (monthly) or YYYY-MM-DD (weekly). Ticks are
+  // already thinned upstream, so label every rendered tick with a short
+  // month-year stamp instead of year-only-at-January (which left the axis
+  // almost blank when thinned ticks missed January weeks).
+  const [y, m] = value.split('-');
+  const monthIdx = parseInt(m || '', 10);
+  if (!y || Number.isNaN(monthIdx) || monthIdx < 1 || monthIdx > 12) return value;
+  return `${SHORT_MONTHS[monthIdx - 1]} '${y.slice(2)}`;
 }
 
 function isPlottableValue(value: unknown): value is number {
@@ -401,8 +406,13 @@ export default function HexCellDetailModal({
               {
                 data: timeSeries.xLabels,
                 scaleType: 'point',
+                // Thin tick MARKS to ~14 across the range (the callback
+                // index here is the data index). Labels are left to
+                // valueFormatter: every rendered tick gets a short
+                // month-year stamp. Note tickLabelInterval must NOT reuse
+                // this step function: its index counts rendered ticks,
+                // which would suppress every label past the first.
                 tickInterval: (_value: string, index: number) => index % tickStep === 0,
-                tickLabelInterval: (_value: string, index: number) => index % tickStep === 0,
                 valueFormatter: (value: string) => formatXTick(value, grainKey),
               },
             ]}
