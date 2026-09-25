@@ -25,6 +25,10 @@ export interface IndicatorSidebarProps {
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
   onChangeChoroplethIndicator?: (ind: string) => void;
+  // Far-zoom cluster toggle (rendered below Aggregation in map mode only).
+  // Omitted = no toggle shown.
+  clustersEnabled?: boolean;
+  onChangeClustersEnabled?: (enabled: boolean) => void;
 }
 
 const AVAILABLE_INDICATORS = [
@@ -42,6 +46,8 @@ export function IndicatorSidebar({
   mode = 'timeline',
   activeChoroplethIndicator = 'chlor_a',
   onChangeChoroplethIndicator,
+  clustersEnabled = true,
+  onChangeClustersEnabled,
 }: IndicatorSidebarProps) {
   const maxCount = mode === 'map' ? 3 : 2;
   const atMax = selectedIndicators.length >= maxCount;
@@ -255,6 +261,25 @@ export function IndicatorSidebar({
               </Select>
             </FormControl>
           </Box>
+
+          {mode === 'map' && onChangeClustersEnabled && (
+            <Box sx={{ pt: 1 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={clustersEnabled}
+                    onChange={(e) => onChangeClustersEnabled(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Enable clusters
+                  </Typography>
+                }
+              />
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Stack>

@@ -155,6 +155,7 @@ export function PageContent() {
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'sst']);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
+  const [clustersEnabled, setClustersEnabled] = useState<boolean>(true);
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
@@ -856,6 +857,7 @@ export function PageContent() {
                       periodLabel={periods[activeScrubberIndex]}
                       indicators={selectedIndicators}
                       height={mapHeight}
+                      clustersEnabled={clustersEnabled}
                     />
                   </Box>
 
@@ -894,6 +896,8 @@ export function PageContent() {
                 mode="map"
                 activeChoroplethIndicator={activeChoroplethIndicator}
                 onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
+                clustersEnabled={clustersEnabled}
+                onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
               />
             </Box>
           </Stack>
