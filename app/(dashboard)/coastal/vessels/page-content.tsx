@@ -9,6 +9,7 @@ import {
   Typography,
   Chip,
   Button,
+  IconButton,
   Select,
   MenuItem,
   FormControl,
@@ -19,12 +20,15 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import MapIcon from '@mui/icons-material/Map';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { ViewModeTab } from '../components/ViewModeTab';
 import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
@@ -109,6 +113,46 @@ export function PageContent() {
   const sliceCacheRef = React.useRef<Map<string, Record<string, any>>>(new Map());
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any>>({});
   const [spatialLoading, setSpatialLoading] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Handle escape key and body overflow for fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
+
+  // Dispatch resize event when toggling fullscreen or selecting a hex cell
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isFullscreen, selectedHexCell]);
+
+  // Reset fullscreen when switching tab
+  useEffect(() => {
+    if (activeTab !== 2) {
+      setIsFullscreen(false);
+    }
+  }, [activeTab]);
+
+  const mapHeight = useMemo(() => {
+    if (!isFullscreen) return undefined;
+    return selectedHexCell ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
+  }, [isFullscreen, selectedHexCell]);
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -838,9 +882,37 @@ export function PageContent() {
 
       {/* Tab 2: Choropleth Map */}
       {activeTab === 2 && (
-        <Box id="coastal-vessels-map-container">
-          <Stack spacing={2}>
-            {/* Top Row: Hex Cell Detail Modal / Card */}
+        <Box
+          id="coastal-vessels-map-container"
+          sx={
+            isFullscreen
+              ? {
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1300,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#0b0f19' : '#f8fafc',
+                  pt: { xs: 0.75, md: 1 },
+                  px: { xs: 1.5, md: 2.5 },
+                  pb: { xs: 1.5, md: 2.5 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  overflowY: 'auto',
+                }
+              : {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  width: '100%',
+                }
+          }
+        >
+          {/* Top Row: Hex Cell Detail Modal / Card */}
+          {(!isFullscreen || selectedHexCell) && (
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
                 cellIds={selectedHexCell ? [selectedHexCell] : []}
@@ -852,32 +924,75 @@ export function PageContent() {
                 onClose={() => setSelectedHexCell(null)}
               />
             </Box>
+          )}
 
-            <VesselSpatialMap
-              key={`${country}_${locationLabel}`}
-              country={country}
-              locationName={locationLabel}
-              aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
-              spatialSlice={spatialSlice}
-              selectedCellId={selectedHexCell}
-              onSelectCell={(id) => setSelectedHexCell(id)}
-              onClearSelection={() => setSelectedHexCell(null)}
-              loading={spatialLoading}
-              periodLabel={periods[activeScrubberIndex]}
-            />
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 2 }}>
+              <Box
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {`${metric} Map (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {`${start_date} to ${end_date}`}
+                  </Typography>
+                </Box>
 
-            <TemporalScrubber
-              periods={periods}
-              currentIndex={activeScrubberIndex}
-              onChangeIndex={(idx) => setScrubberIndex(idx)}
-              grain={grain}
-              activeYear={grain === 'weekly' ? weeklyYear : undefined}
-              onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
-              onNextYear={grain === 'weekly' ? handleNextYear : undefined}
-              canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
-              canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
-            />
-          </Stack>
+                <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+                  <IconButton
+                    onClick={() => setIsFullscreen((prev) => !prev)}
+                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                    size="small"
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1.5,
+                      bgcolor: isFullscreen ? 'action.selected' : 'background.paper',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    {isFullscreen ? <FullscreenExitIcon fontSize="small" /> : <FullscreenIcon fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              <VesselSpatialMap
+                key={`${country}_${locationLabel}`}
+                country={country}
+                locationName={locationLabel}
+                aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
+                spatialSlice={spatialSlice}
+                selectedCellId={selectedHexCell}
+                onSelectCell={(id) => setSelectedHexCell(id)}
+                onClearSelection={() => setSelectedHexCell(null)}
+                loading={spatialLoading}
+                periodLabel={periods[activeScrubberIndex]}
+                height={mapHeight}
+              />
+            </CardContent>
+          </Card>
+
+          <TemporalScrubber
+            periods={periods}
+            currentIndex={activeScrubberIndex}
+            onChangeIndex={(idx) => setScrubberIndex(idx)}
+            grain={grain}
+            activeYear={grain === 'weekly' ? weeklyYear : undefined}
+            onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
+            onNextYear={grain === 'weekly' ? handleNextYear : undefined}
+            canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
+            canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
+          />
         </Box>
       )}
 
