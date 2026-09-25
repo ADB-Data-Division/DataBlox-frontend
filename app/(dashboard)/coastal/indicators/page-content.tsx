@@ -43,6 +43,11 @@ import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import { formatDisplayName } from '../data/provinces';
+import {
+  buildSeriesInFlightKey,
+  buildSpatialSliceCacheKey,
+  shouldSkipSeriesFetch,
+} from './spatial-cache';
 
 export function generatePeriods(
   startDate: string,
@@ -355,6 +360,17 @@ export function PageContent() {
   const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
   const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
 
+  // Mirror of the scrubber index for the series `.then` path: the series
+  // effect no longer depends on the index (scrub ticks must not refetch),
+  // so it reads the live position through this ref instead of a stale
+  // closure value.
+  const scrubberIndexRef = useRef(activeScrubberIndex);
+  scrubberIndexRef.current = activeScrubberIndex;
+  // In-flight key (see `buildSeriesInFlightKey`) of the running
+  // `/spatial/series` prefetch, or null when idle. The slice fallback
+  // effect checks this to avoid racing the batch request per scrub tick.
+  const seriesInFlightRef = useRef<string | null>(null);
+
   const handlePrevYear = () => {
     setWeeklyYear((y) => y - 1);
     setScrubberIndex(0);
@@ -377,13 +393,32 @@ export function PageContent() {
     }
   }, [periods]);
 
-  // Pre-fetch batch spatial series across all periods for instant 60 FPS playback
+  // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
+  // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
+  // served from `sliceCacheRef`; refetching per tick caused the 2026-09-25
+  // incident (~57 series calls piling up). The live index is read via
+  // `scrubberIndexRef` in `.then`, and the fetch is skipped entirely when
+  // every period key for this scope is already cached (also guards refetch
+  // on unrelated `periodItems` identity changes).
   useEffect(() => {
     if (viewMode !== 'map' || !country || periodItems.length === 0) {
       return;
     }
 
+    const scope = {
+      country,
+      indicator: activeChoroplethIndicator,
+      grain,
+      aoiId: aoi_id,
+    };
+
+    if (shouldSkipSeriesFetch(periodItems, scope, sliceCacheRef.current)) {
+      return;
+    }
+
     let isMounted = true;
+    const inFlightKey = buildSeriesInFlightKey(scope);
+    seriesInFlightRef.current = inFlightKey;
 
     fetchSpatialSeries({
       country,
@@ -396,16 +431,16 @@ export function PageContent() {
       .then((res) => {
         if (!isMounted || !res?.series) return;
         Object.entries(res.series).forEach(([periodStart, cellMap]) => {
-          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); normalize
-          // to the day so they hit the same cache keys the scrubber uses.
-          const day = String(periodStart).slice(0, 10);
-          const key = `${country}_${day}_${activeChoroplethIndicator}_${grain}`;
+          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); the key
+          // builder normalizes to the day so they hit the same cache keys
+          // the scrubber uses.
+          const key = buildSpatialSliceCacheKey({ ...scope, periodStart });
           sliceCacheRef.current.set(key, cellMap as Record<string, any>);
         });
 
-        const cur = periodItems[activeScrubberIndex];
+        const cur = periodItems[scrubberIndexRef.current];
         if (cur) {
-          const curKey = `${country}_${cur.start}_${activeChoroplethIndicator}_${grain}`;
+          const curKey = buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start });
           const cached = sliceCacheRef.current.get(curKey);
           if (cached) {
             setSpatialSlice(cached);
@@ -414,14 +449,25 @@ export function PageContent() {
       })
       .catch((err) => {
         console.warn('Batch spatial series pre-fetch failed, falling back to slice queries:', err);
+      })
+      .finally(() => {
+        if (seriesInFlightRef.current === inFlightKey) {
+          seriesInFlightRef.current = null;
+        }
       });
 
     return () => {
       isMounted = false;
+      if (seriesInFlightRef.current === inFlightKey) {
+        seriesInFlightRef.current = null;
+      }
     };
-  }, [country, grain, activeChoroplethIndicator, aoi_id, viewMode, periodItems, activeScrubberIndex]);
+  }, [country, grain, activeChoroplethIndicator, aoi_id, viewMode, periodItems]);
 
-  // Fetch or derive spatial slice when active period or indicator changes
+  // Fetch or derive spatial slice when active period or indicator changes.
+  // Skips while the series prefetch for this scope is in flight (its `.then`
+  // serves the slider from cache on success) and debounces the fallback so
+  // fast scrubbing does not fan out one `/spatial/slice` call per tick.
   useEffect(() => {
     if (viewMode !== 'map' || periodItems.length === 0) {
       return;
@@ -430,40 +476,55 @@ export function PageContent() {
     const curPeriod = periodItems[activeScrubberIndex];
     if (!curPeriod) return;
 
-    const cacheKey = `${country}_${curPeriod.start}_${activeChoroplethIndicator}_${grain}`;
+    const scope = {
+      country,
+      indicator: activeChoroplethIndicator,
+      grain,
+      aoiId: aoi_id,
+    };
+
+    const cacheKey = buildSpatialSliceCacheKey({ ...scope, periodStart: curPeriod.start });
     if (sliceCacheRef.current.has(cacheKey)) {
       setSpatialSlice(sliceCacheRef.current.get(cacheKey));
       return;
     }
 
+    if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
+      return;
+    }
+
     let isCurrent = true;
 
-    fetchSpatialSlice({
-      country,
-      period_start: curPeriod.start,
-      period_end: curPeriod.end,
-      grain,
-      indicator: activeChoroplethIndicator,
-    })
-      .then((res) => {
-        if (!isCurrent) return;
-        const sliceData = res?.values || res?.data;
-        if (sliceData && Object.keys(sliceData).length > 0) {
-          sliceCacheRef.current.set(cacheKey, sliceData);
-          setSpatialSlice(sliceData);
-        } else {
-          setSpatialSlice({});
-        }
+    const timer = setTimeout(() => {
+      fetchSpatialSlice({
+        country,
+        period_start: curPeriod.start,
+        period_end: curPeriod.end,
+        grain,
+        indicator: activeChoroplethIndicator,
+        aoi_id: aoi_id || undefined,
       })
-      .catch(() => {
-        if (!isCurrent) return;
-        setSpatialSlice({});
-      });
+        .then((res) => {
+          if (!isCurrent) return;
+          const sliceData = res?.values || res?.data;
+          if (sliceData && Object.keys(sliceData).length > 0) {
+            sliceCacheRef.current.set(cacheKey, sliceData);
+            setSpatialSlice(sliceData);
+          } else {
+            setSpatialSlice({});
+          }
+        })
+        .catch(() => {
+          if (!isCurrent) return;
+          setSpatialSlice({});
+        });
+    }, 150);
 
     return () => {
       isCurrent = false;
+      clearTimeout(timer);
     };
-  }, [country, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode]);
+  }, [country, aoi_id, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode]);
 
   if (!rawCountry) {
     return null;
