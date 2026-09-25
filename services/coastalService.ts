@@ -310,6 +310,7 @@ export async function fetchSpatialSlice(
       period_end: params.period_end,
       grain: params.grain || "monthly",
       indicator: params.indicator || "chlor_a",
+      aoi_id: params.aoi_id,
     },
     params.engine
   );

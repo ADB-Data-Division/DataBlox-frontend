@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Box, Typography, CircularProgress, IconButton } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, IconButton } from '@mui/material';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dynamic from 'next/dynamic';
@@ -157,11 +157,24 @@ export const getSSTColorRgba = (value: number | null): [number, number, number, 
   ];
 };
 
+export const getVesselColor = (vessels: number) => {
+  const maxDensity = 50;
+  const clamped = Math.max(0, Math.min(maxDensity, vessels));
+  const ratio = clamped / maxDensity;
+  if (ratio < 0.5) {
+    return interpolateColor('#fee2e2', '#f87171', ratio * 2);
+  }
+  return interpolateColor('#f87171', '#991b1b', (ratio - 0.5) * 2);
+};
+
 export const getVesselColorRgba = (vessels: number): [number, number, number, number] => {
   const maxDensity = 50;
   const clamped = Math.max(0, Math.min(maxDensity, vessels));
   if (clamped === 0) {
-    return [241, 245, 249, 120];
+    // Zero-data hexes must stay visible against the light map background.
+    // Matches the low end of the scale (and the legend gradient) instead of
+    // near-transparent slate, which rendered as a blank map.
+    return [254, 226, 226, 215];
   }
   const ratio = clamped / maxDensity;
   if (ratio < 0.5) {
@@ -714,9 +727,15 @@ function CoastalChoroplethMapClient({
     return parents;
   }, [showClusters, selectedCellIds]);
 
-  // Dynamically load Leaflet and Deck.gl WebGL on client
+  // Dynamically load Leaflet and Deck.gl WebGL on client.
+  // The load is retried via libAttempt: a remount during Fast Refresh (or any
+  // orphaned import batch) can otherwise leave L unset forever, which renders
+  // as a permanently gray map with no error.
+  const [libAttempt, setLibAttempt] = useState(0);
+  const [mapLibError, setMapLibError] = useState(false);
   useEffect(() => {
     let mounted = true;
+    setMapLibError(false);
     Promise.all([
       import('leaflet'),
       import('@deck.gl-community/leaflet'),
@@ -738,16 +757,35 @@ function CoastalChoroplethMapClient({
       })
       .catch((err) => {
         console.warn('Deck.gl WebGL load failed, falling back to Leaflet Canvas:', err);
-        import('leaflet').then((leafletModule) => {
-          if (mounted) {
-            setL(leafletModule.default);
-          }
-        });
+        import('leaflet')
+          .then((leafletModule) => {
+            if (mounted) {
+              cachedL = leafletModule.default;
+              setL(cachedL);
+            }
+          })
+          .catch(() => {
+            if (mounted) {
+              setMapLibError(true);
+            }
+          });
       });
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [libAttempt]);
+
+  // Watchdog: if the map libraries never arrive (orphaned imports), retry a
+  // few times, then surface an error with a manual retry instead of gray.
+  useEffect(() => {
+    if (L) return;
+    if (libAttempt >= 3) {
+      setMapLibError(true);
+      return;
+    }
+    const t = setTimeout(() => setLibAttempt((a) => a + 1), 4000);
+    return () => clearTimeout(t);
+  }, [L, libAttempt]);
 
   // Initialize Map
   useEffect(() => {
@@ -839,7 +877,27 @@ function CoastalChoroplethMapClient({
       map.fitBounds(fittedBoundsRef.current, { padding: [24, 24], maxZoom: 12, animate: false });
     }
 
+    // First mount can race layout/CSS settling: Leaflet measures the container
+    // once at creation, so a map created before layout settles stays gray
+    // (tiles + Deck canvas) until a remount. Force a resize after paint.
+    const settleRaf = requestAnimationFrame(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    });
+    const settleTimer = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    }, 150);
+
     return () => {
+      cancelAnimationFrame(settleRaf);
+      clearTimeout(settleTimer);
       if (deckOverlayRef.current) {
         try {
           deckOverlayRef.current.remove();
@@ -913,6 +971,24 @@ function CoastalChoroplethMapClient({
       leafletMapRef.current.invalidateSize();
     }
   }, [height]);
+
+  // Re-assert map size once grid and slice data land. On first load the map is
+  // often initialized before layout settles, leaving gray tiles/hexes until a
+  // remount (e.g. switching tabs and back). The timeout is cleared while
+  // scrubbing so it only fires once the slider settles.
+  useEffect(() => {
+    if (!genuineCells || genuineCells.length === 0) return;
+    const map = leafletMapRef.current;
+    if (!map) return;
+    const t = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch {
+        // Ignore resize error
+      }
+    }, 60);
+    return () => clearTimeout(t);
+  }, [genuineCells, spatialSlice]);
 
   // WebGL hardware-accelerated rendering via Deck.gl
   useEffect(() => {
@@ -1080,6 +1156,8 @@ function CoastalChoroplethMapClient({
           fillColor = getChlorophyllColor(point.chlor_a);
         } else if (isSST) {
           fillColor = getSSTColor(point.sst);
+        } else {
+          fillColor = getVesselColor(point.vessels);
         }
 
         const circle = L.circleMarker([point.lat, point.lng], {
@@ -1124,6 +1202,8 @@ function CoastalChoroplethMapClient({
         fillColor = getChlorophyllColor(cell.chlor_a);
       } else if (isSST) {
         fillColor = getSSTColor(cell.sst);
+      } else {
+        fillColor = getVesselColor(cell.vessels);
       }
 
       // Draw hexagon polygon
@@ -1272,8 +1352,8 @@ function CoastalChoroplethMapClient({
         </>
       )}
 
-      {/* Loading overlay while genuine cells are loading */}
-      {(genuineCells === null || loading) && (
+      {/* Loading overlay while map libraries or genuine cells are loading */}
+      {(genuineCells === null || loading || (!L && !mapLibError)) && (
         <Box
           sx={{
             position: 'absolute',
@@ -1290,6 +1370,43 @@ function CoastalChoroplethMapClient({
           }}
         >
           <CircularProgress size={32} />
+        </Box>
+      )}
+
+      {/* Error state when map libraries fail to load: retry instead of gray */}
+      {mapLibError && !L && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 998,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            bgcolor: 'rgba(248, 250, 252, 0.9)',
+            p: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Map failed to load
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            The interactive map libraries could not be loaded. Check your connection and try again.
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setLibAttempt((a) => a + 1)}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Retry
+          </Button>
         </Box>
       )}
 

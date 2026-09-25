@@ -332,6 +332,7 @@ export interface SpatialSliceParams {
   period_end?: string;
   grain?: CoastalGrain;
   indicator?: string;
+  aoi_id?: string;
   engine?: "duckdb" | "postgres";
 }
 
