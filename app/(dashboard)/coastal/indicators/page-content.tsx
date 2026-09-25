@@ -80,17 +80,23 @@ export function generatePeriods(
   }
 
   if (grain === 'weekly') {
+    // Backend weekly grain weeks are Monday-anchored (e.g. 2020-01-06 to
+    // 2020-01-12) and the slice endpoint only matches a stored week fully
+    // inside the requested window. Anchor client windows on the same grid
+    // so scrubber periods actually return data.
     const cur = new Date(start);
+    const mondayOffset = (cur.getUTCDay() + 6) % 7;
+    cur.setUTCDate(cur.getUTCDate() - mondayOffset);
     let weekNum = 1;
     while (cur <= end) {
       const periodStart = cur.toISOString().split('T')[0];
       const nextWeek = new Date(cur);
-      nextWeek.setDate(cur.getDate() + 6);
+      nextWeek.setUTCDate(cur.getUTCDate() + 6);
       const periodEnd = nextWeek.toISOString().split('T')[0];
       const [ey, em, ed] = periodEnd.split('-');
       const label = `Week ${weekNum}: ${em}/${ed}/${ey}`;
       results.push({ label, start: periodStart, end: periodEnd });
-      cur.setDate(cur.getDate() + 7);
+      cur.setUTCDate(cur.getUTCDate() + 7);
       weekNum++;
     }
     return results;
@@ -319,6 +325,28 @@ export function PageContent() {
 
   const periodItems = useMemo(() => {
     if (grain === 'weekly') {
+      // Prefer backend timeline weeks (the same Monday-anchored grid the
+      // slice/series endpoints query) so the scrubber, the batch cache and
+      // per-period slices all agree. Fall back to generated weeks only when
+      // the timeline has not loaded yet.
+      const tl = data?.timeline || data?.series;
+      if (tl && tl.length > 0) {
+        const yearStr = String(weeklyYear);
+        let weekNum = 1;
+        const items = tl
+          .filter((pt) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            return s.slice(0, 4) === yearStr || e.slice(0, 4) === yearStr;
+          })
+          .map((pt) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            const [ey, em, ed] = e.split('-');
+            return { label: `Week ${weekNum++}: ${em}/${ed}/${ey}`, start: s, end: e };
+          });
+        if (items.length > 0) return items;
+      }
       return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
     }
     return generatePeriods(start_date, end_date, grain, data?.timeline || data?.series);
@@ -368,7 +396,10 @@ export function PageContent() {
       .then((res) => {
         if (!isMounted || !res?.series) return;
         Object.entries(res.series).forEach(([periodStart, cellMap]) => {
-          const key = `${country}_${periodStart}_${activeChoroplethIndicator}_${grain}`;
+          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); normalize
+          // to the day so they hit the same cache keys the scrubber uses.
+          const day = String(periodStart).slice(0, 10);
+          const key = `${country}_${day}_${activeChoroplethIndicator}_${grain}`;
           sliceCacheRef.current.set(key, cellMap as Record<string, any>);
         });
 

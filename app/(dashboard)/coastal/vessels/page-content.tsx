@@ -79,7 +79,7 @@ export function PageContent() {
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
-  const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
@@ -140,7 +140,7 @@ export function PageContent() {
       window.dispatchEvent(new Event('resize'));
     }, 150);
     return () => clearTimeout(timer);
-  }, [isFullscreen, selectedHexCell]);
+  }, [isFullscreen, selectedHexCells]);
 
   // Reset fullscreen when switching tab
   useEffect(() => {
@@ -151,8 +151,8 @@ export function PageContent() {
 
   const mapHeight = useMemo(() => {
     if (!isFullscreen) return undefined;
-    return selectedHexCell ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
-  }, [isFullscreen, selectedHexCell]);
+    return selectedHexCells.length > 0 ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
+  }, [isFullscreen, selectedHexCells]);
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -167,6 +167,27 @@ export function PageContent() {
 
   const periodItems = useMemo(() => {
     if (grain === 'weekly') {
+      // Prefer backend timeline weeks (the same Monday-anchored grid the
+      // slice/series endpoints query) so the scrubber, the batch cache and
+      // per-period slices all agree. Fall back to generated weeks only when
+      // the timeline has not loaded yet.
+      if (timelineData && timelineData.length > 0) {
+        const yearStr = String(weeklyYear);
+        let weekNum = 1;
+        const items = timelineData
+          .filter((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            return s.slice(0, 4) === yearStr || e.slice(0, 4) === yearStr;
+          })
+          .map((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            const [ey, em, ed] = e.split('-');
+            return { label: `Week ${weekNum++}: ${em}/${ed}/${ey}`, start: s, end: e };
+          });
+        if (items.length > 0) return items;
+      }
       return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
     }
     // Prefer backend timeline periods so scrubber positions match available data.
@@ -313,7 +334,10 @@ export function PageContent() {
       .then((res) => {
         if (!isMounted || !res?.series) return;
         Object.entries(res.series).forEach(([periodStart, cellMap]) => {
-          const key = `${country}_${periodStart}_vessels_${grain}`;
+          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); normalize
+          // to the day so they hit the same cache keys the scrubber uses.
+          const day = String(periodStart).slice(0, 10);
+          const key = `${country}_${day}_vessels_${grain}`;
           sliceCacheRef.current.set(key, cellMap as Record<string, any>);
         });
 
@@ -914,16 +938,16 @@ export function PageContent() {
           }
         >
           {/* Top Row: Hex Cell Detail Modal / Card */}
-          {(!isFullscreen || selectedHexCell) && (
+          {(!isFullscreen || selectedHexCells.length > 0) && (
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
-                cellIds={selectedHexCell ? [selectedHexCell] : []}
+                cellIds={selectedHexCells}
                 locationName={locationLabel}
                 country={country}
                 grain={grain}
                 dateRange={{ start: start_date, end: end_date }}
                 indicators={['vessels']}
-                onClose={() => setSelectedHexCell(null)}
+                onClose={() => setSelectedHexCells([])}
               />
             </Box>
           )}
@@ -974,9 +998,13 @@ export function PageContent() {
                 locationName={locationLabel}
                 aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
                 spatialSlice={spatialSlice}
-                selectedCellId={selectedHexCell}
-                onSelectCell={(id) => setSelectedHexCell(id)}
-                onClearSelection={() => setSelectedHexCell(null)}
+                selectedCellIds={selectedHexCells}
+                onSelectCell={(id) =>
+                  setSelectedHexCells((prev) =>
+                    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+                  )
+                }
+                onClearSelection={() => setSelectedHexCells([])}
                 loading={spatialLoading}
                 periodLabel={periods[activeScrubberIndex]}
                 height={mapHeight}
