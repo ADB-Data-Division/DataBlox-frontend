@@ -28,13 +28,13 @@ describe('Coastal Spatial Grid & Color Scales', () => {
       expect(getChlorophyllColor(25).toLowerCase()).toBe('#ef4444');
     });
 
-    it('maps SST values accurately', () => {
-      expect(getSSTColor(290).toLowerCase()).toBe('#fee2e2');
-      expect(getSSTColor(310).toLowerCase()).toBe('#b91c1c');
-      expect(getSSTColor(300).toLowerCase()).toBe('#f87171');
+    it('maps SST values accurately in Celsius (never Kelvin)', () => {
+      expect(getSSTColor(15).toLowerCase()).toBe('#fee2e2');
+      expect(getSSTColor(35).toLowerCase()).toBe('#b91c1c');
+      expect(getSSTColor(25).toLowerCase()).toBe('#f87171');
       // Clamping checks
-      expect(getSSTColor(280).toLowerCase()).toBe('#fee2e2');
-      expect(getSSTColor(320).toLowerCase()).toBe('#b91c1c');
+      expect(getSSTColor(0).toLowerCase()).toBe('#fee2e2');
+      expect(getSSTColor(50).toLowerCase()).toBe('#b91c1c');
     });
 
     it('interpolates intermediate colors accurately', () => {
@@ -50,17 +50,17 @@ describe('Coastal Spatial Grid & Color Scales', () => {
       expect(chlorRgba[2]).toBe(8);
       expect(chlorRgba[3]).toBe(215);
 
-      const sstRgba = getSSTColorRgba(300);
+      const sstRgba = getSSTColorRgba(25);
       expect(sstRgba).toHaveLength(4);
       expect(sstRgba[0]).toBe(248);
       expect(sstRgba[1]).toBe(113);
       expect(sstRgba[2]).toBe(113);
       expect(sstRgba[3]).toBe(215);
 
-      const cellChlor = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 290, vessels: 0 }, true, false);
+      const cellChlor = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 25, vessels: 0, values: {} }, true, false);
       expect(cellChlor).toEqual([34, 197, 94, 215]);
 
-      const cellSst = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 310, vessels: 0 }, false, true);
+      const cellSst = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 35, vessels: 0, values: {} }, false, true);
       expect(cellSst).toEqual([185, 28, 28, 215]);
     });
 
@@ -74,7 +74,7 @@ describe('Coastal Spatial Grid & Color Scales', () => {
       expect(getVesselColor(-5).toLowerCase()).toBe('#fee2e2');
       expect(getVesselColor(500).toLowerCase()).toBe('#991b1b');
 
-      const cellVessel = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 0, vessels: 0 }, false, false);
+      const cellVessel = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 0, vessels: 0, values: {} }, false, false);
       expect(cellVessel).toEqual([254, 226, 226, 215]);
     });
   });

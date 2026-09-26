@@ -1,11 +1,81 @@
 /**
  * Utility functions for exporting coastal indicator and vessel datasets.
  * Supports CSV text, Excel workbook (Spreadsheet XML), and Graph PNG image exports.
+ *
+ * Null policy: a null value means "no data" and is written as an empty cell
+ * in CSV and Excel, never as 0. A real 0 is written as 0.
  */
+
+import type { IndicatorTimelinePoint } from '@/types/coastal';
 
 export interface ExportColumnHeader {
   key: string;
   label: string;
+}
+
+/**
+ * Build export headers for any set of registry indicator ids. The export
+ * supports every indicator column the timeline carries (all 57 ABT columns
+ * flow through the generic `values` flattening in buildIndicatorExportRows).
+ */
+export async function buildIndicatorExportHeaders(
+  indicatorIds: string[],
+): Promise<ExportColumnHeader[]> {
+  const { getIndicatorMeta } = await import(
+    '@/app/(dashboard)/coastal/indicators'
+  );
+  const headers: ExportColumnHeader[] = [
+    { key: 'period_start', label: 'Period Start' },
+    { key: 'period_end', label: 'Period End' },
+  ];
+  for (const id of indicatorIds) {
+    const meta = getIndicatorMeta(id);
+    headers.push({
+      key: id,
+      label: meta ? `${meta.label} (${meta.unit})` : id,
+    });
+  }
+  return headers;
+}
+
+/**
+ * Flatten timeline points (canonical `values` dict plus legacy fixed fields
+ * during migration) into one row per period. Null stays null so the CSV and
+ * Excel writers emit an empty cell, never 0.
+ */
+export function buildIndicatorExportRows(
+  timeline: IndicatorTimelinePoint[],
+  indicatorIds: string[],
+): Record<string, unknown>[] {
+  const legacyKeys: Record<string, string[]> = {
+    chlor_a: ['chlor_a', 'mean_chlor_a'],
+    sst: ['sst_c', 'sst_k', 'mean_sea_surface_temperature'],
+    vessels: ['total_vessels', 'unique_vessels', 'n_unique_vessels'],
+    presence_hours: ['total_presence_hours'],
+    duration: ['port_call_duration_hours', 'total_stationary_hours', 'total_presence_hours'],
+  };
+  return timeline.map((pt) => {
+    const row: Record<string, unknown> = {
+      period_start: pt.period_start,
+      period_end: pt.period_end,
+    };
+    for (const id of indicatorIds) {
+      let value: number | null | undefined;
+      if (pt.values && pt.values[id] !== undefined) {
+        value = pt.values[id];
+      } else {
+        const record = pt as unknown as Record<string, number | null | undefined>;
+        for (const key of legacyKeys[id] || [id]) {
+          if (record[key] !== undefined) {
+            value = record[key];
+            break;
+          }
+        }
+      }
+      row[id] = value ?? null;
+    }
+    return row;
+  });
 }
 
 /**

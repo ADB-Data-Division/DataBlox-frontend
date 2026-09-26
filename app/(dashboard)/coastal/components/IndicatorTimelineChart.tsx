@@ -12,6 +12,11 @@ import {
   useTheme,
 } from '@mui/material';
 import type { IndicatorTimelinePoint } from '@/types/coastal';
+import {
+  COASTAL_INDICATORS,
+  getIndicatorMeta,
+  isZeroFillIndicator,
+} from '../indicators';
 
 export interface IndicatorTimelineChartProps {
   data: IndicatorTimelinePoint[];
@@ -24,19 +29,28 @@ export interface IndicatorTimelineChartProps {
   loading?: boolean;
 }
 
-export const INDICATORS_CONFIG: Record<string, { label: string; unit: string; color: string }> = {
-  chlor_a: { label: 'Chlorophyll-a', unit: 'mg/m³', color: '#10B981' },
-  vessels: { label: 'Vessel Count', unit: 'vessels', color: '#8B5CF6' },
-  duration: { label: 'Vessel Port Call Duration', unit: 'hours', color: '#3B82F6' },
-  // Not red: red is reserved for "increasing chlorophyll-a" in the delta cards.
-  sst: { label: 'Sea Surface Temperature', unit: '°C', color: '#F97316' },
-};
+/**
+ * Backwards-compatible chart config derived from the static registry.
+ * New code should import the registry from `../indicators` directly.
+ */
+export const INDICATORS_CONFIG: Record<string, { label: string; unit: string; color: string }> =
+  Object.fromEntries(
+    COASTAL_INDICATORS.map((e) => [e.id, { label: e.label, unit: e.unit, color: e.color }]),
+  );
 
-// Missing chlor_a/sst readings (cloud cover, sensor gaps) come back as null.
-// They must stay NaN here, not 0, so the chart renders a gap instead of a
-// fake reading of zero. Vessel/duration counts have no such gap: absence
-// there means a real zero, so those keep defaulting to 0.
+// Canonical value reader. The `values` dict (contract section 3) is read
+// first; legacy fixed fields follow during migration. Null means "no data"
+// and stays NaN so the chart renders a gap, never a fake 0. A real 0
+// survives via `??` (never `||`). Only `zero_fill` registry indicators
+// (vessels, presence_hours, stationary_vessels, duration) default missing
+// readings to 0.
 export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: string): number {
+  const zeroFill = isZeroFillIndicator(indicatorKey);
+  const fallback = zeroFill ? 0 : NaN;
+
+  if (point.values && point.values[indicatorKey] !== undefined) {
+    return point.values[indicatorKey] ?? fallback;
+  }
   if (indicatorKey === 'chlor_a') {
     return point.chlor_a ?? point.mean_chlor_a ?? NaN;
   }
@@ -47,6 +61,12 @@ export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: strin
       point.n_unique_vessels ??
       0
     );
+  }
+  if (indicatorKey === 'presence_hours') {
+    return point.total_presence_hours ?? 0;
+  }
+  if (indicatorKey === 'stationary_vessels') {
+    return (point as unknown as Record<string, number | null | undefined>).n_unique_stationary_vessels ?? 0;
   }
   if (indicatorKey === 'duration') {
     return (
@@ -64,10 +84,20 @@ export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: strin
       NaN
     );
   }
-  if (point.values && point.values[indicatorKey] !== undefined) {
-    return point.values[indicatorKey] ?? NaN;
+  const direct = (point as unknown as Record<string, number | null | undefined>)[indicatorKey];
+  if (direct !== undefined) {
+    return direct ?? fallback;
   }
-  return NaN;
+  return fallback;
+}
+
+/** Format a chart value with the registry decimals, or "No data" for gaps. */
+export function formatIndicatorValue(indicatorKey: string, value: number): string {
+  if (isNaN(value)) return 'No data';
+  const meta = getIndicatorMeta(indicatorKey);
+  if (!meta) return String(value);
+  if (meta.integer) return Math.round(value).toLocaleString();
+  return value.toFixed(meta.decimals);
 }
 
 export function formatPeriodLabel(isoString: string, grain?: string): string {
@@ -154,6 +184,14 @@ export function IndicatorTimelineChart({
     const ind1Cfg = INDICATORS_CONFIG[ind1] || { label: ind1, unit: '', color: '#3B82F6' };
     const ind2Cfg = ind2 ? INDICATORS_CONFIG[ind2] || { label: ind2, unit: '', color: '#EF4444' } : null;
 
+    // Axes are shared by unit: two indicators with the same unit share the
+    // left axis instead of getting a redundant right axis.
+    const shareAxis = Boolean(ind2Cfg && ind1Cfg.unit && ind2Cfg.unit && ind1Cfg.unit === ind2Cfg.unit);
+    const ind2Axis: 'left' | 'right' = shareAxis ? 'left' : 'right';
+
+    const finiteValues = (key: string): number[] =>
+      data.map((d) => getPointValue(d, key)).filter((v) => !isNaN(v));
+
     // X Scale
     const x = d3
       .scalePoint<number>()
@@ -182,20 +220,23 @@ export function IndicatorTimelineChart({
       }
     }
 
-    // Y1 Scale (Left axis)
-    const maxVal1 = d3.max(data, (d) => getPointValue(d, ind1)) || 10;
-    const minVal1 = d3.min(data, (d) => getPointValue(d, ind1)) || 0;
+    // Y1 Scale (Left axis). Domains ignore nulls: only finite values count.
+    const vals1 = finiteValues(ind1);
+    const maxVal1 = vals1.length > 0 ? Math.max(...vals1) : 10;
+    const minVal1 = vals1.length > 0 ? Math.min(...vals1) : 0;
     const y1 = d3
       .scaleLinear()
       .domain([Math.min(0, minVal1), maxVal1 * 1.15 || 10])
       .range([innerHeight, 0])
       .nice();
 
-    // Y2 Scale (Right axis)
+    // Y2 Scale (Right axis). When both indicators share one unit there is
+    // no right axis: the second series is drawn against y1.
     let y2 = y1;
-    if (ind2) {
-      const maxVal2 = d3.max(data, (d) => getPointValue(d, ind2)) || 10;
-      const minVal2 = d3.min(data, (d) => getPointValue(d, ind2)) || 0;
+    if (ind2 && ind2Axis === 'right') {
+      const vals2 = finiteValues(ind2);
+      const maxVal2 = vals2.length > 0 ? Math.max(...vals2) : 10;
+      const minVal2 = vals2.length > 0 ? Math.min(...vals2) : 0;
       y2 = d3
         .scaleLinear()
         .domain([Math.min(0, minVal2), maxVal2 * 1.15 || 10])
@@ -274,8 +315,8 @@ export function IndicatorTimelineChart({
       .attr('font-weight', 700)
       .text(`${ind1Cfg.label} (${ind1Cfg.unit})`);
 
-    // Right Y Axis
-    if (ind2 && ind2Cfg) {
+    // Right Y Axis (only when the second indicator has a different unit)
+    if (ind2 && ind2Cfg && ind2Axis === 'right') {
       const yAxisRight = d3.axisRight(y2).ticks(6);
       const rightAxisG = g
         .append('g')
@@ -330,11 +371,12 @@ export function IndicatorTimelineChart({
 
     // Series 2 Line
     if (ind2 && ind2Cfg) {
+      const yForInd2 = ind2Axis === 'left' ? y1 : y2;
       const line2 = d3
         .line<{ item: IndicatorTimelinePoint; index: number }>()
         .defined((d) => !isNaN(getPointValue(d.item, ind2)))
         .x((d) => x(d.index) || 0)
-        .y((d) => y2(getPointValue(d.item, ind2)))
+        .y((d) => yForInd2(getPointValue(d.item, ind2)))
         .curve(d3.curveMonotoneX);
 
       g.append('path')
@@ -351,7 +393,7 @@ export function IndicatorTimelineChart({
           .append('circle')
           .attr('class', 'dot2')
           .attr('cx', (d) => x(d.index) || 0)
-          .attr('cy', (d) => y2(getPointValue(d.item, ind2)))
+          .attr('cy', (d) => yForInd2(getPointValue(d.item, ind2)))
           .attr('r', 3.5)
           .attr('fill', ind2Cfg.color)
           .attr('stroke', '#ffffff')
@@ -551,11 +593,7 @@ export function IndicatorTimelineChart({
                 {indicators.map((indKey) => {
                   const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '', color: '#3B82F6' };
                   const val = getPointValue(hoverPoint, indKey);
-                  const formattedVal = isNaN(val)
-                    ? 'N/A'
-                    : indKey === 'vessels'
-                    ? Math.round(val).toLocaleString()
-                    : val.toFixed(2);
+                  const formattedVal = formatIndicatorValue(indKey, val);
                   return (
                     <Stack
                       key={indKey}
@@ -568,7 +606,7 @@ export function IndicatorTimelineChart({
                         {cfg.label}:
                       </Typography>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: cfg.color }}>
-                        {formattedVal} {cfg.unit}
+                        {formattedVal === 'No data' ? formattedVal : `${formattedVal} ${cfg.unit}`}
                       </Typography>
                     </Stack>
                   );

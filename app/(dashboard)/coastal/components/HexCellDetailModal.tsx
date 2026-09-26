@@ -6,6 +6,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
 import type { HexCellTimeSeriesPoint } from '@/types/coastal';
+import {
+  NO_DATA_LABEL,
+  getIndicatorMeta,
+  isZeroFillIndicator,
+} from '../indicators';
 
 export interface HexCellDetailModalProps {
   cellIds?: string[];
@@ -23,44 +28,46 @@ const MAX_VISIBLE_HEX_CHIPS = 3;
 // selecting/clearing a hex does not shift the choropleth map below.
 const HEX_DETAIL_CARD_HEIGHT = 380;
 
-// Vessel/duration counts add up across hexes; concentration/temperature readings are averaged.
-// Missing chlor_a/sst stay null so the chart renders a gap, never a fake 0.
-function aggregatePoint(points: HexCellTimeSeriesPoint[], field: 'chlor_a' | 'sst' | 'vessels' | 'duration') {
-  const values = points.map((p) => (p as any)[field]).filter((v) => v !== null && v !== undefined && !Number.isNaN(Number(v)));
-  if (values.length === 0) return field === 'vessels' || field === 'duration' ? 0 : null;
-  const sum = values.reduce((acc: number, v: number) => acc + Number(v), 0);
-  return field === 'vessels' || field === 'duration' ? sum : sum / values.length;
+// Aggregation across selected hexes follows the registry null policy:
+// `zero_fill` indicators sum (missing means a real 0); every other
+// indicator averages the non-null readings and stays null when all are
+// missing, so the chart renders a gap, never a fake 0.
+function readHexValue(point: HexCellTimeSeriesPoint, field: string): number | null | undefined {
+  if (point.values && point.values[field] !== undefined) {
+    return point.values[field];
+  }
+  return (point as unknown as Record<string, number | null | undefined>)[field];
 }
 
-const INDICATOR_CONFIG: Record<
-  string,
-  { label: string; unit: string; color: string; defaultRange: [number, number] }
-> = {
-  chlor_a: {
-    label: 'Chlorophyll-a',
-    unit: 'mg/m³',
-    color: '#10B981',
-    defaultRange: [0, 5],
-  },
-  vessels: {
-    label: 'Vessel Count',
-    unit: 'vessels',
-    color: '#8B5CF6',
-    defaultRange: [0, 200],
-  },
-  duration: {
-    label: 'Port Call Duration',
-    unit: 'hours',
-    color: '#3B82F6',
-    defaultRange: [0, 150],
-  },
-  sst: {
-    label: 'Sea Surface Temp.',
-    unit: 'K',
-    color: '#F97316',
-    defaultRange: [290, 310],
-  },
-};
+export function aggregatePoint(points: HexCellTimeSeriesPoint[], field: string): number | null {
+  const values = points
+    .map((p) => readHexValue(p, field))
+    .filter((v): v is number => v !== null && v !== undefined && !Number.isNaN(Number(v)));
+  if (values.length === 0) return isZeroFillIndicator(field) ? 0 : null;
+  const sum = values.reduce((acc: number, v: number) => acc + Number(v), 0);
+  if (isZeroFillIndicator(field)) return sum;
+  const meta = getIndicatorMeta(field);
+  if (meta?.agg === 'max') return Math.max(...values);
+  if (meta?.agg === 'min') return Math.min(...values);
+  if (meta?.agg === 'sum') return sum;
+  return sum / values.length;
+}
+
+interface HexIndicatorConfig {
+  label: string;
+  unit: string;
+  color: string;
+  defaultRange: [number, number];
+}
+
+function configForHex(id: string): HexIndicatorConfig {
+  const meta = getIndicatorMeta(id);
+  if (!meta) {
+    return { label: id, unit: '', color: '#3B82F6', defaultRange: [0, 10] };
+  }
+  const [lo, hi] = meta.mapDomain;
+  return { label: meta.label, unit: meta.unit, color: meta.color, defaultRange: [lo, hi] };
+}
 
 function formatMonthYear(dateStr: string): string {
   if (!dateStr) return '';
@@ -242,13 +249,18 @@ export default function HexCellDetailModal({
         for (let i = 0; i < pointCount; i++) {
           const pointsAtIndex = seriesList.map((s) => s[i]).filter(Boolean);
           if (pointsAtIndex.length === 0) continue;
-          combined.push({
-            ...pointsAtIndex[0],
-            chlor_a: aggregatePoint(pointsAtIndex, 'chlor_a'),
-            sst: aggregatePoint(pointsAtIndex, 'sst'),
-            vessels: aggregatePoint(pointsAtIndex, 'vessels'),
-            duration: aggregatePoint(pointsAtIndex, 'duration'),
-          });
+          const base: HexCellTimeSeriesPoint = { ...pointsAtIndex[0] };
+          const fields = new Set<string>(['chlor_a', 'sst', 'vessels', 'duration']);
+          for (const p of pointsAtIndex) {
+            Object.keys(p.values || {}).forEach((k) => fields.add(k));
+          }
+          const values: Record<string, number | null> = { ...(base.values || {}) };
+          for (const field of fields) {
+            (base as unknown as Record<string, number | null>)[field] = aggregatePoint(pointsAtIndex, field);
+            values[field] = aggregatePoint(pointsAtIndex, field);
+          }
+          base.values = values;
+          combined.push(base);
         }
         setRealPoints(combined);
       })
@@ -268,16 +280,29 @@ export default function HexCellDetailModal({
 
   const timeSeries = useMemo(() => {
     if (!realPoints || realPoints.length === 0) {
-      return { xLabels: [], chlor_a: [], vessels: [], sst: [], duration: [] };
+      return { xLabels: [] as string[], seriesById: {} as Record<string, (number | null)[]> };
+    }
+    const ids = new Set<string>(['chlor_a', 'vessels', 'sst', 'duration', ...indicators]);
+    for (const pt of realPoints) {
+      Object.keys(pt.values || {}).forEach((k) => ids.add(k));
+    }
+    const seriesById: Record<string, (number | null)[]> = {};
+    for (const id of ids) {
+      seriesById[id] = realPoints.map((pt) => {
+        const v = readHexValue(pt, id);
+        if (v === null || v === undefined || Number.isNaN(Number(v))) {
+          // Only zero_fill indicators default missing to 0; the rest stay
+          // null so the chart renders a gap.
+          return isZeroFillIndicator(id) ? 0 : null;
+        }
+        return Number(v);
+      });
     }
     return {
       xLabels: realPoints.map((pt) => toXLabel(pt.period_start, grainKey)),
-      chlor_a: realPoints.map((pt) => (pt.chlor_a !== null && pt.chlor_a !== undefined ? pt.chlor_a : null)),
-      vessels: realPoints.map((pt) => (pt.vessels !== null && pt.vessels !== undefined ? pt.vessels : 0)),
-      sst: realPoints.map((pt) => (pt.sst !== null && pt.sst !== undefined ? pt.sst : null)),
-      duration: realPoints.map((pt) => (pt.duration !== null && pt.duration !== undefined ? pt.duration : 0)),
+      seriesById,
     };
-  }, [realPoints, grainKey]);
+  }, [realPoints, indicators, grainKey]);
 
   if (cellIds.length === 0) {
     return (
@@ -303,21 +328,12 @@ export default function HexCellDetailModal({
   const primaryId = activeIndicators[0] || 'chlor_a';
   const secondaryId = activeIndicators[1];
 
-  const primaryConfig = INDICATOR_CONFIG[primaryId] || {
-    label: primaryId,
-    unit: '',
-    color: '#3B82F6',
-    defaultRange: [0, 10],
-  };
+  const primaryConfig = configForHex(primaryId);
 
-  const secondaryConfig = secondaryId
-    ? INDICATOR_CONFIG[secondaryId] || {
-        label: secondaryId,
-        unit: '',
-        color: '#EF4444',
-        defaultRange: [0, 100],
-      }
-    : null;
+  const secondaryConfig = secondaryId ? configForHex(secondaryId) : null;
+
+  const seriesHasData = (id: string): boolean =>
+    (timeSeries.seriesById[id] || []).some((v) => v !== null && v !== undefined);
 
   const series: any[] = [];
   const yAxisConfig: any[] = [];
@@ -328,7 +344,7 @@ export default function HexCellDetailModal({
   const showMarks = pointCount <= 120;
 
   if (primaryConfig) {
-    const dataArray = (timeSeries as any)[primaryId] || timeSeries.chlor_a;
+    const dataArray = timeSeries.seriesById[primaryId] || [];
     series.push({
       id: primaryId,
       data: dataArray,
@@ -355,7 +371,7 @@ export default function HexCellDetailModal({
   }
 
   if (secondaryConfig) {
-    const dataArray = (timeSeries as any)[secondaryId] || timeSeries.vessels;
+    const dataArray = timeSeries.seriesById[secondaryId] || [];
     series.push({
       id: secondaryId,
       data: dataArray,
@@ -443,6 +459,7 @@ export default function HexCellDetailModal({
                 <Box sx={{ width: 16, height: 3, bgcolor: primaryConfig.color, borderRadius: 1 }} />
                 <Typography variant="caption" sx={{ fontWeight: 600 }}>
                   {primaryConfig.label}
+                  {!seriesHasData(primaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
                 </Typography>
               </Box>
             )}
@@ -451,6 +468,7 @@ export default function HexCellDetailModal({
                 <Box sx={{ width: 16, height: 3, bgcolor: secondaryConfig.color, borderRadius: 1 }} />
                 <Typography variant="caption" sx={{ fontWeight: 600 }}>
                   {secondaryConfig.label}
+                  {secondaryId && !seriesHasData(secondaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
                 </Typography>
               </Box>
             )}

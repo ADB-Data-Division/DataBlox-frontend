@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import type { CoastalAggFunc, CoastalGrain } from '@/types/coastal';
+import { isKnownIndicatorId } from '../indicators';
 
 export interface CoastalUrlParams {
   country: string;
@@ -28,9 +29,10 @@ export function useCoastalUrlParams() {
     const end_date = searchParams.get('end_date') || '2025-12-31';
     const grain = (searchParams.get('grain') as CoastalGrain) || 'monthly';
     const indicatorsParam = searchParams.get('indicators');
-    const indicators = indicatorsParam
-      ? indicatorsParam.split(',').filter(Boolean)
-      : ['chlor_a', 'vessels'];
+    const parsed = indicatorsParam
+      ? indicatorsParam.split(',').filter((id) => isKnownIndicatorId(id))
+      : [];
+    const indicators = parsed.length > 0 ? parsed : ['chlor_a', 'vessels'];
     const agg_func = (searchParams.get('agg_func') as CoastalAggFunc) || 'average';
     const view = searchParams.get('view') || undefined;
 

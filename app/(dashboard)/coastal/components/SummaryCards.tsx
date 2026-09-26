@@ -15,6 +15,10 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { IndicatorSummaryCard, IndicatorTimelinePoint, IndicatorTimelineSummary } from '@/types/coastal';
 import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
+import {
+  NO_DATA_LABEL,
+  getIndicatorMeta,
+} from '../indicators';
 
 export interface SummaryCardsProps {
   summary?: IndicatorTimelineSummary;
@@ -35,40 +39,112 @@ interface IndicatorConfig {
   zeroPeakReason: string;
 }
 
-const CONFIG_MAP: Record<string, IndicatorConfig> = {
-  vessels: {
-    icon: '🚢',
-    label: 'Vessel Count',
-    unit: 'vessels',
-    totalLabel: 'Total Vessels (Entire Time Range)',
-    peakLabel: 'Peak Vessel Count (Monthly):',
-    zeroPeakReason: 'No vessels were recorded in this time range',
-  },
-  duration: {
-    icon: '⏱️',
-    label: 'Port Call Duration',
-    unit: 'hours',
-    totalLabel: 'Average Duration (Entire Time Range)',
-    peakLabel: 'Peak Duration (Monthly):',
-    zeroPeakReason: 'No port calls were recorded in this time range',
-  },
-  chlor_a: {
-    icon: '🟢',
-    label: 'Chlorophyll-a Levels',
-    unit: 'mg/m³',
-    totalLabel: 'Average Concentration (Entire Time Range)',
-    peakLabel: 'Peak Concentration (Monthly):',
-    zeroPeakReason: 'No concentration data was recorded in this time range',
-  },
-  sst: {
-    icon: '🌡️',
-    label: 'Sea Surface Temperature Levels',
-    unit: '°C',
-    totalLabel: 'Average Temperature (Time Range)',
-    peakLabel: 'Peak Temperature (Monthly):',
-    zeroPeakReason: 'No temperature data was recorded in this time range',
-  },
-};
+function configFor(indicatorKey: string): IndicatorConfig {
+  const meta = getIndicatorMeta(indicatorKey);
+  if (!meta) {
+    return {
+      icon: '📊',
+      label: indicatorKey,
+      unit: '',
+      totalLabel: 'Average (Entire Time Range)',
+      peakLabel: 'Peak Value:',
+      zeroPeakReason: 'No data was recorded in this time range',
+    };
+  }
+  const isCount = meta.agg === 'sum';
+  return {
+    icon: meta.icon,
+    label: meta.group === 'Vessels' && indicatorKey === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`.replace(' Levels Levels', ' Levels'),
+    unit: meta.unit,
+    totalLabel:
+      indicatorKey === 'vessels'
+        ? 'Total Vessels (Entire Time Range)'
+        : isCount
+        ? `Total ${meta.shortLabel} (Entire Time Range)`
+        : `Average ${meta.shortLabel} (Entire Time Range)`,
+    peakLabel: `Peak ${meta.shortLabel} (Monthly):`,
+    zeroPeakReason: `No ${meta.shortLabel.toLowerCase()} data was recorded in this time range`,
+  };
+}
+
+/** Finite (non-null) values for an indicator across the timeline. Nulls are skipped, never zeroed. */
+export function finiteTimelineValues(
+  timeline: IndicatorTimelinePoint[] | undefined,
+  indicatorKey: string,
+): number[] {
+  if (!timeline) return [];
+  return timeline
+    .map((pt) => getPointValue(pt, indicatorKey))
+    .filter((v) => !isNaN(v));
+}
+
+export interface IndicatorStats {
+  average?: number;
+  total?: number;
+  count: number;
+  peak?: { value: number; period: string };
+  /** Month-over-month delta of the last two periods. Null when either is null. Never 0%. */
+  momDeltaPct: number | null;
+  allNull: boolean;
+}
+
+/** Data-driven stats for any registry indicator. Exported for tests. */
+export function computeIndicatorStats(
+  timeline: IndicatorTimelinePoint[] | undefined,
+  indicatorKey: string,
+): IndicatorStats {
+  const values = finiteTimelineValues(timeline, indicatorKey);
+  const count = timeline ? timeline.length : 0;
+  const allNull = values.length === 0;
+
+  let peak: { value: number; period: string } | undefined;
+  if (timeline) {
+    let best = -Infinity;
+    for (const point of timeline) {
+      const val = getPointValue(point, indicatorKey);
+      if (!isNaN(val) && val > best) {
+        best = val;
+        peak = { value: best, period: point.period_start };
+      }
+    }
+  }
+
+  let momDeltaPct: number | null = null;
+  if (timeline && timeline.length >= 2) {
+    const curr = getPointValue(timeline[timeline.length - 1], indicatorKey);
+    const prev = getPointValue(timeline[timeline.length - 2], indicatorKey);
+    if (!isNaN(curr) && !isNaN(prev) && prev !== 0) {
+      momDeltaPct = ((curr - prev) / prev) * 100;
+    }
+  }
+
+  return {
+    average: values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : undefined,
+    total: values.length > 0 ? values.reduce((a, b) => a + b, 0) : undefined,
+    count,
+    peak,
+    momDeltaPct,
+    allNull,
+  };
+}
+
+/** Delta badge styling from the registry rule. Red is only for rising chlorophyll-a. */
+export function deltaStyle(
+  pct: number | null,
+  indicatorKey: string,
+): { text: string; color: string } {
+  if (pct === null || pct === undefined || isNaN(pct)) {
+    return { text: NO_DATA_LABEL, color: 'text.secondary' };
+  }
+  if (Math.abs(pct) < 0.5) {
+    return { text: '~ 0%', color: 'text.secondary' };
+  }
+  const meta = getIndicatorMeta(indicatorKey);
+  if (pct > 0) {
+    return { text: `↑ +${Math.round(pct)}%`, color: meta?.deltaUpColor || '#2563eb' };
+  }
+  return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: meta?.deltaDownColor || '#16a34a' };
+}
 
 // Peak value/date aren't provided by the summary API, so derive them from the timeline itself.
 function findPeakPoint(
@@ -197,7 +273,7 @@ function AverageMetricTooltip({
             Observations (N):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {count > 0 ? `${count} periods` : 'N/A'}
+            {count > 0 ? `${count} periods` : NO_DATA_LABEL}
           </Typography>
         </Stack>
       </Stack>
@@ -282,7 +358,7 @@ function CumulativeMetricTooltip({
             Observations (N):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {count > 0 ? `${count} periods` : 'N/A'}
+            {count > 0 ? `${count} periods` : NO_DATA_LABEL}
           </Typography>
         </Stack>
         {avgPerPeriod !== undefined && (
@@ -342,7 +418,7 @@ function PeakMetricTooltip({
       ? isVessel
         ? Math.round(peakValue).toLocaleString()
         : peakValue.toFixed(2)
-      : 'N/A';
+      : NO_DATA_LABEL;
 
   return (
     <Box sx={{ p: 0.75, maxWidth: 300, color: '#f8fafc' }}>
@@ -389,7 +465,7 @@ function PeakMetricTooltip({
             Total Periods Scanned:
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {count > 0 ? count : 'N/A'}
+            {count > 0 ? count : NO_DATA_LABEL}
           </Typography>
         </Stack>
       </Stack>
@@ -437,20 +513,20 @@ function SingleSummaryCard({
 }) {
   const theme = useTheme();
   const [activeSlide, setActiveSlide] = useState<number>(0);
-  const cfg = CONFIG_MAP[indicatorKey] || {
-    icon: '📊',
-    label: indicatorKey,
-    unit: '',
-    totalLabel: 'Average (Entire Time Range)',
-    peakLabel: 'Peak Value:',
-    zeroPeakReason: 'No data was recorded in this time range',
-  };
+  const cfg = configFor(indicatorKey);
+  const meta = getIndicatorMeta(indicatorKey);
 
   const grainLabel = grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
   const dynamicPeakLabel = cfg.peakLabel.replace('Monthly', grainLabel);
 
   const isVessel = indicatorKey === 'vessels';
-  const count = timeline ? timeline.length : 0;
+  const stats = computeIndicatorStats(timeline, indicatorKey);
+  const count = stats.count;
+
+  const formatNum = (v: number): string => {
+    if (meta?.integer || isVessel) return Math.round(v).toLocaleString();
+    return v.toFixed(meta?.decimals ?? 2);
+  };
 
   const rawSummaryAverage =
     summaryCard?.average ??
@@ -458,32 +534,31 @@ function SingleSummaryCard({
     summaryCard?.average_hours ??
     summaryCard?.average_k;
 
-  let totalSum: number | undefined;
-  if (timeline && timeline.length > 0) {
-    totalSum = timeline.reduce((acc, pt) => acc + (getPointValue(pt, indicatorKey) || 0), 0);
-  } else if (rawSummaryAverage !== undefined) {
-    totalSum = rawSummaryAverage * (count || 1);
-  }
-
-  const numericAverage = rawSummaryAverage !== undefined
-    ? rawSummaryAverage
-    : totalSum !== undefined && count > 0
-    ? totalSum / count
-    : undefined;
+  // Summary API average is a fallback only; the timeline is canonical and
+  // null-aware (nulls are skipped, never zeroed).
+  const numericAverage = stats.average ?? rawSummaryAverage;
 
   const numericCumulative = summaryCard?.cumulative !== undefined
     ? summaryCard.cumulative
-    : isVessel && totalSum !== undefined
-    ? totalSum
+    : isVessel || meta?.agg === 'sum'
+    ? stats.total
     : undefined;
 
-  const totalVal = isVessel
+  const totalVal = stats.allNull && numericCumulative === undefined && numericAverage === undefined
+    ? undefined
+    : isVessel
     ? numericCumulative !== undefined
       ? Math.round(numericCumulative).toLocaleString()
       : undefined
+    : meta?.agg === 'sum'
+    ? stats.total !== undefined
+      ? formatNum(stats.total)
+      : undefined
     : numericAverage !== undefined
-    ? numericAverage.toFixed(2)
+    ? formatNum(numericAverage)
     : undefined;
+
+  const totalSum = stats.total;
 
   // Prefer the timeline point since it's the only source that carries a date; fall back
   // to the API's aggregate peak (undated) when the timeline has no data to derive one from.
@@ -493,17 +568,16 @@ function SingleSummaryCard({
     summaryCard?.peak_hours ??
     summaryCard?.peak_k;
 
-  const peakPoint = findPeakPoint(timeline, indicatorKey);
+  const peakPoint = stats.peak ? { value: stats.peak.value, period: stats.peak.period } : findPeakPoint(timeline, indicatorKey);
   const peakValueNumber = peakPoint !== undefined ? peakPoint.value : rawSummaryPeak;
   const peakVal =
     peakValueNumber !== undefined
-      ? isVessel
-        ? Math.round(peakValueNumber).toLocaleString()
-        : peakValueNumber.toFixed(2)
+      ? formatNum(peakValueNumber)
       : undefined;
   const peakDateLabel =
     peakPoint !== undefined && peakPoint.value > 0 ? formatPeriodLabel(peakPoint.period) : undefined;
   const peakZeroReason = peakValueNumber === 0 ? cfg.zeroPeakReason : undefined;
+  const delta = deltaStyle(stats.momDeltaPct, indicatorKey);
 
   return (
     <Card
@@ -636,9 +710,14 @@ function SingleSummaryCard({
                 {loading ? (
                   <Skeleton variant="text" width={140} height={48} />
                 ) : (
-                  <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                    {totalVal !== undefined ? `${totalVal} ${cfg.unit}` : 'N/A'}
-                  </Typography>
+                  <>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                      {totalVal !== undefined ? `${totalVal} ${cfg.unit}` : NO_DATA_LABEL}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: delta.color, display: 'block', mt: 0.5 }}>
+                      {delta.text === NO_DATA_LABEL ? `vs prev. month: ${NO_DATA_LABEL}` : `vs prev. month: ${delta.text}`}
+                    </Typography>
+                  </>
                 )}
               </Box>
             </Tooltip>
@@ -666,7 +745,7 @@ function SingleSummaryCard({
                 ) : (
                   <>
                     <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                      {peakVal !== undefined ? `${peakVal} ${cfg.unit}` : 'N/A'}
+                      {peakVal !== undefined ? `${peakVal} ${cfg.unit}` : NO_DATA_LABEL}
                     </Typography>
                     {peakDateLabel && (
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>

@@ -7,6 +7,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import dynamic from 'next/dynamic';
 import { cellToParent, cellToLatLng, isValidCell } from 'h3-js';
 import { fetchSpatialGrid } from '@/services/coastalService';
+import {
+  NO_DATA_COLOR,
+  getIndicatorMeta,
+  isZeroFillIndicator,
+} from '../indicators';
 
 export interface CoastalChoroplethMapProps {
   country: string;
@@ -32,11 +37,14 @@ interface HexCellData {
   lat: number;
   lng: number;
   // Environmental readings stay null when the satellite has no observation
-  // (cloud cover, sensor gaps). They must never fall back to 0: 0 K and
-  // 0 mg/m3 are not real measurements. Vessel counts are real zeros.
+  // (cloud cover, sensor gaps). They must never fall back to 0. A real 0
+  // gets the lowest scale color; null gets the distinct "no data" color.
+  // Vessel counts are real zeros (zero_fill pipeline).
   chlor_a: number | null;
   sst: number | null;
   vessels: number;
+  /** Canonical per-indicator values (contract section 3). Read these first. */
+  values: Record<string, number | null>;
   coords?: [number, number][];
   // Set when this entry is an aggregated H3 parent rendered at far zoom.
   isCluster?: boolean;
@@ -79,15 +87,69 @@ export const interpolateColor = (color1: string, color2: string, factor: number)
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 };
 
-export const getChlorophyllColor = (value: number | null) => {
+/**
+ * Generic per-indicator color scale from the static registry.
+ * Null (no data) gets the distinct no-data color; a real 0 gets the lowest
+ * scale color. Domains come from the registry and ignore nulls.
+ */
+export const getIndicatorColor = (indicatorId: string, value: number | null | undefined): string => {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return '#cbd5e1';
+    return NO_DATA_COLOR;
   }
-  const clamped = Math.max(0, Math.min(20, value));
-  if (clamped <= 10) {
-    return interpolateColor('#22c55e', '#eab308', clamped / 10);
+  const meta = getIndicatorMeta(indicatorId);
+  if (!meta) {
+    return interpolateColor('#e2e8f0', '#1e293b', 0.5);
   }
-  return interpolateColor('#eab308', '#ef4444', (clamped - 10) / 10);
+  const [min, max] = meta.mapDomain;
+  const t = max > min ? Math.max(0, Math.min(1, (value - min) / (max - min))) : 0;
+  const stops = meta.mapColors;
+  if (stops.length === 2) {
+    return interpolateColor(stops[0], stops[1], t);
+  }
+  if (t <= 0.5) {
+    return interpolateColor(stops[0], stops[1], t * 2);
+  }
+  return interpolateColor(stops[1], stops[2], (t - 0.5) * 2);
+};
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.substring(1);
+  return [
+    parseInt(h.substring(0, 2), 16),
+    parseInt(h.substring(2, 4), 16),
+    parseInt(h.substring(4, 6), 16),
+  ];
+}
+
+export const getIndicatorColorRgba = (
+  indicatorId: string,
+  value: number | null | undefined,
+): [number, number, number, number] => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return [203, 213, 225, 215];
+  }
+  const hex = getIndicatorColor(indicatorId, value);
+  const [r, g, b] = hexToRgb(hex);
+  return [r, g, b, 215];
+};
+
+/** Null-aware cell value reader: values dict first, legacy fields during migration. */
+export const getCellIndicatorValue = (
+  cell: Pick<HexCellData, 'chlor_a' | 'sst' | 'vessels' | 'values'>,
+  indicatorId: string,
+): number | null => {
+  const fromValues = cell.values?.[indicatorId];
+  if (fromValues !== undefined) return fromValues;
+  if (indicatorId === 'chlor_a') return cell.chlor_a;
+  if (indicatorId === 'sst') return cell.sst;
+  if (indicatorId === 'vessels' || indicatorId === 'presence_hours' || indicatorId === 'stationary_vessels' || indicatorId === 'duration') {
+    return cell.vessels;
+  }
+  return null;
+};
+
+export const getChlorophyllColor = (value: number | null) => {
+  return getIndicatorColor('chlor_a', value);
 };
 
 // Scales label font size with the vessel count (relative to the largest count
@@ -102,107 +164,37 @@ export const getVesselLabelSize = (vessels: number, maxVessels: number) => {
 };
 
 export const getSSTColor = (value: number | null) => {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return '#cbd5e1';
-  }
-  const clamped = Math.max(290, Math.min(310, value));
-  const ratio = (clamped - 290) / 20;
-  if (ratio < 0.5) {
-    return interpolateColor('#fee2e2', '#f87171', ratio * 2);
-  }
-  return interpolateColor('#f87171', '#b91c1c', (ratio - 0.5) * 2);
+  // Domain is Celsius (backend converts Kelvin). Everything is °C.
+  return getIndicatorColor('sst', value);
 };
 
 export const getChlorophyllColorRgba = (value: number | null): [number, number, number, number] => {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return [203, 213, 225, 215];
-  }
-  const clamped = Math.max(0, Math.min(20, value));
-  if (clamped <= 10) {
-    const t = clamped / 10;
-    return [
-      Math.round(34 + (234 - 34) * t),
-      Math.round(197 + (179 - 197) * t),
-      Math.round(94 + (8 - 94) * t),
-      215,
-    ];
-  }
-  const t = (clamped - 10) / 10;
-  return [
-    Math.round(234 + (239 - 234) * t),
-    Math.round(179 + (68 - 179) * t),
-    Math.round(8 + (68 - 8) * t),
-    215,
-  ];
+  return getIndicatorColorRgba('chlor_a', value);
 };
 
 export const getSSTColorRgba = (value: number | null): [number, number, number, number] => {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return [203, 213, 225, 215];
-  }
-  const clamped = Math.max(290, Math.min(310, value));
-  const ratio = (clamped - 290) / 20;
-  if (ratio < 0.5) {
-    const t = ratio * 2;
-    return [
-      Math.round(254 + (248 - 254) * t),
-      Math.round(226 + (113 - 226) * t),
-      Math.round(226 + (113 - 226) * t),
-      215,
-    ];
-  }
-  const t = (ratio - 0.5) * 2;
-  return [
-    Math.round(248 + (185 - 248) * t),
-    Math.round(113 + (28 - 113) * t),
-    Math.round(113 + (28 - 113) * t),
-    215,
-  ];
+  return getIndicatorColorRgba('sst', value);
 };
 
 export const getVesselColor = (vessels: number) => {
-  const maxDensity = 50;
-  const clamped = Math.max(0, Math.min(maxDensity, vessels));
-  const ratio = clamped / maxDensity;
-  if (ratio < 0.5) {
-    return interpolateColor('#fee2e2', '#f87171', ratio * 2);
-  }
-  return interpolateColor('#f87171', '#991b1b', (ratio - 0.5) * 2);
+  return getIndicatorColor('vessels', vessels);
 };
 
 export const getVesselColorRgba = (vessels: number): [number, number, number, number] => {
-  const maxDensity = 50;
-  const clamped = Math.max(0, Math.min(maxDensity, vessels));
-  if (clamped === 0) {
-    // Zero-data hexes must stay visible against the light map background.
-    // Matches the low end of the scale (and the legend gradient) instead of
-    // near-transparent slate, which rendered as a blank map.
-    return [254, 226, 226, 215];
-  }
-  const ratio = clamped / maxDensity;
-  if (ratio < 0.5) {
-    const t = ratio * 2;
-    return [
-      Math.round(254 + (248 - 254) * t),
-      Math.round(226 + (113 - 226) * t),
-      Math.round(226 + (113 - 226) * t),
-      215,
-    ];
-  }
-  const t = (ratio - 0.5) * 2;
-  return [
-    Math.round(248 + (153 - 248) * t),
-    Math.round(113 + (27 - 113) * t),
-    Math.round(113 + (27 - 113) * t),
-    215,
-  ];
+  // Zero-data hexes stay visible against the light map background: 0 maps to
+  // the low end of the scale, never to a transparent blank.
+  return getIndicatorColorRgba('vessels', vessels);
 };
 
 export const getCellColorRgba = (
   cell: HexCellData,
   isChlor: boolean,
-  isSST: boolean
+  isSST: boolean,
+  indicatorId?: string,
 ): [number, number, number, number] => {
+  if (indicatorId) {
+    return getIndicatorColorRgba(indicatorId, getCellIndicatorValue(cell, indicatorId));
+  }
   if (isChlor) {
     return getChlorophyllColorRgba(cell.chlor_a);
   }
@@ -212,19 +204,30 @@ export const getCellColorRgba = (
   return getVesselColorRgba(cell.vessels);
 };
 
-// Missing readings render as N/A in tooltips, never as 0.
+// Missing readings render as "No data" in tooltips, never as 0.
 export const formatSST = (value: number | null | undefined): string => {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return 'N/A';
+    return 'No data';
   }
-  return `${value.toFixed(1)} K`;
+  return `${value.toFixed(1)} °C`;
 };
 
 export const formatChlor = (value: number | null | undefined): string => {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return 'N/A';
+    return 'No data';
   }
   return `${value.toFixed(2)} mg/m³`;
+};
+
+/** Registry-driven value formatter for map tooltips. Null renders as "No data". */
+export const formatIndicatorTooltip = (indicatorId: string, value: number | null | undefined): string => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return 'No data';
+  }
+  const meta = getIndicatorMeta(indicatorId);
+  if (!meta) return String(value);
+  const formatted = meta.integer ? Math.round(value).toLocaleString() : value.toFixed(meta.decimals);
+  return `${formatted} ${meta.unit}`;
 };
 
 const toNumberOrNull = (raw: unknown): number | null => {
@@ -406,19 +409,19 @@ function CoastalChoroplethMapClient({
     return key.includes('sst') || key.includes('temp') || key.includes('surface');
   }, [activeIndicator]);
 
-  const hasSST = useMemo(() => {
-    if (indicators && indicators.length > 0) {
-      return indicators.includes('sst');
-    }
-    return isSST;
-  }, [indicators, isSST]);
+  const activeMeta = useMemo(() => getIndicatorMeta(activeIndicator), [activeIndicator]);
+  const activeTooltipLabel = activeMeta?.shortLabel || activeIndicator;
+  const activeTooltipAgg = useMemo(() => {
+    const agg = activeMeta?.agg || 'average';
+    return agg === 'sum' ? 'Total' : agg === 'max' ? 'Max' : agg === 'min' ? 'Min' : 'Avg.';
+  }, [activeMeta]);
 
-  const hasChlor = useMemo(() => {
-    if (indicators && indicators.length > 0) {
-      return indicators.includes('chlor_a');
-    }
-    return true;
-  }, [indicators]);
+  /** Tooltip rows: selected map indicators, falling back to the active one. */
+  const tooltipIndicatorIds = useMemo(() => {
+    const ids = (indicators || []).filter((id) => getIndicatorMeta(id) && id !== 'vessels');
+    if (ids.length > 0) return ids.slice(0, 3);
+    return [activeIndicator];
+  }, [indicators, activeIndicator]);
 
   const centerConfig = useMemo(() => {
     return resolveCenter(locationName, country);
@@ -484,6 +487,7 @@ function CoastalChoroplethMapClient({
               chlor_a: null,
               sst: null,
               vessels: 0,
+              values: {},
               coords,
             };
           });
@@ -504,7 +508,9 @@ function CoastalChoroplethMapClient({
     };
   }, [country, aoiKey, locationName]);
 
-  // Generate or merge grid data
+  // Generate or merge grid data. Slice values are read null-aware: the
+  // canonical `values` dict first, legacy fixed fields during migration.
+  // Null stays null ("no data"); only `zero_fill` indicators fall back to 0.
   const gridCells = useMemo(() => {
     // If genuine cells are loading, do not draw fallback grid to avoid flash of default content
     if (genuineCells === null) {
@@ -517,42 +523,85 @@ function CoastalChoroplethMapClient({
       return baseGrid;
     }
 
+    // Legacy fixed-field aliases for each registry id, read after the
+    // canonical values dict during migration.
+    const legacyOf = (sliceData: Record<string, any>, id: string): number | null | undefined => {
+      if (id === 'chlor_a') {
+        return 'chlor_a' in sliceData ? toNumberOrNull(sliceData.chlor_a) : undefined;
+      }
+      if (id === 'sst') {
+        // Prefer Celsius; convert legacy Kelvin readings during migration.
+        const c = toNumberOrNull(sliceData.sst) ?? toNumberOrNull(sliceData.sst_c);
+        if (c !== null && c !== undefined) return c;
+        const k = toNumberOrNull(sliceData.sst_k) ?? toNumberOrNull(sliceData.mean_sea_surface_temperature);
+        if (k !== null && k !== undefined) return k > 100 ? k - 273.15 : k;
+        return 'sst' in sliceData || 'sst_k' in sliceData || 'sst_c' in sliceData || 'mean_sea_surface_temperature' in sliceData
+          ? null
+          : undefined;
+      }
+      if (id === 'vessels') {
+        return 'vessels' in sliceData ? (toNumberOrNull(sliceData.vessels) ?? 0) : undefined;
+      }
+      if (id === 'presence_hours') {
+        return 'presence_hours' in sliceData || 'total_presence_hours' in sliceData
+          ? (toNumberOrNull(sliceData.presence_hours) ?? toNumberOrNull(sliceData.total_presence_hours) ?? 0)
+          : undefined;
+      }
+      if (id === 'stationary_vessels') {
+        return 'stationary_vessels' in sliceData || 'n_unique_stationary_vessels' in sliceData
+          ? (toNumberOrNull(sliceData.stationary_vessels) ?? toNumberOrNull(sliceData.n_unique_stationary_vessels) ?? 0)
+          : undefined;
+      }
+      if (id === 'duration') {
+        return 'duration' in sliceData || 'duration_hours' in sliceData
+          ? (toNumberOrNull(sliceData.duration) ?? toNumberOrNull(sliceData.duration_hours) ?? 0)
+          : undefined;
+      }
+      if (id in sliceData) return toNumberOrNull(sliceData[id]);
+      return undefined;
+    };
+
     return baseGrid.map((cell) => {
       const sliceData = spatialSlice[cell.id];
       if (sliceData !== undefined && sliceData !== null) {
         if (typeof sliceData === 'number') {
+          // Single-indicator numeric slice for the active indicator.
           const n = toNumberOrNull(sliceData);
+          const values = { ...cell.values, [activeIndicator]: n ?? (isZeroFillIndicator(activeIndicator) ? 0 : null) };
           return {
             ...cell,
-            chlor_a: isChlor ? n : cell.chlor_a,
-            sst: isSST ? n : cell.sst,
-            vessels: !isChlor && !isSST ? Number(sliceData) || 0 : cell.vessels,
+            values,
+            chlor_a: isChlor ? (n ?? cell.chlor_a) : cell.chlor_a,
+            sst: isSST ? (n ?? cell.sst) : cell.sst,
+            vessels: !isChlor && !isSST ? (n ?? cell.vessels) : cell.vessels,
           };
         }
-        const hasChlorKey = 'chlor_a' in sliceData;
-        const hasSstKey =
-          'sst' in sliceData || 'sst_k' in sliceData || 'sst_c' in sliceData;
-        const chlor = hasChlorKey ? toNumberOrNull(sliceData.chlor_a) : cell.chlor_a;
-        const sst = hasSstKey
-          ? toNumberOrNull(sliceData.sst) ??
-            toNumberOrNull(sliceData.sst_k) ??
-            toNumberOrNull(sliceData.sst_c)
-          : cell.sst;
-        // When the slice carries the key with a null value, keep null (missing),
-        // never fall back to 0. Fall back to the cell only when the key is absent.
+        const dict = (sliceData.values && typeof sliceData.values === 'object' ? sliceData.values : {}) as Record<string, any>;
+        const values: Record<string, number | null> = { ...cell.values };
+        for (const id of [activeIndicator, 'chlor_a', 'sst', 'vessels', 'presence_hours', 'stationary_vessels', 'duration']) {
+          if (id in dict) {
+            values[id] = toNumberOrNull(dict[id]) ?? (isZeroFillIndicator(id) ? 0 : null);
+          } else {
+            const legacy = legacyOf(sliceData, id);
+            if (legacy !== undefined) {
+              values[id] = legacy ?? (isZeroFillIndicator(id) ? 0 : null);
+            }
+          }
+        }
+        const chlor = values.chlor_a ?? cell.chlor_a;
+        const sst = values.sst ?? cell.sst;
+        const vessels = values.vessels ?? cell.vessels;
         return {
           ...cell,
+          values,
           chlor_a: chlor,
           sst: sst,
-          vessels:
-            sliceData.vessels !== undefined && sliceData.vessels !== null
-              ? Number(sliceData.vessels) || 0
-              : cell.vessels,
+          vessels: vessels ?? 0,
         };
       }
       return cell;
     });
-  }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST]);
+  }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST, activeIndicator]);
 
   // Single cluster mode: far zoom shows one magnitude circle per parent
   // region (centerpoint of nearby hexes); close zoom shows the raw hexes.
@@ -571,6 +620,12 @@ function CoastalChoroplethMapClient({
         sumSst: number;
         countSst: number;
         sumVessels: number;
+        // Generic aggregation of the active indicator across member cells.
+        // Nulls are skipped; an all-null group stays null (never 0).
+        aggSum: number;
+        aggCount: number;
+        aggMin: number;
+        aggMax: number;
         count: number;
         minLat: number;
         maxLat: number;
@@ -578,6 +633,7 @@ function CoastalChoroplethMapClient({
         maxLng: number;
       }
     >();
+    const activeAgg = getIndicatorMeta(activeIndicator)?.agg || 'average';
     try {
       for (const cell of gridCells) {
         if (!isValidCell(cell.id)) throw new Error(`Invalid H3 index: ${cell.id}`);
@@ -588,6 +644,10 @@ function CoastalChoroplethMapClient({
           sumSst: 0,
           countSst: 0,
           sumVessels: 0,
+          aggSum: 0,
+          aggCount: 0,
+          aggMin: Infinity,
+          aggMax: -Infinity,
           count: 0,
           minLat: Infinity,
           maxLat: -Infinity,
@@ -604,7 +664,14 @@ function CoastalChoroplethMapClient({
           g.sumSst += sstN;
           g.countSst += 1;
         }
-        g.sumVessels += Number(cell.vessels) || 0;
+        g.sumVessels += Number(cell.vessels ?? 0);
+        const activeVal = getCellIndicatorValue(cell, activeIndicator);
+        if (activeVal !== null && activeVal !== undefined && !Number.isNaN(activeVal)) {
+          g.aggSum += activeVal;
+          g.aggCount += 1;
+          if (activeVal < g.aggMin) g.aggMin = activeVal;
+          if (activeVal > g.aggMax) g.aggMax = activeVal;
+        }
         g.count += 1;
         if (cell.lat < g.minLat) g.minLat = cell.lat;
         if (cell.lat > g.maxLat) g.maxLat = cell.lat;
@@ -628,6 +695,10 @@ function CoastalChoroplethMapClient({
       sumSst: number;
       countSst: number;
       sumVessels: number;
+      aggSum: number;
+      aggCount: number;
+      aggMin: number;
+      aggMax: number;
       count: number;
       minLat: number;
       maxLat: number;
@@ -647,6 +718,10 @@ function CoastalChoroplethMapClient({
         sumSst: g.sumSst,
         countSst: g.countSst,
         sumVessels: g.sumVessels,
+        aggSum: g.aggSum,
+        aggCount: g.aggCount,
+        aggMin: g.aggMin,
+        aggMax: g.aggMax,
         count: g.count,
         minLat: g.minLat,
         maxLat: g.maxLat,
@@ -690,6 +765,10 @@ function CoastalChoroplethMapClient({
       target.sumSst += s.sumSst;
       target.countSst += s.countSst;
       target.sumVessels += s.sumVessels;
+      target.aggSum += s.aggSum;
+      target.aggCount += s.aggCount;
+      target.aggMin = Math.min(target.aggMin, s.aggMin);
+      target.aggMax = Math.max(target.aggMax, s.aggMax);
       target.count = total;
       target.minLat = Math.min(target.minLat, s.minLat);
       target.maxLat = Math.max(target.maxLat, s.maxLat);
@@ -699,6 +778,15 @@ function CoastalChoroplethMapClient({
     }
 
     for (const m of merged) {
+      let activeValue: number | null = null;
+      if (m.aggCount > 0) {
+        if (activeAgg === 'sum') activeValue = m.aggSum;
+        else if (activeAgg === 'max') activeValue = m.aggMax;
+        else if (activeAgg === 'min') activeValue = m.aggMin;
+        else activeValue = m.aggSum / m.aggCount;
+      } else if (isZeroFillIndicator(activeIndicator)) {
+        activeValue = 0;
+      }
       points.push({
         id: m.id,
         lat: m.lat,
@@ -706,6 +794,7 @@ function CoastalChoroplethMapClient({
         chlor_a: m.countChlor > 0 ? m.sumChlor / m.countChlor : null,
         sst: m.countSst > 0 ? m.sumSst / m.countSst : null,
         vessels: m.sumVessels,
+        values: { [activeIndicator]: activeValue },
         // Bounds corners double as the zoom target via fitMapToCoords.
         coords: [
           [m.minLat, m.minLng],
@@ -717,7 +806,7 @@ function CoastalChoroplethMapClient({
       });
     }
     return points;
-  }, [gridCells, mapZoom]);
+  }, [gridCells, mapZoom, activeIndicator]);
 
   // Clusters containing a selected hex keep the highlight while zoomed out.
   const selectedClusterIds = useMemo(() => {
@@ -1044,7 +1133,7 @@ function CoastalChoroplethMapClient({
           radiusUnits: 'pixels',
           radiusMinPixels: 14,
           radiusMaxPixels: 64,
-          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
+          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST, activeIndicator),
           getLineColor: (d: HexCellData) =>
             (d.memberIds || [d.id]).some((m) => selectedClusterIds.has(m))
               ? [239, 68, 68, 255]
@@ -1074,7 +1163,7 @@ function CoastalChoroplethMapClient({
           data: gridCells,
           getPolygon: (d: HexCellData) =>
             d.coords ? d.coords.map(([lat, lng]) => [lng, lat]) : [],
-          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST),
+          getFillColor: (d: HexCellData) => getCellColorRgba(d, isChlor, isSST, activeIndicator),
           getLineColor: (d: HexCellData) =>
             selectedCellIds.includes(d.id) ? [239, 68, 68, 255] : [255, 255, 255, 200],
           getLineWidth: (d: HexCellData) => (selectedCellIds.includes(d.id) ? 3.5 : 1),
@@ -1158,14 +1247,7 @@ function CoastalChoroplethMapClient({
           selectedClusterIds.has(m)
         );
 
-        let fillColor = '#94a3b8';
-        if (isChlor) {
-          fillColor = getChlorophyllColor(point.chlor_a);
-        } else if (isSST) {
-          fillColor = getSSTColor(point.sst);
-        } else {
-          fillColor = getVesselColor(point.vessels);
-        }
+        let fillColor = getIndicatorColor(activeIndicator, getCellIndicatorValue(point, activeIndicator));
 
         const circle = L.circleMarker([point.lat, point.lng], {
           radius: clusterRadiusPx(point.childCount || 1),
@@ -1180,8 +1262,7 @@ function CoastalChoroplethMapClient({
           <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
             <div style="font-weight: 700; margin-bottom: 2px;">${point.childCount} hexes (click to zoom in)</div>
             ${overlayVessels ? `<div>Total Vessels: <strong>${point.vessels}</strong></div>` : ''}
-            <div>Chlor_a (Avg.): <strong>${formatChlor(point.chlor_a)}</strong></div>
-            <div>Sea Surface Temp (Avg.): <strong>${formatSST(point.sst)}</strong></div>
+            <div>${activeTooltipLabel} (${activeTooltipAgg}): <strong>${formatIndicatorTooltip(activeIndicator, getCellIndicatorValue(point, activeIndicator))}</strong></div>
           </div>
         `,
           { sticky: true, direction: 'top', className: 'custom-hex-tooltip' }
@@ -1196,22 +1277,15 @@ function CoastalChoroplethMapClient({
       return;
     }
 
-    const maxVessels = Math.max(...gridCells.map((c) => c.vessels || 0), 1);
+    const maxVessels = Math.max(...gridCells.map((c) => c.vessels ?? 0), 1);
 
     gridCells.forEach((cell) => {
       if (!cell.coords) return;
 
       const isSelected = selectedCellIds.includes(cell.id);
 
-      // Color mapping
-      let fillColor = '#94a3b8';
-      if (isChlor) {
-        fillColor = getChlorophyllColor(cell.chlor_a);
-      } else if (isSST) {
-        fillColor = getSSTColor(cell.sst);
-      } else {
-        fillColor = getVesselColor(cell.vessels);
-      }
+      // Color mapping from the registry scale for the active indicator.
+      const fillColor = getIndicatorColor(activeIndicator, getCellIndicatorValue(cell, activeIndicator));
 
       // Draw hexagon polygon
       const polygon = L.polygon(cell.coords, {
@@ -1227,8 +1301,7 @@ function CoastalChoroplethMapClient({
           <div style="color: #64748b;">Resolution: ${NATIVE_H3_RES}</div>
           <div style="color: #64748b;">Area: 4.5 km²</div>
           ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
-          <div>Chlor_a (Avg.): <strong>${formatChlor(cell.chlor_a)}</strong></div>
-          <div>Sea Surface Temp (Avg.): <strong>${formatSST(cell.sst)}</strong></div>
+          <div>${activeTooltipLabel} (${activeTooltipAgg}): <strong>${formatIndicatorTooltip(activeIndicator, getCellIndicatorValue(cell, activeIndicator))}</strong></div>
         </div>
       `;
 
@@ -1272,7 +1345,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [deckModules, L, gridCells, clusterPoints, showClusters, isChlor, isSST, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell]);
+  }, [deckModules, L, gridCells, clusterPoints, showClusters, activeIndicator, activeTooltipLabel, activeTooltipAgg, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell]);
 
   // Never early-return on `loading`: unmounting the map div orphans the
   // Leaflet instance and the init effect does not re-run. The overlay below
@@ -1457,12 +1530,15 @@ function CoastalChoroplethMapClient({
           {(overlayVessels || activeIndicator === 'vessels') && (
             <Box>Total Vessels: <strong>{hoveredCell.vessels} vessels</strong></Box>
           )}
-          {hasChlor && (
-            <Box>Chlor_a (Avg.): <strong>{formatChlor(hoveredCell.chlor_a)}</strong></Box>
-          )}
-          {hasSST && (
-            <Box>Sea Surface Temp (Avg.): <strong>{formatSST(hoveredCell.sst)}</strong></Box>
-          )}
+          {tooltipIndicatorIds.filter((id) => id !== 'vessels').map((id) => {
+            const meta = getIndicatorMeta(id);
+            return (
+              <Box key={id}>
+                {meta ? `${meta.shortLabel} (${activeTooltipAgg}): ` : `${id}: `}
+                <strong>{formatIndicatorTooltip(id, getCellIndicatorValue(hoveredCell, id))}</strong>
+              </Box>
+            );
+          })}
         </Box>
       )}
     </Box>

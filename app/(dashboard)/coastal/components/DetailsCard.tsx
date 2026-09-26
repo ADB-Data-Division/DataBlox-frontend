@@ -15,6 +15,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { IndicatorTimelinePoint } from '@/types/coastal';
 import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
+import { NO_DATA_LABEL, getIndicatorMeta } from '../indicators';
 
 export interface DetailsCardProps {
   selectedPoint?: IndicatorTimelinePoint | null;
@@ -25,7 +26,14 @@ export interface DetailsCardProps {
   loading?: boolean;
 }
 
-function pctChange(curr: number, prev: number): number | null {
+/**
+ * Percentage change. Returns null when either side is missing (null/NaN) or
+ * the baseline is 0: a delta over missing data is "No data", never 0%.
+ * Exported for tests.
+ */
+export function pctChange(curr: number | undefined, prev: number | undefined): number | null {
+  if (curr === undefined || prev === undefined) return null;
+  if (isNaN(curr) || isNaN(prev)) return null;
   if (prev === 0) return null;
   return ((curr - prev) / prev) * 100;
 }
@@ -42,29 +50,30 @@ function findSameMonthPoint(
   });
 }
 
-// Chlorophyll-a's own line/legend color is green, so a "decreasing" delta in
-// the usual green would read as if it meant chlorophyll-a itself, not a
-// direction. Use blue there instead; every other indicator keeps green/red.
-function formatDelta(pct: number | null, indicatorKey?: string): { text: string; color: string } {
+// Delta badge colors come from the registry: red (#ef4444) is reserved for
+// increasing chlorophyll-a; every other indicator uses blue up / green down.
+// Exported for tests.
+export function formatDelta(pct: number | null, indicatorKey?: string): { text: string; color: string } {
   if (pct === null || isNaN(pct)) {
-    return { text: 'N/A', color: 'text.secondary' };
+    return { text: NO_DATA_LABEL, color: 'text.secondary' };
   }
   if (Math.abs(pct) < 0.5) {
     return { text: '~ 0%', color: 'text.secondary' };
   }
+  const meta = indicatorKey ? getIndicatorMeta(indicatorKey) : undefined;
   if (pct > 0) {
-    return { text: `↑ +${Math.round(pct)}%`, color: '#ef4444' };
+    return { text: `↑ +${Math.round(pct)}%`, color: meta?.deltaUpColor || '#2563eb' };
   }
-  const decreaseColor = indicatorKey === 'chlor_a' ? '#2563eb' : '#16a34a';
-  return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: decreaseColor };
+  return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: meta?.deltaDownColor || '#16a34a' };
 }
 
-function formatVal(val: number | undefined, unit: string): string {
-  if (val === undefined || isNaN(val)) return 'N/A';
-  if (unit === 'vessels') {
-    return `${Math.round(val).toLocaleString()} vessels`;
+function formatVal(val: number | undefined, unit: string, indicatorKey?: string): string {
+  if (val === undefined || isNaN(val)) return NO_DATA_LABEL;
+  const meta = indicatorKey ? getIndicatorMeta(indicatorKey) : undefined;
+  if (unit === 'vessels' || unit === 'count' || meta?.integer) {
+    return `${Math.round(val).toLocaleString()} ${unit}`;
   }
-  return `${val.toFixed(2)} ${unit}`;
+  return `${val.toFixed(meta?.decimals ?? 2)} ${unit}`;
 }
 
 function MathFraction({
@@ -120,6 +129,7 @@ function MetricTooltip({
   beforeLabel,
   beforeVal,
   unit,
+  indicatorKey,
 }: {
   isYoY: boolean;
   afterLabel: string;
@@ -127,16 +137,18 @@ function MetricTooltip({
   beforeLabel: string;
   beforeVal?: number;
   unit: string;
+  indicatorKey?: string;
 }) {
   const hasValues =
     afterVal !== undefined &&
     beforeVal !== undefined &&
     !isNaN(afterVal) &&
     !isNaN(beforeVal);
-  const isVessel = unit === 'vessels';
+  const meta = indicatorKey ? getIndicatorMeta(indicatorKey) : undefined;
+  const isCount = unit === 'vessels' || unit === 'count' || meta?.integer;
   const formatNum = (v?: number) => {
-    if (v === undefined || isNaN(v)) return 'N/A';
-    return isVessel ? Math.round(v).toLocaleString() : v.toFixed(2);
+    if (v === undefined || isNaN(v)) return NO_DATA_LABEL;
+    return isCount ? Math.round(v).toLocaleString() : v.toFixed(meta?.decimals ?? 2);
   };
 
   let pct: number | null = null;
@@ -153,7 +165,7 @@ function MetricTooltip({
 
   const resultText =
     pct === null
-      ? 'N/A'
+      ? NO_DATA_LABEL
       : Math.abs(pct) < 0.5
       ? '~ 0%'
       : `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%`;
@@ -187,7 +199,7 @@ function MetricTooltip({
             After ({afterLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {formatVal(afterVal, unit)}
+            {formatVal(afterVal, unit, indicatorKey)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between" spacing={1.5}>
@@ -195,7 +207,7 @@ function MetricTooltip({
             Before ({beforeLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {formatVal(beforeVal, unit)}
+            {formatVal(beforeVal, unit, indicatorKey)}
           </Typography>
         </Stack>
       </Stack>
@@ -238,7 +250,7 @@ function MetricTooltip({
 }
 
 function formatMoMLabel(pA?: IndicatorTimelinePoint, pB?: IndicatorTimelinePoint): string {
-  if (!pA || !pB) return 'N/A:';
+  if (!pA || !pB) return `${NO_DATA_LABEL}:`;
   const dA = new Date(pA.period_start);
   const dB = new Date(pB.period_start);
   if (isNaN(dA.getTime()) || isNaN(dB.getTime())) {
@@ -267,29 +279,14 @@ export function DetailsCard({
     selectedPoint || (timeline && timeline.length > 0 ? timeline[timeline.length - 1] : null);
 
   const indicatorTitle = useMemo(() => {
-    switch (activeIndicator) {
-      case 'vessels':
-        return 'Vessel Count';
-      case 'duration':
-        return 'Port Call Duration';
-      case 'sst':
-        return 'Sea Surface Temperature Levels';
-      default:
-        return 'Chlorophyll-a Levels';
-    }
+    const meta = getIndicatorMeta(activeIndicator);
+    if (!meta) return activeIndicator;
+    return activeIndicator === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`;
   }, [activeIndicator]);
 
   const unit = useMemo(() => {
-    switch (activeIndicator) {
-      case 'vessels':
-        return 'vessels';
-      case 'duration':
-        return 'hours';
-      case 'sst':
-        return 'K';
-      default:
-        return 'mg/m³';
-    }
+    // Temperature is always °C, never K.
+    return getIndicatorMeta(activeIndicator)?.unit || '';
   }, [activeIndicator]);
 
   const slideData = useMemo(() => {
@@ -561,6 +558,7 @@ export function DetailsCard({
                     beforeLabel={currentSlide.primary.beforeLabel}
                     beforeVal={currentSlide.primary.beforeVal}
                     unit={unit}
+                    indicatorKey={activeIndicator}
                   />
                 }
               >
@@ -594,6 +592,7 @@ export function DetailsCard({
                       beforeLabel={currentSlide.comp1.beforeLabel}
                       beforeVal={currentSlide.comp1.beforeVal}
                       unit={unit}
+                      indicatorKey={activeIndicator}
                     />
                   ) : ''
                 }
@@ -638,6 +637,7 @@ export function DetailsCard({
                       beforeLabel={currentSlide.comp2.beforeLabel}
                       beforeVal={currentSlide.comp2.beforeVal}
                       unit={unit}
+                      indicatorKey={activeIndicator}
                     />
                   ) : ''
                 }
