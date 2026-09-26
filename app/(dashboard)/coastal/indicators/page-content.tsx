@@ -29,6 +29,7 @@ import {
 } from '@/services/coastalService';
 import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng, buildIndicatorExportHeaders, buildIndicatorExportRows } from '@/src/utils/coastalExport';
 import { getIndicatorMeta } from '../indicators';
+import { buildSpatialIndicatorParam } from './spatial-indicator-ids';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -49,6 +50,12 @@ import {
   buildSpatialSliceCacheKey,
   shouldSkipSeriesFetch,
 } from './spatial-cache';
+import {
+  resolveSpatialStatus,
+  shouldWaitForSeries,
+  sliceDelayMs,
+  type SpatialStatus,
+} from '../spatial-status';
 
 export function generatePeriods(
   startDate: string,
@@ -164,6 +171,15 @@ export function PageContent() {
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const sliceCacheRef = useRef<Map<string, Record<string, any>>>(new Map());
+  const [spatialStatus, setSpatialStatus] = useState<SpatialStatus>('loading');
+  const [spatialRetry, setSpatialRetry] = useState<number>(0);
+  // Bumped when a series prefetch ends without the live period cached, so the
+  // slice effect re-runs and falls back to /spatial/slice.
+  const [seriesSettled, setSeriesSettled] = useState<number>(0);
+  const sliceScopeRef = useRef<string | null>(null);
+  const paintedScopeRef = useRef<string | null>(null);
+  const currentSliceKeyRef = useRef<string | null>(null);
+  const sliceInFlightRef = useRef<Set<string>>(new Set());
 
   // Handle escape key and body overflow for fullscreen mode
   useEffect(() => {
@@ -380,6 +396,13 @@ export function PageContent() {
     }
   }, [periods]);
 
+  // Indicator ids the map reads (active layer, tooltip rows, vessel overlay).
+  // The backend returns only these, so every series/slice request carries them.
+  const spatialIndicatorParam = useMemo(
+    () => buildSpatialIndicatorParam(activeChoroplethIndicator, selectedIndicators, (id) => !!getIndicatorMeta(id)),
+    [activeChoroplethIndicator, selectedIndicators]
+  );
+
   // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
   // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
   // served from `sliceCacheRef`; refetching per tick caused the 2026-09-25
@@ -394,7 +417,7 @@ export function PageContent() {
 
     const scope = {
       country,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       grain,
       aoiId: aoi_id,
     };
@@ -412,7 +435,7 @@ export function PageContent() {
       start_date: periodItems[0].start,
       end_date: periodItems[periodItems.length - 1].end,
       grain,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       aoi_id: aoi_id || undefined,
     })
       .then((res) => {
@@ -430,7 +453,9 @@ export function PageContent() {
           const curKey = buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start });
           const cached = sliceCacheRef.current.get(curKey);
           if (cached) {
+            paintedScopeRef.current = inFlightKey;
             setSpatialSlice(cached);
+            setSpatialStatus('ready');
           }
         }
       })
@@ -441,6 +466,14 @@ export function PageContent() {
         if (seriesInFlightRef.current === inFlightKey) {
           seriesInFlightRef.current = null;
         }
+        const cur = periodItems[scrubberIndexRef.current];
+        if (
+          isMounted &&
+          cur &&
+          !sliceCacheRef.current.has(buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start }))
+        ) {
+          setSeriesSettled((n) => n + 1);
+        }
       });
 
     return () => {
@@ -449,12 +482,13 @@ export function PageContent() {
         seriesInFlightRef.current = null;
       }
     };
-  }, [country, grain, activeChoroplethIndicator, aoi_id, viewMode, periodItems]);
+  }, [country, grain, spatialIndicatorParam, aoi_id, viewMode, periodItems, spatialRetry]);
 
-  // Fetch or derive spatial slice when active period or indicator changes.
-  // Skips while the series prefetch for this scope is in flight (its `.then`
-  // serves the slider from cache on success) and debounces the fallback so
-  // fast scrubbing does not fan out one `/spatial/slice` call per tick.
+  // Slice-first: the current period renders from the small /spatial/slice
+  // request while /spatial/series loads in the background for the slider
+  // cache. Before a scope has painted, the slice fires immediately and does
+  // not wait for the series. After that, scrub ticks debounce and wait for a
+  // running series (its `.then` serves them from cache).
   useEffect(() => {
     if (viewMode !== 'map' || periodItems.length === 0) {
       return;
@@ -465,53 +499,72 @@ export function PageContent() {
 
     const scope = {
       country,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       grain,
       aoiId: aoi_id,
     };
-
+    const scopeKey = buildSeriesInFlightKey(scope);
     const cacheKey = buildSpatialSliceCacheKey({ ...scope, periodStart: curPeriod.start });
-    if (sliceCacheRef.current.has(cacheKey)) {
-      setSpatialSlice(sliceCacheRef.current.get(cacheKey));
-      return;
+    currentSliceKeyRef.current = cacheKey;
+
+    // A new scope must not show the previous scope's values.
+    if (sliceScopeRef.current !== scopeKey) {
+      sliceScopeRef.current = scopeKey;
+      setSpatialSlice(undefined);
     }
 
-    if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
+    const cachedSlice = sliceCacheRef.current.get(cacheKey);
+    if (cachedSlice) {
+      paintedScopeRef.current = scopeKey;
+      setSpatialSlice(cachedSlice);
+      setSpatialStatus(resolveSpatialStatus({ phase: 'request', cached: true }));
       return;
     }
+    setSpatialStatus(resolveSpatialStatus({ phase: 'request', cached: false }));
 
-    let isCurrent = true;
+    const painted = paintedScopeRef.current === scopeKey;
+    if (shouldWaitForSeries(painted, seriesInFlightRef.current === scopeKey)) {
+      return;
+    }
+    if (sliceInFlightRef.current.has(cacheKey)) {
+      return;
+    }
 
     const timer = setTimeout(() => {
+      sliceInFlightRef.current.add(cacheKey);
       fetchSpatialSlice({
         country,
         period_start: curPeriod.start,
         period_end: curPeriod.end,
         grain,
-        indicator: activeChoroplethIndicator,
+        indicator: spatialIndicatorParam,
         aoi_id: aoi_id || undefined,
       })
         .then((res) => {
-          if (!isCurrent) return;
           const sliceData = res?.values || res?.data;
-          if (sliceData && Object.keys(sliceData).length > 0) {
+          const count = sliceData ? Object.keys(sliceData).length : 0;
+          if (sliceData && count > 0) {
             sliceCacheRef.current.set(cacheKey, sliceData);
-            setSpatialSlice(sliceData);
-          } else {
-            setSpatialSlice({});
           }
+          if (currentSliceKeyRef.current !== cacheKey) return;
+          paintedScopeRef.current = scopeKey;
+          setSpatialSlice(sliceData && count > 0 ? sliceData : {});
+          setSpatialStatus(resolveSpatialStatus({ phase: 'loaded', cellCount: count }));
         })
         .catch(() => {
-          if (!isCurrent) return;
-          setSpatialSlice({});
+          if (currentSliceKeyRef.current !== cacheKey) return;
+          setSpatialSlice(undefined);
+          setSpatialStatus(resolveSpatialStatus({ phase: 'failed' }));
+        })
+        .finally(() => {
+          sliceInFlightRef.current.delete(cacheKey);
         });
-    }, 150);
+    }, sliceDelayMs(painted));
 
     return () => {
-      isCurrent = false;
       clearTimeout(timer);
     };
-  }, [country, aoi_id, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode]);
+  }, [country, aoi_id, activeScrubberIndex, periodItems, spatialIndicatorParam, grain, viewMode, spatialRetry, seriesSettled]);
 
   if (!rawCountry) {
     return null;
@@ -828,6 +881,8 @@ export function PageContent() {
                       activeIndicator={activeChoroplethIndicator}
                       overlayVessels={showVesselOverlay}
                       spatialSlice={spatialSlice}
+                      spatialStatus={spatialStatus}
+                      onRetrySpatial={() => setSpatialRetry((n) => n + 1)}
                       selectedCellIds={selectedHexCells}
                       onSelectCell={(id) =>
                         setSelectedHexCells((prev) =>

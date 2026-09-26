@@ -12,6 +12,7 @@ import {
   getIndicatorMeta,
   isZeroFillIndicator,
 } from '../indicators';
+import type { SpatialStatus } from '../spatial-status';
 
 export interface CoastalChoroplethMapProps {
   country: string;
@@ -24,6 +25,9 @@ export interface CoastalChoroplethMapProps {
   onSelectCell: (cellId: string) => void;
   onClearSelection?: () => void;
   loading?: boolean;
+  // Page-level state of the spatial request. Undefined keeps the old behaviour.
+  spatialStatus?: SpatialStatus;
+  onRetrySpatial?: () => void;
   periodLabel?: string;
   indicators?: string[];
   height?: number | string;
@@ -375,6 +379,8 @@ function CoastalChoroplethMapClient({
   onSelectCell,
   onClearSelection,
   loading = false,
+  spatialStatus,
+  onRetrySpatial,
   indicators,
   height = 420,
   clustersEnabled = true,
@@ -520,6 +526,9 @@ function CoastalChoroplethMapClient({
     const baseGrid = genuineCells && genuineCells.length > 0 ? genuineCells : [];
 
     if (!spatialSlice || Object.keys(spatialSlice).length === 0) {
+      // Value-less hexes would read as real zero / lowest-bin data while the
+      // request is pending or failed, so draw nothing until data lands.
+      if (spatialStatus === 'loading' || spatialStatus === 'error') return [];
       return baseGrid;
     }
 
@@ -601,7 +610,7 @@ function CoastalChoroplethMapClient({
       }
       return cell;
     });
-  }, [genuineCells, centerConfig, spatialSlice, isChlor, isSST, activeIndicator]);
+  }, [genuineCells, centerConfig, spatialSlice, spatialStatus, isChlor, isSST, activeIndicator]);
 
   // Single cluster mode: far zoom shows one magnitude circle per parent
   // region (centerpoint of nearby hexes); close zoom shows the raw hexes.
@@ -1428,7 +1437,7 @@ function CoastalChoroplethMapClient({
       )}
 
       {/* Loading overlay while map libraries or genuine cells are loading */}
-      {(genuineCells === null || loading || (!L && !mapLibError)) && (
+      {(genuineCells === null || loading || spatialStatus === 'loading' || (!L && !mapLibError)) && (
         <Box
           sx={{
             position: 'absolute',
@@ -1482,6 +1491,42 @@ function CoastalChoroplethMapClient({
           >
             Retry
           </Button>
+        </Box>
+      )}
+
+      {/* Spatial data request failed */}
+      {spatialStatus === 'error' && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 998,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            bgcolor: 'rgba(248, 250, 252, 0.9)',
+            p: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Failed to load map data
+          </Typography>
+          {onRetrySpatial && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={onRetrySpatial}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              Retry
+            </Button>
+          )}
         </Box>
       )}
 

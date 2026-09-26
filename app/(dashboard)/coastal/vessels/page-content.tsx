@@ -53,6 +53,12 @@ import {
   buildSpatialSliceCacheKey,
   shouldSkipSeriesFetch,
 } from './spatial-cache';
+import {
+  resolveSpatialStatus,
+  shouldWaitForSeries,
+  sliceDelayMs,
+  type SpatialStatus,
+} from '../spatial-status';
 
 const VESSEL_CATEGORY_COLORS: Record<string, string> = {
   trade: '#6366f1',
@@ -116,8 +122,16 @@ export function PageContent() {
 
   // Spatial Choropleth Map State
   const sliceCacheRef = React.useRef<Map<string, Record<string, any>>>(new Map());
-  const [spatialSlice, setSpatialSlice] = useState<Record<string, any>>({});
-  const [spatialLoading, setSpatialLoading] = useState<boolean>(false);
+  const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
+  const [spatialStatus, setSpatialStatus] = useState<SpatialStatus>('loading');
+  const [spatialRetry, setSpatialRetry] = useState<number>(0);
+  // Bumped when a series prefetch ends without the live period cached, so the
+  // slice effect re-runs and falls back to /spatial/slice.
+  const [seriesSettled, setSeriesSettled] = useState<number>(0);
+  const sliceScopeRef = useRef<string | null>(null);
+  const paintedScopeRef = useRef<string | null>(null);
+  const currentSliceKeyRef = useRef<string | null>(null);
+  const sliceInFlightRef = useRef<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Handle escape key and body overflow for fullscreen mode
@@ -384,7 +398,9 @@ export function PageContent() {
           const curKey = buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start });
           const cached = sliceCacheRef.current.get(curKey);
           if (cached) {
+            paintedScopeRef.current = inFlightKey;
             setSpatialSlice(cached);
+            setSpatialStatus('ready');
           }
         }
       })
@@ -395,6 +411,14 @@ export function PageContent() {
         if (seriesInFlightRef.current === inFlightKey) {
           seriesInFlightRef.current = null;
         }
+        const cur = periodItems[scrubberIndexRef.current];
+        if (
+          isMounted &&
+          cur &&
+          !sliceCacheRef.current.has(buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start }))
+        ) {
+          setSeriesSettled((n) => n + 1);
+        }
       });
 
     return () => {
@@ -403,12 +427,13 @@ export function PageContent() {
         seriesInFlightRef.current = null;
       }
     };
-  }, [country, grain, aoi_id, activeTab, periodItems]);
+  }, [country, grain, aoi_id, activeTab, periodItems, spatialRetry]);
 
-  // Fetch Spatial Slice for Tab 2.
-  // Skips while the series prefetch for this scope is in flight (its `.then`
-  // serves the slider from cache on success) and debounces the fallback so
-  // fast scrubbing does not fan out one `/spatial/slice` call per tick.
+  // Fetch Spatial Slice for Tab 2. Slice-first: the current period renders
+  // from the small /spatial/slice request while /spatial/series loads in the
+  // background for the slider cache. Before a scope has painted, the slice
+  // fires immediately and does not wait for the series. After that, scrub
+  // ticks debounce and wait for a running series.
   useEffect(() => {
     if (activeTab !== 2 || !country) return;
     const curPeriod = periodItems[activeScrubberIndex];
@@ -420,37 +445,35 @@ export function PageContent() {
       grain,
       aoiId: aoi_id,
     };
-
+    const scopeKey = buildSeriesInFlightKey(scope);
     const cacheKey = buildSpatialSliceCacheKey({ ...scope, periodStart: curPeriod.start });
-    if (sliceCacheRef.current.has(cacheKey)) {
-      setSpatialSlice(sliceCacheRef.current.get(cacheKey)!);
-      // A cancelled in-flight fetch never clears its loading flag.
-      setSpatialLoading(false);
+    currentSliceKeyRef.current = cacheKey;
+
+    // A new scope must not show the previous scope's values.
+    if (sliceScopeRef.current !== scopeKey) {
+      sliceScopeRef.current = scopeKey;
+      setSpatialSlice(undefined);
+    }
+
+    const cachedSlice = sliceCacheRef.current.get(cacheKey);
+    if (cachedSlice) {
+      paintedScopeRef.current = scopeKey;
+      setSpatialSlice(cachedSlice);
+      setSpatialStatus(resolveSpatialStatus({ phase: 'request', cached: true }));
+      return;
+    }
+    setSpatialStatus(resolveSpatialStatus({ phase: 'request', cached: false }));
+
+    const painted = paintedScopeRef.current === scopeKey;
+    if (shouldWaitForSeries(painted, seriesInFlightRef.current === scopeKey)) {
+      return;
+    }
+    if (sliceInFlightRef.current.has(cacheKey)) {
       return;
     }
 
-    if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
-      // The running series prefetch will populate the slice on success.
-      setSpatialLoading(false);
-      return;
-    }
-
-    let isCurrent = true;
     const timer = setTimeout(() => {
-      if (!isCurrent) return;
-      // Re-check after the debounce: the series may have populated the
-      // cache or started in the meantime.
-      const cached = sliceCacheRef.current.get(cacheKey);
-      if (cached) {
-        setSpatialSlice(cached);
-        setSpatialLoading(false);
-        return;
-      }
-      if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
-        setSpatialLoading(false);
-        return;
-      }
-      setSpatialLoading(true);
+      sliceInFlightRef.current.add(cacheKey);
       fetchSpatialSlice({
         country,
         period_start: curPeriod.start,
@@ -459,30 +482,31 @@ export function PageContent() {
         indicator: 'vessels',
         aoi_id: aoi_id || undefined,
       })
-      .then((res) => {
-        if (!isCurrent) return;
-        const sliceData = res?.values || res?.data;
-        if (sliceData && Object.keys(sliceData).length > 0) {
-          sliceCacheRef.current.set(cacheKey, sliceData);
-          setSpatialSlice(sliceData);
-        } else {
-          setSpatialSlice({});
-        }
-      })
-      .catch(() => {
-        if (!isCurrent) return;
-        setSpatialSlice({});
-      })
-      .finally(() => {
-        if (isCurrent) setSpatialLoading(false);
-      });
-    }, 150);
+        .then((res) => {
+          const sliceData = res?.values || res?.data;
+          const count = sliceData ? Object.keys(sliceData).length : 0;
+          if (sliceData && count > 0) {
+            sliceCacheRef.current.set(cacheKey, sliceData);
+          }
+          if (currentSliceKeyRef.current !== cacheKey) return;
+          paintedScopeRef.current = scopeKey;
+          setSpatialSlice(sliceData && count > 0 ? sliceData : {});
+          setSpatialStatus(resolveSpatialStatus({ phase: 'loaded', cellCount: count }));
+        })
+        .catch(() => {
+          if (currentSliceKeyRef.current !== cacheKey) return;
+          setSpatialSlice(undefined);
+          setSpatialStatus(resolveSpatialStatus({ phase: 'failed' }));
+        })
+        .finally(() => {
+          sliceInFlightRef.current.delete(cacheKey);
+        });
+    }, sliceDelayMs(painted));
 
     return () => {
-      isCurrent = false;
       clearTimeout(timer);
     };
-  }, [country, activeScrubberIndex, periodItems, grain, activeTab, aoi_id]);
+  }, [country, activeScrubberIndex, periodItems, grain, activeTab, aoi_id, spatialRetry, seriesSettled]);
 
   const handleAccordionChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -1083,7 +1107,8 @@ export function PageContent() {
                   )
                 }
                 onClearSelection={() => setSelectedHexCells([])}
-                loading={spatialLoading}
+                spatialStatus={spatialStatus}
+                onRetrySpatial={() => setSpatialRetry((n) => n + 1)}
                 periodLabel={periods[activeScrubberIndex]}
                 height={mapHeight}
               />

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Box, Typography, Card, CardContent } from '@mui/material';
 import CoastalChoroplethMap from './CoastalChoroplethMap';
+import type { SpatialStatus } from '../spatial-status';
 
 export interface VesselSpatialMapProps {
   country: string;
@@ -13,6 +14,8 @@ export interface VesselSpatialMapProps {
   onSelectCell?: (cellId: string) => void;
   onClearSelection?: () => void;
   loading?: boolean;
+  spatialStatus?: SpatialStatus;
+  onRetrySpatial?: () => void;
   periodLabel?: string;
   height?: number | string;
 }
@@ -26,6 +29,8 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
   onSelectCell,
   onClearSelection,
   loading = false,
+  spatialStatus,
+  onRetrySpatial,
   periodLabel,
   height,
 }) => {
@@ -61,6 +66,8 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
           onSelectCell={(id) => onSelectCell?.(id)}
           onClearSelection={onClearSelection}
           loading={loading}
+          spatialStatus={spatialStatus}
+          onRetrySpatial={onRetrySpatial}
           periodLabel={periodLabel}
           height={height ?? 420}
         />
