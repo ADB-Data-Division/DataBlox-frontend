@@ -672,7 +672,7 @@ export function PageContent() {
           </Stack>
 
           {/* Middle Row: Indicator Timeline Chart and Sidebar Controls */}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="flex-start">
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="stretch">
             <Box id="coastal-chart-container" sx={{ flex: 1, minWidth: 0, width: '100%' }}>
               <IndicatorTimelineChart
                 data={timelineData}
@@ -685,14 +685,17 @@ export function PageContent() {
                 loading={loading}
               />
             </Box>
-            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0 }}>
-              <IndicatorSidebar
-                selectedIndicators={selectedIndicators}
-                onToggleIndicator={handleToggleIndicator}
-                aggFunc={aggFunc}
-                onChangeAggFunc={(agg) => setAggFunc(agg)}
-                mode="timeline"
-              />
+            {/* On desktop the sidebar is pinned to the chart height and its list scrolls. */}
+            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, position: 'relative' }}>
+              <Box sx={{ position: { md: 'absolute' }, inset: { md: 0 } }}>
+                <IndicatorSidebar
+                  selectedIndicators={selectedIndicators}
+                  onToggleIndicator={handleToggleIndicator}
+                  aggFunc={aggFunc}
+                  onChangeAggFunc={(agg) => setAggFunc(agg)}
+                  mode="timeline"
+                />
+              </Box>
             </Box>
           </Stack>
         </>

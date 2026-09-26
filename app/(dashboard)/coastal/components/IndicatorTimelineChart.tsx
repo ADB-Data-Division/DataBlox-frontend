@@ -148,7 +148,7 @@ export function IndicatorTimelineChart({
         if (entry.contentRect.width > 0) {
           setDimensions({
             width: entry.contentRect.width,
-            height: Math.max(380, Math.min(460, entry.contentRect.height || 420)),
+            height: Math.max(380, Math.min(480, entry.contentRect.height || 460)),
           });
         }
       }
@@ -549,9 +549,9 @@ export function IndicatorTimelineChart({
         </Stack>
 
         {loading ? (
-          <Skeleton variant="rectangular" height={360} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="rectangular" height={460} sx={{ borderRadius: 1 }} />
         ) : !data || data.length === 0 ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 360 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 460 }}>
             <Typography variant="body2" color="text.secondary">
               No timeline observations available for this location and date range.
             </Typography>
@@ -561,7 +561,7 @@ export function IndicatorTimelineChart({
             ref={containerRef}
             sx={{
               width: '100%',
-              height: 380,
+              height: 460,
               position: 'relative',
             }}
           >

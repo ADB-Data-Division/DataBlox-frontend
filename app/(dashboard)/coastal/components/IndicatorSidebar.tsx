@@ -121,36 +121,15 @@ export function IndicatorSidebar({
   }, [selectedIndicators, activeChoroplethIndicator]);
 
   return (
-    <Stack spacing={2} sx={{ width: '100%' }}>
-      {/* Legend Card */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-            Legend
-          </Typography>
+    <Stack spacing={2} sx={{ width: '100%', height: '100%' }}>
+      {/* Legend Card. Timeline mode skips it: the selected chips and axis colours already cover it. */}
+      {mode === 'map' && (
+        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+          <CardContent>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+              Legend
+            </Typography>
 
-          {mode === 'timeline' ? (
-            <Stack spacing={1}>
-              {selectedIndicators.map((ind) => {
-                const meta = getIndicatorMeta(ind);
-                const color = meta?.color || '#3B82F6';
-                const label = meta?.label || ind;
-                return (
-                  <Stack key={ind} direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 18,
-                        height: 3,
-                        borderRadius: 1,
-                        backgroundColor: color,
-                      }}
-                    />
-                    <Typography variant="body2">{label}</Typography>
-                  </Stack>
-                );
-              })}
-            </Stack>
-          ) : (
             <Stack spacing={1.5}>
               {showVesselOverlay && (
                 <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>
@@ -182,14 +161,17 @@ export function IndicatorSidebar({
                   </FormControl>
                 </Box>
               )}
-            </Stack>
-          )}
-        </CardContent>
-      </Card>
+              </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Indicators Checklist & Aggregation Card */}
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent>
+      <Card
+        variant="outlined"
+        sx={{ borderRadius: 2, flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}
+      >
+        <CardContent sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
             {mode === 'map' ? 'Indicators' : 'Indicators (max 2)'}
           </Typography>
@@ -215,7 +197,7 @@ export function IndicatorSidebar({
             sx={{ mb: 1 }}
             aria-label="Search indicators"
           />
-          <Box sx={{ maxHeight: 420, overflowY: 'auto', mb: 1 }}>
+          <Box sx={{ flex: '1 1 auto', minHeight: 0, maxHeight: 420, overflowY: 'auto', mb: 1 }}>
             {visibleGroups.map(({ group, ids }) => {
               const hasSelected = ids.some((id) => selectedIndicators.includes(id));
               const open = query ? true : openGroups[group] ?? hasSelected;
