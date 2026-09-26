@@ -27,7 +27,8 @@ import {
   fetchSpatialSlice,
   fetchSpatialSeries,
 } from '@/services/coastalService';
-import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
+import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng, buildIndicatorExportHeaders, buildIndicatorExportRows } from '@/src/utils/coastalExport';
+import { getIndicatorMeta } from '../indicators';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -229,14 +230,15 @@ export function PageContent() {
   }, [loadData]);
 
   const handleToggleIndicator = (indicatorId: string) => {
+    const isMapCapable = getIndicatorMeta(indicatorId)?.supports_map ?? true;
     if (selectedIndicators.includes(indicatorId)) {
       if (selectedIndicators.length > 1) {
         const next = selectedIndicators.filter((id) => id !== indicatorId);
         setSelectedIndicators(next);
         if (indicatorId === activeChoroplethIndicator) {
-          const remainingEnv = next.find((id) => id === 'chlor_a' || id === 'sst');
-          if (remainingEnv) {
-            setActiveChoroplethIndicator(remainingEnv);
+          const remainingMapCapable = next.find((id) => getIndicatorMeta(id)?.supports_map);
+          if (remainingMapCapable) {
+            setActiveChoroplethIndicator(remainingMapCapable);
           }
         }
       }
@@ -247,7 +249,7 @@ export function PageContent() {
         } else {
           setSelectedIndicators([selectedIndicators[0], selectedIndicators[1], indicatorId]);
         }
-        if (indicatorId === 'sst' || indicatorId === 'chlor_a') {
+        if (isMapCapable && indicatorId !== 'vessels') {
           setActiveChoroplethIndicator(indicatorId);
         }
       } else {
@@ -270,32 +272,16 @@ export function PageContent() {
     router.push('/coastal?target=indicators');
   };
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     const filename = `coastal_indicators_${country}_${start_date}_${end_date}.csv`;
-    const exportHeaders = [
-      { key: 'period_start', label: 'Period Start' },
-      { key: 'period_end', label: 'Period End' },
-      { key: 'chlor_a', label: 'Chlorophyll-a (mg/m³)' },
-      { key: 'sst_c', label: 'Sea Surface Temp (°C)' },
-      { key: 'sst_k', label: 'Sea Surface Temp (K)' },
-      { key: 'total_vessels', label: 'Total Maritime Vessels' },
-      { key: 'port_call_duration_hours', label: 'Port Call Duration (Hours)' },
-    ];
-    exportToCsv(filename, timelineData as Record<string, any>[], exportHeaders);
+    const exportHeaders = await buildIndicatorExportHeaders(selectedIndicators);
+    exportToCsv(filename, buildIndicatorExportRows(timelineData, selectedIndicators) as Record<string, any>[], exportHeaders);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     const filename = `coastal_indicators_${country}_${start_date}_${end_date}.xls`;
-    const exportHeaders = [
-      { key: 'period_start', label: 'Period Start' },
-      { key: 'period_end', label: 'Period End' },
-      { key: 'chlor_a', label: 'Chlorophyll-a (mg/m³)' },
-      { key: 'sst_c', label: 'Sea Surface Temp (°C)' },
-      { key: 'sst_k', label: 'Sea Surface Temp (K)' },
-      { key: 'total_vessels', label: 'Total Maritime Vessels' },
-      { key: 'port_call_duration_hours', label: 'Port Call Duration (Hours)' },
-    ];
-    exportToExcel(filename, 'Indicators', timelineData as Record<string, any>[], exportHeaders);
+    const exportHeaders = await buildIndicatorExportHeaders(selectedIndicators);
+    exportToExcel(filename, 'Indicators', buildIndicatorExportRows(timelineData, selectedIndicators) as Record<string, any>[], exportHeaders);
   };
 
   const handleExportGraph = () => {
@@ -687,26 +673,18 @@ export function PageContent() {
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         {(() => {
                           const grainLabel = grain ? grain.charAt(0).toUpperCase() + grain.slice(1) : 'Monthly';
+                          const activeMeta = getIndicatorMeta(activeChoroplethIndicator);
                           const hasVessels = selectedIndicators.includes('vessels');
-                          const hasChlor = selectedIndicators.includes('chlor_a');
-                          const hasSST = selectedIndicators.includes('sst');
-
-                          if (hasVessels && hasChlor && hasSST) {
-                            return `Vessel Count, Average Chlorophyll-a Concentration & Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
+                          const envLabels = selectedIndicators
+                            .filter((id) => id !== 'vessels')
+                            .map((id) => getIndicatorMeta(id)?.shortLabel || id);
+                          const parts: string[] = [];
+                          if (hasVessels) parts.push('Vessel Count');
+                          parts.push(...envLabels.map((label) => `Average ${label}`));
+                          if (parts.length === 0 && activeMeta) {
+                            parts.push(`Average ${activeMeta.shortLabel}`);
                           }
-                          if (hasVessels && hasChlor) {
-                            return `Vessel Count & Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
-                          }
-                          if (hasVessels && hasSST) {
-                            return `Vessel Count & Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
-                          }
-                          if (activeChoroplethIndicator === 'sst') {
-                            return `Average Sea Surface Temperature (${grainLabel}) - ${locationLabel}`;
-                          }
-                          if (hasVessels && selectedIndicators.length === 1) {
-                            return `Vessel Count (${grainLabel}) - ${locationLabel}`;
-                          }
-                          return `Average Chlorophyll-a Concentration (${grainLabel}) - ${locationLabel}`;
+                          return `${parts.join(' & ')} (${grainLabel}) - ${locationLabel}`;
                         })()}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">

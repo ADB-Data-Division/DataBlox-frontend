@@ -6,14 +6,60 @@
 export type CoastalGrain = "monthly" | "weekly" | "annually";
 
 export type CoastalIndicator =
-  | "mean_chlor_a"
   | "chlor_a"
-  | "mean_sea_surface_temperature"
+  | "spm"
+  | "kd490"
   | "sst"
-  | "n_unique_vessels"
+  | "air_temp"
+  | "wind_speed"
+  | "pressure"
+  | "cloud_cover"
+  | "precipitation"
+  | "surface_runoff"
+  | "subsurface_runoff"
+  | "solar_radiation"
   | "vessels"
+  | "presence_hours"
+  | "stationary_vessels"
+  | "duration"
+  | "sar_detections"
+  | "sar_matched"
+  | "dark_detections"
+  | "tc_wind"
+  | "tc_distance"
+  // Legacy aliases kept during migration (backend still sends old fields).
+  | "mean_chlor_a"
+  | "mean_sea_surface_temperature"
+  | "n_unique_vessels"
   | "total_stationary_vessel_cell_presence_hours"
   | "total_vessel_cell_presence_hours";
+
+export type CoastalIndicatorGroup =
+  | "Ocean color"
+  | "Weather"
+  | "Vessels"
+  | "SAR"
+  | "Cyclones";
+
+export type CoastalNullPolicy = "zero_fill" | "null";
+
+export type CoastalIndicatorAgg = "average" | "sum" | "max" | "min";
+
+/**
+ * Backend metadata contract for GET /coastal/indicators (plan section 3).
+ * The frontend static registry in app/(dashboard)/coastal/indicators.ts
+ * mirrors these fields.
+ */
+export interface CoastalIndicatorMetadata {
+  id: string;
+  label: string;
+  group: string;
+  unit: string;
+  agg: string;
+  supports_map: boolean;
+  supports_timeline: boolean;
+  null_policy: CoastalNullPolicy;
+}
 
 export type CoastalAggFunc = "average" | "maximum" | "mean" | "max";
 
@@ -227,6 +273,8 @@ export interface HexCellTimeSeriesPoint {
   sst?: number | null;
   vessels?: number;
   duration?: number;
+  /** Canonical per-indicator values (contract section 3). Read these first. */
+  values?: Record<string, number | null>;
 }
 
 export interface HexCellTimeSeriesResponse {

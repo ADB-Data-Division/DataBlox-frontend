@@ -3,8 +3,9 @@
  * Provides typed async client methods for all coastal analytics endpoints.
  */
 
-import {
+import type {
   CoastalCountry,
+  CoastalIndicatorMetadata,
   CoastalLocation,
   CoastalProvince,
   IndicatorTimelineResponse,
@@ -126,13 +127,17 @@ export async function fetchCoastalProvinces(
 
 /**
  * 3. Fetch multi-indicator timeline data, summary cards, and percentage deltas.
+ *
+ * Accepts any registry id (contract section 3). Timeline points carry the
+ * canonical `values: {indicator_id: number | null}` dict; legacy fixed
+ * fields stay in the response during migration.
  */
 export async function fetchIndicatorTimeline(
   params: CoastalTimelineParams
 ): Promise<IndicatorTimelineResponse> {
   const indicatorsParam = Array.isArray(params.indicators)
-    ? params.indicators.join(",")
-    : params.indicators;
+    ? (params.indicators as string[]).join(",")
+    : (params.indicators as string | undefined);
 
   return fetchCoastalApi<IndicatorTimelineResponse>(
     "/indicators/timeline",
@@ -148,6 +153,30 @@ export async function fetchIndicatorTimeline(
     params.engine
   );
 }
+
+/**
+ * 3b. Fetch the backend indicator registry (GET /coastal/indicators).
+ * Falls back to the static frontend registry when the backend does not
+ * serve the route yet, so the UI works against the contract in the meantime.
+ */
+export async function fetchCoastalIndicators(
+  engine?: "duckdb" | "postgres"
+): Promise<CoastalIndicatorMetadata[]> {
+  try {
+    return await fetchCoastalApi<CoastalIndicatorMetadata[]>(
+      "/indicators",
+      {},
+      engine
+    );
+  } catch {
+    const { toBackendMetadata } = await import(
+      "@/app/(dashboard)/coastal/indicators"
+    );
+    return toBackendMetadata();
+  }
+}
+
+export type { CoastalIndicatorMetadata };
 
 /**
  * 4. Fetch static H3 Resolution 7 GeoJSON polygons for a country.
