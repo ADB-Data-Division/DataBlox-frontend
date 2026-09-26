@@ -114,10 +114,15 @@ export function formatPeriodLabel(isoString: string, grain?: string): string {
 
 const MARGINS = { top: 30, right: 75, bottom: 50, left: 60 };
 
+// Past this many points (weekly resolution) per-point markers merge into
+// blobs along the line, so they are skipped. Hover/tooltip still works via
+// the overlay, which does not depend on markers.
+const DENSE_SERIES_POINT_LIMIT = 120;
+
 const CHLOR_COVERAGE_CHANGE = {
   date: '2024-06-07',
   note:
-    'From 7 June 2024 the satellite product starts seeing murky near-shore water it used to skip. A rise after this date is extra coverage, not dirtier water.',
+    'Since 7 June 2024, there was additional coverage in the NOAA water quality datasets along near-shore water due to adding an additional satellite sensor.',
 };
 
 export function IndicatorTimelineChart({
@@ -170,6 +175,11 @@ export function IndicatorTimelineChart({
 
     const ind1 = indicators[0];
     const ind2 = indicators.length > 1 ? indicators[1] : null;
+
+    // Skip per-point markers past this many points (weekly resolution):
+    // they merge into blobs along the line. Hover/tooltip keeps working
+    // via the overlay, which does not depend on markers.
+    const showMarks = data.length <= DENSE_SERIES_POINT_LIMIT;
 
     const ind1Cfg = INDICATORS_CONFIG[ind1] || { label: ind1, unit: '', color: '#3B82F6' };
     const ind2Cfg = ind2 ? INDICATORS_CONFIG[ind2] || { label: ind2, unit: '', color: '#EF4444' } : null;
@@ -344,18 +354,20 @@ export function IndicatorTimelineChart({
       .attr('stroke-width', 2.2)
       .attr('d', line1);
 
-    // Series 1 Points (missing readings are gaps, not dots at 0)
-    g.selectAll('circle.dot1')
-      .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind1))))
-      .enter()
-      .append('circle')
-      .attr('class', 'dot1')
-      .attr('cx', (d) => x(d.index) || 0)
-      .attr('cy', (d) => y1(getPointValue(d.item, ind1)))
-      .attr('r', 3.5)
-      .attr('fill', ind1Cfg.color)
-      .attr('stroke', '#ffffff')
-      .attr('stroke-width', 1);
+    // Series 1 Points (missing readings are gaps, not dots at 0).
+    if (showMarks) {
+      g.selectAll('circle.dot1')
+        .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind1))))
+        .enter()
+        .append('circle')
+        .attr('class', 'dot1')
+        .attr('cx', (d) => x(d.index) || 0)
+        .attr('cy', (d) => y1(getPointValue(d.item, ind1)))
+        .attr('r', 3.5)
+        .attr('fill', ind1Cfg.color)
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 1);
+    }
 
     // Series 2 Line
     if (ind2 && ind2Cfg) {
@@ -374,17 +386,19 @@ export function IndicatorTimelineChart({
         .attr('stroke-width', 2.2)
         .attr('d', line2);
 
-      g.selectAll('circle.dot2')
-        .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind2))))
-        .enter()
-        .append('circle')
-        .attr('class', 'dot2')
-        .attr('cx', (d) => x(d.index) || 0)
-        .attr('cy', (d) => yForInd2(getPointValue(d.item, ind2)))
-        .attr('r', 3.5)
-        .attr('fill', ind2Cfg.color)
-        .attr('stroke', '#ffffff')
-        .attr('stroke-width', 1);
+      if (showMarks) {
+        g.selectAll('circle.dot2')
+          .data(line1Data.filter((d) => !isNaN(getPointValue(d.item, ind2))))
+          .enter()
+          .append('circle')
+          .attr('class', 'dot2')
+          .attr('cx', (d) => x(d.index) || 0)
+          .attr('cy', (d) => yForInd2(getPointValue(d.item, ind2)))
+          .attr('r', 3.5)
+          .attr('fill', ind2Cfg.color)
+          .attr('stroke', '#ffffff')
+          .attr('stroke-width', 1);
+      }
     }
 
     // Selected period dashed marker line

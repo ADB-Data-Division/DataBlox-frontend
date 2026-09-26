@@ -76,6 +76,127 @@ function formatMonthYear(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
+// X-axis labels must stay unique per data point. Truncating weekly
+// period_starts (YYYY-MM-DD) to YYYY-MM collapses 4-5 weeks onto one
+// point-scale category, which renders as vertical zigzag spikes.
+function toXLabel(periodStart: string, grainKey: string): string {
+  const raw = periodStart || '';
+  if (grainKey === 'annually') return raw.slice(0, 4);
+  if (grainKey === 'weekly') return raw.slice(0, 10);
+  return raw.slice(0, 7);
+}
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const LONG_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function isoWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = (d.getUTCDay() + 6) % 7; // Monday = 0
+  d.setUTCDate(d.getUTCDate() - day + 3); // Thursday of this week
+  const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const firstDay = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDay + 3);
+  return 1 + Math.round((d.getTime() - firstThursday.getTime()) / (7 * 86400000));
+}
+
+// Full period stamp for the hover tooltip: week number + date range for
+// weekly backend weeks (Monday-anchored), month-year for monthly, year.
+function formatTooltipPeriod(xLabel: string, grainKey: string): string {
+  if (!xLabel) return '';
+  if (grainKey === 'annually') return xLabel.slice(0, 4);
+  if (grainKey === 'monthly') {
+    const [y, m] = xLabel.split('-');
+    const monthIdx = parseInt(m || '', 10);
+    if (!y || Number.isNaN(monthIdx) || monthIdx < 1 || monthIdx > 12) return xLabel;
+    return `${LONG_MONTHS[monthIdx - 1]} ${y}`;
+  }
+  const start = new Date(`${xLabel.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(start.getTime())) return xLabel;
+  const end = new Date(start.getTime() + 6 * 86400000);
+  const sYear = start.getUTCFullYear();
+  const eYear = end.getUTCFullYear();
+  const startPart =
+    sYear === eYear
+      ? `${SHORT_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}`
+      : `${SHORT_MONTHS[start.getUTCMonth()]} ${start.getUTCDate()}, ${sYear}`;
+  return `Week ${isoWeekNumber(start)} · ${startPart} – ${SHORT_MONTHS[end.getUTCMonth()]} ${end.getUTCDate()}, ${eYear}`;
+}
+
+function shortMonthYear(value: string): string {
+  const [y, m] = (value || '').split('-');
+  const monthIdx = parseInt(m || '', 10);
+  if (!y || Number.isNaN(monthIdx) || monthIdx < 1 || monthIdx > 12) return value;
+  return `${SHORT_MONTHS[monthIdx - 1]} '${y.slice(2)}`;
+}
+
+// Pick which x values get a tick mark and what each is labeled. Year
+// boundaries get a year label, mid-year (July) gets an unlabeled mark for
+// orientation, everything else stays blank: a repeating Jan/Jul stamp on
+// every tick reads as noise. Short ranges with fewer than 4 such ticks
+// fall back to evenly spaced month-year stamps.
+function pickXTickLabels(xLabels: string[], grainKey: string): Map<string, string> {
+  const map = new Map<string, string>();
+  if (grainKey === 'annually') {
+    xLabels.forEach((v) => map.set(v, v.slice(0, 4)));
+    return map;
+  }
+  const seenJan = new Set<string>();
+  const seenJul = new Set<string>();
+  xLabels.forEach((v) => {
+    const [y, m] = (v || '').split('-');
+    if (!y || !m) return;
+    if (m === '01' && !seenJan.has(y)) {
+      seenJan.add(y);
+      if (!map.has(v)) map.set(v, y);
+    } else if (m === '07' && !seenJul.has(y)) {
+      seenJul.add(y);
+      if (!map.has(v)) map.set(v, '');
+    }
+  });
+  if (map.size < 4 && xLabels.length > 0) {
+    map.clear();
+    const step = Math.max(1, Math.ceil(xLabels.length / 8));
+    xLabels.forEach((v, i) => {
+      if (i % step === 0 && !map.has(v)) map.set(v, shortMonthYear(v));
+    });
+  }
+  return map;
+}
+
+function isPlottableValue(value: unknown): value is number {
+  return typeof value === 'number' && !Number.isNaN(value);
+}
+
+// Keep axis ticks compact (counts as integers, SST to 1 decimal,
+// concentration to 2) instead of MUI's default 6-decimal formatting.
+function formatAxisTick(indicatorId: string, value: number): string {
+  if (!isPlottableValue(value)) return '';
+  if (indicatorId === 'vessels' || indicatorId === 'duration') return String(Math.round(value));
+  if (indicatorId === 'sst') return value.toFixed(1);
+  return value.toFixed(2);
+}
+
+// Bounds for an axis: autoscale when the series has real readings,
+// otherwise fall back to the indicator's typical range so an all-null
+// series renders a sane empty frame instead of a collapsed 0.000000 axis.
+function axisBounds(
+  dataArray: unknown[],
+  fallback: [number, number]
+): { min?: number; max?: number } {
+  const vals = dataArray.filter(isPlottableValue);
+  if (vals.length === 0) return { min: fallback[0], max: fallback[1] };
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  if (lo === hi) {
+    const pad = Math.abs(lo) * 0.1 || 1;
+    return { min: lo - pad, max: hi + pad };
+  }
+  return {};
+}
+
 export default function HexCellDetailModal({
   cellIds = [],
   locationName,
@@ -155,9 +276,11 @@ export default function HexCellDetailModal({
     };
   }, [cellIds, country, dateRange.start, dateRange.end, grain]);
 
+  const grainKey = (grain || 'monthly').toLowerCase();
+
   const timeSeries = useMemo(() => {
     if (!realPoints || realPoints.length === 0) {
-      return { months: [] as string[], seriesById: {} as Record<string, (number | null)[]> };
+      return { xLabels: [] as string[], seriesById: {} as Record<string, (number | null)[]> };
     }
     const ids = new Set<string>(['chlor_a', 'vessels', 'sst', 'duration', ...indicators]);
     for (const pt of realPoints) {
@@ -176,10 +299,10 @@ export default function HexCellDetailModal({
       });
     }
     return {
-      months: realPoints.map((pt) => pt.period_start.slice(0, 7)),
+      xLabels: realPoints.map((pt) => toXLabel(pt.period_start, grainKey)),
       seriesById,
     };
-  }, [realPoints, indicators]);
+  }, [realPoints, indicators, grainKey]);
 
   if (cellIds.length === 0) {
     return (
@@ -215,6 +338,11 @@ export default function HexCellDetailModal({
   const series: any[] = [];
   const yAxisConfig: any[] = [];
 
+  // Weekly series carry ~350+ points; markers on every point overplot into
+  // vertical blobs, so only draw them on sparse (monthly/annual) series.
+  const pointCount = timeSeries.xLabels.length;
+  const showMarks = pointCount <= 120;
+
   if (primaryConfig) {
     const dataArray = timeSeries.seriesById[primaryId] || [];
     series.push({
@@ -223,11 +351,22 @@ export default function HexCellDetailModal({
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
       label: primaryConfig.label,
-      showMark: true,
+      showMark: showMarks,
+      connectNulls: false,
+      valueFormatter: (v: number | null) =>
+        v === null || v === undefined || Number.isNaN(v)
+          ? 'N/A'
+          : `${formatAxisTick(primaryId, v)} ${primaryConfig.unit}`,
     });
     yAxisConfig.push({
       id: 'leftAxis',
-      label: `${primaryConfig.label} (${primaryConfig.unit})`,
+      valueFormatter: (value: number) => formatAxisTick(primaryId, value),
+      // Tick labels end ~14px out and run ~35px wide. The axis title is
+      // rendered as HTML in the margin (see below) instead of MUI's
+      // rotated label, which centers at a fixed offset that collides
+      // with the tick numbers.
+      slotProps: { axisTickLabel: { dx: -6 } },
+      ...axisBounds(dataArray, primaryConfig.defaultRange),
     });
   }
 
@@ -239,16 +378,36 @@ export default function HexCellDetailModal({
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
       label: secondaryConfig.label,
-      showMark: true,
+      showMark: showMarks,
+      connectNulls: false,
+      valueFormatter: (v: number | null) =>
+        v === null || v === undefined || Number.isNaN(v)
+          ? 'N/A'
+          : `${formatAxisTick(secondaryId as string, v)} ${secondaryConfig.unit}`,
     });
     yAxisConfig.push({
       id: 'rightAxis',
       position: 'right' as const,
-      label: `${secondaryConfig.label} (${secondaryConfig.unit})`,
+      valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
+      // Same title/tick collision as the left axis, mirrored.
+      slotProps: { axisTickLabel: { dx: 6 } },
+      ...axisBounds(dataArray, secondaryConfig.defaultRange),
     });
   }
 
+  // Periods can exist with zero plottable readings (e.g. a hex with no
+  // sensor coverage): show an explicit empty state instead of a collapsed
+  // chart with 0.000000 axes. Zero-filled counts (vessels/duration) are
+  // real data, so only null/NaN readings count as missing here.
+  const hasChartData = series.some((s) =>
+    Array.isArray(s.data) ? s.data.some(isPlottableValue) : false
+  );
+
   const dateSubtitle = `${formatMonthYear(dateRange.start)} - ${formatMonthYear(dateRange.end)}`;
+
+  // Year-boundary ticks with quiet mid-year marks (computed inline: this
+  // runs after an early return above, so it cannot be a hook).
+  const xTickLabels = pickXTickLabels(timeSeries.xLabels, grainKey);
 
   return (
     <Card
@@ -325,28 +484,42 @@ export default function HexCellDetailModal({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <CircularProgress size={32} />
           </Box>
-        ) : timeSeries.months.length === 0 ? (
+        ) : timeSeries.xLabels.length === 0 || !hasChartData ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography variant="body2" color="text.secondary">
-              No historical data available for this cell.
+              No measurements recorded for this cell in the selected range.
             </Typography>
           </Box>
         ) : (
-          <LineChart
+          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            <LineChart
+            height={260}
             series={series}
             xAxis={[
               {
-                data: timeSeries.months,
+                data: timeSeries.xLabels,
                 scaleType: 'point',
-                valueFormatter: (value: string) => {
-                  const parts = value.split('-');
-                  if (parts[1] === '01') return parts[0];
-                  return '';
-                },
+                // Show only the picked year-boundary / mid-year ticks
+                // (the callback index here is the data index). The hover
+                // tooltip gets the full period stamp instead via the
+                // location-aware branch below.
+                tickInterval: (value: string) => xTickLabels.has(value),
+                valueFormatter: (value: string, context?: { location?: string }) =>
+                  context?.location === 'tooltip'
+                    ? formatTooltipPeriod(value, grainKey)
+                    : xTickLabels.get(value) ?? '',
               },
             ]}
             yAxis={yAxisConfig}
-            margin={{ top: 20, bottom: 25, left: 60, right: secondaryConfig ? 65 : 20 }}
+            // ChartsAxis only draws the right axis when it is explicitly
+            // selected; without this the secondary series scales correctly
+            // but its axis never renders.
+            leftAxis="leftAxis"
+            rightAxis={secondaryConfig ? 'rightAxis' : undefined}
+            margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
+            // Axis trigger shows the hovered period plus both series values
+            // together; the period stamp comes from the x-axis formatter.
+            tooltip={{ trigger: 'axis' }}
             slotProps={{ legend: { hidden: true } }}
             sx={{
               [`& .MuiMarkElement-series-${primaryId}`]: {
@@ -398,6 +571,47 @@ export default function HexCellDetailModal({
               },
             }}
           />
+            {/* Axis titles live in the margins as HTML (vertical text) so
+                their distance from the tick numbers is explicit. MUI's
+                built-in rotated label centers at a fixed offset that
+                collides with the ticks. */}
+            <Typography
+              variant="caption"
+              sx={{
+                position: 'absolute',
+                left: 4,
+                top: '50%',
+                transform: 'translateY(-50%) rotate(180deg)',
+                writingMode: 'vertical-rl',
+                color: primaryConfig.color,
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: '0.02em',
+                pointerEvents: 'none',
+              }}
+            >
+              {primaryConfig.label} ({primaryConfig.unit})
+            </Typography>
+            {secondaryConfig && (
+              <Typography
+                variant="caption"
+                sx={{
+                  position: 'absolute',
+                  right: 4,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  writingMode: 'vertical-rl',
+                  color: secondaryConfig.color,
+                  fontWeight: 700,
+                  fontSize: 12,
+                  letterSpacing: '0.02em',
+                  pointerEvents: 'none',
+                }}
+              >
+                {secondaryConfig.label} ({secondaryConfig.unit})
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
     </Card>

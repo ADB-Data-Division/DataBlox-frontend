@@ -9,7 +9,7 @@ export interface VesselSpatialMapProps {
   locationName: string;
   aoiIds?: string[];
   spatialSlice?: Record<string, any>;
-  selectedCellId?: string | null;
+  selectedCellIds?: string[];
   onSelectCell?: (cellId: string) => void;
   onClearSelection?: () => void;
   loading?: boolean;
@@ -22,7 +22,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
   locationName,
   aoiIds,
   spatialSlice,
-  selectedCellId,
+  selectedCellIds = [],
   onSelectCell,
   onClearSelection,
   loading = false,
@@ -43,7 +43,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
         sx={{
           flex: 1,
           minHeight: 420,
-          height: 440,
+          height: height ?? 440,
           position: 'relative',
           borderRadius: 2,
           overflow: 'hidden',
@@ -57,7 +57,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
           overlayVessels
           indicators={['vessels']}
           spatialSlice={spatialSlice}
-          selectedCellIds={selectedCellId ? [selectedCellId] : []}
+          selectedCellIds={selectedCellIds}
           onSelectCell={(id) => onSelectCell?.(id)}
           onClearSelection={onClearSelection}
           loading={loading}

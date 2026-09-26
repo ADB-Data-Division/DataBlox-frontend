@@ -27,6 +27,9 @@ export interface CoastalChoroplethMapProps {
   periodLabel?: string;
   indicators?: string[];
   height?: number | string;
+  // When false, far-zoom magnitude circles are disabled and the raw hexes
+  // render at every zoom. Defaults to true (current behavior).
+  clustersEnabled?: boolean;
 }
 
 interface HexCellData {
@@ -374,6 +377,7 @@ function CoastalChoroplethMapClient({
   loading = false,
   indicators,
   height = 420,
+  clustersEnabled = true,
 }: CoastalChoroplethMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
@@ -601,7 +605,9 @@ function CoastalChoroplethMapClient({
 
   // Single cluster mode: far zoom shows one magnitude circle per parent
   // region (centerpoint of nearby hexes); close zoom shows the raw hexes.
-  const showClusters = mapZoom !== null && mapZoom < CLUSTER_ZOOM_THRESHOLD;
+  // Disabled entirely when the clusters toggle is off.
+  const showClusters =
+    clustersEnabled && mapZoom !== null && mapZoom < CLUSTER_ZOOM_THRESHOLD;
 
   const clusterPoints = useMemo(() => {
     if (gridCells.length === 0) return [];

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -9,6 +9,7 @@ import {
   Typography,
   Chip,
   Button,
+  IconButton,
   Select,
   MenuItem,
   FormControl,
@@ -19,12 +20,15 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import MapIcon from '@mui/icons-material/Map';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { ViewModeTab } from '../components/ViewModeTab';
 import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
@@ -44,6 +48,11 @@ import {
   fetchSpatialSeries,
 } from '@/services/coastalService';
 import type { VesselTimelineResponse } from '@/types/coastal';
+import {
+  buildSeriesInFlightKey,
+  buildSpatialSliceCacheKey,
+  shouldSkipSeriesFetch,
+} from './spatial-cache';
 
 const VESSEL_CATEGORY_COLORS: Record<string, string> = {
   trade: '#6366f1',
@@ -75,7 +84,7 @@ export function PageContent() {
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
-  const [selectedHexCell, setSelectedHexCell] = useState<string | null>(null);
+  const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
@@ -109,6 +118,46 @@ export function PageContent() {
   const sliceCacheRef = React.useRef<Map<string, Record<string, any>>>(new Map());
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any>>({});
   const [spatialLoading, setSpatialLoading] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Handle escape key and body overflow for fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
+
+  // Dispatch resize event when toggling fullscreen or selecting a hex cell
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isFullscreen, selectedHexCells]);
+
+  // Reset fullscreen when switching tab
+  useEffect(() => {
+    if (activeTab !== 2) {
+      setIsFullscreen(false);
+    }
+  }, [activeTab]);
+
+  const mapHeight = useMemo(() => {
+    if (!isFullscreen) return undefined;
+    return selectedHexCells.length > 0 ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
+  }, [isFullscreen, selectedHexCells]);
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -123,6 +172,27 @@ export function PageContent() {
 
   const periodItems = useMemo(() => {
     if (grain === 'weekly') {
+      // Prefer backend timeline weeks (the same Monday-anchored grid the
+      // slice/series endpoints query) so the scrubber, the batch cache and
+      // per-period slices all agree. Fall back to generated weeks only when
+      // the timeline has not loaded yet.
+      if (timelineData && timelineData.length > 0) {
+        const yearStr = String(weeklyYear);
+        let weekNum = 1;
+        const items = timelineData
+          .filter((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            return s.slice(0, 4) === yearStr || e.slice(0, 4) === yearStr;
+          })
+          .map((pt: any) => {
+            const s = (pt.period_start || '').slice(0, 10);
+            const e = (pt.period_end || pt.period_start || '').slice(0, 10);
+            const [ey, em, ed] = e.split('-');
+            return { label: `Week ${weekNum++}: ${em}/${ed}/${ey}`, start: s, end: e };
+          });
+        if (items.length > 0) return items;
+      }
       return generatePeriods(`${weeklyYear}-01-01`, `${weeklyYear}-12-31`, 'weekly');
     }
     // Prefer backend timeline periods so scrubber positions match available data.
@@ -131,6 +201,17 @@ export function PageContent() {
 
   const periods = useMemo(() => periodItems.map((p) => p.label), [periodItems]);
   const activeScrubberIndex = Math.min(Math.max(0, scrubberIndex), Math.max(0, periods.length - 1));
+
+  // Mirror of the scrubber index for the series `.then` path: the series
+  // effect no longer depends on the index (scrub ticks must not refetch),
+  // so it reads the live position through this ref instead of a stale
+  // closure value.
+  const scrubberIndexRef = useRef(activeScrubberIndex);
+  scrubberIndexRef.current = activeScrubberIndex;
+  // In-flight key (see `buildSeriesInFlightKey`) of the running
+  // `/spatial/series` prefetch, or null when idle. The slice fallback
+  // effect checks this to avoid racing the batch request per scrub tick.
+  const seriesInFlightRef = useRef<string | null>(null);
 
   const handlePrevYear = () => {
     setWeeklyYear((y) => y - 1);
@@ -250,13 +331,34 @@ export function PageContent() {
     };
   }, [country, aoi_id, start_date, end_date, grain, metric]);
 
-  // Pre-fetch batch spatial series across all periods for instant scrubbing
+  // Pre-fetch batch spatial series across all periods for instant scrubbing.
+  // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
+  // served from `sliceCacheRef`; refetching per tick caused the 2026-09-25
+  // incident (a full `/spatial/series` prefetch per tick plus per-tick
+  // `/spatial/slice` fallbacks). The live index is read via
+  // `scrubberIndexRef` in `.then`, and the fetch is skipped entirely when
+  // every period key for this (country, grain, vessels, aoi) scope is
+  // already cached (also guards refetch on unrelated `periodItems`
+  // identity changes).
   useEffect(() => {
     if (activeTab !== 2 || !country || periodItems.length === 0) {
       return;
     }
 
+    const scope = {
+      country,
+      indicator: 'vessels',
+      grain,
+      aoiId: aoi_id,
+    };
+
+    if (shouldSkipSeriesFetch(periodItems, scope, sliceCacheRef.current)) {
+      return;
+    }
+
     let isMounted = true;
+    const inFlightKey = buildSeriesInFlightKey(scope);
+    seriesInFlightRef.current = inFlightKey;
 
     fetchSpatialSeries({
       country,
@@ -269,13 +371,17 @@ export function PageContent() {
       .then((res) => {
         if (!isMounted || !res?.series) return;
         Object.entries(res.series).forEach(([periodStart, cellMap]) => {
-          const key = `${country}_${periodStart}_vessels_${grain}`;
+          // Series keys carry timestamps ('YYYY-MM-DD HH:MM:SS'); the key
+          // builder normalizes to the day so they hit the same cache keys
+          // the scrubber uses. The key includes the AOI segment so one
+          // AOI never serves another AOI's cached slices.
+          const key = buildSpatialSliceCacheKey({ ...scope, periodStart });
           sliceCacheRef.current.set(key, cellMap as Record<string, any>);
         });
 
-        const cur = periodItems[activeScrubberIndex];
+        const cur = periodItems[scrubberIndexRef.current];
         if (cur) {
-          const curKey = `${country}_${cur.start}_vessels_${grain}`;
+          const curKey = buildSpatialSliceCacheKey({ ...scope, periodStart: cur.start });
           const cached = sliceCacheRef.current.get(curKey);
           if (cached) {
             setSpatialSlice(cached);
@@ -284,20 +390,38 @@ export function PageContent() {
       })
       .catch((err) => {
         console.warn('Batch vessel spatial series pre-fetch failed, falling back to slice queries:', err);
+      })
+      .finally(() => {
+        if (seriesInFlightRef.current === inFlightKey) {
+          seriesInFlightRef.current = null;
+        }
       });
 
     return () => {
       isMounted = false;
+      if (seriesInFlightRef.current === inFlightKey) {
+        seriesInFlightRef.current = null;
+      }
     };
-  }, [country, grain, aoi_id, activeTab, periodItems, activeScrubberIndex]);
+  }, [country, grain, aoi_id, activeTab, periodItems]);
 
-  // Fetch Spatial Slice for Tab 2
+  // Fetch Spatial Slice for Tab 2.
+  // Skips while the series prefetch for this scope is in flight (its `.then`
+  // serves the slider from cache on success) and debounces the fallback so
+  // fast scrubbing does not fan out one `/spatial/slice` call per tick.
   useEffect(() => {
     if (activeTab !== 2 || !country) return;
     const curPeriod = periodItems[activeScrubberIndex];
     if (!curPeriod) return;
 
-    const cacheKey = `${country}_${curPeriod.start}_vessels_${grain}`;
+    const scope = {
+      country,
+      indicator: 'vessels',
+      grain,
+      aoiId: aoi_id,
+    };
+
+    const cacheKey = buildSpatialSliceCacheKey({ ...scope, periodStart: curPeriod.start });
     if (sliceCacheRef.current.has(cacheKey)) {
       setSpatialSlice(sliceCacheRef.current.get(cacheKey)!);
       // A cancelled in-flight fetch never clears its loading flag.
@@ -305,16 +429,36 @@ export function PageContent() {
       return;
     }
 
+    if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
+      // The running series prefetch will populate the slice on success.
+      setSpatialLoading(false);
+      return;
+    }
+
     let isCurrent = true;
-    setSpatialLoading(true);
-    fetchSpatialSlice({
-      country,
-      period_start: curPeriod.start,
-      period_end: curPeriod.end,
-      grain,
-      indicator: 'vessels',
-      aoi_id: aoi_id || undefined,
-    })
+    const timer = setTimeout(() => {
+      if (!isCurrent) return;
+      // Re-check after the debounce: the series may have populated the
+      // cache or started in the meantime.
+      const cached = sliceCacheRef.current.get(cacheKey);
+      if (cached) {
+        setSpatialSlice(cached);
+        setSpatialLoading(false);
+        return;
+      }
+      if (seriesInFlightRef.current === buildSeriesInFlightKey(scope)) {
+        setSpatialLoading(false);
+        return;
+      }
+      setSpatialLoading(true);
+      fetchSpatialSlice({
+        country,
+        period_start: curPeriod.start,
+        period_end: curPeriod.end,
+        grain,
+        indicator: 'vessels',
+        aoi_id: aoi_id || undefined,
+      })
       .then((res) => {
         if (!isCurrent) return;
         const sliceData = res?.values || res?.data;
@@ -332,9 +476,11 @@ export function PageContent() {
       .finally(() => {
         if (isCurrent) setSpatialLoading(false);
       });
+    }, 150);
 
     return () => {
       isCurrent = false;
+      clearTimeout(timer);
     };
   }, [country, activeScrubberIndex, periodItems, grain, activeTab, aoi_id]);
 
@@ -840,46 +986,121 @@ export function PageContent() {
 
       {/* Tab 2: Choropleth Map */}
       {activeTab === 2 && (
-        <Box id="coastal-vessels-map-container">
-          <Stack spacing={2}>
-            {/* Top Row: Hex Cell Detail Modal / Card */}
+        <Box
+          id="coastal-vessels-map-container"
+          sx={
+            isFullscreen
+              ? {
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1300,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#0b0f19' : '#f8fafc',
+                  pt: { xs: 0.75, md: 1 },
+                  px: { xs: 1.5, md: 2.5 },
+                  pb: { xs: 1.5, md: 2.5 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  overflowY: 'auto',
+                }
+              : {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  width: '100%',
+                }
+          }
+        >
+          {/* Top Row: Hex Cell Detail Modal / Card */}
+          {(!isFullscreen || selectedHexCells.length > 0) && (
             <Box sx={{ width: '100%' }}>
               <HexCellDetailModal
-                cellIds={selectedHexCell ? [selectedHexCell] : []}
+                cellIds={selectedHexCells}
                 locationName={locationLabel}
                 country={country}
                 grain={grain}
                 dateRange={{ start: start_date, end: end_date }}
                 indicators={['vessels']}
-                onClose={() => setSelectedHexCell(null)}
+                onClose={() => setSelectedHexCells([])}
               />
             </Box>
+          )}
 
-            <VesselSpatialMap
-              key={`${country}_${locationLabel}`}
-              country={country}
-              locationName={locationLabel}
-              aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
-              spatialSlice={spatialSlice}
-              selectedCellId={selectedHexCell}
-              onSelectCell={(id) => setSelectedHexCell(id)}
-              onClearSelection={() => setSelectedHexCell(null)}
-              loading={spatialLoading}
-              periodLabel={periods[activeScrubberIndex]}
-            />
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 2 }}>
+              <Box
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {`${metric} Map (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {`${start_date} to ${end_date}`}
+                  </Typography>
+                </Box>
 
-            <TemporalScrubber
-              periods={periods}
-              currentIndex={activeScrubberIndex}
-              onChangeIndex={(idx) => setScrubberIndex(idx)}
-              grain={grain}
-              activeYear={grain === 'weekly' ? weeklyYear : undefined}
-              onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
-              onNextYear={grain === 'weekly' ? handleNextYear : undefined}
-              canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
-              canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
-            />
-          </Stack>
+                <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+                  <IconButton
+                    onClick={() => setIsFullscreen((prev) => !prev)}
+                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                    size="small"
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1.5,
+                      bgcolor: isFullscreen ? 'action.selected' : 'background.paper',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    {isFullscreen ? <FullscreenExitIcon fontSize="small" /> : <FullscreenIcon fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              <VesselSpatialMap
+                key={`${country}_${locationLabel}`}
+                country={country}
+                locationName={locationLabel}
+                aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
+                spatialSlice={spatialSlice}
+                selectedCellIds={selectedHexCells}
+                onSelectCell={(id) =>
+                  setSelectedHexCells((prev) =>
+                    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+                  )
+                }
+                onClearSelection={() => setSelectedHexCells([])}
+                loading={spatialLoading}
+                periodLabel={periods[activeScrubberIndex]}
+                height={mapHeight}
+              />
+            </CardContent>
+          </Card>
+
+          <TemporalScrubber
+            periods={periods}
+            currentIndex={activeScrubberIndex}
+            onChangeIndex={(idx) => setScrubberIndex(idx)}
+            grain={grain}
+            activeYear={grain === 'weekly' ? weeklyYear : undefined}
+            onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
+            onNextYear={grain === 'weekly' ? handleNextYear : undefined}
+            canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
+            canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
+          />
         </Box>
       )}
 

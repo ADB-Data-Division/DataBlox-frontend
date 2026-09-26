@@ -47,7 +47,7 @@ export function VesselDistributionCharts({
       return {
         id: cat.id,
         value: cat.value,
-        label: `${cat.label}: ${percentage}% (${cat.value})`,
+        label: `${cat.label}: ${percentage}% (${cat.value.toLocaleString('en-US')})`,
         color: cat.color,
       };
     });
@@ -133,7 +133,9 @@ export function VesselDistributionCharts({
                   {subChartData.length > 0 ? (
                     <BarChart
                       xAxis={[{ scaleType: 'band', data: subChartData.map(d => d.label) }]}
+                      yAxis={[{ valueFormatter: (v: number) => v.toLocaleString('en-US') }]}
                       series={[{ data: subChartData.map(d => d.value) }]}
+                      margin={{ top: 10, right: 10, bottom: 40, left: 80 }}
                     />
                   ) : (
                     <Typography variant="body2">No data available for this category.</Typography>
