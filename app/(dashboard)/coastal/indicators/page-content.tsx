@@ -29,6 +29,7 @@ import {
 } from '@/services/coastalService';
 import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng, buildIndicatorExportHeaders, buildIndicatorExportRows } from '@/src/utils/coastalExport';
 import { getIndicatorMeta } from '../indicators';
+import { buildSpatialIndicatorParam } from './spatial-indicator-ids';
 import type {
   CoastalAggFunc,
   CoastalGrain,
@@ -380,6 +381,13 @@ export function PageContent() {
     }
   }, [periods]);
 
+  // Indicator ids the map reads (active layer, tooltip rows, vessel overlay).
+  // The backend returns only these, so every series/slice request carries them.
+  const spatialIndicatorParam = useMemo(
+    () => buildSpatialIndicatorParam(activeChoroplethIndicator, selectedIndicators, (id) => !!getIndicatorMeta(id)),
+    [activeChoroplethIndicator, selectedIndicators]
+  );
+
   // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
   // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
   // served from `sliceCacheRef`; refetching per tick caused the 2026-09-25
@@ -394,7 +402,7 @@ export function PageContent() {
 
     const scope = {
       country,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       grain,
       aoiId: aoi_id,
     };
@@ -412,7 +420,7 @@ export function PageContent() {
       start_date: periodItems[0].start,
       end_date: periodItems[periodItems.length - 1].end,
       grain,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       aoi_id: aoi_id || undefined,
     })
       .then((res) => {
@@ -449,7 +457,7 @@ export function PageContent() {
         seriesInFlightRef.current = null;
       }
     };
-  }, [country, grain, activeChoroplethIndicator, aoi_id, viewMode, periodItems]);
+  }, [country, grain, spatialIndicatorParam, aoi_id, viewMode, periodItems]);
 
   // Fetch or derive spatial slice when active period or indicator changes.
   // Skips while the series prefetch for this scope is in flight (its `.then`
@@ -465,7 +473,7 @@ export function PageContent() {
 
     const scope = {
       country,
-      indicator: activeChoroplethIndicator,
+      indicator: spatialIndicatorParam,
       grain,
       aoiId: aoi_id,
     };
@@ -488,7 +496,7 @@ export function PageContent() {
         period_start: curPeriod.start,
         period_end: curPeriod.end,
         grain,
-        indicator: activeChoroplethIndicator,
+        indicator: spatialIndicatorParam,
         aoi_id: aoi_id || undefined,
       })
         .then((res) => {
@@ -511,7 +519,7 @@ export function PageContent() {
       isCurrent = false;
       clearTimeout(timer);
     };
-  }, [country, aoi_id, activeScrubberIndex, periodItems, activeChoroplethIndicator, grain, viewMode]);
+  }, [country, aoi_id, activeScrubberIndex, periodItems, spatialIndicatorParam, grain, viewMode]);
 
   if (!rawCountry) {
     return null;
