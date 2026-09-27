@@ -254,6 +254,8 @@ export default function VesselTimelineChart({
           {
             dataKey: "date",
             scaleType: "time",
+            tickNumber: Math.min(10, Math.max(4, Math.floor(dataset.length / 4))),
+            tickLabelStyle: { fontSize: 11, fill: "#6b7280" },
             valueFormatter: (date: Date) => {
               if (!date || isNaN(date.getTime())) return "";
               return date.toLocaleDateString("en-US", {
@@ -264,7 +266,7 @@ export default function VesselTimelineChart({
           },
         ]}
         series={series}
-        margin={{ left: 60, right: 20, top: 20, bottom: 30 }}
+        margin={{ left: 60, right: 40, top: 20, bottom: 30 }}
         slots={{
           axisContent: (props: any) => (
             <CustomAxisTooltip
