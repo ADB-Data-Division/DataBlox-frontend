@@ -124,7 +124,7 @@ export function IndicatorSidebar({
     <Stack spacing={2} sx={{ width: '100%', height: '100%' }}>
       {/* Legend Card. Timeline mode skips it: the selected chips and axis colours already cover it. */}
       {mode === 'map' && (
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ borderRadius: 2, flexShrink: 0 }}>
           <CardContent>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
               Legend

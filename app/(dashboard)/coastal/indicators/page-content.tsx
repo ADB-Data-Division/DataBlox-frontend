@@ -803,7 +803,7 @@ export function PageContent() {
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
-            alignItems="flex-start"
+            alignItems="stretch"
             sx={{ flex: 1, minWidth: 0 }}
           >
             <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
@@ -914,27 +914,21 @@ export function PageContent() {
               </Card>
             </Box>
 
-            <Box
-              sx={{
-                width: { xs: '100%', md: 260 },
-                flexShrink: 0,
-                ...(isFullscreen && {
-                  maxHeight: 'calc(100vh - 48px)',
-                  overflowY: 'auto',
-                }),
-              }}
-            >
-              <IndicatorSidebar
-                selectedIndicators={selectedIndicators}
-                onToggleIndicator={handleToggleIndicator}
-                aggFunc={aggFunc}
-                onChangeAggFunc={(agg) => setAggFunc(agg)}
-                mode="map"
-                activeChoroplethIndicator={activeChoroplethIndicator}
-                onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
-                clustersEnabled={clustersEnabled}
-                onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
-              />
+            {/* On desktop the sidebar is pinned to the map card height and its list scrolls. */}
+            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, position: 'relative' }}>
+              <Box sx={{ position: { md: 'absolute' }, inset: { md: 0 } }}>
+                <IndicatorSidebar
+                  selectedIndicators={selectedIndicators}
+                  onToggleIndicator={handleToggleIndicator}
+                  aggFunc={aggFunc}
+                  onChangeAggFunc={(agg) => setAggFunc(agg)}
+                  mode="map"
+                  activeChoroplethIndicator={activeChoroplethIndicator}
+                  onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
+                  clustersEnabled={clustersEnabled}
+                  onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
+                />
+              </Box>
             </Box>
           </Stack>
         </Box>
