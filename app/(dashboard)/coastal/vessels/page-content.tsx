@@ -575,29 +575,26 @@ export function PageContent() {
   }
 
   return (
-    <Stack spacing={3} sx={{ width: '100%' }}>
+    <Stack spacing={2} sx={{ width: '100%' }}>
       {/* Top Header & Time Range Row */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="stretch">
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="stretch">
         {/* Left: Title & Location Card */}
         <Card
           variant="outlined"
           sx={{
-            flex: { xs: '1 1 auto', md: '0 0 38%' },
+            flex: { xs: '1 1 auto', md: '0 0 34%' },
             borderRadius: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
           }}
         >
-          <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', '&:last-child': { pb: 3 } }}>
+          <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', '&:last-child': { pb: 2 } }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
                 Multi-province Maritime Analysis
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
                 Timeline of Maritime Vessels
               </Typography>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 1 }}>
                 <Chip
                   icon={<LocationOnIcon sx={{ fontSize: 16 }} />}
                   label={locationLabel}
@@ -608,26 +605,26 @@ export function PageContent() {
                 <Typography variant="body2" color="text.secondary">
                   {provinceCountText}
                 </Typography>
+                <Stack direction="row" spacing={1} sx={{ ml: 'auto !important' }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleEditSearch}
+                    sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Edit Search
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleNewSearch}
+                    sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    New Search
+                  </Button>
+                </Stack>
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleEditSearch}
-                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
-              >
-                Edit Search
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleNewSearch}
-                sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
-              >
-                New Search
-              </Button>
-            </Stack>
           </CardContent>
         </Card>
 
@@ -643,7 +640,7 @@ export function PageContent() {
             justifyContent: 'center',
           }}
         >
-          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+          <CardContent sx={{ p: 2, '&:last-child': { pb: 1.5 } }}>
             <TimeRangeSelector
               startDate={start_date}
               endDate={end_date}

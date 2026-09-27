@@ -174,13 +174,13 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   }, [totalMonths, minYear, minMonth, maxYear, maxMonth]);
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Typography variant="h6" component="div" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
+    <Box sx={{ width: '100%', '& .MuiSelect-select': { py: 0.5, fontSize: 14 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5} flexWrap="wrap" gap={1.5}>
+        <Typography variant="h6" component="div" sx={{ fontSize: '16px', fontWeight: 'bold' }}>
           Time Range
         </Typography>
         
-        <Stack direction="row" spacing={4} alignItems="center" flexWrap="wrap">
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography variant="body2" color="text.secondary">Start:</Typography>
             <FormControl size="small" disabled={disabled}>
@@ -230,7 +230,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         </Stack>
       </Stack>
 
-      <Box sx={{ px: 3, pb: 2 }}>
+      <Box sx={{ px: 3, pb: 0.5 }}>
         <Slider
           value={localRange}
           onChange={handleSliderChange}
@@ -240,6 +240,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           step={1}
           marks={marks}
           disabled={disabled}
+          size="small"
           valueLabelDisplay="auto"
           valueLabelFormat={(val) => {
             const y = minYear + Math.floor((val + minMonth - 1) / 12);
