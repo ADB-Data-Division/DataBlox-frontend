@@ -100,6 +100,7 @@ export interface CoastalCountry {
     start: string;
     end: string;
   };
+  enabled?: boolean;
 }
 
 export interface CoastalProvince {
