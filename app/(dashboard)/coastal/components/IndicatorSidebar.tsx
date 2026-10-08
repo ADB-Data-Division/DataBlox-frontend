@@ -177,7 +177,7 @@ export function IndicatorSidebar({
                     />
                   )}
                   {compareEnabled && (
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
                       Left map
                     </Typography>
                   )}

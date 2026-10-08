@@ -918,7 +918,7 @@ export function PageContent() {
                           }}
                         >
                           <CoastalChoroplethMap
-                            key={`${country}_${aoi_id || ''}_${locationLabel}`}
+                            key={`${country}_${aoi_id || ''}_${locationLabel}_${splitActive ? 'split' : 'single'}`}
                             country={country}
                             locationName={locationLabel}
                             aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
