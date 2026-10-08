@@ -39,6 +39,8 @@ import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
+import { showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
+import { AggLevelSelect, type CoastalGrain } from '../components/AggLevelSelect';
 import { formatDisplayName } from '../data/provinces';
 import { generatePeriods } from '../indicators/page-content';
 import {
@@ -86,7 +88,8 @@ export function PageContent() {
   }, [rawCountry, router]);
 
   const [grain, setGrain] = useState<'weekly' | 'monthly' | 'annually'>(grainParam);
-  const [activeTab, setActiveTab] = useState<number>(0);
+  // 2 = Choropleth Map, the landing tab (same as the indicators page).
+  const [activeTab, setActiveTab] = useState<number>(2);
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
@@ -255,6 +258,7 @@ export function PageContent() {
     : country || 'Select Location';
 
   const aoiCount = aoi_id ? aoi_id.split(',').filter(Boolean).length : 0;
+  const analysisScope = aoiCount > 1 ? 'Multi-province' : aoiCount === 1 ? 'Province' : 'National';
   const provinceCountText =
     aoiCount > 1 ? `${aoiCount} provinces` : aoiCount === 1 ? '1 province' : 'National';
 
@@ -513,6 +517,13 @@ export function PageContent() {
       setExpanded(isExpanded ? panel : false);
     };
 
+  const handleGrainChange = (newGrain: CoastalGrain) => {
+    setGrain(newGrain);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('grain', newGrain);
+    router.replace(`?${params.toString()}`);
+  };
+
   const handleEditSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('target', 'vessels');
@@ -589,7 +600,7 @@ export function PageContent() {
           <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', '&:last-child': { pb: 2 } }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
-                Multi-province Maritime Analysis
+                {analysisScope} Maritime Analysis
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
                 Timeline of Maritime Vessels
@@ -628,48 +639,47 @@ export function PageContent() {
           </CardContent>
         </Card>
 
-        {/* Right: Time Range Selector Card */}
-        <Card
-          variant="outlined"
-          sx={{
-            flex: { xs: '1 1 auto', md: '1 1 0%' },
-            borderRadius: 2,
-            opacity: activeTab === 2 ? 0.5 : 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 1.5 } }}>
-            <TimeRangeSelector
-              startDate={start_date}
-              endDate={end_date}
-              grain={grain}
-              onRangeChange={(newStart, newEnd) => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('start_date', newStart);
-                params.set('end_date', newEnd);
-                router.replace(`?${params.toString()}`);
-              }}
-              onGrainChange={(newGrain) => {
-                setGrain(newGrain);
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('grain', newGrain);
-                router.replace(`?${params.toString()}`);
-              }}
-              disabled={activeTab === 2}
-            />
-            {activeTab === 2 && (
-              <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', px: 1, mt: 0.5 }}>
-                Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
+        {/* Right: Time Range Selector Card. Hidden in map view, the map scrubber and header Agg. Level cover it. */}
+        {activeTab !== 2 && (
+          <Card
+            variant="outlined"
+            sx={{
+              flex: { xs: '1 1 auto', md: '1 1 0%' },
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 1.5 } }}>
+              <TimeRangeSelector
+                startDate={start_date}
+                endDate={end_date}
+                grain={grain}
+                onRangeChange={(newStart, newEnd) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('start_date', newStart);
+                  params.set('end_date', newEnd);
+                  router.replace(`?${params.toString()}`);
+                }}
+                onGrainChange={handleGrainChange}
+              />
+            </CardContent>
+          </Card>
+        )}
       </Stack>
 
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <ViewModeTab
+          active={activeTab === 2}
+          title="Choropleth Map"
+          subtitle="Spatial visualization"
+          icon={<MapIcon />}
+          vectorSrc="/images/coastal/map-pin.png"
+          gradient="teal"
+          onClick={() => setActiveTab(2)}
+        />
         <ViewModeTab
           active={activeTab === 0}
           title="Vessel Timeline"
@@ -687,15 +697,6 @@ export function PageContent() {
           vectorSrc="/images/coastal/pie-chart.png"
           gradient="teal"
           onClick={() => setActiveTab(1)}
-        />
-        <ViewModeTab
-          active={activeTab === 2}
-          title="Choropleth Map"
-          subtitle="Spatial visualization"
-          icon={<MapIcon />}
-          vectorSrc="/images/coastal/map-pin.png"
-          gradient="teal"
-          onClick={() => setActiveTab(2)}
         />
       </Stack>
 
@@ -1036,21 +1037,6 @@ export function PageContent() {
                 }
           }
         >
-          {/* Top Row: Hex Cell Detail Modal / Card */}
-          {(!isFullscreen || selectedHexCells.length > 0) && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={['vessels']}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
-
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 2 }}>
               <Box
@@ -1069,7 +1055,14 @@ export function PageContent() {
                   <Typography variant="caption" color="text.secondary">
                     {`${start_date} to ${end_date}`}
                   </Typography>
+                  {showNationLoadNote(aoi_id, spatialStatus) && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {NATION_LOAD_NOTE}
+                    </Typography>
+                  )}
                 </Box>
+
+                <AggLevelSelect grain={grain} onGrainChange={handleGrainChange} />
 
                 <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
                   <IconButton
@@ -1123,6 +1116,21 @@ export function PageContent() {
             canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
             canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
           />
+
+          {/* Hex Cell Detail Card. Below the map and hidden until a hex is selected. */}
+          {selectedHexCells.length > 0 && (
+            <Box sx={{ width: '100%' }}>
+              <HexCellDetailModal
+                cellIds={selectedHexCells}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={['vessels']}
+                onClose={() => setSelectedHexCells([])}
+              />
+            </Box>
+          )}
         </Box>
       )}
 

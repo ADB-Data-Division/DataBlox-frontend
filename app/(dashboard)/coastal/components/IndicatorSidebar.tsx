@@ -3,25 +3,24 @@
 import React, { useMemo, useState } from 'react';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   Checkbox,
   Chip,
-  Collapse,
   FormControl,
   FormControlLabel,
-  FormGroup,
+  Switch,
   MenuItem,
   Select,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import { IndicatorPickerDialog } from './IndicatorPickerDialog';
 import type { CoastalAggFunc } from '@/types/coastal';
 import {
   COASTAL_INDICATORS,
-  COASTAL_INDICATOR_GROUPS,
   NO_DATA_COLOR,
   NO_DATA_LABEL,
   getIndicatorMeta,
@@ -39,6 +38,12 @@ export interface IndicatorSidebarProps {
   // Omitted = no toggle shown.
   clustersEnabled?: boolean;
   onChangeClustersEnabled?: (enabled: boolean) => void;
+  // Side-by-side maps. The switch only renders when `compareCandidates` is non-empty.
+  compareCandidates?: string[];
+  compareEnabled?: boolean;
+  onChangeCompareEnabled?: (enabled: boolean) => void;
+  compareIndicator?: string | null;
+  onChangeCompareIndicator?: (ind: string) => void;
 }
 
 function gradientFor(id: string): string {
@@ -81,31 +86,15 @@ export function IndicatorSidebar({
   onChangeChoroplethIndicator,
   clustersEnabled = true,
   onChangeClustersEnabled,
+  compareCandidates = [],
+  compareEnabled = false,
+  onChangeCompareEnabled,
+  compareIndicator = null,
+  onChangeCompareIndicator,
 }: IndicatorSidebarProps) {
-  const [search, setSearch] = useState('');
-  // Explicit user toggles per group. Unset = open only if the group holds a selection.
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [pickerOpen, setPickerOpen] = useState(false);
   const maxCount = mode === 'map' ? 3 : 2;
-  const atMax = selectedIndicators.length >= maxCount;
   const showVesselOverlay = selectedIndicators.includes('vessels');
-  const query = search.trim().toLowerCase();
-
-  const visibleGroups = useMemo(
-    () =>
-      COASTAL_INDICATOR_GROUPS.map(({ group, ids }) => ({
-        group,
-        ids: ids.filter((id) => {
-          if (!query) return true;
-          const meta = getIndicatorMeta(id);
-          return (
-            meta?.label.toLowerCase().includes(query) ||
-            id.toLowerCase().includes(query) ||
-            meta?.unit.toLowerCase().includes(query)
-          );
-        }),
-      })).filter(({ ids }) => ids.length > 0),
-    [query],
-  );
 
   // Map-mode legend: one colorbar per selected map-capable indicator, with a
   // switcher when more than one is selected. Temperature is always °C.
@@ -141,24 +130,69 @@ export function IndicatorSidebar({
                 <ChoroplethColorbar
                   key={id}
                   indicatorId={id}
-                  dimmed={mapLegendIds.length > 1 && id !== activeChoroplethIndicator}
+                  dimmed={mapLegendIds.length > 1 && id !== activeChoroplethIndicator && !(compareEnabled && id === compareIndicator)}
                 />
               ))}
 
               {mapLegendIds.length > 1 && onChangeChoroplethIndicator && (
                 <Box sx={{ mt: 1 }}>
+                  {onChangeCompareEnabled && compareCandidates.length > 0 && (
+                    <FormControlLabel
+                      sx={{ mb: 0.5 }}
+                      control={
+                        <Switch
+                          size="small"
+                          checked={compareEnabled}
+                          onChange={(e) => onChangeCompareEnabled(e.target.checked)}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Side by side
+                        </Typography>
+                      }
+                    />
+                  )}
+                  {compareEnabled && (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
+                      Left map
+                    </Typography>
+                  )}
                   <FormControl fullWidth size="small">
                     <Select
                       value={activeChoroplethIndicator}
                       onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
                     >
-                      {mapLegendIds.map((id) => (
-                        <MenuItem key={id} value={id}>
-                          {getIndicatorMeta(id)?.label || id}
-                        </MenuItem>
-                      ))}
+                      {mapLegendIds
+                        .filter((id) => !(compareEnabled && id === compareIndicator))
+                        .map((id) => (
+                          <MenuItem key={id} value={id}>
+                            {getIndicatorMeta(id)?.label || id}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
+                  {compareEnabled && compareIndicator && onChangeCompareIndicator && (
+                    <>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mt: 1 }}>
+                        Right map
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <Select
+                          value={compareIndicator}
+                          onChange={(e) => onChangeCompareIndicator(e.target.value)}
+                        >
+                          {mapLegendIds
+                            .filter((id) => id !== activeChoroplethIndicator)
+                            .map((id) => (
+                              <MenuItem key={id} value={id}>
+                                {getIndicatorMeta(id)?.label || id}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </>
+                  )}
                 </Box>
               )}
               </Stack>
@@ -172,9 +206,19 @@ export function IndicatorSidebar({
         sx={{ borderRadius: 2, flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <CardContent sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-            {mode === 'map' ? 'Indicators' : 'Indicators (max 2)'}
-          </Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              {mode === 'map' ? 'Indicators' : 'Indicators (max 2)'}
+            </Typography>
+            <Button
+              size="small"
+              startIcon={<PlaylistAddCheckIcon sx={{ fontSize: 18 }} />}
+              onClick={() => setPickerOpen(true)}
+              sx={{ textTransform: 'none', fontWeight: 600, minWidth: 0, py: 0, px: 0.75 }}
+            >
+              Select
+            </Button>
+          </Stack>
           {selectedIndicators.length > 0 && (
             <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: 'wrap', mb: 1 }}>
               {selectedIndicators.map((id) => (
@@ -188,97 +232,13 @@ export function IndicatorSidebar({
               ))}
             </Stack>
           )}
-          <TextField
-            size="small"
-            fullWidth
-            placeholder="Search indicators"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ mb: 1 }}
-            aria-label="Search indicators"
+          <IndicatorPickerDialog
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            selectedIndicators={selectedIndicators}
+            maxCount={maxCount}
+            onToggleIndicator={onToggleIndicator}
           />
-          <Box sx={{ flex: '1 1 auto', minHeight: 0, maxHeight: 420, overflowY: 'auto', mb: 1 }}>
-            {visibleGroups.map(({ group, ids }) => {
-              const hasSelected = ids.some((id) => selectedIndicators.includes(id));
-              const open = query ? true : openGroups[group] ?? hasSelected;
-              return (
-                <Box key={group}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    component="button"
-                    type="button"
-                    aria-expanded={open}
-                    onClick={() => setOpenGroups((prev) => ({ ...prev, [group]: !open }))}
-                    sx={{
-                      width: '100%',
-                      py: 0.75,
-                      px: 0,
-                      border: 0,
-                      background: 'none',
-                      cursor: 'pointer',
-                      color: 'text.secondary',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}
-                    >
-                      {group} ({ids.length})
-                    </Typography>
-                    <ExpandMoreIcon
-                      fontSize="small"
-                      sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-                    />
-                  </Stack>
-                  <Collapse in={open} unmountOnExit>
-                    <FormGroup sx={{ mb: 1 }}>
-                      {ids.map((id) => {
-                        const meta = getIndicatorMeta(id);
-                        if (!meta) return null;
-                        const isSelected = selectedIndicators.includes(id);
-                        const disabled = !isSelected && atMax;
-                        return (
-                          <FormControlLabel
-                            key={id}
-                            control={
-                              <Checkbox
-                                size="small"
-                                checked={isSelected}
-                                disabled={disabled}
-                                onChange={() => onToggleIndicator(id)}
-                                sx={{
-                                  py: 0.25,
-                                  '&.Mui-checked': {
-                                    color: meta.color,
-                                  },
-                                }}
-                              />
-                            }
-                            label={
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {meta.label}{' '}
-                                <Typography component="span" variant="caption" color="text.secondary">
-                                  · {meta.unit}
-                                </Typography>
-                              </Typography>
-                            }
-                          />
-                        );
-                      })}
-                    </FormGroup>
-                  </Collapse>
-                </Box>
-              );
-            })}
-          {visibleGroups.length === 0 && (
-            <Typography variant="caption" color="text.secondary">
-              No indicators match “{search}”.
-            </Typography>
-          )}
-          </Box>
 
           <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>

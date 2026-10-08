@@ -5,14 +5,15 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ConnectivityStatus } from './ConnectivityStatus';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
-import { ArrowRight } from '@phosphor-icons/react/dist/ssr';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, LockSimple } from '@phosphor-icons/react/dist/ssr';
 
 interface NavSubLink {
   label: string;
   href: string;
   preserveParams?: boolean;
   exact?: boolean;
+  adminOnly?: boolean;
 }
 
 interface NavCategory {
@@ -43,8 +44,7 @@ const navigationLinks: NavCategory[] = [
     links: [
       { label: 'Indicators', href: '/coastal/indicators', preserveParams: true },
       { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
-      { label: 'Upload portal', href: '/coastal/admin/upload', exact: true },
-      { label: 'Admin dashboard', href: '/coastal/admin', exact: true },
+      { label: 'Admin dashboard', href: '/coastal/admin', exact: true, adminOnly: true },
     ],
   },
 ];
@@ -228,8 +228,9 @@ function NavCategoryItem({
         )}
 
         {/* Navigation Links */}
-        {category.links.map((link) => {
+        {category.links.map((link, index) => {
           const isActive = pathname === link.href;
+          const startsAdminGroup = link.adminOnly && !category.links[index - 1]?.adminOnly;
 
           // Preserve location params for migration/tourism, or coastal params when active search exists.
           // Admin links are exact and never rewritten.
@@ -246,7 +247,30 @@ function NavCategoryItem({
           }
 
           return (
-            <Link key={link.href} href={href} style={{ textDecoration: 'none' }}>
+            <React.Fragment key={link.href}>
+            {startsAdminGroup && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap="6px"
+                sx={{ mt: '8px', pt: '8px', px: '12px', borderTop: '1px solid #E2E8F0' }}
+              >
+                <LockSimple size={12} style={{ color: '#94A3B8' }} />
+                <Typography
+                  sx={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-asap), sans-serif',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: '#94A3B8',
+                  }}
+                >
+                  Admin only
+                </Typography>
+              </Stack>
+            )}
+            <Link href={href} style={{ textDecoration: 'none' }}>
               <Stack
                 direction="row"
                 alignItems="center"
@@ -278,6 +302,7 @@ function NavCategoryItem({
                 <ArrowRight size={14} style={{ color: '#0077BE', flexShrink: 0 }} />
               </Stack>
             </Link>
+            </React.Fragment>
           );
         })}
       </Popover>
