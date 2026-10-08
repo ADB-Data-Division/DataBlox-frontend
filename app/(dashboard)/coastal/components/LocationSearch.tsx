@@ -68,7 +68,6 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
       display_name: p.name,
       country_iso: p.country_iso || p.countryIso || countryIso,
       type: 'province',
-      aois: p.aois,
     }));
     return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
   }, [provinces, locations, countryIso]);
@@ -223,7 +222,10 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
               let subText = '';
               if (isProv) {
                 const prov = provinces.find((p) => p.name === name);
-                subText = prov ? `${prov.aois.length} Coastal AOIs` : 'Province';
+                subText =
+                  typeof prov?.total_hexagons === 'number'
+                    ? `${prov.total_hexagons} hexagons`
+                    : 'Province';
               } else {
                 subText = option.location.province || String(option.location.aoi_id).toUpperCase();
               }

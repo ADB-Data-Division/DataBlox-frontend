@@ -213,6 +213,8 @@ export interface GeoJSONGeometry {
 export interface GeoJSONFeatureProperties {
   h3_index: string;
   aoi_id: string;
+  /** Province the hex itself lies in (an AOI can span several). */
+  province?: string | null;
   country_iso?: string;
   [key: string]: unknown;
 }

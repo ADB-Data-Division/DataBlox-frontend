@@ -1,4 +1,5 @@
 import { CoastalProvince } from '@/types/coastal';
+import { PROVINCE_SCOPE_PREFIX, provinceScopeToken } from '@/src/utils/coastalScope';
 export type { CoastalProvince };
 
 export type ProvinceOrPortSelection =
@@ -14,7 +15,7 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_pa-mok_10km_53"
     ],
     "aoi_count": 2,
-    "total_hexagons": 24
+    "total_hexagons": 17
   },
   {
     "name": "Bangkok",
@@ -34,11 +35,12 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_khlong-toei-nuea_10km_40",
       "THA_makkasan_10km_38",
       "THA_min-buri_10km_29",
+      "THA_na-kluea_10km_46",
       "THA_suan-chitlada_10km_26",
       "THA_wat-tha-phra_10km_30"
     ],
-    "aoi_count": 16,
-    "total_hexagons": 17
+    "aoi_count": 17,
+    "total_hexagons": 33
   },
   {
     "name": "Bueng Kan",
@@ -57,7 +59,25 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_bang-pakong_10km_106"
     ],
     "aoi_count": 1,
-    "total_hexagons": 33
+    "total_hexagons": 24
+  },
+  {
+    "name": "Chai Nat",
+    "country_iso": "THA",
+    "aois": [
+      "THA_nam-suem_10km_77"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 1
+  },
+  {
+    "name": "Chanthaburi",
+    "country_iso": "THA",
+    "aois": [
+      "THA_noen-sai_10km_19"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 2
   },
   {
     "name": "Chiang Mai",
@@ -83,10 +103,12 @@ const THA_PROVINCES: CoastalProvince[] = [
     "name": "Chon Buri",
     "country_iso": "THA",
     "aois": [
+      "THA_bang-pakong_10km_106",
+      "THA_bang-pu-mai_10km_107",
       "THA_na-kluea_10km_76"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 573
+    "aoi_count": 3,
+    "total_hexagons": 417
   },
   {
     "name": "Chumphon",
@@ -106,7 +128,7 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_samran-tai_10km_67"
     ],
     "aoi_count": 1,
-    "total_hexagons": 41
+    "total_hexagons": 40
   },
   {
     "name": "Kanchanaburi",
@@ -127,7 +149,7 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_krabi-yai_10km_20"
     ],
     "aoi_count": 4,
-    "total_hexagons": 1214
+    "total_hexagons": 489
   },
   {
     "name": "Loei",
@@ -162,18 +184,21 @@ const THA_PROVINCES: CoastalProvince[] = [
     "name": "Nakhon Si Thammarat",
     "country_iso": "THA",
     "aois": [
-      "THA_khanom_10km_103"
+      "THA_don-sak_10km_63",
+      "THA_khanom_10km_103",
+      "THA_taling-ngam_10km_58"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 49
+    "aoi_count": 3,
+    "total_hexagons": 55
   },
   {
     "name": "Nan",
     "country_iso": "THA",
     "aois": [
-      "THA_na-thanung_10km_65"
+      "THA_na-thanung_10km_65",
+      "THA_nang-phaya_10km_64"
     ],
-    "aoi_count": 1,
+    "aoi_count": 2,
     "total_hexagons": 16
   },
   {
@@ -196,13 +221,23 @@ const THA_PROVINCES: CoastalProvince[] = [
     "total_hexagons": 35
   },
   {
+    "name": "Nonthaburi",
+    "country_iso": "THA",
+    "aois": [
+      "THA_na-kluea_10km_46"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 11
+  },
+  {
     "name": "Pathum Thani",
     "country_iso": "THA",
     "aois": [
-      "THA_khu-khot_10km_47"
+      "THA_khu-khot_10km_47",
+      "THA_na-kluea_10km_46"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 1
+    "aoi_count": 2,
+    "total_hexagons": 8
   },
   {
     "name": "Pattani",
@@ -217,13 +252,15 @@ const THA_PROVINCES: CoastalProvince[] = [
     "name": "Phangnga",
     "country_iso": "THA",
     "aois": [
+      "THA_ao-nang_10km_66",
       "THA_bang-nai-si_10km_59",
       "THA_bang-wan_10km_101",
+      "THA_kantang-tai_10km_24",
       "THA_lam-kaen_10km_100",
       "THA_mae-nang-khao_10km_69"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 135
+    "aoi_count": 6,
+    "total_hexagons": 364
   },
   {
     "name": "Phayao",
@@ -238,20 +275,31 @@ const THA_PROVINCES: CoastalProvince[] = [
     "name": "Phetchaburi",
     "country_iso": "THA",
     "aois": [
+      "THA_laem-yai_10km_62",
       "THA_pak-thale_10km_105"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 67
+    "aoi_count": 2,
+    "total_hexagons": 70
   },
   {
     "name": "Phra Nakhon Si Ayutthaya",
     "country_iso": "THA",
     "aois": [
       "THA_ho-rattana-chai_10km_50",
+      "THA_pa-mok_10km_53",
       "THA_ratchakhram_10km_52"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 24
+    "aoi_count": 3,
+    "total_hexagons": 28
+  },
+  {
+    "name": "Phuket",
+    "country_iso": "THA",
+    "aois": [
+      "THA_kantang-tai_10km_24"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 308
   },
   {
     "name": "Prachuap Khiri Khan",
@@ -273,6 +321,24 @@ const THA_PROVINCES: CoastalProvince[] = [
     "total_hexagons": 159
   },
   {
+    "name": "Ratchaburi",
+    "country_iso": "THA",
+    "aois": [
+      "THA_laem-yai_10km_62"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 4
+  },
+  {
+    "name": "Rayong",
+    "country_iso": "THA",
+    "aois": [
+      "THA_na-kluea_10km_76"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 188
+  },
+  {
     "name": "Samut Prakan",
     "country_iso": "THA",
     "aois": [
@@ -280,16 +346,17 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_na-kluea_10km_46"
     ],
     "aoi_count": 2,
-    "total_hexagons": 174
+    "total_hexagons": 117
   },
   {
     "name": "Samut Sakhon",
     "country_iso": "THA",
     "aois": [
-      "THA_khok-kham_10km_49"
+      "THA_khok-kham_10km_49",
+      "THA_laem-yai_10km_62"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 36
+    "aoi_count": 2,
+    "total_hexagons": 37
   },
   {
     "name": "Samut Songkhram",
@@ -298,7 +365,7 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_laem-yai_10km_62"
     ],
     "aoi_count": 1,
-    "total_hexagons": 47
+    "total_hexagons": 39
   },
   {
     "name": "Satun",
@@ -306,10 +373,20 @@ const THA_PROVINCES: CoastalProvince[] = [
     "aois": [
       "THA_ko-sarai_10km_61",
       "THA_laem-son_10km_97",
-      "THA_puyu_10km_79"
+      "THA_puyu_10km_79",
+      "THA_tase_10km_102"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 238
+    "aoi_count": 4,
+    "total_hexagons": 245
+  },
+  {
+    "name": "Sing Buri",
+    "country_iso": "THA",
+    "aois": [
+      "THA_chaiyo_10km_78"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 3
   },
   {
     "name": "Songkhla",
@@ -326,14 +403,15 @@ const THA_PROVINCES: CoastalProvince[] = [
     "aois": [
       "THA_ang-thong_10km_108",
       "THA_don-sak_10km_63",
+      "THA_khanom_10km_103",
       "THA_khao-phang_10km_73",
       "THA_khlong-chanak_10km_72",
       "THA_ko-tao_10km_89",
       "THA_taling-ngam_10km_58",
       "THA_tha-chana_10km_109"
     ],
-    "aoi_count": 7,
-    "total_hexagons": 475
+    "aoi_count": 8,
+    "total_hexagons": 469
   },
   {
     "name": "Tak",
@@ -358,10 +436,11 @@ const THA_PROVINCES: CoastalProvince[] = [
     "name": "Trang",
     "country_iso": "THA",
     "aois": [
+      "THA_kantang-tai_10km_24",
       "THA_tase_10km_102"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 77
+    "aoi_count": 2,
+    "total_hexagons": 258
   },
   {
     "name": "Trat",
@@ -370,7 +449,16 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_noen-sai_10km_19"
     ],
     "aoi_count": 1,
-    "total_hexagons": 428
+    "total_hexagons": 426
+  },
+  {
+    "name": "Udon Thani",
+    "country_iso": "THA",
+    "aois": [
+      "THA_samran-tai_10km_67"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 1
   },
   {
     "name": "Uthai Thani",
@@ -379,15 +467,16 @@ const THA_PROVINCES: CoastalProvince[] = [
       "THA_nam-suem_10km_77"
     ],
     "aoi_count": 1,
-    "total_hexagons": 4
+    "total_hexagons": 3
   },
   {
     "name": "Uttaradit",
     "country_iso": "THA",
     "aois": [
+      "THA_na-thanung_10km_65",
       "THA_nang-phaya_10km_64"
     ],
-    "aoi_count": 1,
+    "aoi_count": 2,
     "total_hexagons": 33
   }
 ];
@@ -431,7 +520,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_negara_10km_555"
     ],
     "aoi_count": 5,
-    "total_hexagons": 528
+    "total_hexagons": 466
   },
   {
     "name": "Banten",
@@ -440,11 +529,12 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_bayah_10km_516",
       "IDN_kronjo_10km_570",
       "IDN_labuan_10km_538",
+      "IDN_muara-gembong_10km_404",
       "IDN_pontang_10km_10",
       "IDN_sumur_10km_446"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 634
+    "aoi_count": 6,
+    "total_hexagons": 433
   },
   {
     "name": "Bengkulu",
@@ -466,7 +556,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_patuk_10km_260"
     ],
     "aoi_count": 2,
-    "total_hexagons": 44
+    "total_hexagons": 30
   },
   {
     "name": "Dki Jakarta",
@@ -476,10 +566,11 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_kepulauan-seribu-utara_10km_485",
       "IDN_kepulauan-seribu-utara_10km_591",
       "IDN_koja_10km_402",
+      "IDN_kronjo_10km_570",
       "IDN_muara-gembong_10km_404"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 571
+    "aoi_count": 6,
+    "total_hexagons": 490
   },
   {
     "name": "Gorontalo",
@@ -488,10 +579,11 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_anggrek_10km_548",
       "IDN_batudaa-pantai_10km_420",
       "IDN_paguat_10km_336",
+      "IDN_pinogaluman_10km_355",
       "IDN_wanggarasi_10km_566"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 153
+    "aoi_count": 5,
+    "total_hexagons": 158
   },
   {
     "name": "Jambi",
@@ -525,10 +617,12 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_cikelet_10km_520",
       "IDN_cipatujah_10km_560",
       "IDN_kalipucang_10km_472",
+      "IDN_kampung-laut_10km_473",
       "IDN_kandanghaur_10km_481",
       "IDN_karawang-barat_10km_234",
       "IDN_legonkulon_10km_580",
       "IDN_losari_10km_490",
+      "IDN_muara-gembong_10km_404",
       "IDN_muara-gembong_10km_583",
       "IDN_pakisjaya_10km_403",
       "IDN_palabuhanratu_10km_552",
@@ -538,8 +632,8 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_surade_10km_572",
       "IDN_tempuran_10km_521"
     ],
-    "aoi_count": 20,
-    "total_hexagons": 995
+    "aoi_count": 22,
+    "total_hexagons": 1054
   },
   {
     "name": "Jawa Tengah",
@@ -548,8 +642,10 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_brebes_10km_493",
       "IDN_cilacap-tengah_10km_499",
       "IDN_donorojo_10km_442",
+      "IDN_girisubo_10km_559",
       "IDN_juwana_10km_514",
       "IDN_kaliori_10km_475",
+      "IDN_kalipucang_10km_472",
       "IDN_kampung-laut_10km_473",
       "IDN_karimunjawa_10km_180",
       "IDN_karimunjawa_10km_68",
@@ -563,7 +659,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_ulujami_10km_495",
       "IDN_wanareja_10km_9"
     ],
-    "aoi_count": 17,
+    "aoi_count": 19,
     "total_hexagons": 1059
   },
   {
@@ -573,6 +669,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_baureno_10km_146",
       "IDN_gapura_10km_541",
       "IDN_genteng_10km_209",
+      "IDN_gerokgak_10km_13",
       "IDN_jangkar_10km_461",
       "IDN_jenu_10km_565",
       "IDN_kangayan_10km_315",
@@ -589,6 +686,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_pesanggaran_10km_474",
       "IDN_sampang_10km_196",
       "IDN_sangkapura_10km_432",
+      "IDN_sarang_10km_546",
       "IDN_sepulu_10km_575",
       "IDN_sepulu_10km_589",
       "IDN_sumberasih_10km_1",
@@ -596,8 +694,8 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_watulimo_10km_467",
       "IDN_wuluhan_10km_557"
     ],
-    "aoi_count": 25,
-    "total_hexagons": 1855
+    "aoi_count": 27,
+    "total_hexagons": 1920
   },
   {
     "name": "Kalimantan Barat",
@@ -730,6 +828,8 @@ const IDN_PROVINCES: CoastalProvince[] = [
     "name": "Kepulauan Bangka Belitung",
     "country_iso": "IDN",
     "aois": [
+      "IDN_air-sugihan_10km_578",
+      "IDN_banyuasin-ii_10km_138",
       "IDN_belinyu_10km_91",
       "IDN_belinyu_10km_92",
       "IDN_bukit-intan_10km_70",
@@ -741,8 +841,8 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_tanjung-pandan_10km_56",
       "IDN_toboali_10km_483"
     ],
-    "aoi_count": 10,
-    "total_hexagons": 476
+    "aoi_count": 12,
+    "total_hexagons": 565
   },
   {
     "name": "Kepulauan Riau",
@@ -769,7 +869,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_ungar_10km_12"
     ],
     "aoi_count": 19,
-    "total_hexagons": 2225
+    "total_hexagons": 2220
   },
   {
     "name": "Lampung",
@@ -778,11 +878,15 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_cukuh-balak_10km_43",
       "IDN_dente-teladas_10km_316",
       "IDN_katibung_10km_486",
+      "IDN_kepulauan-seribu-utara_10km_485",
+      "IDN_kepulauan-seribu-utara_10km_591",
       "IDN_labuhan-maringgai_10km_549",
-      "IDN_rawajitu-timur_10km_253"
+      "IDN_pontang_10km_10",
+      "IDN_rawajitu-timur_10km_253",
+      "IDN_sungai-menang_10km_252"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 322
+    "aoi_count": 9,
+    "total_hexagons": 565
   },
   {
     "name": "Maluku",
@@ -833,7 +937,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_wetar_10km_415"
     ],
     "aoi_count": 43,
-    "total_hexagons": 2958
+    "total_hexagons": 2926
   },
   {
     "name": "Maluku Utara",
@@ -890,6 +994,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_aimere_10km_217",
       "IDN_alok-timur_10km_191",
       "IDN_alor-barat-daya_10km_413",
+      "IDN_alor-timur_10km_271",
       "IDN_amfoang-utara_10km_327",
       "IDN_borong_10km_195",
       "IDN_insana-utara_10km_34",
@@ -914,8 +1019,8 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_sabu-barat_10km_188",
       "IDN_semau_10km_127"
     ],
-    "aoi_count": 27,
-    "total_hexagons": 1886
+    "aoi_count": 28,
+    "total_hexagons": 1918
   },
   {
     "name": "Papua",
@@ -1007,10 +1112,11 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_tembilahan_10km_185",
       "IDN_tualang_10km_79",
       "IDN_tualang_10km_80",
-      "IDN_tualang_10km_81"
+      "IDN_tualang_10km_81",
+      "IDN_ungar_10km_12"
     ],
-    "aoi_count": 19,
-    "total_hexagons": 620
+    "aoi_count": 20,
+    "total_hexagons": 625
   },
   {
     "name": "Sulawesi Barat",
@@ -1137,7 +1243,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_wori_10km_117"
     ],
     "aoi_count": 22,
-    "total_hexagons": 1687
+    "total_hexagons": 1682
   },
   {
     "name": "Sumatera Barat",
@@ -1185,7 +1291,7 @@ const IDN_PROVINCES: CoastalProvince[] = [
       "IDN_tulung-selapan_10km_60"
     ],
     "aoi_count": 17,
-    "total_hexagons": 497
+    "total_hexagons": 399
   },
   {
     "name": "Sumatera Utara",
@@ -1220,10 +1326,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "name": "Agusan del Norte",
     "country_iso": "PHL",
     "aois": [
-      "PHL_butuan-city-capital_10km_129"
+      "PHL_butuan-city-capital_10km_129",
+      "PHL_esperanza_10km_130"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 153
+    "aoi_count": 2,
+    "total_hexagons": 157
   },
   {
     "name": "Agusan del Sur",
@@ -1235,7 +1342,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_loreto_10km_135"
     ],
     "aoi_count": 4,
-    "total_hexagons": 23
+    "total_hexagons": 19
   },
   {
     "name": "Aklan",
@@ -1245,17 +1352,20 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_roxas-city-capital_10km_57"
     ],
     "aoi_count": 2,
-    "total_hexagons": 422
+    "total_hexagons": 188
   },
   {
     "name": "Albay",
     "country_iso": "PHL",
     "aois": [
+      "PHL_bula_10km_253",
       "PHL_city-of-tabaco_10km_77",
-      "PHL_pio-duran_10km_227"
+      "PHL_claveria_10km_226",
+      "PHL_pio-duran_10km_227",
+      "PHL_san-jose_10km_216"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 268
+    "aoi_count": 5,
+    "total_hexagons": 262
   },
   {
     "name": "Antique",
@@ -1265,10 +1375,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_caluya_10km_262",
       "PHL_culasi_10km_221",
       "PHL_culasi_10km_60",
+      "PHL_malay_10km_38",
       "PHL_san-jose-capital_10km_251"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 437
+    "aoi_count": 6,
+    "total_hexagons": 468
   },
   {
     "name": "Aurora",
@@ -1284,21 +1395,25 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "name": "Basilan",
     "country_iso": "PHL",
     "aois": [
+      "PHL_city-of-isabela_10km_98",
       "PHL_city-of-lamitan_10km_17",
-      "PHL_maluso_10km_259"
+      "PHL_maluso_10km_259",
+      "PHL_zamboanga-city_10km_87"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 125
+    "aoi_count": 4,
+    "total_hexagons": 139
   },
   {
     "name": "Bataan",
     "country_iso": "PHL",
     "aois": [
       "PHL_abucay_10km_1",
-      "PHL_bulacan_10km_2"
+      "PHL_bulacan_10km_2",
+      "PHL_lubao_10km_4",
+      "PHL_subic_10km_233"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 427
+    "aoi_count": 4,
+    "total_hexagons": 191
   },
   {
     "name": "Batanes",
@@ -1314,35 +1429,49 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "name": "Batangas",
     "country_iso": "PHL",
     "aois": [
+      "PHL_bulacan_10km_2",
       "PHL_calatagan_10km_72",
       "PHL_city-of-calapan-capital_10km_74",
       "PHL_city-of-tanauan_10km_73",
       "PHL_nasugbu_10km_189",
       "PHL_san-juan_10km_186"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 686
+    "aoi_count": 6,
+    "total_hexagons": 534
+  },
+  {
+    "name": "Biliran",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_gandara_10km_24",
+      "PHL_medellin_10km_59",
+      "PHL_san-sebastian_10km_25"
+    ],
+    "aoi_count": 3,
+    "total_hexagons": 183
   },
   {
     "name": "Bohol",
     "country_iso": "PHL",
     "aois": [
       "PHL_guindulman_10km_103",
+      "PHL_hilongos_10km_158",
       "PHL_inabanga_10km_42",
       "PHL_lapu-lapu-city-opon_10km_12",
       "PHL_maribojoc_10km_44"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 971
+    "aoi_count": 5,
+    "total_hexagons": 664
   },
   {
     "name": "Bulacan",
     "country_iso": "PHL",
     "aois": [
+      "PHL_bulacan_10km_2",
       "PHL_city-of-malolos-capital_10km_3"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 1
+    "aoi_count": 2,
+    "total_hexagons": 63
   },
   {
     "name": "Cagayan",
@@ -1363,13 +1492,14 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "name": "Camarines Norte",
     "country_iso": "PHL",
     "aois": [
+      "PHL_magarao_10km_217",
       "PHL_mercedes_10km_148",
       "PHL_paracale_10km_149",
       "PHL_vinzons_10km_150",
       "PHL_vinzons_10km_151"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 262
+    "aoi_count": 5,
+    "total_hexagons": 264
   },
   {
     "name": "Camarines Sur",
@@ -1380,10 +1510,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_lagonoy_10km_220",
       "PHL_magarao_10km_217",
       "PHL_pasacao_10km_218",
+      "PHL_san-andres-calolbon_10km_202",
       "PHL_san-jose_10km_216"
     ],
-    "aoi_count": 6,
-    "total_hexagons": 405
+    "aoi_count": 7,
+    "total_hexagons": 443
   },
   {
     "name": "Camiguin",
@@ -1392,63 +1523,83 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_mahinog_10km_46"
     ],
     "aoi_count": 1,
-    "total_hexagons": 188
+    "total_hexagons": 148
   },
   {
     "name": "Capiz",
     "country_iso": "PHL",
     "aois": [
+      "PHL_carles_10km_75",
       "PHL_dao_10km_55",
-      "PHL_dumalag_10km_56"
+      "PHL_dumalag_10km_56",
+      "PHL_roxas-city-capital_10km_57"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 2
+    "aoi_count": 4,
+    "total_hexagons": 82
   },
   {
     "name": "Catanduanes",
     "country_iso": "PHL",
     "aois": [
       "PHL_baras_10km_201",
+      "PHL_caramoan_10km_200",
       "PHL_panganiban-payo_10km_231",
       "PHL_san-andres-calolbon_10km_202"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 251
+    "aoi_count": 4,
+    "total_hexagons": 205
+  },
+  {
+    "name": "Cavite",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_bulacan_10km_2"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 148
   },
   {
     "name": "Cebu",
     "country_iso": "PHL",
     "aois": [
       "PHL_badian_10km_97",
+      "PHL_bais-city_10km_222",
       "PHL_balamban_10km_83",
       "PHL_city-of-bogo_10km_58",
       "PHL_dalaguete_10km_261",
       "PHL_dumanjug_10km_223",
+      "PHL_enrique-villanueva_10km_93",
+      "PHL_gandara_10km_24",
+      "PHL_hilongos_10km_158",
+      "PHL_inabanga_10km_42",
+      "PHL_lapu-lapu-city-opon_10km_12",
       "PHL_medellin_10km_59",
       "PHL_toledo-city_10km_84",
       "PHL_tuburan_10km_165"
     ],
-    "aoi_count": 8,
-    "total_hexagons": 650
+    "aoi_count": 14,
+    "total_hexagons": 1277
   },
   {
     "name": "City of Isabela (not a province)",
     "country_iso": "PHL",
     "aois": [
-      "PHL_city-of-isabela_10km_98"
+      "PHL_city-of-isabela_10km_98",
+      "PHL_zamboanga-city_10km_87"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 45
+    "aoi_count": 2,
+    "total_hexagons": 42
   },
   {
     "name": "Davao Occidental",
     "country_iso": "PHL",
     "aois": [
+      "PHL_davao-city_10km_76",
       "PHL_malita_10km_260",
       "PHL_sarangani_10km_235"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 157
+    "aoi_count": 3,
+    "total_hexagons": 176
   },
   {
     "name": "Davao Oriental",
@@ -1464,6 +1615,15 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "total_hexagons": 246
   },
   {
+    "name": "Davao de Oro (Compostela Valley)",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_davao-city_10km_76"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 15
+  },
+  {
     "name": "Davao del Norte",
     "country_iso": "PHL",
     "aois": [
@@ -1471,16 +1631,26 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_kapalong_10km_153"
     ],
     "aoi_count": 2,
-    "total_hexagons": 300
+    "total_hexagons": 122
+  },
+  {
+    "name": "Davao del Sur",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_davao-city_10km_76"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 131
   },
   {
     "name": "Dinagat Islands",
     "country_iso": "PHL",
     "aois": [
+      "PHL_surigao-city-capital_10km_33",
       "PHL_tubajon_10km_35"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 83
+    "aoi_count": 2,
+    "total_hexagons": 350
   },
   {
     "name": "Eastern Samar",
@@ -1512,7 +1682,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_dumangas_10km_137"
     ],
     "aoi_count": 1,
-    "total_hexagons": 273
+    "total_hexagons": 187
   },
   {
     "name": "Ilocos Norte",
@@ -1538,11 +1708,13 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "country_iso": "PHL",
     "aois": [
       "PHL_carles_10km_75",
+      "PHL_city-of-escalante_10km_162",
+      "PHL_dumangas_10km_137",
       "PHL_enrique-b-magalona-saravia_10km_96",
       "PHL_guimbal_10km_195"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 339
+    "aoi_count": 5,
+    "total_hexagons": 358
   },
   {
     "name": "Isabela",
@@ -1564,47 +1736,54 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_santo-tomas_10km_252"
     ],
     "aoi_count": 2,
-    "total_hexagons": 93
+    "total_hexagons": 83
   },
   {
     "name": "Laguna",
     "country_iso": "PHL",
     "aois": [
-      "PHL_lumban_10km_187"
+      "PHL_lumban_10km_187",
+      "PHL_taytay_10km_5"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 7
+    "aoi_count": 2,
+    "total_hexagons": 48
   },
   {
     "name": "Lanao del Norte",
     "country_iso": "PHL",
     "aois": [
       "PHL_iligan-city_10km_104",
+      "PHL_lala_10km_167",
       "PHL_sultan-naga-dimaporo-karomatan_10km_246"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 105
+    "aoi_count": 3,
+    "total_hexagons": 103
   },
   {
     "name": "Lanao del Sur",
     "country_iso": "PHL",
     "aois": [
-      "PHL_masiu_10km_243"
+      "PHL_masiu_10km_243",
+      "PHL_parang_10km_249"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 42
+    "aoi_count": 2,
+    "total_hexagons": 52
   },
   {
     "name": "Leyte",
     "country_iso": "PHL",
     "aois": [
       "PHL_abuyog_10km_212",
+      "PHL_basey_10km_16",
       "PHL_city-of-baybay_10km_169",
       "PHL_gandara_10km_24",
+      "PHL_hilongos_10km_158",
+      "PHL_lapu-lapu-city-opon_10km_12",
+      "PHL_san-sebastian_10km_25",
       "PHL_tanauan_10km_15"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 1284
+    "aoi_count": 8,
+    "total_hexagons": 656
   },
   {
     "name": "Maguindanao del Norte",
@@ -1613,17 +1792,18 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_parang_10km_249"
     ],
     "aoi_count": 1,
-    "total_hexagons": 44
+    "total_hexagons": 34
   },
   {
     "name": "Marinduque",
     "country_iso": "PHL",
     "aois": [
+      "PHL_catanauan_10km_48",
       "PHL_mogpog_10km_210",
       "PHL_santa-cruz_10km_228"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 168
+    "aoi_count": 3,
+    "total_hexagons": 174
   },
   {
     "name": "Masbate",
@@ -1632,12 +1812,33 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_aroroy_10km_199",
       "PHL_cawayan_10km_152",
       "PHL_claveria_10km_226",
+      "PHL_gandara_10km_24",
       "PHL_magallanes_10km_141",
       "PHL_mandaon_10km_143",
       "PHL_san-pascual_10km_229"
     ],
-    "aoi_count": 6,
-    "total_hexagons": 601
+    "aoi_count": 7,
+    "total_hexagons": 504
+  },
+  {
+    "name": "Metropolitan Manila First District",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_bulacan_10km_2"
+    ],
+    "aoi_count": 1,
+    "total_hexagons": 36
+  },
+  {
+    "name": "Metropolitan Manila Fourth District",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_bulacan_10km_2",
+      "PHL_city-of-mandaluyong_10km_6",
+      "PHL_taytay_10km_5"
+    ],
+    "aoi_count": 3,
+    "total_hexagons": 26
   },
   {
     "name": "Metropolitan Manila Second District",
@@ -1645,19 +1846,21 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "aois": [
       "PHL_city-of-mandaluyong_10km_6",
       "PHL_city-of-pasig_10km_7",
-      "PHL_city-of-pasig_10km_8"
+      "PHL_city-of-pasig_10km_8",
+      "PHL_taytay_10km_5"
     ],
-    "aoi_count": 3,
+    "aoi_count": 4,
     "total_hexagons": 6
   },
   {
     "name": "Metropolitan Manila Third District",
     "country_iso": "PHL",
     "aois": [
+      "PHL_bulacan_10km_2",
       "PHL_city-of-navotas_10km_9"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 1
+    "aoi_count": 2,
+    "total_hexagons": 12
   },
   {
     "name": "Misamis Occidental",
@@ -1666,17 +1869,19 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_lala_10km_167"
     ],
     "aoi_count": 1,
-    "total_hexagons": 220
+    "total_hexagons": 183
   },
   {
     "name": "Misamis Oriental",
     "country_iso": "PHL",
     "aois": [
       "PHL_cagayan-de-oro-city-capital_10km_234",
-      "PHL_gingoog-city_10km_257"
+      "PHL_gingoog-city_10km_257",
+      "PHL_iligan-city_10km_104",
+      "PHL_mahinog_10km_46"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 188
+    "aoi_count": 4,
+    "total_hexagons": 254
   },
   {
     "name": "Negros Occidental",
@@ -1685,10 +1890,12 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_bacolod-city-capital_10km_185",
       "PHL_city-of-escalante_10km_162",
       "PHL_city-of-himamaylan_10km_209",
-      "PHL_city-of-sipalay_10km_95"
+      "PHL_city-of-sipalay_10km_95",
+      "PHL_dumangas_10km_137",
+      "PHL_enrique-b-magalona-saravia_10km_96"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 502
+    "aoi_count": 6,
+    "total_hexagons": 565
   },
   {
     "name": "Negros Oriental",
@@ -1701,7 +1908,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_sibulan_10km_92"
     ],
     "aoi_count": 5,
-    "total_hexagons": 471
+    "total_hexagons": 276
   },
   {
     "name": "Northern Samar",
@@ -1715,34 +1922,40 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_laoang_10km_116",
       "PHL_lapinig_10km_128",
       "PHL_las-navas_10km_117",
+      "PHL_matnog_10km_18",
       "PHL_pambujan_10km_118",
       "PHL_rosario_10km_160",
       "PHL_san-vicente_10km_219"
     ],
-    "aoi_count": 11,
-    "total_hexagons": 368
+    "aoi_count": 12,
+    "total_hexagons": 371
   },
   {
     "name": "Occidental Mindoro",
     "country_iso": "PHL",
     "aois": [
+      "PHL_caluya_10km_262",
+      "PHL_city-of-calapan-capital_10km_74",
+      "PHL_coron_10km_215",
       "PHL_looc_10km_188",
       "PHL_magsaysay_10km_161",
       "PHL_sablayan_10km_206"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 278
+    "aoi_count": 6,
+    "total_hexagons": 353
   },
   {
     "name": "Oriental Mindoro",
     "country_iso": "PHL",
     "aois": [
       "PHL_bulalacao-san-pedro_10km_163",
+      "PHL_caluya_10km_262",
+      "PHL_city-of-calapan-capital_10km_74",
       "PHL_pinamalayan_10km_166",
       "PHL_roxas_10km_171"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 132
+    "aoi_count": 5,
+    "total_hexagons": 245
   },
   {
     "name": "Palawan",
@@ -1779,7 +1992,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_taytay_10km_82"
     ],
     "aoi_count": 29,
-    "total_hexagons": 2068
+    "total_hexagons": 2040
   },
   {
     "name": "Pampanga",
@@ -1789,7 +2002,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_lubao_10km_4"
     ],
     "aoi_count": 2,
-    "total_hexagons": 45
+    "total_hexagons": 29
   },
   {
     "name": "Pangasinan",
@@ -1797,10 +2010,12 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "aois": [
       "PHL_anda_10km_172",
       "PHL_binmaley_10km_140",
-      "PHL_city-of-alaminos_10km_139"
+      "PHL_candelaria_10km_173",
+      "PHL_city-of-alaminos_10km_139",
+      "PHL_santo-tomas_10km_252"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 224
+    "aoi_count": 5,
+    "total_hexagons": 241
   },
   {
     "name": "Quezon",
@@ -1813,10 +2028,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_jomalig_10km_182",
       "PHL_lucena-city-capital_10km_49",
       "PHL_mauban_10km_194",
-      "PHL_san-andres_10km_50"
+      "PHL_san-andres_10km_50",
+      "PHL_san-juan_10km_186"
     ],
-    "aoi_count": 8,
-    "total_hexagons": 1238
+    "aoi_count": 9,
+    "total_hexagons": 1233
   },
   {
     "name": "Rizal",
@@ -1826,7 +2042,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_taytay_10km_5"
     ],
     "aoi_count": 2,
-    "total_hexagons": 160
+    "total_hexagons": 103
   },
   {
     "name": "Romblon",
@@ -1836,11 +2052,12 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_cajidiocan_10km_225",
       "PHL_concepcion_10km_211",
       "PHL_magdiwang_10km_164",
+      "PHL_malay_10km_38",
       "PHL_odiongan_10km_39",
       "PHL_romblon-capital_10km_37"
     ],
-    "aoi_count": 6,
-    "total_hexagons": 499
+    "aoi_count": 7,
+    "total_hexagons": 618
   },
   {
     "name": "Samar (Western Samar)",
@@ -1850,32 +2067,48 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_gandara_10km_20",
       "PHL_gandara_10km_22",
       "PHL_gandara_10km_23",
+      "PHL_gandara_10km_24",
+      "PHL_rosario_10km_160",
       "PHL_san-jorge_10km_26",
       "PHL_san-jorge_10km_27",
       "PHL_san-jorge_10km_28",
       "PHL_san-sebastian_10km_25"
     ],
-    "aoi_count": 8,
-    "total_hexagons": 347
+    "aoi_count": 10,
+    "total_hexagons": 678
+  },
+  {
+    "name": "Sarangani",
+    "country_iso": "PHL",
+    "aois": [
+      "PHL_general-santos-city-dadiangas_10km_236",
+      "PHL_sarangani_10km_235"
+    ],
+    "aoi_count": 2,
+    "total_hexagons": 84
   },
   {
     "name": "Siquijor",
     "country_iso": "PHL",
     "aois": [
+      "PHL_enrique-villanueva_10km_93",
       "PHL_maria_10km_94"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 50
+    "aoi_count": 2,
+    "total_hexagons": 153
   },
   {
     "name": "Sorsogon",
     "country_iso": "PHL",
     "aois": [
+      "PHL_city-of-tabaco_10km_77",
+      "PHL_magallanes_10km_141",
       "PHL_matnog_10km_18",
-      "PHL_pilar_10km_142"
+      "PHL_pilar_10km_142",
+      "PHL_pio-duran_10km_227"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 87
+    "aoi_count": 5,
+    "total_hexagons": 235
   },
   {
     "name": "South Cotabato",
@@ -1884,7 +2117,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_general-santos-city-dadiangas_10km_236"
     ],
     "aoi_count": 1,
-    "total_hexagons": 106
+    "total_hexagons": 35
   },
   {
     "name": "Southern Leyte",
@@ -1895,7 +2128,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_san-ricardo_10km_168"
     ],
     "aoi_count": 3,
-    "total_hexagons": 519
+    "total_hexagons": 358
   },
   {
     "name": "Sulu",
@@ -1912,10 +2145,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "name": "Surigao del Norte",
     "country_iso": "PHL",
     "aois": [
+      "PHL_san-ricardo_10km_168",
       "PHL_surigao-city-capital_10km_33"
     ],
-    "aoi_count": 1,
-    "total_hexagons": 961
+    "aoi_count": 2,
+    "total_hexagons": 615
   },
   {
     "name": "Surigao del Sur",
@@ -1923,10 +2157,11 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "aois": [
       "PHL_city-of-bislig_10km_105",
       "PHL_hinatuan_10km_106",
+      "PHL_surigao-city-capital_10km_33",
       "PHL_tago_10km_240"
     ],
-    "aoi_count": 3,
-    "total_hexagons": 147
+    "aoi_count": 4,
+    "total_hexagons": 231
   },
   {
     "name": "Tawi-Tawi",
@@ -1946,17 +2181,18 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_subic_10km_233"
     ],
     "aoi_count": 2,
-    "total_hexagons": 285
+    "total_hexagons": 262
   },
   {
     "name": "Zamboanga Sibugay",
     "country_iso": "PHL",
     "aois": [
       "PHL_alicia_10km_230",
+      "PHL_kumalarang_10km_203",
       "PHL_naga_10km_258"
     ],
-    "aoi_count": 2,
-    "total_hexagons": 93
+    "aoi_count": 3,
+    "total_hexagons": 118
   },
   {
     "name": "Zamboanga del Norte",
@@ -1964,11 +2200,12 @@ const PHL_PROVINCES: CoastalProvince[] = [
     "aois": [
       "PHL_dapitan-city_10km_144",
       "PHL_katipunan_10km_145",
+      "PHL_lala_10km_167",
       "PHL_liloy_10km_254",
       "PHL_sindangan_10km_245"
     ],
-    "aoi_count": 4,
-    "total_hexagons": 269
+    "aoi_count": 5,
+    "total_hexagons": 282
   },
   {
     "name": "Zamboanga del Sur",
@@ -1980,7 +2217,7 @@ const PHL_PROVINCES: CoastalProvince[] = [
       "PHL_zamboanga-city_10km_87"
     ],
     "aoi_count": 4,
-    "total_hexagons": 239
+    "total_hexagons": 203
   }
 ];
 
@@ -1992,24 +2229,29 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_barguna-sadar_10km_67",
       "BGD_barishal-sadar-kotwali_10km_69",
       "BGD_bhola-sadar_10km_75",
+      "BGD_chandpur-sadar_10km_17",
       "BGD_charfasson_10km_99",
+      "BGD_hatiya_10km_94",
       "BGD_hijla_10km_68",
       "BGD_mathbaria_10km_78",
       "BGD_mehendiganj_10km_70",
       "BGD_mehendiganj_10km_71",
+      "BGD_monpura_10km_103",
       "BGD_muladi_10km_72",
       "BGD_muladi_10km_73",
       "BGD_nazirpur_10km_79",
       "BGD_rangabali_10km_77"
     ],
-    "aoi_count": 12,
-    "total_hexagons": 798
+    "aoi_count": 15,
+    "total_hexagons": 898
   },
   {
     "name": "Chattogram",
     "country_iso": "BGD",
     "aois": [
+      "BGD_bhola-sadar_10km_75",
       "BGD_brahmanbaria-sadar_10km_51",
+      "BGD_chandpur-sadar_10km_17",
       "BGD_hatiya_10km_94",
       "BGD_homna_10km_19",
       "BGD_monpura_10km_103",
@@ -2022,8 +2264,8 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_sitakunda_10km_84",
       "BGD_teknaf_10km_104"
     ],
-    "aoi_count": 12,
-    "total_hexagons": 1311
+    "aoi_count": 14,
+    "total_hexagons": 1241
   },
   {
     "name": "Dhaka",
@@ -2045,22 +2287,29 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_gazaria_10km_37",
       "BGD_gazipur-city-corporation_10km_33",
       "BGD_goalanda_10km_62",
+      "BGD_hijla_10km_68",
       "BGD_itna_10km_53",
       "BGD_kapasia_10km_101",
       "BGD_keraniganj_10km_21",
       "BGD_madaripur-sadar_10km_34",
       "BGD_muksudpur_10km_93",
       "BGD_naria_10km_40",
+      "BGD_nasirnagar_10km_60",
+      "BGD_nikli_10km_54",
+      "BGD_paikgachha_10km_10",
       "BGD_savar_10km_22",
       "BGD_savar_10km_23",
       "BGD_singair_10km_35",
       "BGD_singair_10km_36",
+      "BGD_sirajganj-sadar_10km_83",
+      "BGD_sreepur_10km_1",
+      "BGD_sujanagar_10km_63",
       "BGD_tarail_10km_100",
       "BGD_tongibari_10km_38",
       "BGD_zajira_10km_41"
     ],
-    "aoi_count": 29,
-    "total_hexagons": 733
+    "aoi_count": 36,
+    "total_hexagons": 625
   },
   {
     "name": "Khulna",
@@ -2069,6 +2318,7 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_ashashuni_10km_13",
       "BGD_ashashuni_10km_15",
       "BGD_bagerhat-sadar_10km_4",
+      "BGD_bhola-sadar_10km_75",
       "BGD_koyra_10km_105",
       "BGD_koyra_10km_7",
       "BGD_koyra_10km_8",
@@ -2082,36 +2332,41 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_shyamnagar_10km_16",
       "BGD_sreepur_10km_1"
     ],
-    "aoi_count": 15,
-    "total_hexagons": 734
+    "aoi_count": 16,
+    "total_hexagons": 740
   },
   {
     "name": "Mymensingh",
     "country_iso": "BGD",
     "aois": [
+      "BGD_dharmapasha_10km_57",
       "BGD_durgapur_10km_65",
       "BGD_fulpur_10km_64",
       "BGD_islampur_10km_47",
+      "BGD_itna_10km_53",
       "BGD_jamalpur-sadar_10km_46",
+      "BGD_kapasia_10km_101",
       "BGD_mymensingh-city-corporation_10km_90",
       "BGD_netrakona-sadar_10km_66",
       "BGD_sreepur_10km_102"
     ],
-    "aoi_count": 7,
-    "total_hexagons": 61
+    "aoi_count": 10,
+    "total_hexagons": 128
   },
   {
     "name": "Rajshahi",
     "country_iso": "BGD",
     "aois": [
+      "BGD_goalanda_10km_62",
+      "BGD_kumarkhali_10km_49",
       "BGD_manda_10km_43",
       "BGD_paba_10km_42",
       "BGD_sariakandi_10km_81",
       "BGD_sirajganj-sadar_10km_83",
       "BGD_sujanagar_10km_63"
     ],
-    "aoi_count": 5,
-    "total_hexagons": 116
+    "aoi_count": 7,
+    "total_hexagons": 113
   },
   {
     "name": "Rangpur",
@@ -2122,12 +2377,13 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_chirirbandar_10km_2",
       "BGD_chirirbandar_10km_3",
       "BGD_fulchhari_10km_48",
+      "BGD_islampur_10km_47",
       "BGD_phulbari_10km_97",
       "BGD_rajibpur_10km_87",
       "BGD_roumari_10km_89"
     ],
-    "aoi_count": 8,
-    "total_hexagons": 48
+    "aoi_count": 9,
+    "total_hexagons": 57
   },
   {
     "name": "Sylhet",
@@ -2139,11 +2395,13 @@ const BGD_PROVINCES: CoastalProvince[] = [
       "BGD_derai_10km_56",
       "BGD_dharmapasha_10km_57",
       "BGD_golapganj_10km_98",
+      "BGD_itna_10km_53",
+      "BGD_nasirnagar_10km_60",
       "BGD_shalla_10km_58",
       "BGD_tahirpur_10km_59"
     ],
-    "aoi_count": 8,
-    "total_hexagons": 203
+    "aoi_count": 10,
+    "total_hexagons": 202
   }
 ];
 
@@ -2162,34 +2420,27 @@ export function getProvincesByCountry(countryIso: string): CoastalProvince[] {
 
 export function resolveCoastalLocations(
   locations: any[],
-  countryIso: string
+  _countryIso: string
 ): { aoiIds: string[]; names: string[] } {
-  const provinces = getProvincesByCountry(countryIso);
   const aoiIds: string[] = [];
   const names: string[] = [];
 
+  // A province goes out as its token and is resolved to its hexes by the backend,
+  // so an AOI that spans several provinces is never expanded here.
   for (const loc of locations) {
     if (loc.type === 'province') {
-      if (Array.isArray(loc.aois) && loc.aois.length > 0) {
-        aoiIds.push(...loc.aois);
-        names.push(loc.name);
-        continue;
-      }
-      const p = provinces.find((prov) => prov.name === loc.name);
-      if (p) {
-        aoiIds.push(...p.aois);
-        names.push(p.name);
-      }
+      aoiIds.push(provinceScopeToken(loc.name));
     } else {
       aoiIds.push(loc.aoi_id);
-      names.push(loc.name);
     }
+    names.push(loc.name);
   }
   return { aoiIds, names };
 }
 
 export function formatDisplayName(aoiId: string): string {
   if (!aoiId) return '';
+  if (aoiId.startsWith(PROVINCE_SCOPE_PREFIX)) return aoiId.slice(PROVINCE_SCOPE_PREFIX.length);
   const parts = aoiId.split('_');
   if (parts.length >= 2) {
     const rawName = parts[1];

@@ -22,6 +22,7 @@ import type {
   VesselTimelineParams,
   VesselDistributionParams,
 } from "../types/coastal";
+import { parseScope } from "../src/utils/coastalScope";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -202,14 +203,18 @@ export async function fetchSpatialGrid(
   }
 
   const countryKey = country.toUpperCase().trim();
-  const aoiFilter = targetAoiIds ? new Set(targetAoiIds) : null;
+  const scope = targetAoiIds ? parseScope(targetAoiIds) : null;
 
   function filterCollection(collection: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
-    if (!aoiFilter || aoiFilter.size === 0) {
+    if (!scope || (scope.aois.size === 0 && scope.provinces.size === 0)) {
       return collection;
     }
-    const filteredFeatures = collection.features.filter((f) =>
-      aoiFilter.has(f.properties?.aoi_id)
+    // A feature is in scope when its AOI is listed or its own hex lies in a listed
+    // province (`properties.province`, set by the backend per hex).
+    const filteredFeatures = collection.features.filter(
+      (f) =>
+        scope.aois.has(f.properties?.aoi_id) ||
+        (typeof f.properties?.province === "string" && scope.provinces.has(f.properties.province))
     );
     return {
       ...collection,
