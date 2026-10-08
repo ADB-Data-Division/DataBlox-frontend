@@ -230,6 +230,10 @@ export function PageContent() {
     ? aoi_id.split(',').map((id) => formatDisplayName(id)).join(', ')
     : country || 'Select Location';
 
+  const aoiCount = aoi_id ? aoi_id.split(',').filter(Boolean).length : 0;
+  const provinceCountText =
+    aoiCount > 1 ? `${aoiCount} provinces` : aoiCount === 1 ? '1 province' : 'National';
+
   const loadData = useCallback(async () => {
     if (!rawCountry) {
       setLoading(false);
@@ -628,7 +632,7 @@ export function PageContent() {
                   sx={{ fontWeight: 600 }}
                 />
                 <Typography variant="body2" color="text.secondary">
-                  1 province
+                  {provinceCountText}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ ml: 'auto !important' }}>
                   <Button
