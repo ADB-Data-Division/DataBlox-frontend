@@ -16,6 +16,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { IndicatorPickerDialog } from './IndicatorPickerDialog';
 import type { CoastalAggFunc } from '@/types/coastal';
 import {
@@ -205,9 +206,19 @@ export function IndicatorSidebar({
         sx={{ borderRadius: 2, flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <CardContent sx={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-            {mode === 'map' ? 'Indicators' : 'Indicators (max 2)'}
-          </Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              {mode === 'map' ? 'Indicators' : 'Indicators (max 2)'}
+            </Typography>
+            <Button
+              size="small"
+              startIcon={<EditOutlinedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => setPickerOpen(true)}
+              sx={{ textTransform: 'none', fontWeight: 600, minWidth: 0, py: 0, px: 0.75 }}
+            >
+              Edit
+            </Button>
+          </Stack>
           {selectedIndicators.length > 0 && (
             <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: 'wrap', mb: 1 }}>
               {selectedIndicators.map((id) => (
@@ -221,14 +232,6 @@ export function IndicatorSidebar({
               ))}
             </Stack>
           )}
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => setPickerOpen(true)}
-            sx={{ mb: 1, textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start' }}
-          >
-            Edit
-          </Button>
           <IndicatorPickerDialog
             open={pickerOpen}
             onClose={() => setPickerOpen(false)}
