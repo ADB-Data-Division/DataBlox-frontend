@@ -658,33 +658,34 @@ export function PageContent() {
           </CardContent>
         </Card>
 
-        {/* Right: Time Range Selector Card */}
-        <Card
-          variant="outlined"
-          sx={{
-            flex: { xs: '1 1 auto', md: '1 1 0%' },
-            borderRadius: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 1.5 } }}>
-            <TimeRangeSelector
-              startDate={start_date}
-              endDate={end_date}
-              grain={grain}
-              onRangeChange={(newStart, newEnd) => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('start_date', newStart);
-                params.set('end_date', newEnd);
-                router.replace(`?${params.toString()}`);
-              }}
-              onGrainChange={handleGrainChange}
-              rangeLocked={viewMode === 'map'}
-            />
-          </CardContent>
-        </Card>
+        {/* Right: Time Range Selector Card. Hidden in map view, the map scrubber and header Agg. Level cover it. */}
+        {viewMode !== 'map' && (
+          <Card
+            variant="outlined"
+            sx={{
+              flex: { xs: '1 1 auto', md: '1 1 0%' },
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 1.5 } }}>
+              <TimeRangeSelector
+                startDate={start_date}
+                endDate={end_date}
+                grain={grain}
+                onRangeChange={(newStart, newEnd) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set('start_date', newStart);
+                  params.set('end_date', newEnd);
+                  router.replace(`?${params.toString()}`);
+                }}
+                onGrainChange={handleGrainChange}
+              />
+            </CardContent>
+          </Card>
+        )}
       </Stack>
 
       {/* Segmented Pill Switcher */}

@@ -16,7 +16,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { IndicatorPickerDialog } from './IndicatorPickerDialog';
 import type { CoastalAggFunc } from '@/types/coastal';
 import {
@@ -212,11 +212,11 @@ export function IndicatorSidebar({
             </Typography>
             <Button
               size="small"
-              startIcon={<EditOutlinedIcon sx={{ fontSize: 16 }} />}
+              startIcon={<PlaylistAddCheckIcon sx={{ fontSize: 18 }} />}
               onClick={() => setPickerOpen(true)}
               sx={{ textTransform: 'none', fontWeight: 600, minWidth: 0, py: 0, px: 0.75 }}
             >
-              Edit
+              Select
             </Button>
           </Stack>
           {selectedIndicators.length > 0 && (
