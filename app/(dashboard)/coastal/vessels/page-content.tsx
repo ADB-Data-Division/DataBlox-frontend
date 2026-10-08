@@ -39,6 +39,7 @@ import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
+import { showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
 import { AggLevelSelect, type CoastalGrain } from '../components/AggLevelSelect';
 import { formatDisplayName } from '../data/provinces';
 import { generatePeriods } from '../indicators/page-content';
@@ -87,7 +88,8 @@ export function PageContent() {
   }, [rawCountry, router]);
 
   const [grain, setGrain] = useState<'weekly' | 'monthly' | 'annually'>(grainParam);
-  const [activeTab, setActiveTab] = useState<number>(0);
+  // 2 = Choropleth Map, the landing tab (same as the indicators page).
+  const [activeTab, setActiveTab] = useState<number>(2);
   const [metric, setMetric] = useState<string>('Vessel Count');
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
@@ -670,6 +672,15 @@ export function PageContent() {
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <ViewModeTab
+          active={activeTab === 2}
+          title="Choropleth Map"
+          subtitle="Spatial visualization"
+          icon={<MapIcon />}
+          vectorSrc="/images/coastal/map-pin.png"
+          gradient="teal"
+          onClick={() => setActiveTab(2)}
+        />
+        <ViewModeTab
           active={activeTab === 0}
           title="Vessel Timeline"
           subtitle="Line trends by type"
@@ -686,15 +697,6 @@ export function PageContent() {
           vectorSrc="/images/coastal/pie-chart.png"
           gradient="teal"
           onClick={() => setActiveTab(1)}
-        />
-        <ViewModeTab
-          active={activeTab === 2}
-          title="Choropleth Map"
-          subtitle="Spatial visualization"
-          icon={<MapIcon />}
-          vectorSrc="/images/coastal/map-pin.png"
-          gradient="teal"
-          onClick={() => setActiveTab(2)}
         />
       </Stack>
 
@@ -1035,21 +1037,6 @@ export function PageContent() {
                 }
           }
         >
-          {/* Top Row: Hex Cell Detail Modal / Card */}
-          {(!isFullscreen || selectedHexCells.length > 0) && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={['vessels']}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
-
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 2 }}>
               <Box
@@ -1068,6 +1055,11 @@ export function PageContent() {
                   <Typography variant="caption" color="text.secondary">
                     {`${start_date} to ${end_date}`}
                   </Typography>
+                  {showNationLoadNote(aoi_id, spatialStatus) && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {NATION_LOAD_NOTE}
+                    </Typography>
+                  )}
                 </Box>
 
                 <AggLevelSelect grain={grain} onGrainChange={handleGrainChange} />
@@ -1124,6 +1116,21 @@ export function PageContent() {
             canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
             canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
           />
+
+          {/* Hex Cell Detail Card. Below the map and hidden until a hex is selected. */}
+          {selectedHexCells.length > 0 && (
+            <Box sx={{ width: '100%' }}>
+              <HexCellDetailModal
+                cellIds={selectedHexCells}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={['vessels']}
+                onClose={() => setSelectedHexCells([])}
+              />
+            </Box>
+          )}
         </Box>
       )}
 
