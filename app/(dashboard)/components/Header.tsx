@@ -12,6 +12,7 @@ interface NavSubLink {
   label: string;
   href: string;
   preserveParams?: boolean;
+  exact?: boolean;
 }
 
 interface NavCategory {
@@ -42,6 +43,8 @@ const navigationLinks: NavCategory[] = [
     links: [
       { label: 'Indicators', href: '/coastal/indicators', preserveParams: true },
       { label: 'Vessel Types', href: '/coastal/vessels', preserveParams: true },
+      { label: 'Upload portal', href: '/coastal/admin/upload', exact: true },
+      { label: 'Admin dashboard', href: '/coastal/admin', exact: true },
     ],
   },
 ];
@@ -228,9 +231,10 @@ function NavCategoryItem({
         {category.links.map((link) => {
           const isActive = pathname === link.href;
 
-          // Preserve location params for migration/tourism, or coastal params when active search exists
+          // Preserve location params for migration/tourism, or coastal params when active search exists.
+          // Admin links are exact and never rewritten.
           let href = link.href;
-          if (link.href.startsWith('/coastal')) {
+          if (link.href.startsWith('/coastal') && !link.exact) {
             if (hasCoastalCountry && coastalParamsString) {
               href = `${link.href}?${coastalParamsString}`;
             } else {
