@@ -39,6 +39,7 @@ import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
+import { AggLevelSelect, type CoastalGrain } from '../components/AggLevelSelect';
 import { formatDisplayName } from '../data/provinces';
 import { generatePeriods } from '../indicators/page-content';
 import {
@@ -513,6 +514,13 @@ export function PageContent() {
       setExpanded(isExpanded ? panel : false);
     };
 
+  const handleGrainChange = (newGrain: CoastalGrain) => {
+    setGrain(newGrain);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('grain', newGrain);
+    router.replace(`?${params.toString()}`);
+  };
+
   const handleEditSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('target', 'vessels');
@@ -634,7 +642,6 @@ export function PageContent() {
           sx={{
             flex: { xs: '1 1 auto', md: '1 1 0%' },
             borderRadius: 2,
-            opacity: activeTab === 2 ? 0.5 : 1,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -651,19 +658,9 @@ export function PageContent() {
                 params.set('end_date', newEnd);
                 router.replace(`?${params.toString()}`);
               }}
-              onGrainChange={(newGrain) => {
-                setGrain(newGrain);
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('grain', newGrain);
-                router.replace(`?${params.toString()}`);
-              }}
-              disabled={activeTab === 2}
+              onGrainChange={handleGrainChange}
+              rangeLocked={activeTab === 2}
             />
-            {activeTab === 2 && (
-              <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', px: 1, mt: 0.5 }}>
-                Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-              </Typography>
-            )}
           </CardContent>
         </Card>
       </Stack>
@@ -1070,6 +1067,8 @@ export function PageContent() {
                     {`${start_date} to ${end_date}`}
                   </Typography>
                 </Box>
+
+                <AggLevelSelect grain={grain} onGrainChange={handleGrainChange} />
 
                 <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
                   <IconButton

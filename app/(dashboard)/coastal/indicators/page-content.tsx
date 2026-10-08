@@ -41,6 +41,9 @@ import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart, formatPeriodLabel } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
+import { viewsEqual, type MapView } from '../view-sync';
+import { compareCandidates, resolveCompareIndicator, resolveInitialView, showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
+import { AggLevelSelect } from '../components/AggLevelSelect';
 import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
 import TemporalScrubber from '../components/TemporalScrubber';
 import HexCellDetailModal from '../components/HexCellDetailModal';
@@ -146,7 +149,7 @@ export function PageContent() {
   const start_date = searchParams.get('start_date') || '2019-01-01';
   const end_date = searchParams.get('end_date') || '2025-12-31';
   const grainParam = (searchParams.get('grain') as CoastalGrain) || 'monthly';
-  const initialView = searchParams.get('view') === 'map' ? 'map' : 'timeline';
+  const initialView = resolveInitialView(searchParams.get('view'));
 
   useEffect(() => {
     if (!rawCountry) {
@@ -162,8 +165,11 @@ export function PageContent() {
 
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'sst']);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
+  const [compareEnabled, setCompareEnabled] = useState<boolean>(false);
+  const [compareRequested, setCompareRequested] = useState<string | null>(null);
+  const [syncedView, setSyncedView] = useState<MapView | null>(null);
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
-  const [clustersEnabled, setClustersEnabled] = useState<boolean>(true);
+  const [clustersEnabled, setClustersEnabled] = useState<boolean>(false);
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
@@ -290,6 +296,13 @@ export function PageContent() {
     }
   };
 
+  const handleGrainChange = (newGrain: CoastalGrain) => {
+    setGrain(newGrain);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('grain', newGrain);
+    router.replace(`?${params.toString()}`);
+  };
+
   const handleEditSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('target', 'indicators');
@@ -315,7 +328,13 @@ export function PageContent() {
   const handleExportGraph = () => {
     if (viewMode === 'map') {
       const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
-      exportLeafletMapAsPng('coastal-map-container', filename);
+      if (splitActive) {
+        ['left', 'right'].forEach((side) =>
+          exportLeafletMapAsPng(`coastal-map-container-${side}`, filename.replace('.png', `_${side}.png`))
+        );
+      } else {
+        exportLeafletMapAsPng('coastal-map-container', filename);
+      }
       return;
     }
     const containerId = 'coastal-chart-container';
@@ -401,6 +420,22 @@ export function PageContent() {
   const spatialIndicatorParam = useMemo(
     () => buildSpatialIndicatorParam(activeChoroplethIndicator, selectedIndicators, (id) => !!getIndicatorMeta(id)),
     [activeChoroplethIndicator, selectedIndicators]
+  );
+
+  const compareOptions = useMemo(
+    () =>
+      compareCandidates(
+        selectedIndicators,
+        activeChoroplethIndicator,
+        (id) => getIndicatorMeta(id)?.supports_map ?? true
+      ),
+    [selectedIndicators, activeChoroplethIndicator]
+  );
+  const compareIndicator = resolveCompareIndicator(compareOptions, compareRequested);
+  const splitActive = compareEnabled && compareIndicator !== null;
+  const handleViewChange = useCallback(
+    (view: MapView) => setSyncedView((prev) => (viewsEqual(prev, view) ? prev : view)),
+    []
   );
 
   // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
@@ -630,7 +665,6 @@ export function PageContent() {
           sx={{
             flex: { xs: '1 1 auto', md: '1 1 0%' },
             borderRadius: 2,
-            opacity: viewMode === 'map' ? 0.5 : 1,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -647,34 +681,15 @@ export function PageContent() {
                 params.set('end_date', newEnd);
                 router.replace(`?${params.toString()}`);
               }}
-              onGrainChange={(newGrain) => {
-                setGrain(newGrain);
-                const params = new URLSearchParams(searchParams.toString());
-                params.set('grain', newGrain);
-                router.replace(`?${params.toString()}`);
-              }}
-              disabled={viewMode === 'map'}
+              onGrainChange={handleGrainChange}
+              rangeLocked={viewMode === 'map'}
             />
-            {viewMode === 'map' && (
-              <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', px: 1, mt: 0.5 }}>
-                Note: Time range is disabled for choropleth map. Use the time slider below the interactive map.
-              </Typography>
-            )}
           </CardContent>
         </Card>
       </Stack>
 
       {/* Segmented Pill Switcher */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <ViewModeTab
-          active={viewMode === 'timeline'}
-          title="Environment Timeline"
-          subtitle="Line trends by variable"
-          icon={<TimelineIcon />}
-          vectorSrc="/images/coastal/bar-chart.png"
-          gradient="blue"
-          onClick={() => setViewMode('timeline')}
-        />
         <ViewModeTab
           active={viewMode === 'map'}
           title="Choropleth Map"
@@ -683,6 +698,15 @@ export function PageContent() {
           vectorSrc="/images/coastal/map-pin.png"
           gradient="teal"
           onClick={() => setViewMode('map')}
+        />
+        <ViewModeTab
+          active={viewMode === 'timeline'}
+          title="Environment Timeline"
+          subtitle="Line trends by variable"
+          icon={<TimelineIcon />}
+          vectorSrc="/images/coastal/bar-chart.png"
+          gradient="blue"
+          onClick={() => setViewMode('timeline')}
         />
       </Stack>
 
@@ -842,7 +866,14 @@ export function PageContent() {
                           return `${formatMY(start_date)} - ${formatMY(end_date)}`;
                         })()}
                       </Typography>
+                      {showNationLoadNote(aoi_id, spatialStatus) && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {NATION_LOAD_NOTE}
+                        </Typography>
+                      )}
                     </Box>
+
+                    <AggLevelSelect grain={grain} onGrainChange={handleGrainChange} />
 
                     <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
                       <IconButton
@@ -864,35 +895,57 @@ export function PageContent() {
                     </Tooltip>
                   </Box>
 
-                  <Box
-                    id="coastal-map-container"
-                    sx={{
-                      minHeight: isFullscreen ? (selectedHexCells.length > 0 ? 380 : 500) : 630,
-                    }}
+                  <Stack
+                    direction={{ xs: 'column', lg: splitActive ? 'row' : 'column' }}
+                    spacing={splitActive ? 2 : 0}
                   >
-                    <CoastalChoroplethMap
-                      key={`${country}_${aoi_id || ''}_${locationLabel}`}
-                      country={country}
-                      locationName={locationLabel}
-                      aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
-                      activeIndicator={activeChoroplethIndicator}
-                      overlayVessels={showVesselOverlay}
-                      spatialSlice={spatialSlice}
-                      spatialStatus={spatialStatus}
-                      onRetrySpatial={() => setSpatialRetry((n) => n + 1)}
-                      selectedCellIds={selectedHexCells}
-                      onSelectCell={(id) =>
-                        setSelectedHexCells((prev) =>
-                          prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-                        )
-                      }
-                      onClearSelection={() => setSelectedHexCells([])}
-                      periodLabel={periods[activeScrubberIndex]}
-                      indicators={selectedIndicators}
-                      height={mapHeight}
-                      clustersEnabled={clustersEnabled}
-                    />
-                  </Box>
+                    {(splitActive
+                      ? [
+                          { side: 'left', indicator: activeChoroplethIndicator },
+                          { side: 'right', indicator: compareIndicator as string },
+                        ]
+                      : [{ side: 'left', indicator: activeChoroplethIndicator }]
+                    ).map(({ side, indicator }) => (
+                      <Box key={side} sx={{ flex: 1, minWidth: 0 }}>
+                        {splitActive && (
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                            {`${getIndicatorMeta(indicator)?.label ?? indicator}`}
+                          </Typography>
+                        )}
+                        <Box
+                          id={splitActive ? `coastal-map-container-${side}` : 'coastal-map-container'}
+                          sx={{
+                            minHeight: isFullscreen ? (selectedHexCells.length > 0 ? 380 : 500) : 630,
+                          }}
+                        >
+                          <CoastalChoroplethMap
+                            key={`${country}_${aoi_id || ''}_${locationLabel}`}
+                            country={country}
+                            locationName={locationLabel}
+                            aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
+                            activeIndicator={indicator}
+                            overlayVessels={showVesselOverlay}
+                            spatialSlice={spatialSlice}
+                            spatialStatus={spatialStatus}
+                            onRetrySpatial={() => setSpatialRetry((n) => n + 1)}
+                            selectedCellIds={selectedHexCells}
+                            onSelectCell={(id) =>
+                              setSelectedHexCells((prev) =>
+                                prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+                              )
+                            }
+                            onClearSelection={() => setSelectedHexCells([])}
+                            periodLabel={periods[activeScrubberIndex]}
+                            indicators={selectedIndicators}
+                            height={mapHeight}
+                            clustersEnabled={clustersEnabled}
+                            onViewChange={splitActive ? handleViewChange : undefined}
+                            syncedView={splitActive ? syncedView : undefined}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                  </Stack>
 
                   <Box sx={{ mt: 2 }}>
                     <TemporalScrubber
@@ -924,6 +977,11 @@ export function PageContent() {
                   onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
                   clustersEnabled={clustersEnabled}
                   onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
+                  compareCandidates={compareOptions}
+                  compareEnabled={compareEnabled}
+                  onChangeCompareEnabled={(enabled) => setCompareEnabled(enabled)}
+                  compareIndicator={compareIndicator}
+                  onChangeCompareIndicator={(ind) => setCompareRequested(ind)}
                 />
               </Box>
             </Box>

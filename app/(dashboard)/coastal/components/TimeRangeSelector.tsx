@@ -10,8 +10,9 @@ import {
   Stack,
   FormControl,
 } from '@mui/material';
+import { AggLevelSelect, type CoastalGrain } from './AggLevelSelect';
 
-export type CoastalGrain = 'weekly' | 'monthly' | 'annually';
+export type { CoastalGrain };
 
 export interface TimeRangeSelectorProps {
   startDate: string;
@@ -21,8 +22,8 @@ export interface TimeRangeSelectorProps {
   maxDate?: string;
   onRangeChange: (startDate: string, endDate: string) => void;
   onGrainChange: (grain: CoastalGrain) => void;
-  disabled?: boolean;
-  disabledGrain?: boolean;
+  /** Map view: range controls collapse to one locked line, Agg. Level moves to the map header. */
+  rangeLocked?: boolean;
 }
 
 const MONTHS = [
@@ -38,8 +39,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   maxDate = '2025-12-31',
   onRangeChange,
   onGrainChange,
-  disabled = false,
-  disabledGrain = false,
+  rangeLocked = false,
 }) => {
   const minYear = parseInt(minDate.split('-')[0], 10);
   const minMonth = parseInt(minDate.split('-')[1], 10);
@@ -147,10 +147,6 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     onRangeChange(currentStartStr, newEnd);
   };
 
-  const handleGrainChange = (e: any) => {
-    onGrainChange(e.target.value as CoastalGrain);
-  };
-
   const marks = useMemo(() => {
     const mks = [];
     for (let i = 0; i < totalMonths; i += 12) {
@@ -173,6 +169,28 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     return mks;
   }, [totalMonths, minYear, minMonth, maxYear, maxMonth]);
 
+  if (rangeLocked) {
+    const fmt = (d: string) => {
+      const dt = new Date(`${d.slice(0, 10)}T00:00:00`);
+      return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    };
+    return (
+      <Box sx={{ width: '100%' }}>
+        <Stack direction="row" alignItems="center" gap={1.5} flexWrap="wrap">
+          <Typography variant="h6" component="div" sx={{ fontSize: '16px', fontWeight: 'bold' }}>
+            Time Range
+          </Typography>
+          <Typography variant="body2" color="text.disabled">
+            {fmt(startDate)} - {fmt(endDate)}
+          </Typography>
+        </Stack>
+        <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
+          Range is locked in map view. Use the map time slider.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ width: '100%', '& .MuiSelect-select': { py: 0.5, fontSize: 14 } }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5} flexWrap="wrap" gap={1.5}>
@@ -183,14 +201,14 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography variant="body2" color="text.secondary">Start:</Typography>
-            <FormControl size="small" disabled={disabled}>
+            <FormControl size="small">
               <Select value={startMonth} onChange={handleStartMonthChange}>
                 {MONTHS.map((m, i) => (
                   <MenuItem key={m} value={i + 1}>{m}</MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="small" disabled={disabled}>
+            <FormControl size="small">
               <Select value={startYear} onChange={handleStartYearChange}>
                 {years.map(y => (
                   <MenuItem key={y} value={y}>{y}</MenuItem>
@@ -201,14 +219,14 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
 
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography variant="body2" color="text.secondary">End:</Typography>
-            <FormControl size="small" disabled={disabled}>
+            <FormControl size="small">
               <Select value={endMonth} onChange={handleEndMonthChange}>
                 {MONTHS.map((m, i) => (
                   <MenuItem key={m} value={i + 1}>{m}</MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="small" disabled={disabled}>
+            <FormControl size="small">
               <Select value={endYear} onChange={handleEndYearChange}>
                 {years.map(y => (
                   <MenuItem key={y} value={y}>{y}</MenuItem>
@@ -218,16 +236,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           </Stack>
         </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="body2" color="text.secondary">Agg. Level</Typography>
-          <FormControl size="small" disabled={disabledGrain}>
-            <Select value={grain} onChange={handleGrainChange}>
-              <MenuItem value="weekly">Weekly</MenuItem>
-              <MenuItem value="monthly">Monthly</MenuItem>
-              <MenuItem value="annually">Annually</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
+        <AggLevelSelect grain={grain} onGrainChange={onGrainChange} />
       </Stack>
 
       <Box sx={{ px: 3, pb: 0.5 }}>
@@ -239,7 +248,6 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           max={totalMonths - 1}
           step={1}
           marks={marks}
-          disabled={disabled}
           size="small"
           valueLabelDisplay="auto"
           valueLabelFormat={(val) => {

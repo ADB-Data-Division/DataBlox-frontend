@@ -11,6 +11,7 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
+  Switch,
   MenuItem,
   Select,
   Stack,
@@ -39,6 +40,12 @@ export interface IndicatorSidebarProps {
   // Omitted = no toggle shown.
   clustersEnabled?: boolean;
   onChangeClustersEnabled?: (enabled: boolean) => void;
+  // Side-by-side maps. The switch only renders when `compareCandidates` is non-empty.
+  compareCandidates?: string[];
+  compareEnabled?: boolean;
+  onChangeCompareEnabled?: (enabled: boolean) => void;
+  compareIndicator?: string | null;
+  onChangeCompareIndicator?: (ind: string) => void;
 }
 
 function gradientFor(id: string): string {
@@ -81,6 +88,11 @@ export function IndicatorSidebar({
   onChangeChoroplethIndicator,
   clustersEnabled = true,
   onChangeClustersEnabled,
+  compareCandidates = [],
+  compareEnabled = false,
+  onChangeCompareEnabled,
+  compareIndicator = null,
+  onChangeCompareIndicator,
 }: IndicatorSidebarProps) {
   const [search, setSearch] = useState('');
   // Explicit user toggles per group. Unset = open only if the group holds a selection.
@@ -141,24 +153,69 @@ export function IndicatorSidebar({
                 <ChoroplethColorbar
                   key={id}
                   indicatorId={id}
-                  dimmed={mapLegendIds.length > 1 && id !== activeChoroplethIndicator}
+                  dimmed={mapLegendIds.length > 1 && id !== activeChoroplethIndicator && !(compareEnabled && id === compareIndicator)}
                 />
               ))}
 
               {mapLegendIds.length > 1 && onChangeChoroplethIndicator && (
                 <Box sx={{ mt: 1 }}>
+                  {onChangeCompareEnabled && compareCandidates.length > 0 && (
+                    <FormControlLabel
+                      sx={{ mb: 0.5 }}
+                      control={
+                        <Switch
+                          size="small"
+                          checked={compareEnabled}
+                          onChange={(e) => onChangeCompareEnabled(e.target.checked)}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Side by side
+                        </Typography>
+                      }
+                    />
+                  )}
+                  {compareEnabled && (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Left map
+                    </Typography>
+                  )}
                   <FormControl fullWidth size="small">
                     <Select
                       value={activeChoroplethIndicator}
                       onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
                     >
-                      {mapLegendIds.map((id) => (
-                        <MenuItem key={id} value={id}>
-                          {getIndicatorMeta(id)?.label || id}
-                        </MenuItem>
-                      ))}
+                      {mapLegendIds
+                        .filter((id) => !(compareEnabled && id === compareIndicator))
+                        .map((id) => (
+                          <MenuItem key={id} value={id}>
+                            {getIndicatorMeta(id)?.label || id}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
+                  {compareEnabled && compareIndicator && onChangeCompareIndicator && (
+                    <>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mt: 1 }}>
+                        Right map
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <Select
+                          value={compareIndicator}
+                          onChange={(e) => onChangeCompareIndicator(e.target.value)}
+                        >
+                          {mapLegendIds
+                            .filter((id) => id !== activeChoroplethIndicator)
+                            .map((id) => (
+                              <MenuItem key={id} value={id}>
+                                {getIndicatorMeta(id)?.label || id}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </>
+                  )}
                 </Box>
               )}
               </Stack>

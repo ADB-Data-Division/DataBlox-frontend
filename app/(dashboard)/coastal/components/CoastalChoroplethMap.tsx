@@ -13,6 +13,7 @@ import {
   isZeroFillIndicator,
 } from '../indicators';
 import type { SpatialStatus } from '../spatial-status';
+import { viewsEqual, type MapView } from '../view-sync';
 
 export interface CoastalChoroplethMapProps {
   country: string;
@@ -34,6 +35,9 @@ export interface CoastalChoroplethMapProps {
   // When false, far-zoom magnitude circles are disabled and the raw hexes
   // render at every zoom. Defaults to true (current behavior).
   clustersEnabled?: boolean;
+  // Side-by-side panels: report pan/zoom up and follow the shared view.
+  onViewChange?: (view: MapView) => void;
+  syncedView?: MapView | null;
 }
 
 interface HexCellData {
@@ -384,7 +388,11 @@ function CoastalChoroplethMapClient({
   indicators,
   height = 420,
   clustersEnabled = true,
+  onViewChange,
+  syncedView,
 }: CoastalChoroplethMapProps) {
+  const onViewChangeRef = useRef(onViewChange);
+  onViewChangeRef.current = onViewChange;
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
   const deckOverlayRef = useRef<any>(null);
@@ -972,6 +980,12 @@ function CoastalChoroplethMapClient({
     };
     map.on('zoomend', handleZoomEnd);
 
+    const handleMoveEnd = () => {
+      const c = map.getCenter();
+      onViewChangeRef.current?.({ lat: c.lat, lng: c.lng, zoom: map.getZoom() });
+    };
+    map.on('moveend', handleMoveEnd);
+
     // Immediately fit to genuineCells if already resolved, or stored fittedBounds
     if (genuineCells && genuineCells.length > 0) {
       const bounds = fitMapToCells(map, genuineCells);
@@ -1014,6 +1028,7 @@ function CoastalChoroplethMapClient({
       if (leafletMapRef.current) {
         try {
           leafletMapRef.current.off('zoomend', handleZoomEnd);
+          leafletMapRef.current.off('moveend', handleMoveEnd);
         } catch {
           // Ignore unmount error
         }
@@ -1022,6 +1037,15 @@ function CoastalChoroplethMapClient({
       }
     };
   }, [L, centerConfig, deckModules]);
+
+  // Follow the other panel's pan/zoom (side-by-side view only).
+  useEffect(() => {
+    const map = leafletMapRef.current;
+    if (!map || !syncedView) return;
+    const c = map.getCenter();
+    if (viewsEqual({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }, syncedView)) return;
+    map.setView([syncedView.lat, syncedView.lng], syncedView.zoom, { animate: false });
+  }, [syncedView]);
 
   // Immediately reset map view when a new location or search is received
   useEffect(() => {
