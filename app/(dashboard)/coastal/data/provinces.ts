@@ -1,4 +1,5 @@
 import { CoastalProvince } from '@/types/coastal';
+import { PROVINCE_SCOPE_PREFIX, provinceScopeToken } from '@/src/utils/coastalScope';
 export type { CoastalProvince };
 
 export type ProvinceOrPortSelection =
@@ -2162,34 +2163,27 @@ export function getProvincesByCountry(countryIso: string): CoastalProvince[] {
 
 export function resolveCoastalLocations(
   locations: any[],
-  countryIso: string
+  _countryIso: string
 ): { aoiIds: string[]; names: string[] } {
-  const provinces = getProvincesByCountry(countryIso);
   const aoiIds: string[] = [];
   const names: string[] = [];
 
+  // A province goes out as its token and is resolved to its hexes by the backend,
+  // so an AOI that spans several provinces is never expanded here.
   for (const loc of locations) {
     if (loc.type === 'province') {
-      if (Array.isArray(loc.aois) && loc.aois.length > 0) {
-        aoiIds.push(...loc.aois);
-        names.push(loc.name);
-        continue;
-      }
-      const p = provinces.find((prov) => prov.name === loc.name);
-      if (p) {
-        aoiIds.push(...p.aois);
-        names.push(p.name);
-      }
+      aoiIds.push(provinceScopeToken(loc.name));
     } else {
       aoiIds.push(loc.aoi_id);
-      names.push(loc.name);
     }
+    names.push(loc.name);
   }
   return { aoiIds, names };
 }
 
 export function formatDisplayName(aoiId: string): string {
   if (!aoiId) return '';
+  if (aoiId.startsWith(PROVINCE_SCOPE_PREFIX)) return aoiId.slice(PROVINCE_SCOPE_PREFIX.length);
   const parts = aoiId.split('_');
   if (parts.length >= 2) {
     const rawName = parts[1];
