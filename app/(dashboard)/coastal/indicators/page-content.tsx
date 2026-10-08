@@ -804,21 +804,6 @@ export function PageContent() {
                 }
           }
         >
-          {/* Top Row: Hex Cell Detail Inspection Card */}
-          {(!isFullscreen || selectedHexCells.length > 0) && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={selectedIndicators}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
-
           {/* Middle Row: Choropleth Map + Scrubber and Sidebar */}
           <Stack
             direction={{ xs: 'column', md: 'row' }}
@@ -983,6 +968,21 @@ export function PageContent() {
               </Box>
             </Box>
           </Stack>
+
+          {/* Hex Cell Detail Inspection Card. Below the map and hidden until a hex is selected. */}
+          {selectedHexCells.length > 0 && (
+            <Box sx={{ width: '100%' }}>
+              <HexCellDetailModal
+                cellIds={selectedHexCells}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={selectedIndicators}
+                onClose={() => setSelectedHexCells([])}
+              />
+            </Box>
+          )}
         </Box>
       )}
 
