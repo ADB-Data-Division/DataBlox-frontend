@@ -256,6 +256,7 @@ export function PageContent() {
     : country || 'Select Location';
 
   const aoiCount = aoi_id ? aoi_id.split(',').filter(Boolean).length : 0;
+  const analysisScope = aoiCount > 1 ? 'Multi-province' : aoiCount === 1 ? 'Province' : 'National';
   const provinceCountText =
     aoiCount > 1 ? `${aoiCount} provinces` : aoiCount === 1 ? '1 province' : 'National';
 
@@ -597,7 +598,7 @@ export function PageContent() {
           <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', '&:last-child': { pb: 2 } }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
-                Multi-province Maritime Analysis
+                {analysisScope} Maritime Analysis
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
                 Timeline of Maritime Vessels
