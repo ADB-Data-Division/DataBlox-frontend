@@ -41,7 +41,6 @@ import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart, formatPeriodLabel } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
-import { viewsEqual, type MapView } from '../view-sync';
 import { compareCandidates, resolveCompareIndicator, resolveInitialView, showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
 import { AggLevelSelect } from '../components/AggLevelSelect';
 import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
@@ -167,7 +166,6 @@ export function PageContent() {
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [compareEnabled, setCompareEnabled] = useState<boolean>(false);
   const [compareRequested, setCompareRequested] = useState<string | null>(null);
-  const [syncedView, setSyncedView] = useState<MapView | null>(null);
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [clustersEnabled, setClustersEnabled] = useState<boolean>(false);
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
@@ -433,10 +431,6 @@ export function PageContent() {
   );
   const compareIndicator = resolveCompareIndicator(compareOptions, compareRequested);
   const splitActive = compareEnabled && compareIndicator !== null;
-  const handleViewChange = useCallback(
-    (view: MapView) => setSyncedView((prev) => (viewsEqual(prev, view) ? prev : view)),
-    []
-  );
 
   // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
   // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
@@ -939,8 +933,6 @@ export function PageContent() {
                             indicators={selectedIndicators}
                             height={mapHeight}
                             clustersEnabled={clustersEnabled}
-                            onViewChange={splitActive ? handleViewChange : undefined}
-                            syncedView={splitActive ? syncedView : undefined}
                           />
                         </Box>
                       </Box>
