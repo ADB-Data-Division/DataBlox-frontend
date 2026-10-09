@@ -63,6 +63,7 @@ const NATIVE_H3_RES = 7;
 // Single cluster mode (no intermediate hex levels): below this Leaflet zoom
 // the hexes are replaced by magnitude circles grouped at CLUSTER_PARENT_RES.
 const CLUSTER_ZOOM_THRESHOLD = 9;
+const VESSEL_LABEL_MIN_ZOOM = 8;
 const CLUSTER_PARENT_RES = 4;
 
 // Circle radius in screen pixels from member count (sqrt keeps big groups
@@ -156,16 +157,10 @@ export const getChlorophyllColor = (value: number | null) => {
   return getIndicatorColor('chlor_a', value);
 };
 
-// Scales label font size with the vessel count (relative to the largest count
-// on screen) and shrinks it further for multi-digit values so it stays inside the hex.
-export const getVesselLabelSize = (vessels: number, maxVessels: number) => {
-  const MIN_SIZE = 8;
-  const MAX_SIZE = 15;
-  const t = Math.sqrt(Math.max(vessels, 0) / Math.max(maxVessels, 1));
-  const baseSize = MIN_SIZE + t * (MAX_SIZE - MIN_SIZE);
-  const digits = String(vessels).length;
-  return baseSize / (1 + (digits - 1) * 0.25);
-};
+const VESSEL_LABEL_MIN_PX = 9;
+const VESSEL_LABEL_MAX_PX = 18;
+export const getVesselLabelSize = (zoom: number) =>
+  Math.min(VESSEL_LABEL_MAX_PX, VESSEL_LABEL_MIN_PX + (zoom - VESSEL_LABEL_MIN_ZOOM) * 1.5);
 
 export const getSSTColor = (value: number | null) => {
   // Domain is Celsius (backend converts Kelvin). Everything is °C.
@@ -1196,17 +1191,18 @@ function CoastalChoroplethMapClient({
       );
     }
 
-    if (overlayVessels && !showClusters) {
+    const labelZoom = mapZoom ?? CLUSTER_ZOOM_THRESHOLD;
+    if (overlayVessels && !showClusters && labelZoom >= VESSEL_LABEL_MIN_ZOOM) {
       const vesselCells = gridCells.filter((c) => c.vessels !== undefined && c.vessels > 0);
-      const maxVessels = Math.max(...vesselCells.map((c) => c.vessels), 1);
+      const vesselLabelSize = getVesselLabelSize(labelZoom);
       layers.push(
         new TextLayer({
           id: 'vessel-labels-webgl',
           data: vesselCells,
           getPosition: (d: HexCellData) => [d.lng, d.lat],
           getText: (d: HexCellData) => String(d.vessels),
-          getSize: (d: HexCellData) => getVesselLabelSize(d.vessels, maxVessels),
-          getColor: [17, 24, 39, 128],
+          getSize: vesselLabelSize,
+          getColor: [17, 24, 39, 204],
           getTextAnchor: 'middle',
           getAlignmentBaseline: 'center',
           fontWeight: 800,
@@ -1218,7 +1214,7 @@ function CoastalChoroplethMapClient({
           updateTriggers: {
             data: [gridCells, spatialSlice],
             getText: [gridCells, spatialSlice],
-            getSize: [gridCells, spatialSlice],
+            getSize: [vesselLabelSize],
           },
         })
       );
@@ -1249,6 +1245,7 @@ function CoastalChoroplethMapClient({
 
     const layerGroup = layerGroupRef.current;
     layerGroup.clearLayers();
+    const labelZoom = mapZoom ?? CLUSTER_ZOOM_THRESHOLD;
 
     // Far zoom fallback: magnitude circles (radius is screen pixels, so they
     // stay readable at any zoom). Zoom only, never select.
@@ -1288,7 +1285,6 @@ function CoastalChoroplethMapClient({
       return;
     }
 
-    const maxVessels = Math.max(...gridCells.map((c) => c.vessels ?? 0), 1);
 
     gridCells.forEach((cell) => {
       if (!cell.coords) return;
@@ -1329,8 +1325,8 @@ function CoastalChoroplethMapClient({
       layerGroup.addLayer(polygon);
 
       // Display vessel count numbers inside hexagons when enabled
-      if (overlayVessels) {
-        const labelSize = getVesselLabelSize(cell.vessels, maxVessels);
+      if (overlayVessels && labelZoom >= VESSEL_LABEL_MIN_ZOOM) {
+        const labelSize = getVesselLabelSize(labelZoom);
         const vesselLabelIcon = L.divIcon({
           className: 'vessel-label-icon',
           html: `<div style="
@@ -1339,7 +1335,7 @@ function CoastalChoroplethMapClient({
             justify-content: center;
             font-weight: 800;
             font-size: ${labelSize}px;
-            color: rgba(17, 24, 39, 0.5);
+            color: rgba(17, 24, 39, 0.8);
             text-shadow: 0 0 2px rgba(255,255,255,0.9), 0 0 4px rgba(255,255,255,0.9);
             pointer-events: none;
             user-select: none;
@@ -1356,7 +1352,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [deckModules, L, gridCells, clusterPoints, showClusters, activeIndicator, activeTooltipLabel, activeTooltipAgg, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell]);
+  }, [deckModules, L, gridCells, clusterPoints, showClusters, activeIndicator, activeTooltipLabel, activeTooltipAgg, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell, mapZoom]);
 
   // Never early-return on `loading`: unmounting the map div orphans the
   // Leaflet instance and the init effect does not re-run. The overlay below
