@@ -220,7 +220,7 @@ export function PageContent() {
   }, [viewMode]);
 
   const mapHeight = useMemo(() => {
-    if (!isFullscreen) return 630;
+    if (!isFullscreen) return 440;
     return selectedHexCells.length > 0 ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
   }, [isFullscreen, selectedHexCells]);
 
@@ -891,7 +891,7 @@ export function PageContent() {
                         <Box
                           id={splitActive ? `coastal-map-container-${side}` : 'coastal-map-container'}
                           sx={{
-                            minHeight: isFullscreen ? (selectedHexCells.length > 0 ? 380 : 500) : 630,
+                            minHeight: isFullscreen ? (selectedHexCells.length > 0 ? 380 : 500) : 440,
                           }}
                         >
                           <CoastalChoroplethMap
