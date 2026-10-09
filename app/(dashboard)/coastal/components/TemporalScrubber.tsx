@@ -161,7 +161,7 @@ export default function TemporalScrubber({
           {derivedStartYear}
         </Typography>
 
-        <Box sx={{ flexGrow: 1, px: 1, pb: 2.5, position: 'relative' }}>
+        <Box sx={{ flexGrow: 1, px: 1, pb: 4, position: 'relative' }}>
           <Slider
             value={currentIndex}
             min={0}
@@ -175,7 +175,7 @@ export default function TemporalScrubber({
             sx={{
               py: 0,
               '& .MuiSlider-valueLabel, & .MuiSlider-valueLabel.MuiSlider-valueLabelOpen': {
-                top: 12,
+                top: 24,
                 transform: 'translateY(0) scale(1)',
                 fontSize: 11,
                 fontWeight: 600,
