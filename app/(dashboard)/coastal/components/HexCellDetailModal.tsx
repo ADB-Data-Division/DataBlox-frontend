@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Card, CircularProgress, Chip } from '@mui/material';
+import { Box, Typography, IconButton, Card, CircularProgress, Chip, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
@@ -208,6 +208,7 @@ export default function HexCellDetailModal({
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     if (cellIds.length === 0 || !country) {
@@ -410,210 +411,220 @@ export default function HexCellDetailModal({
   const xTickLabels = pickXTickLabels(timeSeries.xLabels, grainKey);
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: 2,
-        p: 2.5,
-        height: HEX_DETAIL_CARD_HEIGHT,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', overflow: 'hidden', gap: 0.75 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Hex:
-            </Typography>
-            {cellIds.slice(0, MAX_VISIBLE_HEX_CHIPS).map((id) => (
-              <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace', flexShrink: 0 }} />
-            ))}
-            {cellIds.length > MAX_VISIBLE_HEX_CHIPS && (
-              <Chip
-                size="small"
-                variant="outlined"
-                label={`${cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...`}
-                sx={{ flexShrink: 0 }}
-              />
-            )}
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {locationName} · {dateSubtitle}
-          </Typography>
-        </Box>
-
-        <Box sx={{ flex: 1, textAlign: 'center', px: 2 }}>
-          {indicators.length >= 3 && (
-            <Typography variant="body2" sx={{ color: '#ea580c', fontWeight: 600 }}>
-              Note: Only up to two lines can be displayed at a time.
-            </Typography>
-          )}
-        </Box>
-
-        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            {primaryConfig && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 16, height: 3, bgcolor: primaryConfig.color, borderRadius: 1 }} />
-                <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                  {primaryConfig.label}
-                  {!seriesHasData(primaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
+    <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+      <Button
+        fullWidth
+        aria-expanded={expanded}
+        onClick={() => setExpanded((v) => !v)}
+        sx={{
+          py: 1.25,
+          borderRadius: 0,
+          textTransform: 'none',
+          fontWeight: 700,
+          bgcolor: 'action.hover',
+          borderBottom: expanded ? '1px solid' : 'none',
+          borderColor: 'divider',
+        }}
+      >
+        {expanded ? 'Collapse Details' : 'Expand Details'}
+      </Button>
+      {expanded && (
+        <Box sx={{ p: 2.5, height: HEX_DETAIL_CARD_HEIGHT, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', overflow: 'hidden', gap: 0.75 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Hex:
                 </Typography>
+                {cellIds.slice(0, MAX_VISIBLE_HEX_CHIPS).map((id) => (
+                  <Chip key={id} label={id} size="small" variant="outlined" sx={{ fontFamily: 'monospace', flexShrink: 0 }} />
+                ))}
+                {cellIds.length > MAX_VISIBLE_HEX_CHIPS && (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`${cellIds.length - MAX_VISIBLE_HEX_CHIPS} more...`}
+                    sx={{ flexShrink: 0 }}
+                  />
+                )}
               </Box>
-            )}
-            {secondaryConfig && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 16, height: 3, bgcolor: secondaryConfig.color, borderRadius: 1 }} />
-                <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                  {secondaryConfig.label}
-                  {secondaryId && !seriesHasData(secondaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-          <IconButton onClick={onClose} size="small" aria-label="Close details">
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
-
-      <Box sx={{ width: '100%', height: 260 }}>
-        {loading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <CircularProgress size={32} />
-          </Box>
-        ) : timeSeries.xLabels.length === 0 || !hasChartData ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Typography variant="body2" color="text.secondary">
-              No measurements recorded for this cell in the selected range.
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-            <LineChart
-            height={260}
-            series={series}
-            xAxis={[
-              {
-                data: timeSeries.xLabels,
-                scaleType: 'point',
-                // Show only the picked year-boundary / mid-year ticks
-                // (the callback index here is the data index). The hover
-                // tooltip gets the full period stamp instead via the
-                // location-aware branch below.
-                tickInterval: (value: string) => xTickLabels.has(value),
-                valueFormatter: (value: string, context?: { location?: string }) =>
-                  context?.location === 'tooltip'
-                    ? formatTooltipPeriod(value, grainKey)
-                    : xTickLabels.get(value) ?? '',
-              },
-            ]}
-            yAxis={yAxisConfig}
-            // ChartsAxis only draws the right axis when it is explicitly
-            // selected; without this the secondary series scales correctly
-            // but its axis never renders.
-            leftAxis="leftAxis"
-            rightAxis={secondaryConfig ? 'rightAxis' : undefined}
-            margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
-            // Axis trigger shows the hovered period plus both series values
-            // together; the period stamp comes from the x-axis formatter.
-            tooltip={{ trigger: 'axis' }}
-            slotProps={{ legend: { hidden: true } }}
-            sx={{
-              [`& .MuiMarkElement-series-${primaryId}`]: {
-                fill: `${primaryConfig.color} !important`,
-                stroke: `${primaryConfig.color} !important`,
-                strokeWidth: 1,
-                scale: '0.55',
-              },
-              '& .MuiChartsAxis-left .MuiChartsAxis-label': {
-                fill: `${primaryConfig.color} !important`,
-                fontWeight: 700,
-              },
-              '& .MuiChartsAxis-left .MuiChartsAxis-tickLabel': {
-                fill: `${primaryConfig.color} !important`,
-                fontWeight: 600,
-              },
-              '& .MuiChartsAxis-left .MuiChartsAxis-line': {
-                stroke: `${primaryConfig.color} !important`,
-              },
-              '& .MuiChartsAxis-left .MuiChartsAxis-tick': {
-                stroke: `${primaryConfig.color} !important`,
-              },
-              ...(secondaryConfig
-                ? {
-                    [`& .MuiMarkElement-series-${secondaryId}`]: {
-                      fill: `${secondaryConfig.color} !important`,
-                      stroke: `${secondaryConfig.color} !important`,
-                      strokeWidth: 1,
-                      scale: '0.55',
-                    },
-                    '& .MuiChartsAxis-right .MuiChartsAxis-label': {
-                      fill: `${secondaryConfig.color} !important`,
-                      fontWeight: 700,
-                    },
-                    '& .MuiChartsAxis-right .MuiChartsAxis-tickLabel': {
-                      fill: `${secondaryConfig.color} !important`,
-                      fontWeight: 600,
-                    },
-                    '& .MuiChartsAxis-right .MuiChartsAxis-line': {
-                      stroke: `${secondaryConfig.color} !important`,
-                    },
-                    '& .MuiChartsAxis-right .MuiChartsAxis-tick': {
-                      stroke: `${secondaryConfig.color} !important`,
-                    },
-                  }
-                : {}),
-              '& .MuiLineElement-root': {
-                strokeWidth: 2,
-              },
-            }}
-          />
-            {/* Axis titles live in the margins as HTML (vertical text) so
-                their distance from the tick numbers is explicit. MUI's
-                built-in rotated label centers at a fixed offset that
-                collides with the ticks. */}
-            <Typography
-              variant="caption"
-              sx={{
-                position: 'absolute',
-                left: 4,
-                top: '50%',
-                transform: 'translateY(-50%) rotate(180deg)',
-                writingMode: 'vertical-rl',
-                color: primaryConfig.color,
-                fontWeight: 700,
-                fontSize: 12,
-                letterSpacing: '0.02em',
-                pointerEvents: 'none',
-              }}
-            >
-              {primaryConfig.label} ({primaryConfig.unit})
-            </Typography>
-            {secondaryConfig && (
-              <Typography
-                variant="caption"
-                sx={{
-                  position: 'absolute',
-                  right: 4,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  writingMode: 'vertical-rl',
-                  color: secondaryConfig.color,
-                  fontWeight: 700,
-                  fontSize: 12,
-                  letterSpacing: '0.02em',
-                  pointerEvents: 'none',
-                }}
-              >
-                {secondaryConfig.label} ({secondaryConfig.unit})
+              <Typography variant="body2" color="text.secondary">
+                {locationName} · {dateSubtitle}
               </Typography>
+            </Box>
+
+            <Box sx={{ flex: 1, textAlign: 'center', px: 2 }}>
+              {indicators.length >= 3 && (
+                <Typography variant="body2" sx={{ color: '#ea580c', fontWeight: 600 }}>
+                  Note: Only up to two lines can be displayed at a time.
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                {primaryConfig && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 16, height: 3, bgcolor: primaryConfig.color, borderRadius: 1 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {primaryConfig.label}
+                      {!seriesHasData(primaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
+                    </Typography>
+                  </Box>
+                )}
+                {secondaryConfig && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 16, height: 3, bgcolor: secondaryConfig.color, borderRadius: 1 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {secondaryConfig.label}
+                      {secondaryId && !seriesHasData(secondaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+              <IconButton onClick={onClose} size="small" aria-label="Close details">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', height: 260 }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : timeSeries.xLabels.length === 0 || !hasChartData ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Typography variant="body2" color="text.secondary">
+                  No measurements recorded for this cell in the selected range.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                <LineChart
+                height={260}
+                series={series}
+                xAxis={[
+                  {
+                    data: timeSeries.xLabels,
+                    scaleType: 'point',
+                    // Show only the picked year-boundary / mid-year ticks
+                    // (the callback index here is the data index). The hover
+                    // tooltip gets the full period stamp instead via the
+                    // location-aware branch below.
+                    tickInterval: (value: string) => xTickLabels.has(value),
+                    valueFormatter: (value: string, context?: { location?: string }) =>
+                      context?.location === 'tooltip'
+                        ? formatTooltipPeriod(value, grainKey)
+                        : xTickLabels.get(value) ?? '',
+                  },
+                ]}
+                yAxis={yAxisConfig}
+                // ChartsAxis only draws the right axis when it is explicitly
+                // selected; without this the secondary series scales correctly
+                // but its axis never renders.
+                leftAxis="leftAxis"
+                rightAxis={secondaryConfig ? 'rightAxis' : undefined}
+                margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
+                // Axis trigger shows the hovered period plus both series values
+                // together; the period stamp comes from the x-axis formatter.
+                tooltip={{ trigger: 'axis' }}
+                slotProps={{ legend: { hidden: true } }}
+                sx={{
+                  [`& .MuiMarkElement-series-${primaryId}`]: {
+                    fill: `${primaryConfig.color} !important`,
+                    stroke: `${primaryConfig.color} !important`,
+                    strokeWidth: 1,
+                    scale: '0.55',
+                  },
+                  '& .MuiChartsAxis-left .MuiChartsAxis-label': {
+                    fill: `${primaryConfig.color} !important`,
+                    fontWeight: 700,
+                  },
+                  '& .MuiChartsAxis-left .MuiChartsAxis-tickLabel': {
+                    fill: `${primaryConfig.color} !important`,
+                    fontWeight: 600,
+                  },
+                  '& .MuiChartsAxis-left .MuiChartsAxis-line': {
+                    stroke: `${primaryConfig.color} !important`,
+                  },
+                  '& .MuiChartsAxis-left .MuiChartsAxis-tick': {
+                    stroke: `${primaryConfig.color} !important`,
+                  },
+                  ...(secondaryConfig
+                    ? {
+                        [`& .MuiMarkElement-series-${secondaryId}`]: {
+                          fill: `${secondaryConfig.color} !important`,
+                          stroke: `${secondaryConfig.color} !important`,
+                          strokeWidth: 1,
+                          scale: '0.55',
+                        },
+                        '& .MuiChartsAxis-right .MuiChartsAxis-label': {
+                          fill: `${secondaryConfig.color} !important`,
+                          fontWeight: 700,
+                        },
+                        '& .MuiChartsAxis-right .MuiChartsAxis-tickLabel': {
+                          fill: `${secondaryConfig.color} !important`,
+                          fontWeight: 600,
+                        },
+                        '& .MuiChartsAxis-right .MuiChartsAxis-line': {
+                          stroke: `${secondaryConfig.color} !important`,
+                        },
+                        '& .MuiChartsAxis-right .MuiChartsAxis-tick': {
+                          stroke: `${secondaryConfig.color} !important`,
+                        },
+                      }
+                    : {}),
+                  '& .MuiLineElement-root': {
+                    strokeWidth: 2,
+                  },
+                }}
+              />
+                {/* Axis titles live in the margins as HTML (vertical text) so
+                    their distance from the tick numbers is explicit. MUI's
+                    built-in rotated label centers at a fixed offset that
+                    collides with the ticks. */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    position: 'absolute',
+                    left: 4,
+                    top: '50%',
+                    transform: 'translateY(-50%) rotate(180deg)',
+                    writingMode: 'vertical-rl',
+                    color: primaryConfig.color,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    letterSpacing: '0.02em',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {primaryConfig.label} ({primaryConfig.unit})
+                </Typography>
+                {secondaryConfig && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      position: 'absolute',
+                      right: 4,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      writingMode: 'vertical-rl',
+                      color: secondaryConfig.color,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      letterSpacing: '0.02em',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {secondaryConfig.label} ({secondaryConfig.unit})
+                  </Typography>
+                )}
+              </Box>
             )}
           </Box>
-        )}
-      </Box>
+        </Box>
+      )}
     </Card>
   );
 }
