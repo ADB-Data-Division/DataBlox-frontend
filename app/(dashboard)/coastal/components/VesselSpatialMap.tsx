@@ -18,6 +18,7 @@ export interface VesselSpatialMapProps {
   onRetrySpatial?: () => void;
   periodLabel?: string;
   height?: number | string;
+  clustersEnabled?: boolean;
 }
 
 export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
@@ -33,6 +34,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
   onRetrySpatial,
   periodLabel,
   height,
+  clustersEnabled,
 }) => {
   return (
     <Box
@@ -69,6 +71,7 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
           onRetrySpatial={onRetrySpatial}
           periodLabel={periodLabel}
           height={height ?? 420}
+          clustersEnabled={clustersEnabled}
         />
       </Box>
 

@@ -21,6 +21,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -29,6 +32,7 @@ import MapIcon from '@mui/icons-material/Map';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { ViewModeTab } from '../components/ViewModeTab';
 import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
@@ -136,6 +140,8 @@ export function PageContent() {
   const currentSliceKeyRef = useRef<string | null>(null);
   const sliceInFlightRef = useRef<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [clustersEnabled, setClustersEnabled] = useState<boolean>(false);
 
   // Handle escape key and body overflow for fullscreen mode
   useEffect(() => {
@@ -1064,6 +1070,25 @@ export function PageContent() {
 
                 <AggLevelSelect grain={grain} onGrainChange={handleGrainChange} />
 
+                <Tooltip title="Settings">
+                  <IconButton
+                    onClick={() => setSettingsOpen(true)}
+                    aria-label="Settings"
+                    size="small"
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1.5,
+                      bgcolor: 'background.paper',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <SettingsIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+
                 <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
                   <IconButton
                     onClick={() => setIsFullscreen((prev) => !prev)}
@@ -1084,8 +1109,29 @@ export function PageContent() {
                 </Tooltip>
               </Box>
 
+              <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} fullWidth maxWidth="xs">
+                <DialogTitle sx={{ fontWeight: 700 }}>Settings</DialogTitle>
+                <DialogContent>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={clustersEnabled}
+                        onChange={(e) => setClustersEnabled(e.target.checked)}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        Enable clusters
+                      </Typography>
+                    }
+                  />
+                </DialogContent>
+              </Dialog>
+
               <VesselSpatialMap
                 key={`${country}_${locationLabel}`}
+                clustersEnabled={clustersEnabled}
                 country={country}
                 locationName={locationLabel}
                 aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
