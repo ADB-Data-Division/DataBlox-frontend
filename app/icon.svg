@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <clipPath id="tile">
+      <rect width="256" height="256" rx="56"/>
+    </clipPath>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#0A6FD6"/>
+  <path clip-path="url(#tile)" fill="none" stroke="#0858B0" stroke-width="6"
+        d="M0 32H256M0 64H256M0 96H256M0 128H256M0 160H256M0 192H256M0 224H256
+           M128 0V32M128 64V96M128 128V160M128 192V224
+           M64 32V64M192 32V64M64 96V128M192 96V128M64 160V192M192 160V192M64 224V256M192 224V256"/>
+  <g stroke="#FFFFFF" stroke-width="54" stroke-linecap="round">
+    <line x1="72" y1="72" x2="184" y2="184"/>
+    <line x1="184" y1="72" x2="72" y2="184"/>
+  </g>
+</svg>
