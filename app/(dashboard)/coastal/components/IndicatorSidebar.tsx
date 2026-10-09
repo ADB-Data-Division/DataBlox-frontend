@@ -72,10 +72,6 @@ function ChoroplethColorbar({ indicatorId, dimmed }: { indicatorId: string; dimm
         <Typography variant="caption" sx={{ fontWeight: 700 }}>{meta.mapDomain[0]}</Typography>
         <Typography variant="caption" sx={{ fontWeight: 700 }}>{meta.mapDomain[1]}</Typography>
       </Stack>
-      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5 }}>
-        <Box sx={{ width: 12, height: 8, borderRadius: 0.5, backgroundColor: NO_DATA_COLOR }} />
-        <Typography variant="caption" color="text.secondary">{NO_DATA_LABEL}</Typography>
-      </Stack>
     </Box>
   );
 }
@@ -150,6 +146,11 @@ export function IndicatorSidebar({
                   dimmed={mapLegendIds.length > 1 && id !== activeChoroplethIndicator && !(compareEnabled && id === compareIndicator)}
                 />
               ))}
+
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <Box sx={{ width: 12, height: 8, borderRadius: 0.5, backgroundColor: NO_DATA_COLOR }} />
+                <Typography variant="caption" color="text.secondary">{NO_DATA_LABEL}</Typography>
+              </Stack>
 
               {mapLegendIds.length > 1 && onChangeChoroplethIndicator && (
                 <Box sx={{ mt: 1 }}>
