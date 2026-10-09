@@ -406,15 +406,9 @@ export function PageContent() {
     setScrubberIndex(0);
   };
 
-  // Set default scrubber index to the latest period or Jul 2024 when periods are loaded
   useEffect(() => {
     if (periods.length > 0) {
-      const jul2024Idx = periods.findIndex((p) => p === 'Jul 2024');
-      if (jul2024Idx >= 0) {
-        setScrubberIndex(jul2024Idx);
-      } else {
-        setScrubberIndex(periods.length - 1);
-      }
+      setScrubberIndex(periods.length - 1);
     }
   }, [periods]);
 
