@@ -8,6 +8,9 @@ import {
   CardContent,
   Checkbox,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   Switch,
@@ -17,6 +20,7 @@ import {
   Typography,
 } from '@mui/material';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { IndicatorPickerDialog } from './IndicatorPickerDialog';
 import type { CoastalAggFunc } from '@/types/coastal';
 import {
@@ -34,7 +38,7 @@ export interface IndicatorSidebarProps {
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
   onChangeChoroplethIndicator?: (ind: string) => void;
-  // Far-zoom cluster toggle (rendered below Aggregation in map mode only).
+  // Far-zoom cluster toggle (lives in the map-mode Settings dialog).
   // Omitted = no toggle shown.
   clustersEnabled?: boolean;
   onChangeClustersEnabled?: (enabled: boolean) => void;
@@ -93,8 +97,21 @@ export function IndicatorSidebar({
   onChangeCompareIndicator,
 }: IndicatorSidebarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const maxCount = mode === 'map' ? 3 : 2;
   const showVesselOverlay = selectedIndicators.includes('vessels');
+
+  const aggregationSelect = (
+    <FormControl fullWidth size="small">
+      <Select
+        value={aggFunc}
+        onChange={(e) => onChangeAggFunc(e.target.value as CoastalAggFunc)}
+      >
+        <MenuItem value="average">Average</MenuItem>
+        <MenuItem value="maximum">Maximum</MenuItem>
+      </Select>
+    </FormControl>
+  );
 
   // Map-mode legend: one colorbar per selected map-capable indicator, with a
   // switcher when more than one is selected. Temperature is always °C.
@@ -240,41 +257,56 @@ export function IndicatorSidebar({
             onToggleIndicator={onToggleIndicator}
           />
 
-          <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              Aggregation
-            </Typography>
-            <FormControl fullWidth size="small">
-              <Select
-                value={aggFunc}
-                onChange={(e) => onChangeAggFunc(e.target.value as CoastalAggFunc)}
-              >
-                <MenuItem value="average">Average</MenuItem>
-                <MenuItem value="maximum">Maximum</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
-          {mode === 'map' && onChangeClustersEnabled && (
-            <Box sx={{ pt: 1 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={clustersEnabled}
-                    onChange={(e) => onChangeClustersEnabled(e.target.checked)}
-                  />
-                }
-                label={
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Enable clusters
-                  </Typography>
-                }
-              />
+          {mode === 'timeline' && (
+            <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Aggregation
+              </Typography>
+              {aggregationSelect}
             </Box>
           )}
         </CardContent>
       </Card>
+
+      {mode === 'map' && onChangeClustersEnabled && (
+        <>
+          <Button
+            fullWidth
+            variant="outlined"
+            size="small"
+            startIcon={<SettingsIcon sx={{ fontSize: 18 }} />}
+            onClick={() => setSettingsOpen(true)}
+            sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0 }}
+          >
+            Settings
+          </Button>
+          <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} fullWidth maxWidth="xs">
+            <DialogTitle sx={{ fontWeight: 700 }}>Settings</DialogTitle>
+            <DialogContent>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, mt: 0.5 }}>
+                Aggregation
+              </Typography>
+              {aggregationSelect}
+              <Box sx={{ pt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={clustersEnabled}
+                      onChange={(e) => onChangeClustersEnabled(e.target.checked)}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Enable clusters
+                    </Typography>
+                  }
+                />
+              </Box>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </Stack>
   );
 }
