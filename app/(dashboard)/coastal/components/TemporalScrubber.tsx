@@ -115,15 +115,15 @@ export default function TemporalScrubber({
     <Box
       sx={{
         width: '100%',
-        px: 2,
-        py: 0.5,
+        px: 1.5,
+        py: 0,
         bgcolor: 'background.paper',
         borderRadius: 1,
         border: '1px solid',
         borderColor: 'divider',
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Stack direction="row" alignItems="center" spacing={1}>
         {isWeekly && onPrevYear ? (
           <Tooltip title="Previous Year">
             <span>
@@ -157,7 +157,11 @@ export default function TemporalScrubber({
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
         </IconButton>
 
-        <Box sx={{ flexGrow: 1, px: 2, position: 'relative' }}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, flexShrink: 0 }}>
+          {derivedStartYear}
+        </Typography>
+
+        <Box sx={{ flexGrow: 1, px: 1, pb: 2.5, position: 'relative' }}>
           <Slider
             value={currentIndex}
             min={0}
@@ -169,17 +173,19 @@ export default function TemporalScrubber({
             valueLabelDisplay="on"
             valueLabelFormat={(value) => periods[value] || ''}
             sx={{
-              '& .MuiSlider-valueLabel': {
-                fontSize: 12,
+              py: 0,
+              '& .MuiSlider-valueLabel, & .MuiSlider-valueLabel.MuiSlider-valueLabelOpen': {
+                top: 12,
+                transform: 'translateY(0) scale(1)',
+                fontSize: 11,
                 fontWeight: 600,
-                top: -6,
                 backgroundColor: 'background.paper',
                 color: 'text.primary',
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 1,
-                px: 1,
-                py: 0.5,
+                px: 0.75,
+                py: 0.25,
                 boxShadow: 1,
                 whiteSpace: 'nowrap',
                 '&::before': {
@@ -198,15 +204,11 @@ export default function TemporalScrubber({
               },
             }}
           />
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: -0.5 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              {derivedStartYear}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              {derivedEndYear}
-            </Typography>
-          </Stack>
         </Box>
+
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, flexShrink: 0 }}>
+          {derivedEndYear}
+        </Typography>
 
         {isWeekly && onNextYear ? (
           <Tooltip title="Next Year">
