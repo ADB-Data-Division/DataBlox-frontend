@@ -82,7 +82,7 @@ export function PageContent() {
   const aoi_id = searchParams.get('aois') || undefined;
   const rawNames = searchParams.get('names');
   const start_date = searchParams.get('start_date') || '2019-01-01';
-  const end_date = searchParams.get('end_date') || '2024-12-31';
+  const end_date = searchParams.get('end_date') || '2025-12-31';
   const grainParam = (searchParams.get('grain') as any) || 'monthly';
 
   useEffect(() => {
