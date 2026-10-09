@@ -66,6 +66,10 @@ const CLUSTER_ZOOM_THRESHOLD = 9;
 const VESSEL_LABEL_MIN_ZOOM = 8;
 const CLUSTER_PARENT_RES = 4;
 
+const HEX_SVG_ATTRS = 'width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const HEX_SHOW_ICON = `<svg ${HEX_SVG_ATTRS}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+const HEX_HIDE_ICON = `<svg ${HEX_SVG_ATTRS}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
+
 // Circle radius in screen pixels from member count (sqrt keeps big groups
 // from exploding visually). Shared by the Deck and Leaflet render paths.
 function clusterRadiusPx(childCount: number): number {
@@ -387,6 +391,8 @@ function CoastalChoroplethMapClient({
   const hasFittedRef = useRef<boolean>(false);
   const fittedBoundsRef = useRef<[[number, number], [number, number]] | null>(null);
   const resetViewRef = useRef<() => void>(() => {});
+  const hexToggleLinkRef = useRef<HTMLElement | null>(null);
+  const [hexesVisible, setHexesVisible] = useState<boolean>(true);
   const [L, setL] = useState<any>(cachedL);
   const [deckModules, setDeckModules] = useState<{
     DeckOverlay: any;
@@ -928,6 +934,27 @@ function CoastalChoroplethMapClient({
     });
     new ResetViewControl().addTo(map);
 
+    const HexVisibilityControl = L.Control.extend({
+      options: { position: 'topright' },
+      onAdd() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.setAttribute('role', 'button');
+        link.style.display = 'flex';
+        link.style.alignItems = 'center';
+        link.style.justifyContent = 'center';
+        hexToggleLinkRef.current = link;
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(link, 'click', (e: Event) => {
+          L.DomEvent.preventDefault(e);
+          setHexesVisible((visible) => !visible);
+        });
+        return container;
+      },
+    });
+    new HexVisibilityControl().addTo(map);
+
     // Esri World Imagery: satellite basemap, no political boundary lines
     L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -1064,6 +1091,15 @@ function CoastalChoroplethMapClient({
       }
     };
   }, [centerConfig]);
+
+  useEffect(() => {
+    const link = hexToggleLinkRef.current;
+    if (!link) return;
+    const label = hexesVisible ? 'Hide hexes' : 'Show hexes';
+    link.innerHTML = hexesVisible ? HEX_HIDE_ICON : HEX_SHOW_ICON;
+    link.title = label;
+    link.setAttribute('aria-label', label);
+  }, [hexesVisible, L]);
 
   // Adjust Leaflet map size when container height changes
   useEffect(() => {
@@ -1220,7 +1256,7 @@ function CoastalChoroplethMapClient({
       );
     }
 
-    deckOverlayRef.current.setProps({ layers });
+    deckOverlayRef.current.setProps({ layers: hexesVisible ? layers : [] });
   }, [
     deckModules,
     gridCells,
@@ -1235,6 +1271,7 @@ function CoastalChoroplethMapClient({
     spatialSlice,
     activeIndicator,
     mapZoom,
+    hexesVisible,
   ]);
 
   // Fallback rendering via Leaflet Canvas (only when WebGL / Deck.gl is unavailable)
@@ -1245,6 +1282,7 @@ function CoastalChoroplethMapClient({
 
     const layerGroup = layerGroupRef.current;
     layerGroup.clearLayers();
+    if (!hexesVisible) return;
     const labelZoom = mapZoom ?? CLUSTER_ZOOM_THRESHOLD;
 
     // Far zoom fallback: magnitude circles (radius is screen pixels, so they
@@ -1352,7 +1390,7 @@ function CoastalChoroplethMapClient({
         layerGroup.addLayer(labelMarker);
       }
     });
-  }, [deckModules, L, gridCells, clusterPoints, showClusters, activeIndicator, activeTooltipLabel, activeTooltipAgg, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell, mapZoom]);
+  }, [deckModules, L, gridCells, clusterPoints, showClusters, activeIndicator, activeTooltipLabel, activeTooltipAgg, overlayVessels, selectedCellIds, selectedClusterIds, onSelectCell, mapZoom, hexesVisible]);
 
   // Never early-return on `loading`: unmounting the map div orphans the
   // Leaflet instance and the init effect does not re-run. The overlay below
