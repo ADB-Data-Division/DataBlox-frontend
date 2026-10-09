@@ -172,7 +172,7 @@ export function PageContent() {
   }, [activeTab]);
 
   const mapHeight = useMemo(() => {
-    if (!isFullscreen) return undefined;
+    if (!isFullscreen) return 378;
     return selectedHexCells.length > 0 ? 'calc(100vh - 460px)' : 'calc(100vh - 220px)';
   }, [isFullscreen, selectedHexCells]);
 

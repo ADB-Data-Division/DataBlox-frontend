@@ -47,7 +47,6 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
       <Box
         sx={{
           flex: 1,
-          minHeight: 420,
           height: height ?? 440,
           position: 'relative',
           borderRadius: 2,

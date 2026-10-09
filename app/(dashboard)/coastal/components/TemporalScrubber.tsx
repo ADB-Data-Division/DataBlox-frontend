@@ -115,7 +115,8 @@ export default function TemporalScrubber({
     <Box
       sx={{
         width: '100%',
-        p: 2,
+        px: 2,
+        py: 0.5,
         bgcolor: 'background.paper',
         borderRadius: 1,
         border: '1px solid',
