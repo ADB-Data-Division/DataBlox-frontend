@@ -6,6 +6,7 @@ import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TemporalScrubberPopover from './TemporalScrubberPopover';
 
 export interface TemporalScrubberProps {
   periods: string[];
@@ -161,7 +162,7 @@ export default function TemporalScrubber({
           {derivedStartYear}
         </Typography>
 
-        <Box sx={{ flexGrow: 1, px: 1, pb: 4, position: 'relative' }}>
+        <Box sx={{ flexGrow: 1, mx: 1.5, height: 20, position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Slider
             value={currentIndex}
             min={0}
@@ -170,28 +171,9 @@ export default function TemporalScrubber({
             marks={marks}
             onChange={handleSliderChange}
             disabled={disabled || periods.length === 0}
-            valueLabelDisplay="on"
-            valueLabelFormat={(value) => periods[value] || ''}
             sx={{
               py: 0,
-              '& .MuiSlider-valueLabel, & .MuiSlider-valueLabel.MuiSlider-valueLabelOpen': {
-                top: 24,
-                transform: 'translateY(0) scale(1)',
-                fontSize: 11,
-                fontWeight: 600,
-                backgroundColor: 'background.paper',
-                color: 'text.primary',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                px: 0.75,
-                py: 0.25,
-                boxShadow: 1,
-                whiteSpace: 'nowrap',
-                '&::before': {
-                  display: 'none',
-                },
-              },
+              width: '100%',
               '& .MuiSlider-mark': {
                 backgroundColor: 'currentColor',
                 height: 4,
@@ -204,6 +186,12 @@ export default function TemporalScrubber({
               },
             }}
           />
+          {periods.length > 0 && (
+            <TemporalScrubberPopover
+              percent={(currentIndex / Math.max(1, periods.length - 1)) * 100}
+              label={periods[currentIndex] || ''}
+            />
+          )}
         </Box>
 
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, flexShrink: 0 }}>
