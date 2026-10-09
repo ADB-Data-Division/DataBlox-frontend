@@ -1107,8 +1107,6 @@ function CoastalChoroplethMapClient({
     }
 
     const { PolygonLayer, ScatterplotLayer, TextLayer } = deckModules;
-    // The 1px white border swamps the fill when hexes are tiny.
-    const hideHexBorder = (mapZoom ?? CLUSTER_ZOOM_THRESHOLD) < CLUSTER_ZOOM_THRESHOLD;
 
     const handleHexClick = (d: HexCellData) => {
       if (onSelectCell) {
@@ -1178,7 +1176,7 @@ function CoastalChoroplethMapClient({
           getLineColor: (d: HexCellData) =>
             selectedCellIds.includes(d.id) ? [239, 68, 68, 255] : [255, 255, 255, 200],
           getLineWidth: (d: HexCellData) =>
-            selectedCellIds.includes(d.id) ? 3.5 : hideHexBorder ? 0 : 1,
+            selectedCellIds.includes(d.id) ? 3.5 : 0,
           lineWidthUnits: 'pixels',
           filled: true,
           stroked: true,
@@ -1192,7 +1190,7 @@ function CoastalChoroplethMapClient({
           updateTriggers: {
             getFillColor: [isChlor, isSST, activeIndicator, spatialSlice],
             getLineColor: [selectedCellIds],
-            getLineWidth: [selectedCellIds, mapZoom],
+            getLineWidth: [selectedCellIds],
           },
         })
       );

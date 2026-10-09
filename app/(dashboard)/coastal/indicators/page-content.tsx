@@ -162,7 +162,7 @@ export function PageContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a', 'sst']);
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a']);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [compareEnabled, setCompareEnabled] = useState<boolean>(false);
   const [compareRequested, setCompareRequested] = useState<string | null>(null);
@@ -840,15 +840,6 @@ export function PageContent() {
                             parts.push(`Average ${activeMeta.shortLabel}`);
                           }
                           return `${parts.join(' & ')} (${grainLabel}) - ${locationLabel}`;
-                        })()}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {(() => {
-                          const formatMY = (d: string) => {
-                            const dt = new Date(d);
-                            return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                          };
-                          return `${formatMY(start_date)} - ${formatMY(end_date)}`;
                         })()}
                       </Typography>
                       {showNationLoadNote(aoi_id, spatialStatus) && (
