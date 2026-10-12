@@ -53,6 +53,8 @@ export function VesselDistributionCharts({
     });
   }, [data]);
 
+  const selectedColor = data?.parentCategories.find((c) => c.id === selectedParentId)?.color;
+
   const subChartData = useMemo(() => {
     if (!data || !selectedParentId) return [];
     const subs = data.subCategories.filter((sub) => sub.parentId === selectedParentId);
@@ -134,7 +136,7 @@ export function VesselDistributionCharts({
                     <BarChart
                       xAxis={[{ scaleType: 'band', data: subChartData.map(d => d.label) }]}
                       yAxis={[{ valueFormatter: (v: number) => v.toLocaleString('en-US') }]}
-                      series={[{ data: subChartData.map(d => d.value) }]}
+                      series={[{ data: subChartData.map(d => d.value), color: selectedColor }]}
                       margin={{ top: 10, right: 10, bottom: 40, left: 80 }}
                     />
                   ) : (
