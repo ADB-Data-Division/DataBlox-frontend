@@ -930,9 +930,21 @@ export function PageContent() {
                   </Box>
                 </CardContent>
               </Card>
+
+              <Box sx={{ width: '100%', mt: 2 }}>
+                <HexCellDetailModal
+                  cellIds={selectedHexCells}
+                  locationName={locationLabel}
+                  country={country}
+                  grain={grain}
+                  dateRange={{ start: start_date, end: end_date }}
+                  indicators={selectedIndicators}
+                  onClose={() => setSelectedHexCells([])}
+                />
+              </Box>
             </Box>
 
-            {/* On desktop the sidebar is pinned to the map card height and its list scrolls. */}
+            {/* On desktop the sidebar is pinned to the height of the map and hex graph. */}
             <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, position: 'relative' }}>
               <Box sx={{ position: { md: 'absolute' }, inset: { md: 0 } }}>
                 <IndicatorSidebar
@@ -954,19 +966,6 @@ export function PageContent() {
               </Box>
             </Box>
           </Stack>
-
-          {/* Hex Cell Detail Inspection Card. Below the map. */}
-          <Box sx={{ width: '100%' }}>
-            <HexCellDetailModal
-              cellIds={selectedHexCells}
-              locationName={locationLabel}
-              country={country}
-              grain={grain}
-              dateRange={{ start: start_date, end: end_date }}
-              indicators={selectedIndicators}
-              onClose={() => setSelectedHexCells([])}
-            />
-          </Box>
         </Box>
       )}
 
