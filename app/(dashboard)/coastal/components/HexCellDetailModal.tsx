@@ -314,22 +314,38 @@ export default function HexCellDetailModal({
     };
   }, [realPoints, indicators, grainKey]);
 
+  const toggle = (
+    <Button
+      fullWidth
+      aria-expanded={expanded}
+      onClick={() => setExpanded((v) => !v)}
+      sx={{
+        py: 1.25,
+        borderRadius: 0,
+        textTransform: 'none',
+        fontWeight: 700,
+        bgcolor: 'action.hover',
+        borderBottom: expanded ? '1px solid' : 'none',
+        borderColor: 'divider',
+      }}
+    >
+      {expanded ? 'Collapse Details' : 'Expand Details'}
+    </Button>
+  );
+
   if (cellIds.length === 0) {
     return (
-      <Card
-        variant="outlined"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 4,
-          height: HEX_DETAIL_CARD_HEIGHT,
-          borderRadius: 2,
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Select a hex on the map to view more details
-        </Typography>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        {toggle}
+        {expanded && (
+          <Box
+            sx={{ height: HEX_DETAIL_CARD_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Select <strong>hexes</strong> on the map to view more details
+            </Typography>
+          </Box>
+        )}
       </Card>
     );
   }
@@ -425,22 +441,7 @@ export default function HexCellDetailModal({
 
   return (
     <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-      <Button
-        fullWidth
-        aria-expanded={expanded}
-        onClick={() => setExpanded((v) => !v)}
-        sx={{
-          py: 1.25,
-          borderRadius: 0,
-          textTransform: 'none',
-          fontWeight: 700,
-          bgcolor: 'action.hover',
-          borderBottom: expanded ? '1px solid' : 'none',
-          borderColor: 'divider',
-        }}
-      >
-        {expanded ? 'Collapse Details' : 'Expand Details'}
-      </Button>
+      {toggle}
       {expanded && (
         <Box sx={{ p: 2.5, height: HEX_DETAIL_CARD_HEIGHT, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>

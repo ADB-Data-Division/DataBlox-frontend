@@ -1158,20 +1158,18 @@ export function PageContent() {
             canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
           />
 
-          {/* Hex Cell Detail Card. Below the map and hidden until a hex is selected. */}
-          {selectedHexCells.length > 0 && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={['vessels']}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
+          {/* Hex Cell Detail Card. Below the map. */}
+          <Box sx={{ width: '100%' }}>
+            <HexCellDetailModal
+              cellIds={selectedHexCells}
+              locationName={locationLabel}
+              country={country}
+              grain={grain}
+              dateRange={{ start: start_date, end: end_date }}
+              indicators={['vessels']}
+              onClose={() => setSelectedHexCells([])}
+            />
+          </Box>
         </Box>
       )}
 
