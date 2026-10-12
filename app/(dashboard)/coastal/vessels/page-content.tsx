@@ -99,7 +99,8 @@ export function PageContent() {
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [hexExpanded, setHexExpanded] = useState<boolean>(false);
-  const hexGraphVisible = selectedHexCells.length > 0 && hexExpanded;
+  const [hexChartLoading, setHexChartLoading] = useState<boolean>(false);
+  const hexGraphReady = selectedHexCells.length > 0 && hexExpanded && !hexChartLoading;
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
@@ -578,7 +579,7 @@ export function PageContent() {
 
   const handleExportGraph = () => {
     if (activeTab === 2) {
-      if (hexGraphVisible) {
+      if (hexGraphReady) {
         exportGraphAsPng('coastal-hex-graph-container', `coastal_vessels_hex_graph_${country}_${start_date}_${end_date}.png`);
       }
       return;
@@ -1179,6 +1180,7 @@ export function PageContent() {
               onClose={() => setSelectedHexCells([])}
               expanded={hexExpanded}
               onExpandedChange={setHexExpanded}
+              onLoadingChange={setHexChartLoading}
             />
           </Box>
         </Box>
@@ -1188,7 +1190,7 @@ export function PageContent() {
       <DownloadDataCard
         onExportMap={activeTab === 2 ? handleExportMap : undefined}
         onExportGraph={handleExportGraph}
-        graphDisabled={activeTab === 2 && !hexGraphVisible}
+        graphDisabled={activeTab === 2 && !hexGraphReady}
         onExportCsv={handleExportCsv}
         onExportExcel={handleExportExcel}
       />

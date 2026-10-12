@@ -25,6 +25,7 @@ export interface HexCellDetailModalProps {
   onClose: () => void;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
@@ -220,6 +221,7 @@ export default function HexCellDetailModal({
   onClose,
   expanded,
   onExpandedChange,
+  onLoadingChange,
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -290,6 +292,11 @@ export default function HexCellDetailModal({
       isMounted = false;
     };
   }, [cellIds, country, dateRange.start, dateRange.end, grain]);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+    return () => onLoadingChange?.(false);
+  }, [loading, onLoadingChange]);
 
   const grainKey = (grain || 'monthly').toLowerCase();
 
@@ -382,7 +389,7 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
-      label: primaryConfig.label,
+      label: seriesHasData(primaryId) ? primaryConfig.label : `${primaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -411,7 +418,7 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
-      label: secondaryConfig.label,
+      label: seriesHasData(secondaryId) ? secondaryConfig.label : `${secondaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -482,26 +489,6 @@ export default function HexCellDetailModal({
             </Box>
 
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                {primaryConfig && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 16, height: 3, bgcolor: primaryConfig.color, borderRadius: 1 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {primaryConfig.label}
-                      {!seriesHasData(primaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
-                    </Typography>
-                  </Box>
-                )}
-                {secondaryConfig && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 16, height: 3, bgcolor: secondaryConfig.color, borderRadius: 1 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {secondaryConfig.label}
-                      {secondaryId && !seriesHasData(secondaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
               <IconButton onClick={onClose} size="small" aria-label="Close details">
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -545,11 +532,11 @@ export default function HexCellDetailModal({
                 // but its axis never renders.
                 leftAxis="leftAxis"
                 rightAxis={secondaryConfig ? 'rightAxis' : undefined}
-                margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
+                margin={{ top: 44, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
                 // Axis trigger shows the hovered period plus both series values
                 // together; the period stamp comes from the x-axis formatter.
                 tooltip={{ trigger: 'axis' }}
-                slotProps={{ legend: { hidden: true } }}
+                slotProps={{ legend: { direction: 'row', position: { vertical: 'top', horizontal: 'right' } } }}
                 sx={{
                   [`& .MuiMarkElement-series-${primaryId}`]: {
                     fill: `${primaryConfig.color} !important`,
