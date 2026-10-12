@@ -98,7 +98,7 @@ const LONG_MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-function isoWeekNumber(date: Date): number {
+export function isoWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const day = (d.getUTCDay() + 6) % 7; // Monday = 0
   d.setUTCDate(d.getUTCDate() - day + 3); // Thursday of this week

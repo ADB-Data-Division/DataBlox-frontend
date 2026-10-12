@@ -15,6 +15,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { IndicatorTimelinePoint } from '@/types/coastal';
 import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
+import { isoWeekNumber } from './HexCellDetailModal';
 import { NO_DATA_LABEL, getIndicatorMeta } from '../indicators';
 
 export interface DetailsCardProps {
@@ -249,8 +250,42 @@ function MetricTooltip({
   );
 }
 
-function formatMoMLabel(pA?: IndicatorTimelinePoint, pB?: IndicatorTimelinePoint): string {
+function weekStartDate(periodStart: string): Date {
+  return new Date(`${periodStart.slice(0, 10)}T00:00:00Z`);
+}
+
+function formatCardPeriod(periodStart: string, grain: string): string {
+  if (grain !== 'weekly') return formatPeriodLabel(periodStart);
+  const d = weekStartDate(periodStart);
+  const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+  return `Week ${isoWeekNumber(d)} · ${month} ${d.getUTCDate()}`;
+}
+
+// Weeks are Monday-anchored, so any date is within 3 days of a period start.
+export function findYearAgoWeek(
+  timeline: IndicatorTimelinePoint[] | undefined,
+  point: IndicatorTimelinePoint
+): IndicatorTimelinePoint | undefined {
+  if (!timeline) return undefined;
+  const target = weekStartDate(point.period_start);
+  target.setUTCFullYear(target.getUTCFullYear() - 1);
+  let best: IndicatorTimelinePoint | undefined;
+  let bestDiff = Infinity;
+  for (const p of timeline) {
+    const diff = Math.abs(weekStartDate(p.period_start).getTime() - target.getTime());
+    if (diff < bestDiff) {
+      best = p;
+      bestDiff = diff;
+    }
+  }
+  return bestDiff <= 3 * 86400000 ? best : undefined;
+}
+
+function formatMoMLabel(pA?: IndicatorTimelinePoint, pB?: IndicatorTimelinePoint, grain?: string): string {
   if (!pA || !pB) return `${NO_DATA_LABEL}:`;
+  if (grain === 'weekly') {
+    return `Week ${isoWeekNumber(weekStartDate(pA.period_start))} vs Week ${isoWeekNumber(weekStartDate(pB.period_start))}:`;
+  }
   const dA = new Date(pA.period_start);
   const dB = new Date(pB.period_start);
   if (isNaN(dA.getTime()) || isNaN(dB.getTime())) {
@@ -275,8 +310,7 @@ export function DetailsCard({
   const theme = useTheme();
   const [activeSlide, setActiveSlide] = useState<number>(0);
 
-  const activePoint =
-    selectedPoint || (timeline && timeline.length > 0 ? timeline[timeline.length - 1] : null);
+  const activePoint = selectedPoint ?? null;
 
   const indicatorTitle = useMemo(() => {
     const meta = getIndicatorMeta(activeIndicator);
@@ -300,44 +334,32 @@ export function DetailsCard({
 
     // Slide 1: Year over Year points
     const yoyP0 = activePoint;
-    const yoyP1 = findSameMonthPoint(timeline, currYear - 1, currMonth);
-    const yoyP2 = findSameMonthPoint(timeline, currYear - 2, currMonth);
-    const yoyP3 = findSameMonthPoint(timeline, currYear - 3, currMonth);
+    const yoyP1 =
+      grain === 'weekly'
+        ? findYearAgoWeek(timeline, activePoint)
+        : findSameMonthPoint(timeline, currYear - 1, currMonth);
 
     const yoyV0 = getPointValue(yoyP0, activeIndicator);
     const yoyV1 = yoyP1 ? getPointValue(yoyP1, activeIndicator) : undefined;
-    const yoyV2 = yoyP2 ? getPointValue(yoyP2, activeIndicator) : undefined;
-    const yoyV3 = yoyP3 ? getPointValue(yoyP3, activeIndicator) : undefined;
 
     const yoyPct0 = yoyV1 !== undefined ? pctChange(yoyV0, yoyV1) : null;
-    const yoyPct1 = yoyV1 !== undefined && yoyV2 !== undefined ? pctChange(yoyV1, yoyV2) : null;
-    const yoyPct2 = yoyV2 !== undefined && yoyV3 !== undefined ? pctChange(yoyV2, yoyV3) : null;
 
     const yoyData = {
-      title: 'Current vs Same Month of Previous Year (%)',
+      title:
+        grain === 'weekly'
+          ? 'Current vs Same Week of Previous Year (%)'
+          : 'Current vs Same Month of Previous Year (%)',
       primary: {
         delta: formatDelta(yoyPct0, activeIndicator),
-        afterLabel: `${monthShort} ${currYear}`,
+        afterLabel: formatCardPeriod(activePoint.period_start, grain),
         afterVal: yoyV0,
-        beforeLabel: `${monthShort} ${currYear - 1}`,
+        beforeLabel: yoyP1
+          ? formatCardPeriod(yoyP1.period_start, grain)
+          : `${monthShort} ${currYear - 1}`,
         beforeVal: yoyV1,
       },
-      comp1: {
-        label: `${monthShort} ${currYear - 1} vs ${currYear - 2}:`,
-        delta: formatDelta(yoyPct1, activeIndicator),
-        afterLabel: `${monthShort} ${currYear - 1}`,
-        afterVal: yoyV1,
-        beforeLabel: `${monthShort} ${currYear - 2}`,
-        beforeVal: yoyV2,
-      },
-      comp2: {
-        label: `${monthShort} ${currYear - 2} vs ${currYear - 3}:`,
-        delta: formatDelta(yoyPct2, activeIndicator),
-        afterLabel: `${monthShort} ${currYear - 2}`,
-        afterVal: yoyV2,
-        beforeLabel: `${monthShort} ${currYear - 3}`,
-        beforeVal: yoyV3,
-      },
+      comp1: null,
+      comp2: null,
     };
 
     // Slide 0: Month over Month points
@@ -360,31 +382,31 @@ export function DetailsCard({
       title: 'Current vs Previous Month (%)',
       primary: {
         delta: formatDelta(momPct0, activeIndicator),
-        afterLabel: formatPeriodLabel(momP0.period_start),
+        afterLabel: formatCardPeriod(momP0.period_start, grain),
         afterVal: momV0,
-        beforeLabel: momP1 ? formatPeriodLabel(momP1.period_start) : 'Previous Period',
+        beforeLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Previous Period',
         beforeVal: momV1,
       },
       comp1: {
-        label: formatMoMLabel(momP1, momP2),
+        label: formatMoMLabel(momP1, momP2, grain),
         delta: formatDelta(momPct1, activeIndicator),
-        afterLabel: momP1 ? formatPeriodLabel(momP1.period_start) : 'Period A',
+        afterLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Period A',
         afterVal: momV1,
-        beforeLabel: momP2 ? formatPeriodLabel(momP2.period_start) : 'Period B',
+        beforeLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
         beforeVal: momV2,
       },
       comp2: {
-        label: formatMoMLabel(momP2, momP3),
+        label: formatMoMLabel(momP2, momP3, grain),
         delta: formatDelta(momPct2, activeIndicator),
-        afterLabel: momP2 ? formatPeriodLabel(momP2.period_start) : 'Period B',
+        afterLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
         afterVal: momV2,
-        beforeLabel: momP3 ? formatPeriodLabel(momP3.period_start) : 'Period C',
+        beforeLabel: momP3 ? formatCardPeriod(momP3.period_start, grain) : 'Period C',
         beforeVal: momV3,
       },
     };
 
     return { momData, yoyData };
-  }, [activePoint, timeline, activeIndicator]);
+  }, [activePoint, timeline, activeIndicator, grain]);
 
   if (loading) {
     return (
@@ -427,7 +449,7 @@ export function DetailsCard({
         }}
       >
         <Typography variant="body2" color="text.secondary" align="center">
-          Select a period on the graph to view more details
+          Select a <strong>period</strong> on the graph to view more details
         </Typography>
       </Card>
     );
@@ -445,8 +467,6 @@ export function DetailsCard({
         height: '100%',
         minHeight: 180,
         borderRadius: 2,
-        borderColor: 'primary.main',
-        borderWidth: 2,
         backgroundColor: 'background.paper',
         display: 'flex',
         flexDirection: 'column',
@@ -530,7 +550,7 @@ export function DetailsCard({
             {indicatorTitle}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {locationName} · {formatPeriodLabel(activePoint.period_start)}
+            {locationName} · {formatCardPeriod(activePoint.period_start, grain)}
           </Typography>
         </Box>
 
@@ -578,97 +598,99 @@ export function DetailsCard({
             </Box>
 
             {/* Historical Comparisons (Right) */}
-            <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
-              {/* Comparison Row 1 */}
-              <Tooltip
-                arrow
-                placement="top"
-                title={
-                  currentSlide.comp1.afterVal !== undefined && currentSlide.comp1.beforeVal !== undefined ? (
-                    <MetricTooltip
-                      isYoY={isYoY}
-                      afterLabel={currentSlide.comp1.afterLabel}
-                      afterVal={currentSlide.comp1.afterVal}
-                      beforeLabel={currentSlide.comp1.beforeLabel}
-                      beforeVal={currentSlide.comp1.beforeVal}
-                      unit={unit}
-                      indicatorKey={activeIndicator}
-                    />
-                  ) : ''
-                }
-              >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ cursor: 'help' }}
+            {currentSlide.comp1 && currentSlide.comp2 && (
+              <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
+                {/* Comparison Row 1 */}
+                <Tooltip
+                  arrow
+                  placement="top"
+                  title={
+                    currentSlide.comp1.afterVal !== undefined && currentSlide.comp1.beforeVal !== undefined ? (
+                      <MetricTooltip
+                        isYoY={isYoY}
+                        afterLabel={currentSlide.comp1.afterLabel}
+                        afterVal={currentSlide.comp1.afterVal}
+                        beforeLabel={currentSlide.comp1.beforeLabel}
+                        beforeVal={currentSlide.comp1.beforeVal}
+                        unit={unit}
+                        indicatorKey={activeIndicator}
+                      />
+                    ) : ''
+                  }
                 >
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary', fontSize: '11px', whiteSpace: 'nowrap' }}
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ cursor: 'help' }}
                   >
-                    {currentSlide.comp1.label}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '11px',
-                      color: currentSlide.comp1.delta.color,
-                      whiteSpace: 'nowrap',
-                      ml: 1,
-                    }}
-                  >
-                    {currentSlide.comp1.delta.text}
-                  </Typography>
-                </Stack>
-              </Tooltip>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', fontSize: '11px', whiteSpace: 'nowrap' }}
+                    >
+                      {currentSlide.comp1.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        color: currentSlide.comp1.delta.color,
+                        whiteSpace: 'nowrap',
+                        ml: 1,
+                      }}
+                    >
+                      {currentSlide.comp1.delta.text}
+                    </Typography>
+                  </Stack>
+                </Tooltip>
 
-              {/* Comparison Row 2 */}
-              <Tooltip
-                arrow
-                placement="top"
-                title={
-                  currentSlide.comp2.afterVal !== undefined && currentSlide.comp2.beforeVal !== undefined ? (
-                    <MetricTooltip
-                      isYoY={isYoY}
-                      afterLabel={currentSlide.comp2.afterLabel}
-                      afterVal={currentSlide.comp2.afterVal}
-                      beforeLabel={currentSlide.comp2.beforeLabel}
-                      beforeVal={currentSlide.comp2.beforeVal}
-                      unit={unit}
-                      indicatorKey={activeIndicator}
-                    />
-                  ) : ''
-                }
-              >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ cursor: 'help' }}
+                {/* Comparison Row 2 */}
+                <Tooltip
+                  arrow
+                  placement="top"
+                  title={
+                    currentSlide.comp2.afterVal !== undefined && currentSlide.comp2.beforeVal !== undefined ? (
+                      <MetricTooltip
+                        isYoY={isYoY}
+                        afterLabel={currentSlide.comp2.afterLabel}
+                        afterVal={currentSlide.comp2.afterVal}
+                        beforeLabel={currentSlide.comp2.beforeLabel}
+                        beforeVal={currentSlide.comp2.beforeVal}
+                        unit={unit}
+                        indicatorKey={activeIndicator}
+                      />
+                    ) : ''
+                  }
                 >
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary', fontSize: '11px', whiteSpace: 'nowrap' }}
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ cursor: 'help' }}
                   >
-                    {currentSlide.comp2.label}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '11px',
-                      color: currentSlide.comp2.delta.color,
-                      whiteSpace: 'nowrap',
-                      ml: 1,
-                    }}
-                  >
-                    {currentSlide.comp2.delta.text}
-                  </Typography>
-                </Stack>
-              </Tooltip>
-            </Stack>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', fontSize: '11px', whiteSpace: 'nowrap' }}
+                    >
+                      {currentSlide.comp2.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        color: currentSlide.comp2.delta.color,
+                        whiteSpace: 'nowrap',
+                        ml: 1,
+                      }}
+                    >
+                      {currentSlide.comp2.delta.text}
+                    </Typography>
+                  </Stack>
+                </Tooltip>
+              </Stack>
+            )}
           </Stack>
         </Box>
 

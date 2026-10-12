@@ -24,7 +24,7 @@ import {
   getCellIndicatorValue,
   getIndicatorColor,
 } from '@/app/(dashboard)/coastal/components/CoastalChoroplethMap';
-import { pctChange, formatDelta } from '@/app/(dashboard)/coastal/components/DetailsCard';
+import { pctChange, formatDelta, findYearAgoWeek } from '@/app/(dashboard)/coastal/components/DetailsCard';
 import {
   buildIndicatorExportRows,
   generateCsvContent,
@@ -193,6 +193,13 @@ describe('Summary card stats and delta rules (F7)', () => {
     expect(pctChange(30, NaN)).toBeNull();
     expect(pctChange(30, undefined)).toBeNull();
     expect(pctChange(30, 0)).toBeNull();
+  });
+
+  it('weekly year-ago lookup picks the same week last year, or nothing', () => {
+    const pt = (period_start: string) => ({ period_start }) as IndicatorTimelinePoint;
+    const timeline = [pt('2023-12-18 00:00:00'), pt('2023-12-25 00:00:00'), pt('2024-12-23 00:00:00')];
+    expect(findYearAgoWeek(timeline, pt('2024-12-23 00:00:00'))?.period_start).toBe('2023-12-25 00:00:00');
+    expect(findYearAgoWeek([pt('2023-11-06 00:00:00'), pt('2024-12-23 00:00:00')], pt('2024-12-23 00:00:00'))).toBeUndefined();
   });
 });
 
