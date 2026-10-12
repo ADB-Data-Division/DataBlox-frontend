@@ -5,14 +5,18 @@ import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material
 import DownloadIcon from '@mui/icons-material/Download';
 
 interface DownloadDataCardProps {
+  onExportMap?: () => void;
   onExportGraph: () => void;
+  graphDisabled?: boolean;
   onExportCsv: () => void;
   onExportExcel: () => void;
   sources?: string;
 }
 
 export function DownloadDataCard({
+  onExportMap,
   onExportGraph,
+  graphDisabled,
   onExportCsv,
   onExportExcel,
   sources = 'Sources: NOAA CoastWatch, Copernicus Climate Data Store, United Nations Global Platform, VesselBot',
@@ -62,11 +66,22 @@ export function DownloadDataCard({
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
+            {onExportMap && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={onExportMap}
+              >
+                Map
+              </Button>
+            )}
             <Button
               variant="contained"
               size="small"
               startIcon={<DownloadIcon />}
               onClick={onExportGraph}
+              disabled={graphDisabled}
             >
               Graph
             </Button>

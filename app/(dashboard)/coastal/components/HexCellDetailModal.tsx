@@ -23,6 +23,8 @@ export interface HexCellDetailModalProps {
   dateRange: { start: string; end: string };
   indicators: string[];
   onClose: () => void;
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
@@ -216,10 +218,11 @@ export default function HexCellDetailModal({
   dateRange,
   indicators,
   onClose,
+  expanded,
+  onExpandedChange,
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [expanded, setExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     if (cellIds.length === 0 || !country) {
@@ -320,7 +323,7 @@ export default function HexCellDetailModal({
     <Button
       fullWidth
       aria-expanded={expanded}
-      onClick={() => setExpanded((v) => !v)}
+      onClick={() => onExpandedChange(!expanded)}
       startIcon={<TimelineIcon fontSize="small" />}
       sx={{
         py: 1.25,
@@ -505,7 +508,7 @@ export default function HexCellDetailModal({
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%', height: 260 }}>
+          <Box id="coastal-hex-graph-container" sx={{ width: '100%', height: 260 }}>
             {loading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <CircularProgress size={32} />

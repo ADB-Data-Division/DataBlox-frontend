@@ -171,6 +171,8 @@ export function PageContent() {
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
+  const [hexExpanded, setHexExpanded] = useState<boolean>(false);
+  const hexGraphVisible = selectedHexCells.length > 0 && hexExpanded;
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -320,21 +322,26 @@ export function PageContent() {
     exportToExcel(filename, 'Indicators', buildIndicatorExportRows(timelineData, selectedIndicators) as Record<string, any>[], exportHeaders);
   };
 
+  const handleExportMap = () => {
+    const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
+    if (splitActive) {
+      ['left', 'right'].forEach((side) =>
+        exportLeafletMapAsPng(`coastal-map-container-${side}`, filename.replace('.png', `_${side}.png`))
+      );
+    } else {
+      exportLeafletMapAsPng('coastal-map-container', filename);
+    }
+  };
+
   const handleExportGraph = () => {
     if (viewMode === 'map') {
-      const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
-      if (splitActive) {
-        ['left', 'right'].forEach((side) =>
-          exportLeafletMapAsPng(`coastal-map-container-${side}`, filename.replace('.png', `_${side}.png`))
-        );
-      } else {
-        exportLeafletMapAsPng('coastal-map-container', filename);
+      if (hexGraphVisible) {
+        exportGraphAsPng('coastal-hex-graph-container', `coastal_hex_graph_${country}_${start_date}_${end_date}.png`);
       }
       return;
     }
-    const containerId = 'coastal-chart-container';
     const filename = `coastal_${viewMode}_${country}_${start_date}_${end_date}.png`;
-    exportGraphAsPng(containerId, filename);
+    exportGraphAsPng('coastal-chart-container', filename);
   };
 
   const timelineData = data?.timeline || data?.series || [];
@@ -932,6 +939,8 @@ export function PageContent() {
                   dateRange={{ start: start_date, end: end_date }}
                   indicators={selectedIndicators}
                   onClose={() => setSelectedHexCells([])}
+                  expanded={hexExpanded}
+                  onExpandedChange={setHexExpanded}
                 />
               </Box>
             </Box>
@@ -963,7 +972,9 @@ export function PageContent() {
 
       {/* Bottom Row: Download Data Card */}
       <DownloadDataCard
+        onExportMap={viewMode === 'map' ? handleExportMap : undefined}
         onExportGraph={handleExportGraph}
+        graphDisabled={viewMode === 'map' && !hexGraphVisible}
         onExportCsv={handleExportCsv}
         onExportExcel={handleExportExcel}
       />
