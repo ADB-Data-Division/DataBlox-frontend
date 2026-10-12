@@ -423,6 +423,55 @@ function inlineComputedSvgStyles(source: Element, clone: Element): void {
   }
 }
 
+interface RasterizedSvg {
+  canvas: HTMLCanvasElement;
+  width: number;
+  height: number;
+}
+
+/**
+ * Draw an SVG element onto a 2x canvas. Resolves null if the image cannot load.
+ */
+async function rasterizeSvg(svgElement: SVGSVGElement): Promise<RasterizedSvg | null> {
+  const svgRect = svgElement.getBoundingClientRect();
+  const width = Math.max(svgElement.clientWidth || 0, svgRect.width, 600);
+  const height = Math.max(svgElement.clientHeight || 0, svgRect.height, 350);
+
+  const cloneSvg = svgElement.cloneNode(true) as SVGSVGElement;
+  inlineComputedSvgStyles(svgElement, cloneSvg);
+  cloneSvg.setAttribute('width', String(width));
+  cloneSvg.setAttribute('height', String(height));
+  cloneSvg.style.backgroundColor = '#ffffff';
+
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(cloneSvg);
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  return new Promise<RasterizedSvg | null>((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width * 2;
+      canvas.height = height * 2;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(2, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+      }
+      URL.revokeObjectURL(url);
+      resolve(ctx ? { canvas, width, height } : null);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    image.src = url;
+  });
+}
+
 /**
  * Capture an SVG or Canvas chart element and export as a PNG image download.
  */
@@ -463,45 +512,86 @@ export async function exportGraphAsPng(
     return;
   }
 
-  const svgRect = svgElement.getBoundingClientRect();
-  const width = Math.max(svgElement.clientWidth || 0, svgRect.width, 600);
-  const height = Math.max(svgElement.clientHeight || 0, svgRect.height, 350);
+  const rasterized = await rasterizeSvg(svgElement);
+  if (!rasterized) return;
 
-  const cloneSvg = svgElement.cloneNode(true) as SVGSVGElement;
-  inlineComputedSvgStyles(svgElement, cloneSvg);
-  cloneSvg.setAttribute('width', String(width));
-  cloneSvg.setAttribute('height', String(height));
-  cloneSvg.style.backgroundColor = '#ffffff';
-
-  const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(cloneSvg);
-  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(svgBlob);
-
-  const image = new Image();
-  image.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width * 2;
-    canvas.height = height * 2;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      URL.revokeObjectURL(url);
-      return;
+  rasterized.canvas.toBlob((blob) => {
+    if (blob) {
+      downloadBlob(blob, filename.endsWith('.png') ? filename : `${filename}.png`);
     }
-    ctx.scale(2, 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(image, 0, 0, width, height);
-    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        downloadBlob(blob, filename.endsWith('.png') ? filename : `${filename}.png`);
-      }
-    }, 'image/png');
-  };
-  image.onerror = () => {
-    URL.revokeObjectURL(url);
-  };
-  image.src = url;
+export interface ChartExportContext {
+  title: string;
+  subtitle: string;
+  legend: { label: string; color: string }[];
+}
+
+/**
+ * Export an SVG chart inside a container with its title, subtitle, and legend.
+ */
+export async function exportChartWithContextAsPng(
+  containerId: string,
+  filename: string,
+  context: ChartExportContext
+): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const container = document.getElementById(containerId);
+  const svgElement = container?.querySelector<SVGSVGElement>('svg') ?? null;
+  if (!container || !svgElement) {
+    console.warn(`No SVG chart found in export container: ${containerId}`);
+    return;
+  }
+
+  const rasterized = await rasterizeSvg(svgElement);
+  if (!rasterized) return;
+  const { canvas: chart, width, height } = rasterized;
+
+  const pad = 16;
+  const headerHeight = 56;
+  const legendHeight = context.legend.length > 0 ? 36 : 0;
+  const totalHeight = headerHeight + height + legendHeight;
+  const fontFamily = window.getComputedStyle(container).fontFamily;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width * 2;
+  canvas.height = totalHeight * 2;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.scale(2, 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, totalHeight);
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#111827';
+  ctx.font = `700 16px ${fontFamily}`;
+  ctx.fillText(context.title, pad, 26);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = `400 13px ${fontFamily}`;
+  ctx.fillText(context.subtitle, pad, 46);
+
+  ctx.drawImage(chart, 0, headerHeight, width, height);
+
+  if (legendHeight > 0) {
+    const midY = headerHeight + height + legendHeight / 2;
+    ctx.textBaseline = 'middle';
+    ctx.font = `400 13px ${fontFamily}`;
+    let x = pad;
+    for (const item of context.legend) {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(x, midY - 1.5, 14, 3);
+      x += 22;
+      ctx.fillStyle = '#111827';
+      ctx.fillText(item.label, x, midY);
+      x += ctx.measureText(item.label).width + 24;
+    }
+  }
+
+  canvas.toBlob((blob) => {
+    if (blob) {
+      downloadBlob(blob, filename.endsWith('.png') ? filename : `${filename}.png`);
+    }
+  }, 'image/png');
 }

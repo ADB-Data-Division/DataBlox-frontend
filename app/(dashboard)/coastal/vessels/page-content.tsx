@@ -38,7 +38,7 @@ import { DownloadDataCard } from '../components/DownloadDataCard';
 import VesselTimelineChart from '../components/VesselTimelineChart';
 import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import VesselSummaryCards from '../components/VesselSummaryCards';
-import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
+import { exportToCsv, exportToExcel, exportGraphAsPng, exportChartWithContextAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
@@ -72,6 +72,13 @@ const VESSEL_CATEGORY_COLORS: Record<string, string> = {
   recreation: '#f59e0b',
   miscellaneous: '#9ca3af',
 };
+
+const VESSEL_LEGEND_ITEMS = [
+  { label: 'Trade', color: VESSEL_CATEGORY_COLORS.trade },
+  { label: 'Harbor', color: VESSEL_CATEGORY_COLORS.harbor },
+  { label: 'Recreation', color: VESSEL_CATEGORY_COLORS.recreation },
+  { label: 'Miscellaneous', color: VESSEL_CATEGORY_COLORS.miscellaneous },
+];
 
 export function PageContent() {
   const router = useRouter();
@@ -577,6 +584,8 @@ export function PageContent() {
     exportLeafletMapAsPng('coastal-vessels-map-container', filename);
   };
 
+  const timelineTitle = `${metric} By Type (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
+
   const handleExportGraph = () => {
     if (activeTab === 2) {
       if (hexGraphReady) {
@@ -585,11 +594,15 @@ export function PageContent() {
       return;
     }
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
-    const containerId =
-      activeTab === 1
-        ? 'coastal-vessels-distribution-container'
-        : 'coastal-vessels-chart-container';
-    exportGraphAsPng(containerId, filename);
+    if (activeTab === 1) {
+      exportGraphAsPng('coastal-vessels-distribution-container', filename);
+      return;
+    }
+    exportChartWithContextAsPng('coastal-vessels-chart-container', filename, {
+      title: timelineTitle,
+      subtitle: `${start_date} to ${end_date}`,
+      legend: VESSEL_LEGEND_ITEMS,
+    });
   };
 
   if (!rawCountry) {
@@ -731,7 +744,7 @@ export function PageContent() {
             <Card variant="outlined" sx={{ flex: 1, minWidth: 0, width: '100%', borderRadius: 2 }}>
               <CardContent>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  {metric} By Type ({grain.charAt(0).toUpperCase() + grain.slice(1)}) : {locationLabel}
+                  {timelineTitle}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {start_date} to {end_date}
@@ -758,22 +771,12 @@ export function PageContent() {
                     Legend
                   </Typography>
                   <Stack spacing={1}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.trade }} />
-                      <Typography variant="body2">Trade</Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.harbor }} />
-                      <Typography variant="body2">Harbor</Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.recreation }} />
-                      <Typography variant="body2">Recreation</Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: VESSEL_CATEGORY_COLORS.miscellaneous }} />
-                      <Typography variant="body2">Miscellaneous</Typography>
-                    </Stack>
+                    {VESSEL_LEGEND_ITEMS.map((item) => (
+                      <Stack key={item.label} direction="row" spacing={1.5} alignItems="center">
+                        <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: item.color }} />
+                        <Typography variant="body2">{item.label}</Typography>
+                      </Stack>
+                    ))}
                   </Stack>
                 </CardContent>
               </Card>
