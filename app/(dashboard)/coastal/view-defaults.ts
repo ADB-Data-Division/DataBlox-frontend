@@ -21,5 +21,5 @@ export function compareCandidates(
   left: string,
   isMapCapable: (id: string) => boolean
 ): string[] {
-  return selected.filter((id) => id !== left && id !== 'vessels' && isMapCapable(id));
+  return selected.filter((id) => id !== left && isMapCapable(id));
 }

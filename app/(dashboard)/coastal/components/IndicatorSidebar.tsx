@@ -112,7 +112,7 @@ export function IndicatorSidebar({
   const mapLegendIds = useMemo(() => {
     const ids = selectedIndicators.filter((id) => {
       const meta = getIndicatorMeta(id);
-      return meta?.supports_map && id !== 'vessels';
+      return meta?.supports_map;
     });
     if (ids.length === 0) {
       return [activeChoroplethIndicator].filter((id) => getIndicatorMeta(id));

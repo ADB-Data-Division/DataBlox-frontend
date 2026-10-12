@@ -287,7 +287,7 @@ export function PageContent() {
       } else {
         setSelectedIndicators([selectedIndicators[0], indicatorId]);
       }
-      if (viewMode === 'map' && isMapCapable && indicatorId !== 'vessels') {
+      if (viewMode === 'map' && isMapCapable) {
         setActiveChoroplethIndicator(indicatorId);
       }
     }

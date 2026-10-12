@@ -51,11 +51,15 @@ describe('showNationLoadNote', () => {
 describe('side-by-side candidates', () => {
   const capable = (id: string) => id !== 'port_calls';
 
-  it('lists other selected map-capable layers', () => {
-    expect(compareCandidates(['chlor_a', 'sst', 'vessels', 'port_calls'], 'chlor_a', capable)).toEqual(['sst']);
+  it('lists other selected map-capable layers, including Vessel Count', () => {
+    expect(compareCandidates(['chlor_a', 'sst', 'vessels', 'port_calls'], 'chlor_a', capable)).toEqual(['sst', 'vessels']);
+  });
+
+  it('offers Vessel Count when it is not the left layer', () => {
+    expect(compareCandidates(['vessels', 'chlor_a'], 'vessels', capable)).toEqual(['chlor_a']);
   });
 
   it('is empty with a single map layer so the switch stays hidden', () => {
-    expect(compareCandidates(['chlor_a', 'vessels'], 'chlor_a', capable)).toEqual([]);
+    expect(compareCandidates(['chlor_a'], 'chlor_a', capable)).toEqual([]);
   });
 });
