@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Card, CircularProgress, Chip, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { ticks } from 'd3';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
 import type { HexCellTimeSeriesPoint } from '@/types/coastal';
 import {
@@ -197,6 +198,14 @@ function axisBounds(
   return {};
 }
 
+// Decimals are dropped only when every tick is a whole number, so small-range
+// axes (cloud cover, runoff) never print duplicate rounded labels.
+function hasWholeTicks(dataArray: unknown[], fallback: [number, number]): boolean {
+  const vals = dataArray.filter(isPlottableValue);
+  const { min = Math.min(...vals), max = Math.max(...vals) } = axisBounds(dataArray, fallback);
+  return ticks(min, max, 6).every(Number.isInteger);
+}
+
 export default function HexCellDetailModal({
   cellIds = [],
   locationName,
@@ -359,9 +368,11 @@ export default function HexCellDetailModal({
           ? 'N/A'
           : `${formatAxisTick(primaryId, v)} ${primaryConfig.unit}`,
     });
+    const leftWhole = hasWholeTicks(dataArray, primaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'leftAxis',
-      valueFormatter: (value: number) => formatAxisTick(primaryId, value),
+      valueFormatter: (value: number) =>
+        leftWhole ? String(Math.round(value)) : formatAxisTick(primaryId, value),
       // Tick labels end ~14px out and run ~35px wide. The axis title is
       // rendered as HTML in the margin (see below) instead of MUI's
       // rotated label, which centers at a fixed offset that collides
@@ -386,10 +397,12 @@ export default function HexCellDetailModal({
           ? 'N/A'
           : `${formatAxisTick(secondaryId as string, v)} ${secondaryConfig.unit}`,
     });
+    const rightWhole = hasWholeTicks(dataArray, secondaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'rightAxis',
       position: 'right' as const,
-      valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
+      valueFormatter: (value: number) =>
+        rightWhole ? String(Math.round(value)) : formatAxisTick(secondaryId as string, value),
       // Same title/tick collision as the left axis, mirrored.
       slotProps: { axisTickLabel: { dx: 6 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
@@ -592,6 +605,7 @@ export default function HexCellDetailModal({
                     top: '50%',
                     transform: 'translateY(-50%) rotate(180deg)',
                     writingMode: 'vertical-rl',
+                    whiteSpace: 'nowrap',
                     color: primaryConfig.color,
                     fontWeight: 700,
                     fontSize: 12,
@@ -610,6 +624,7 @@ export default function HexCellDetailModal({
                       top: '50%',
                       transform: 'translateY(-50%)',
                       writingMode: 'vertical-rl',
+                      whiteSpace: 'nowrap',
                       color: secondaryConfig.color,
                       fontWeight: 700,
                       fontSize: 12,
