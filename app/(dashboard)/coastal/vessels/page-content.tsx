@@ -603,7 +603,11 @@ export function PageContent() {
     }
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
     if (activeTab === 1) {
-      exportGraphAsPng('coastal-vessels-distribution-container', filename);
+      exportChartWithContextAsPng('coastal-vessels-distribution-container', filename, {
+        title: `Vessel Types in ${locationLabel}`,
+        subtitle: `${start_date} to ${end_date}`,
+        legend: [],
+      });
       return;
     }
     exportChartWithContextAsPng('coastal-vessels-chart-container', filename, {
