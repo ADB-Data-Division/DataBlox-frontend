@@ -80,6 +80,14 @@ const VESSEL_LEGEND_ITEMS = [
   { label: 'Miscellaneous', color: VESSEL_CATEGORY_COLORS.miscellaneous },
 ];
 
+const VESSEL_MAP_GRID_SX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) 260px' },
+  gridTemplateAreas: { xs: '"map" "legend" "hex"', md: '"map legend" "hex ."' },
+  gap: 2,
+  alignContent: 'start',
+};
+
 export function PageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1037,20 +1045,16 @@ export function PageContent() {
                   pt: { xs: 0.75, md: 1 },
                   px: { xs: 1.5, md: 2.5 },
                   pb: { xs: 1.5, md: 2.5 },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
                   overflowY: 'auto',
+                  ...VESSEL_MAP_GRID_SX,
                 }
               : {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
+                  ...VESSEL_MAP_GRID_SX,
                   width: '100%',
                 }
           }
         >
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card variant="outlined" sx={{ gridArea: 'map', borderRadius: 2 }}>
             <CardContent sx={{ p: 2 }}>
               <Box
                 sx={{
@@ -1155,23 +1159,63 @@ export function PageContent() {
                 periodLabel={periods[activeScrubberIndex]}
                 height={mapHeight}
               />
+              <Box sx={{ mt: 2 }}>
+                <TemporalScrubber
+                  periods={periods}
+                  currentIndex={activeScrubberIndex}
+                  onChangeIndex={(idx) => setScrubberIndex(idx)}
+                  grain={grain}
+                  activeYear={grain === 'weekly' ? weeklyYear : undefined}
+                  onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
+                  onNextYear={grain === 'weekly' ? handleNextYear : undefined}
+                  canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
+                  canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
+                />
+              </Box>
             </CardContent>
           </Card>
 
-          <TemporalScrubber
-            periods={periods}
-            currentIndex={activeScrubberIndex}
-            onChangeIndex={(idx) => setScrubberIndex(idx)}
-            grain={grain}
-            activeYear={grain === 'weekly' ? weeklyYear : undefined}
-            onPrevYear={grain === 'weekly' ? handlePrevYear : undefined}
-            onNextYear={grain === 'weekly' ? handleNextYear : undefined}
-            canPrevYear={grain === 'weekly' ? weeklyYear > 2018 : undefined}
-            canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
-          />
+          <Card variant="outlined" sx={{ gridArea: 'legend', borderRadius: 2 }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700 }}>
+                Legend
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary', fontWeight: 600 }}>
+                Vessel Count
+              </Typography>
+
+              <Box
+                sx={{
+                  height: 12,
+                  width: '100%',
+                  background: 'linear-gradient(to right, rgb(254, 226, 226), rgb(153, 27, 27))',
+                  borderRadius: 1,
+                  mb: 1,
+                }}
+              />
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                  0
+                </Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                  50+
+                </Typography>
+              </Box>
+
+              <Box sx={{ pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Resolution: 7
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Cell Area: 4.5 km²
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
 
           {/* Hex Cell Detail Card. Below the map. */}
-          <Box sx={{ width: '100%' }}>
+          <Box sx={{ gridArea: 'hex', minWidth: 0 }}>
             <HexCellDetailModal
               cellIds={selectedHexCells}
               locationName={locationLabel}

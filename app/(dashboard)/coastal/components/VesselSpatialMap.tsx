@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Box } from '@mui/material';
 import CoastalChoroplethMap from './CoastalChoroplethMap';
 import type { SpatialStatus } from '../spatial-status';
 
@@ -39,88 +39,30 @@ export const VesselSpatialMap: React.FC<VesselSpatialMapProps> = ({
   return (
     <Box
       sx={{
-        display: 'flex',
-        gap: 2,
-        flexDirection: { xs: 'column', md: 'row' },
-        alignItems: 'stretch',
+        height: height ?? 440,
+        position: 'relative',
+        borderRadius: 2,
+        overflow: 'hidden',
       }}
     >
-      {/* Map Area */}
-      <Box
-        sx={{
-          flex: 1,
-          height: height ?? 440,
-          position: 'relative',
-          borderRadius: 2,
-          overflow: 'hidden',
-        }}
-      >
-        <CoastalChoroplethMap
-          country={country}
-          locationName={locationName}
-          aoiIds={aoiIds}
-          activeIndicator="vessels"
-          overlayVessels
-          indicators={['vessels']}
-          spatialSlice={spatialSlice}
-          selectedCellIds={selectedCellIds}
-          onSelectCell={(id) => onSelectCell?.(id)}
-          onClearSelection={onClearSelection}
-          loading={loading}
-          spatialStatus={spatialStatus}
-          onRetrySpatial={onRetrySpatial}
-          periodLabel={periodLabel}
-          height={height ?? 420}
-          clustersEnabled={clustersEnabled}
-        />
-      </Box>
-
-      {/* Right Legend Area */}
-      <Card
-        variant="outlined"
-        sx={{ width: { xs: '100%', md: 240 }, flexShrink: 0, borderRadius: 2 }}
-      >
-        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700 }}>
-            Legend
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ mb: 1, color: 'text.secondary', fontWeight: 600 }}
-          >
-            Vessel Count
-          </Typography>
-
-          <Box
-            sx={{
-              height: 12,
-              width: '100%',
-              background:
-                'linear-gradient(to right, rgb(254, 226, 226), rgb(153, 27, 27))',
-              borderRadius: 1,
-              mb: 1,
-            }}
-          />
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>
-              0
-            </Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>
-              50+
-            </Typography>
-          </Box>
-
-          <Box sx={{ pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Resolution: 7
-            </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Cell Area: 4.5 km²
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      <CoastalChoroplethMap
+        country={country}
+        locationName={locationName}
+        aoiIds={aoiIds}
+        activeIndicator="vessels"
+        overlayVessels
+        indicators={['vessels']}
+        spatialSlice={spatialSlice}
+        selectedCellIds={selectedCellIds}
+        onSelectCell={(id) => onSelectCell?.(id)}
+        onClearSelection={onClearSelection}
+        loading={loading}
+        spatialStatus={spatialStatus}
+        onRetrySpatial={onRetrySpatial}
+        periodLabel={periodLabel}
+        height={height ?? 420}
+        clustersEnabled={clustersEnabled}
+      />
     </Box>
   );
 };

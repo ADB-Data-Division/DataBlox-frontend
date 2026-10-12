@@ -798,13 +798,18 @@ export function PageContent() {
           }
         >
           {/* Middle Row: Choropleth Map + Scrubber and Sidebar */}
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={2}
-            alignItems="stretch"
-            sx={{ flex: 1, minWidth: 0 }}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: 'grid',
+              gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) 260px' },
+              gridTemplateAreas: { xs: '"map" "hex" "sidebar"', md: '"map sidebar" "hex ."' },
+              gap: 2,
+              alignContent: 'start',
+            }}
           >
-            <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <Box sx={{ gridArea: 'map', minWidth: 0 }}>
               <Card variant="outlined" sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ p: 2 }}>
                   <Box
@@ -928,26 +933,32 @@ export function PageContent() {
                   </Box>
                 </CardContent>
               </Card>
-
-              <Box sx={{ width: '100%', mt: 2 }}>
-                <HexCellDetailModal
-                  cellIds={selectedHexCells}
-                  locationName={locationLabel}
-                  country={country}
-                  grain={grain}
-                  dateRange={{ start: start_date, end: end_date }}
-                  indicators={selectedIndicators}
-                  onClose={() => setSelectedHexCells([])}
-                  expanded={hexExpanded}
-                  onExpandedChange={setHexExpanded}
-                  onLoadingChange={setHexChartLoading}
-                />
-              </Box>
             </Box>
 
-            {/* On desktop the sidebar is pinned to the height of the map and hex graph. */}
-            <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, position: 'relative' }}>
-              <Box sx={{ position: { md: 'absolute' }, inset: { md: 0 } }}>
+            <Box sx={{ gridArea: 'hex', minWidth: 0 }}>
+              <HexCellDetailModal
+                cellIds={selectedHexCells}
+                locationName={locationLabel}
+                country={country}
+                grain={grain}
+                dateRange={{ start: start_date, end: end_date }}
+                indicators={selectedIndicators}
+                onClose={() => setSelectedHexCells([])}
+                expanded={hexExpanded}
+                onExpandedChange={setHexExpanded}
+                onLoadingChange={setHexChartLoading}
+              />
+            </Box>
+
+            {/* On desktop the sidebar is pinned to the height of the map card. */}
+            <Box sx={{ gridArea: 'sidebar', position: 'relative', minWidth: 0 }}>
+              <Box
+                sx={{
+                  position: { md: 'absolute' },
+                  inset: { md: 0 },
+                  overflowY: { md: 'auto' },
+                }}
+              >
                 <IndicatorSidebar
                   selectedIndicators={selectedIndicators}
                   onToggleIndicator={handleToggleIndicator}
@@ -965,7 +976,7 @@ export function PageContent() {
                 />
               </Box>
             </Box>
-          </Stack>
+          </Box>
         </Box>
       )}
 
