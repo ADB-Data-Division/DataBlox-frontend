@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Box, Typography, Button, CircularProgress, IconButton } from '@mui/material';
-import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import CloseIcon from '@mui/icons-material/Close';
 import dynamic from 'next/dynamic';
 import { cellToParent, cellToLatLng, isValidCell } from 'h3-js';
@@ -1411,32 +1410,6 @@ function CoastalChoroplethMapClient({
         bgcolor: '#f1f5f9',
       }}
     >
-      {/* Interactive Map Label */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 14,
-          left: 14,
-          zIndex: 999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.75,
-          bgcolor: 'rgba(255, 255, 255, 0.94)',
-          backdropFilter: 'blur(4px)',
-          px: 1.25,
-          py: 0.5,
-          borderRadius: 1.5,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-          border: '1px solid rgba(0,0,0,0.08)',
-          pointerEvents: 'none',
-        }}
-      >
-        <LocationSearchingIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-          Interactive Map
-        </Typography>
-      </Box>
-
       {/* Selection count + clear-all control */}
       {selectedCellIds.length > 0 && (
         <>
