@@ -2,7 +2,9 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Card, CircularProgress, Chip, Button } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
+import TimelineIcon from '@mui/icons-material/Timeline';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { ticks } from 'd3';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
@@ -319,12 +321,13 @@ export default function HexCellDetailModal({
       fullWidth
       aria-expanded={expanded}
       onClick={() => setExpanded((v) => !v)}
+      startIcon={<TimelineIcon fontSize="small" />}
       sx={{
         py: 1.25,
         borderRadius: 0,
         textTransform: 'none',
         fontWeight: 700,
-        bgcolor: 'action.hover',
+        bgcolor: (theme) => alpha(theme.palette.info.main, 0.08),
         borderBottom: expanded ? '1px solid' : 'none',
         borderColor: 'divider',
       }}
