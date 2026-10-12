@@ -280,21 +280,13 @@ export function PageContent() {
         }
       }
     } else {
-      if (viewMode === 'map') {
-        if (selectedIndicators.length < 3) {
-          setSelectedIndicators([...selectedIndicators, indicatorId]);
-        } else {
-          setSelectedIndicators([selectedIndicators[0], selectedIndicators[1], indicatorId]);
-        }
-        if (isMapCapable && indicatorId !== 'vessels') {
-          setActiveChoroplethIndicator(indicatorId);
-        }
+      if (selectedIndicators.length < 2) {
+        setSelectedIndicators([...selectedIndicators, indicatorId]);
       } else {
-        if (selectedIndicators.length < 2) {
-          setSelectedIndicators([...selectedIndicators, indicatorId]);
-        } else {
-          setSelectedIndicators([selectedIndicators[0], indicatorId]);
-        }
+        setSelectedIndicators([selectedIndicators[0], indicatorId]);
+      }
+      if (viewMode === 'map' && isMapCapable && indicatorId !== 'vessels') {
+        setActiveChoroplethIndicator(indicatorId);
       }
     }
   };

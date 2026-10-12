@@ -94,7 +94,7 @@ export function IndicatorSidebar({
 }: IndicatorSidebarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const maxCount = mode === 'map' ? 3 : 2;
+  const maxCount = 2;
   const showVesselOverlay = selectedIndicators.includes('vessels');
 
   const aggregationSelect = (
