@@ -167,6 +167,22 @@ export function IndicatorSidebar({
                   }
                 />
               )}
+
+              {mapLegendIds.length > 1 && onChangeChoroplethIndicator && !compareEnabled && (
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={activeChoroplethIndicator}
+                    onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
+                    inputProps={{ 'aria-label': 'Map layer' }}
+                  >
+                    {mapLegendIds.map((id) => (
+                      <MenuItem key={id} value={id}>
+                        {getIndicatorMeta(id)?.label || id}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
               </Stack>
           </CardContent>
         </Card>
@@ -203,21 +219,6 @@ export function IndicatorSidebar({
                 />
               ))}
             </Stack>
-          )}
-          {mode === 'map' && onChangeChoroplethIndicator && mapLegendIds.length > 1 && !compareEnabled && (
-            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <Select
-                value={activeChoroplethIndicator}
-                onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
-                inputProps={{ 'aria-label': 'Map layer' }}
-              >
-                {mapLegendIds.map((id) => (
-                  <MenuItem key={id} value={id}>
-                    {getIndicatorMeta(id)?.label || id}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           )}
           <IndicatorPickerDialog
             open={pickerOpen}
