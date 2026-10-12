@@ -169,6 +169,7 @@ export default function TemporalScrubber({
             max={Math.max(0, periods.length - 1)}
             step={1}
             marks={marks}
+            track={false}
             onChange={handleSliderChange}
             disabled={disabled || periods.length === 0}
             sx={{
