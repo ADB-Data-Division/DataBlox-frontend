@@ -93,7 +93,6 @@ export function IndicatorSidebar({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const maxCount = 2;
-  const showVesselOverlay = selectedIndicators.includes('vessels');
 
   const aggregationSelect = (
     <FormControl fullWidth size="small">
@@ -131,12 +130,6 @@ export function IndicatorSidebar({
             </Typography>
 
             <Stack spacing={1.5}>
-              {showVesselOverlay && (
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block' }}>
-                  Numbers = Vessel Count
-                </Typography>
-              )}
-
               {mapLegendIds.map((id) => (
                 <ChoroplethColorbar
                   key={id}

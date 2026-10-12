@@ -345,7 +345,6 @@ export function PageContent() {
   };
 
   const timelineData = data?.timeline || data?.series || [];
-  const showVesselOverlay = selectedIndicators.includes('vessels');
 
   const [weeklyYear, setWeeklyYear] = useState<number>(() => {
     const d = new Date(start_date);
@@ -897,7 +896,6 @@ export function PageContent() {
                             locationName={locationLabel}
                             aoiIds={aoi_id ? aoi_id.split(',').map((s) => s.trim()).filter(Boolean) : undefined}
                             activeIndicator={indicator}
-                            overlayVessels={showVesselOverlay}
                             spatialSlice={spatialSlice}
                             spatialStatus={spatialStatus}
                             onRetrySpatial={() => setSpatialRetry((n) => n + 1)}
