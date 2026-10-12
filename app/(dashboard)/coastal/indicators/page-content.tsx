@@ -41,7 +41,7 @@ import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart, formatPeriodLabel } from '../components/IndicatorTimelineChart';
 import { IndicatorSidebar } from '../components/IndicatorSidebar';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
-import { compareCandidates, resolveCompareIndicator, resolveInitialView, showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
+import { compareCandidates, resolveInitialView, showNationLoadNote, NATION_LOAD_NOTE } from '../view-defaults';
 import { AggLevelSelect } from '../components/AggLevelSelect';
 import CoastalChoroplethMap from '../components/CoastalChoroplethMap';
 import TemporalScrubber from '../components/TemporalScrubber';
@@ -165,7 +165,6 @@ export function PageContent() {
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a']);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [compareEnabled, setCompareEnabled] = useState<boolean>(false);
-  const [compareRequested, setCompareRequested] = useState<string | null>(null);
   const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [clustersEnabled, setClustersEnabled] = useState<boolean>(false);
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
@@ -428,7 +427,7 @@ export function PageContent() {
       ),
     [selectedIndicators, activeChoroplethIndicator]
   );
-  const compareIndicator = resolveCompareIndicator(compareOptions, compareRequested);
+  const compareIndicator = compareOptions[0] ?? null;
   const splitActive = compareEnabled && compareIndicator !== null;
 
   // Pre-fetch batch spatial series across all periods for instant 60 FPS playback.
@@ -957,14 +956,12 @@ export function PageContent() {
                   onChangeAggFunc={(agg) => setAggFunc(agg)}
                   mode="map"
                   activeChoroplethIndicator={activeChoroplethIndicator}
-                  onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
                   clustersEnabled={clustersEnabled}
                   onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
                   compareCandidates={compareOptions}
                   compareEnabled={compareEnabled}
                   onChangeCompareEnabled={(enabled) => setCompareEnabled(enabled)}
                   compareIndicator={compareIndicator}
-                  onChangeCompareIndicator={(ind) => setCompareRequested(ind)}
                 />
               </Box>
             </Box>

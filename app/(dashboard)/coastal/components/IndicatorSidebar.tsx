@@ -37,7 +37,6 @@ export interface IndicatorSidebarProps {
   onChangeAggFunc: (agg: CoastalAggFunc) => void;
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
-  onChangeChoroplethIndicator?: (ind: string) => void;
   // Far-zoom cluster toggle (lives in the map-mode Settings dialog).
   // Omitted = no toggle shown.
   clustersEnabled?: boolean;
@@ -47,7 +46,6 @@ export interface IndicatorSidebarProps {
   compareEnabled?: boolean;
   onChangeCompareEnabled?: (enabled: boolean) => void;
   compareIndicator?: string | null;
-  onChangeCompareIndicator?: (ind: string) => void;
 }
 
 function gradientFor(id: string): string {
@@ -83,14 +81,12 @@ export function IndicatorSidebar({
   onChangeAggFunc,
   mode = 'timeline',
   activeChoroplethIndicator = 'chlor_a',
-  onChangeChoroplethIndicator,
   clustersEnabled = true,
   onChangeClustersEnabled,
   compareCandidates = [],
   compareEnabled = false,
   onChangeCompareEnabled,
   compareIndicator = null,
-  onChangeCompareIndicator,
 }: IndicatorSidebarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -152,66 +148,22 @@ export function IndicatorSidebar({
                 <Typography variant="caption" color="text.secondary">{NO_DATA_LABEL}</Typography>
               </Stack>
 
-              {mapLegendIds.length > 1 && onChangeChoroplethIndicator && (
-                <Box sx={{ mt: 1 }}>
-                  {onChangeCompareEnabled && compareCandidates.length > 0 && (
-                    <FormControlLabel
-                      sx={{ mb: 0.5 }}
-                      control={
-                        <Switch
-                          size="small"
-                          checked={compareEnabled}
-                          onChange={(e) => onChangeCompareEnabled(e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          Side by side
-                        </Typography>
-                      }
+              {mapLegendIds.length > 1 && onChangeCompareEnabled && compareCandidates.length > 0 && (
+                <FormControlLabel
+                  sx={{ mt: 1, mb: 0.5 }}
+                  control={
+                    <Switch
+                      size="small"
+                      checked={compareEnabled}
+                      onChange={(e) => onChangeCompareEnabled(e.target.checked)}
                     />
-                  )}
-                  {compareEnabled && (
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
-                      Left map
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Side by side
                     </Typography>
-                  )}
-                  <FormControl fullWidth size="small">
-                    <Select
-                      value={activeChoroplethIndicator}
-                      onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
-                    >
-                      {mapLegendIds
-                        .filter((id) => !(compareEnabled && id === compareIndicator))
-                        .map((id) => (
-                          <MenuItem key={id} value={id}>
-                            {getIndicatorMeta(id)?.label || id}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
-                  {compareEnabled && compareIndicator && onChangeCompareIndicator && (
-                    <>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mt: 1 }}>
-                        Right map
-                      </Typography>
-                      <FormControl fullWidth size="small">
-                        <Select
-                          value={compareIndicator}
-                          onChange={(e) => onChangeCompareIndicator(e.target.value)}
-                        >
-                          {mapLegendIds
-                            .filter((id) => id !== activeChoroplethIndicator)
-                            .map((id) => (
-                              <MenuItem key={id} value={id}>
-                                {getIndicatorMeta(id)?.label || id}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-                    </>
-                  )}
-                </Box>
+                  }
+                />
               )}
               </Stack>
           </CardContent>
