@@ -955,6 +955,7 @@ export function PageContent() {
                   onChangeAggFunc={(agg) => setAggFunc(agg)}
                   mode="map"
                   activeChoroplethIndicator={activeChoroplethIndicator}
+                  onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
                   clustersEnabled={clustersEnabled}
                   onChangeClustersEnabled={(enabled) => setClustersEnabled(enabled)}
                   compareCandidates={compareOptions}

@@ -37,6 +37,7 @@ export interface IndicatorSidebarProps {
   onChangeAggFunc: (agg: CoastalAggFunc) => void;
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
+  onChangeChoroplethIndicator?: (ind: string) => void;
   // Far-zoom cluster toggle (lives in the map-mode Settings dialog).
   // Omitted = no toggle shown.
   clustersEnabled?: boolean;
@@ -81,6 +82,7 @@ export function IndicatorSidebar({
   onChangeAggFunc,
   mode = 'timeline',
   activeChoroplethIndicator = 'chlor_a',
+  onChangeChoroplethIndicator,
   clustersEnabled = true,
   onChangeClustersEnabled,
   compareCandidates = [],
@@ -201,6 +203,21 @@ export function IndicatorSidebar({
                 />
               ))}
             </Stack>
+          )}
+          {mode === 'map' && onChangeChoroplethIndicator && mapLegendIds.length > 1 && !compareEnabled && (
+            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+              <Select
+                value={activeChoroplethIndicator}
+                onChange={(e) => onChangeChoroplethIndicator(e.target.value)}
+                inputProps={{ 'aria-label': 'Map layer' }}
+              >
+                {mapLegendIds.map((id) => (
+                  <MenuItem key={id} value={id}>
+                    {getIndicatorMeta(id)?.label || id}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
           <IndicatorPickerDialog
             open={pickerOpen}
