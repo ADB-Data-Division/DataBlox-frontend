@@ -3,7 +3,6 @@ import {
   showNationLoadNote,
   NATION_LOAD_NOTE,
   compareCandidates,
-  resolveCompareIndicator,
 } from '../../../app/(dashboard)/coastal/view-defaults';
 
 describe('resolveInitialView', () => {
@@ -58,11 +57,5 @@ describe('side-by-side candidates', () => {
 
   it('is empty with a single map layer so the switch stays hidden', () => {
     expect(compareCandidates(['chlor_a', 'vessels'], 'chlor_a', capable)).toEqual([]);
-  });
-
-  it('keeps a valid request, else falls back to the first candidate', () => {
-    expect(resolveCompareIndicator(['sst', 'kd490'], 'kd490')).toBe('kd490');
-    expect(resolveCompareIndicator(['sst', 'kd490'], 'chlor_a')).toBe('sst');
-    expect(resolveCompareIndicator([], 'sst')).toBeNull();
   });
 });

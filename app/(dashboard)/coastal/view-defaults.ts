@@ -23,9 +23,3 @@ export function compareCandidates(
 ): string[] {
   return selected.filter((id) => id !== left && id !== 'vessels' && isMapCapable(id));
 }
-
-/** Keep the requested right layer when still valid, else the first candidate. */
-export function resolveCompareIndicator(candidates: string[], requested?: string | null): string | null {
-  if (requested && candidates.includes(requested)) return requested;
-  return candidates[0] ?? null;
-}
