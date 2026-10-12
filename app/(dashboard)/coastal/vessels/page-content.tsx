@@ -98,6 +98,9 @@ export function PageContent() {
   const [expanded, setExpanded] = useState<string | false>('trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
+  const [hexExpanded, setHexExpanded] = useState<boolean>(false);
+  const [hexChartLoading, setHexChartLoading] = useState<boolean>(false);
+  const hexGraphReady = selectedHexCells.length > 0 && hexExpanded && !hexChartLoading;
   const [distributionData, setDistributionData] = useState<any>(null);
   const [distributionLoading, setDistributionLoading] = useState<boolean>(false);
 
@@ -569,12 +572,19 @@ export function PageContent() {
     exportToExcel(filename, 'Vessels', timelineData as Record<string, any>[], exportHeaders);
   };
 
-  const handleExportGraph = () => {
+  const handleExportMap = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
+    exportLeafletMapAsPng('coastal-vessels-map-container', filename);
+  };
+
+  const handleExportGraph = () => {
     if (activeTab === 2) {
-      exportLeafletMapAsPng('coastal-vessels-map-container', filename);
+      if (hexGraphReady) {
+        exportGraphAsPng('coastal-hex-graph-container', `coastal_vessels_hex_graph_${country}_${start_date}_${end_date}.png`);
+      }
       return;
     }
+    const filename = `coastal_vessels_${country}_${start_date}_${end_date}.png`;
     const containerId =
       activeTab === 1
         ? 'coastal-vessels-distribution-container'
@@ -1158,26 +1168,29 @@ export function PageContent() {
             canNextYear={grain === 'weekly' ? weeklyYear < 2026 : undefined}
           />
 
-          {/* Hex Cell Detail Card. Below the map and hidden until a hex is selected. */}
-          {selectedHexCells.length > 0 && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={['vessels']}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
+          {/* Hex Cell Detail Card. Below the map. */}
+          <Box sx={{ width: '100%' }}>
+            <HexCellDetailModal
+              cellIds={selectedHexCells}
+              locationName={locationLabel}
+              country={country}
+              grain={grain}
+              dateRange={{ start: start_date, end: end_date }}
+              indicators={['vessels']}
+              onClose={() => setSelectedHexCells([])}
+              expanded={hexExpanded}
+              onExpandedChange={setHexExpanded}
+              onLoadingChange={setHexChartLoading}
+            />
+          </Box>
         </Box>
       )}
 
       {/* Download Data Footer */}
       <DownloadDataCard
+        onExportMap={activeTab === 2 ? handleExportMap : undefined}
         onExportGraph={handleExportGraph}
+        graphDisabled={activeTab === 2 && !hexGraphReady}
         onExportCsv={handleExportCsv}
         onExportExcel={handleExportExcel}
       />

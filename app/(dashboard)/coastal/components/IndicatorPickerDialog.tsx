@@ -14,6 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { COASTAL_INDICATOR_GROUPS, getIndicatorMeta } from '../indicators';
 
 export interface IndicatorPickerDialogProps {
@@ -54,8 +55,14 @@ export function IndicatorPickerDialog({
 
   return (
     <Dialog open={dialogOpen} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ fontWeight: 700 }}>
+      <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 1.5 }}>
         {`Indicators (${selectedIndicators.length}/${maxCount})`}
+        {atMax && (
+          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: '#ea580c', fontSize: '0.875rem', fontWeight: 600 }}>
+            <WarningAmberIcon sx={{ fontSize: 18 }} />
+            Maximum limit selected!
+          </Box>
+        )}
       </DialogTitle>
       <DialogContent>
         <TextField
@@ -92,6 +99,7 @@ export function IndicatorPickerDialog({
                   return (
                     <FormControlLabel
                       key={id}
+                      disabled={disabled}
                       control={
                         <Checkbox
                           size="small"
@@ -107,9 +115,9 @@ export function IndicatorPickerDialog({
                         />
                       }
                       label={
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: disabled ? 'text.disabled' : 'text.primary' }}>
                           {meta.label}{' '}
-                          <Typography component="span" variant="caption" color="text.secondary">
+                          <Typography component="span" variant="caption" sx={{ color: disabled ? 'text.disabled' : 'text.secondary' }}>
                             · {meta.unit}
                           </Typography>
                         </Typography>

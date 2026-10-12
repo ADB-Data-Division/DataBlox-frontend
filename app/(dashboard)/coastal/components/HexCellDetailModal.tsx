@@ -2,8 +2,11 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Card, CircularProgress, Chip, Button } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
+import TimelineIcon from '@mui/icons-material/Timeline';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { ticks } from 'd3';
 import { fetchHexCellTimeSeries } from '@/services/coastalService';
 import type { HexCellTimeSeriesPoint } from '@/types/coastal';
 import {
@@ -20,6 +23,9 @@ export interface HexCellDetailModalProps {
   dateRange: { start: string; end: string };
   indicators: string[];
   onClose: () => void;
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
@@ -197,6 +203,14 @@ function axisBounds(
   return {};
 }
 
+// Decimals are dropped only when every tick is a whole number, so small-range
+// axes (cloud cover, runoff) never print duplicate rounded labels.
+function hasWholeTicks(dataArray: unknown[], fallback: [number, number]): boolean {
+  const vals = dataArray.filter(isPlottableValue);
+  const { min = Math.min(...vals), max = Math.max(...vals) } = axisBounds(dataArray, fallback);
+  return ticks(min, max, 6).every(Number.isInteger);
+}
+
 export default function HexCellDetailModal({
   cellIds = [],
   locationName,
@@ -205,10 +219,12 @@ export default function HexCellDetailModal({
   dateRange,
   indicators,
   onClose,
+  expanded,
+  onExpandedChange,
+  onLoadingChange,
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [expanded, setExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     if (cellIds.length === 0 || !country) {
@@ -277,6 +293,11 @@ export default function HexCellDetailModal({
     };
   }, [cellIds, country, dateRange.start, dateRange.end, grain]);
 
+  useEffect(() => {
+    onLoadingChange?.(loading);
+    return () => onLoadingChange?.(false);
+  }, [loading, onLoadingChange]);
+
   const grainKey = (grain || 'monthly').toLowerCase();
 
   const timeSeries = useMemo(() => {
@@ -305,22 +326,39 @@ export default function HexCellDetailModal({
     };
   }, [realPoints, indicators, grainKey]);
 
+  const toggle = (
+    <Button
+      fullWidth
+      aria-expanded={expanded}
+      onClick={() => onExpandedChange(!expanded)}
+      startIcon={<TimelineIcon fontSize="small" />}
+      sx={{
+        py: 1.25,
+        borderRadius: 0,
+        textTransform: 'none',
+        fontWeight: 700,
+        bgcolor: (theme) => alpha(theme.palette.info.main, 0.08),
+        borderBottom: expanded ? '1px solid' : 'none',
+        borderColor: 'divider',
+      }}
+    >
+      {expanded ? 'Collapse Details' : 'Expand Details'}
+    </Button>
+  );
+
   if (cellIds.length === 0) {
     return (
-      <Card
-        variant="outlined"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 4,
-          height: HEX_DETAIL_CARD_HEIGHT,
-          borderRadius: 2,
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Select a hex on the map to view more details
-        </Typography>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        {toggle}
+        {expanded && (
+          <Box
+            sx={{ height: HEX_DETAIL_CARD_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Select <strong>hexes</strong> on the map to view more details
+            </Typography>
+          </Box>
+        )}
       </Card>
     );
   }
@@ -351,7 +389,7 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
-      label: primaryConfig.label,
+      label: seriesHasData(primaryId) ? primaryConfig.label : `${primaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -359,9 +397,11 @@ export default function HexCellDetailModal({
           ? 'N/A'
           : `${formatAxisTick(primaryId, v)} ${primaryConfig.unit}`,
     });
+    const leftWhole = hasWholeTicks(dataArray, primaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'leftAxis',
-      valueFormatter: (value: number) => formatAxisTick(primaryId, value),
+      valueFormatter: (value: number) =>
+        leftWhole ? String(Math.round(value)) : formatAxisTick(primaryId, value),
       // Tick labels end ~14px out and run ~35px wide. The axis title is
       // rendered as HTML in the margin (see below) instead of MUI's
       // rotated label, which centers at a fixed offset that collides
@@ -378,7 +418,7 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
-      label: secondaryConfig.label,
+      label: seriesHasData(secondaryId) ? secondaryConfig.label : `${secondaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -386,10 +426,12 @@ export default function HexCellDetailModal({
           ? 'N/A'
           : `${formatAxisTick(secondaryId as string, v)} ${secondaryConfig.unit}`,
     });
+    const rightWhole = hasWholeTicks(dataArray, secondaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'rightAxis',
       position: 'right' as const,
-      valueFormatter: (value: number) => formatAxisTick(secondaryId as string, value),
+      valueFormatter: (value: number) =>
+        rightWhole ? String(Math.round(value)) : formatAxisTick(secondaryId as string, value),
       // Same title/tick collision as the left axis, mirrored.
       slotProps: { axisTickLabel: { dx: 6 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
@@ -412,22 +454,7 @@ export default function HexCellDetailModal({
 
   return (
     <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-      <Button
-        fullWidth
-        aria-expanded={expanded}
-        onClick={() => setExpanded((v) => !v)}
-        sx={{
-          py: 1.25,
-          borderRadius: 0,
-          textTransform: 'none',
-          fontWeight: 700,
-          bgcolor: 'action.hover',
-          borderBottom: expanded ? '1px solid' : 'none',
-          borderColor: 'divider',
-        }}
-      >
-        {expanded ? 'Collapse Details' : 'Expand Details'}
-      </Button>
+      {toggle}
       {expanded && (
         <Box sx={{ p: 2.5, height: HEX_DETAIL_CARD_HEIGHT, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -462,33 +489,13 @@ export default function HexCellDetailModal({
             </Box>
 
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                {primaryConfig && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 16, height: 3, bgcolor: primaryConfig.color, borderRadius: 1 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {primaryConfig.label}
-                      {!seriesHasData(primaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
-                    </Typography>
-                  </Box>
-                )}
-                {secondaryConfig && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 16, height: 3, bgcolor: secondaryConfig.color, borderRadius: 1 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {secondaryConfig.label}
-                      {secondaryId && !seriesHasData(secondaryId) && !loading ? ` (${NO_DATA_LABEL})` : ''}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
               <IconButton onClick={onClose} size="small" aria-label="Close details">
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%', height: 260 }}>
+          <Box id="coastal-hex-graph-container" sx={{ width: '100%', height: 260 }}>
             {loading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <CircularProgress size={32} />
@@ -525,11 +532,11 @@ export default function HexCellDetailModal({
                 // but its axis never renders.
                 leftAxis="leftAxis"
                 rightAxis={secondaryConfig ? 'rightAxis' : undefined}
-                margin={{ top: 20, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
+                margin={{ top: 44, bottom: 25, left: 74, right: secondaryConfig ? 78 : 20 }}
                 // Axis trigger shows the hovered period plus both series values
                 // together; the period stamp comes from the x-axis formatter.
                 tooltip={{ trigger: 'axis' }}
-                slotProps={{ legend: { hidden: true } }}
+                slotProps={{ legend: { direction: 'row', position: { vertical: 'top', horizontal: 'right' } } }}
                 sx={{
                   [`& .MuiMarkElement-series-${primaryId}`]: {
                     fill: `${primaryConfig.color} !important`,
@@ -592,6 +599,7 @@ export default function HexCellDetailModal({
                     top: '50%',
                     transform: 'translateY(-50%) rotate(180deg)',
                     writingMode: 'vertical-rl',
+                    whiteSpace: 'nowrap',
                     color: primaryConfig.color,
                     fontWeight: 700,
                     fontSize: 12,
@@ -610,6 +618,7 @@ export default function HexCellDetailModal({
                       top: '50%',
                       transform: 'translateY(-50%)',
                       writingMode: 'vertical-rl',
+                      whiteSpace: 'nowrap',
                       color: secondaryConfig.color,
                       fontWeight: 700,
                       fontSize: 12,

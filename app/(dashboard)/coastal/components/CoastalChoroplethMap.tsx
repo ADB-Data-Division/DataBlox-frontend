@@ -392,6 +392,7 @@ function CoastalChoroplethMapClient({
   const fittedBoundsRef = useRef<[[number, number], [number, number]] | null>(null);
   const resetViewRef = useRef<() => void>(() => {});
   const hexToggleLinkRef = useRef<HTMLElement | null>(null);
+  const [hexToggleBuild, setHexToggleBuild] = useState(0);
   const [hexesVisible, setHexesVisible] = useState<boolean>(true);
   const [L, setL] = useState<any>(cachedL);
   const [deckModules, setDeckModules] = useState<{
@@ -945,6 +946,7 @@ function CoastalChoroplethMapClient({
         link.style.alignItems = 'center';
         link.style.justifyContent = 'center';
         hexToggleLinkRef.current = link;
+        setHexToggleBuild((n) => n + 1);
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.on(link, 'click', (e: Event) => {
           L.DomEvent.preventDefault(e);
@@ -1099,7 +1101,7 @@ function CoastalChoroplethMapClient({
     link.innerHTML = hexesVisible ? HEX_HIDE_ICON : HEX_SHOW_ICON;
     link.title = label;
     link.setAttribute('aria-label', label);
-  }, [hexesVisible, L]);
+  }, [hexesVisible, hexToggleBuild]);
 
   // Adjust Leaflet map size when container height changes
   useEffect(() => {

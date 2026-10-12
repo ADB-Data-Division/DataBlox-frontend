@@ -171,6 +171,9 @@ export function PageContent() {
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
+  const [hexExpanded, setHexExpanded] = useState<boolean>(false);
+  const [hexChartLoading, setHexChartLoading] = useState<boolean>(false);
+  const hexGraphReady = selectedHexCells.length > 0 && hexExpanded && !hexChartLoading;
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [spatialSlice, setSpatialSlice] = useState<Record<string, any> | undefined>(undefined);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -280,21 +283,13 @@ export function PageContent() {
         }
       }
     } else {
-      if (viewMode === 'map') {
-        if (selectedIndicators.length < 3) {
-          setSelectedIndicators([...selectedIndicators, indicatorId]);
-        } else {
-          setSelectedIndicators([selectedIndicators[0], selectedIndicators[1], indicatorId]);
-        }
-        if (isMapCapable && indicatorId !== 'vessels') {
-          setActiveChoroplethIndicator(indicatorId);
-        }
+      if (selectedIndicators.length < 2) {
+        setSelectedIndicators([...selectedIndicators, indicatorId]);
       } else {
-        if (selectedIndicators.length < 2) {
-          setSelectedIndicators([...selectedIndicators, indicatorId]);
-        } else {
-          setSelectedIndicators([selectedIndicators[0], indicatorId]);
-        }
+        setSelectedIndicators([selectedIndicators[0], indicatorId]);
+      }
+      if (viewMode === 'map' && isMapCapable && indicatorId !== 'vessels') {
+        setActiveChoroplethIndicator(indicatorId);
       }
     }
   };
@@ -328,21 +323,26 @@ export function PageContent() {
     exportToExcel(filename, 'Indicators', buildIndicatorExportRows(timelineData, selectedIndicators) as Record<string, any>[], exportHeaders);
   };
 
+  const handleExportMap = () => {
+    const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
+    if (splitActive) {
+      ['left', 'right'].forEach((side) =>
+        exportLeafletMapAsPng(`coastal-map-container-${side}`, filename.replace('.png', `_${side}.png`))
+      );
+    } else {
+      exportLeafletMapAsPng('coastal-map-container', filename);
+    }
+  };
+
   const handleExportGraph = () => {
     if (viewMode === 'map') {
-      const filename = `coastal_map_${country}_${start_date}_${end_date}.png`;
-      if (splitActive) {
-        ['left', 'right'].forEach((side) =>
-          exportLeafletMapAsPng(`coastal-map-container-${side}`, filename.replace('.png', `_${side}.png`))
-        );
-      } else {
-        exportLeafletMapAsPng('coastal-map-container', filename);
+      if (hexGraphReady) {
+        exportGraphAsPng('coastal-hex-graph-container', `coastal_hex_graph_${country}_${start_date}_${end_date}.png`);
       }
       return;
     }
-    const containerId = 'coastal-chart-container';
     const filename = `coastal_${viewMode}_${country}_${start_date}_${end_date}.png`;
-    exportGraphAsPng(containerId, filename);
+    exportGraphAsPng('coastal-chart-container', filename);
   };
 
   const timelineData = data?.timeline || data?.series || [];
@@ -930,9 +930,24 @@ export function PageContent() {
                   </Box>
                 </CardContent>
               </Card>
+
+              <Box sx={{ width: '100%', mt: 2 }}>
+                <HexCellDetailModal
+                  cellIds={selectedHexCells}
+                  locationName={locationLabel}
+                  country={country}
+                  grain={grain}
+                  dateRange={{ start: start_date, end: end_date }}
+                  indicators={selectedIndicators}
+                  onClose={() => setSelectedHexCells([])}
+                  expanded={hexExpanded}
+                  onExpandedChange={setHexExpanded}
+                  onLoadingChange={setHexChartLoading}
+                />
+              </Box>
             </Box>
 
-            {/* On desktop the sidebar is pinned to the map card height and its list scrolls. */}
+            {/* On desktop the sidebar is pinned to the height of the map and hex graph. */}
             <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, position: 'relative' }}>
               <Box sx={{ position: { md: 'absolute' }, inset: { md: 0 } }}>
                 <IndicatorSidebar
@@ -954,27 +969,14 @@ export function PageContent() {
               </Box>
             </Box>
           </Stack>
-
-          {/* Hex Cell Detail Inspection Card. Below the map and hidden until a hex is selected. */}
-          {selectedHexCells.length > 0 && (
-            <Box sx={{ width: '100%' }}>
-              <HexCellDetailModal
-                cellIds={selectedHexCells}
-                locationName={locationLabel}
-                country={country}
-                grain={grain}
-                dateRange={{ start: start_date, end: end_date }}
-                indicators={selectedIndicators}
-                onClose={() => setSelectedHexCells([])}
-              />
-            </Box>
-          )}
         </Box>
       )}
 
       {/* Bottom Row: Download Data Card */}
       <DownloadDataCard
+        onExportMap={viewMode === 'map' ? handleExportMap : undefined}
         onExportGraph={handleExportGraph}
+        graphDisabled={viewMode === 'map' && !hexGraphReady}
         onExportCsv={handleExportCsv}
         onExportExcel={handleExportExcel}
       />
