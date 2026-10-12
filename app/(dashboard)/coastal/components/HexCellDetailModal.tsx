@@ -536,7 +536,7 @@ export default function HexCellDetailModal({
                 // Axis trigger shows the hovered period plus both series values
                 // together; the period stamp comes from the x-axis formatter.
                 tooltip={{ trigger: 'axis' }}
-                slotProps={{ legend: { direction: 'row', position: { vertical: 'top', horizontal: 'right' } } }}
+                slotProps={{ legend: { direction: 'row', position: { vertical: 'top', horizontal: 'left' }, padding: { left: 74 } } }}
                 sx={{
                   [`& .MuiMarkElement-series-${primaryId}`]: {
                     fill: `${primaryConfig.color} !important`,
