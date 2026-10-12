@@ -393,6 +393,36 @@ export async function exportLeafletMapAsPng(
   }
 }
 
+const SVG_EXPORT_STYLE_PROPS = [
+  'fill',
+  'fill-opacity',
+  'stroke',
+  'stroke-width',
+  'stroke-opacity',
+  'stroke-dasharray',
+  'opacity',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'text-anchor',
+  'dominant-baseline',
+];
+
+/**
+ * Copy computed presentation styles from a live SVG tree onto its clone, so
+ * the serialized SVG keeps styles that lived in stylesheet rules.
+ */
+function inlineComputedSvgStyles(source: Element, clone: Element): void {
+  const computed = window.getComputedStyle(source);
+  for (const prop of SVG_EXPORT_STYLE_PROPS) {
+    const value = computed.getPropertyValue(prop);
+    if (value) (clone as SVGElement).style.setProperty(prop, value);
+  }
+  for (let i = 0; i < source.children.length && i < clone.children.length; i++) {
+    inlineComputedSvgStyles(source.children[i], clone.children[i]);
+  }
+}
+
 /**
  * Capture an SVG or Canvas chart element and export as a PNG image download.
  */
@@ -438,6 +468,7 @@ export async function exportGraphAsPng(
   const height = Math.max(svgElement.clientHeight || 0, svgRect.height, 350);
 
   const cloneSvg = svgElement.cloneNode(true) as SVGSVGElement;
+  inlineComputedSvgStyles(svgElement, cloneSvg);
   cloneSvg.setAttribute('width', String(width));
   cloneSvg.setAttribute('height', String(height));
   cloneSvg.style.backgroundColor = '#ffffff';
