@@ -21,7 +21,7 @@ import { NO_DATA_LABEL, getIndicatorMeta } from '../indicators';
 export interface DetailsCardProps {
   selectedPoint?: IndicatorTimelinePoint | null;
   timeline?: IndicatorTimelinePoint[];
-  activeIndicator?: string;
+  indicators?: string[];
   locationName: string;
   grain: string;
   loading?: boolean;
@@ -299,10 +299,104 @@ function formatMoMLabel(pA?: IndicatorTimelinePoint, pB?: IndicatorTimelinePoint
   return `${mA} ${dA.getFullYear()} vs ${mB} ${dB.getFullYear()}:`;
 }
 
+function getIndicatorTitle(indicator: string): string {
+  const meta = getIndicatorMeta(indicator);
+  if (!meta) return indicator;
+  return indicator === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`;
+}
+
+function buildIndicatorSlides(
+  activePoint: IndicatorTimelinePoint,
+  timeline: IndicatorTimelinePoint[] | undefined,
+  activeIndicator: string,
+  grain: string
+) {
+  const currDate = new Date(activePoint.period_start);
+  const validDate = !isNaN(currDate.getTime());
+  const currYear = validDate ? currDate.getFullYear() : 0;
+  const currMonth = validDate ? currDate.getMonth() : 0;
+  const monthShort = validDate ? currDate.toLocaleString('en-US', { month: 'short' }) : 'Month';
+
+  // Slide 1: Year over Year points
+  const yoyP0 = activePoint;
+  const yoyP1 =
+    grain === 'weekly'
+      ? findYearAgoWeek(timeline, activePoint)
+      : findSameMonthPoint(timeline, currYear - 1, currMonth);
+
+  const yoyV0 = getPointValue(yoyP0, activeIndicator);
+  const yoyV1 = yoyP1 ? getPointValue(yoyP1, activeIndicator) : undefined;
+
+  const yoyPct0 = yoyV1 !== undefined ? pctChange(yoyV0, yoyV1) : null;
+
+  const yoyData = {
+    title:
+      grain === 'weekly'
+        ? 'Current vs Same Week of Previous Year (%)'
+        : 'Current vs Same Month of Previous Year (%)',
+    primary: {
+      delta: formatDelta(yoyPct0, activeIndicator),
+      afterLabel: formatCardPeriod(activePoint.period_start, grain),
+      afterVal: yoyV0,
+      beforeLabel: yoyP1
+        ? formatCardPeriod(yoyP1.period_start, grain)
+        : `${monthShort} ${currYear - 1}`,
+      beforeVal: yoyV1,
+    },
+    comp1: null,
+    comp2: null,
+  };
+
+  // Slide 0: Month over Month points
+  const selIndex = timeline?.findIndex((p) => p.period_start === activePoint.period_start) ?? -1;
+  const momP0 = activePoint;
+  const momP1 = selIndex > 0 ? timeline![selIndex - 1] : undefined;
+  const momP2 = selIndex > 1 ? timeline![selIndex - 2] : undefined;
+  const momP3 = selIndex > 2 ? timeline![selIndex - 3] : undefined;
+
+  const momV0 = getPointValue(momP0, activeIndicator);
+  const momV1 = momP1 ? getPointValue(momP1, activeIndicator) : undefined;
+  const momV2 = momP2 ? getPointValue(momP2, activeIndicator) : undefined;
+  const momV3 = momP3 ? getPointValue(momP3, activeIndicator) : undefined;
+
+  const momPct0 = momV1 !== undefined ? pctChange(momV0, momV1) : null;
+  const momPct1 = momV1 !== undefined && momV2 !== undefined ? pctChange(momV1, momV2) : null;
+  const momPct2 = momV2 !== undefined && momV3 !== undefined ? pctChange(momV2, momV3) : null;
+
+  const momData = {
+    title: 'Current vs Previous Month (%)',
+    primary: {
+      delta: formatDelta(momPct0, activeIndicator),
+      afterLabel: formatCardPeriod(momP0.period_start, grain),
+      afterVal: momV0,
+      beforeLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Previous Period',
+      beforeVal: momV1,
+    },
+    comp1: {
+      label: formatMoMLabel(momP1, momP2, grain),
+      delta: formatDelta(momPct1, activeIndicator),
+      afterLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Period A',
+      afterVal: momV1,
+      beforeLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
+      beforeVal: momV2,
+    },
+    comp2: {
+      label: formatMoMLabel(momP2, momP3, grain),
+      delta: formatDelta(momPct2, activeIndicator),
+      afterLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
+      afterVal: momV2,
+      beforeLabel: momP3 ? formatCardPeriod(momP3.period_start, grain) : 'Period C',
+      beforeVal: momV3,
+    },
+  };
+
+  return { momData, yoyData };
+}
+
 export function DetailsCard({
   selectedPoint,
   timeline,
-  activeIndicator = 'chlor_a',
+  indicators = ['chlor_a'],
   locationName,
   grain,
   loading = false,
@@ -312,101 +406,16 @@ export function DetailsCard({
 
   const activePoint = selectedPoint ?? null;
 
-  const indicatorTitle = useMemo(() => {
-    const meta = getIndicatorMeta(activeIndicator);
-    if (!meta) return activeIndicator;
-    return activeIndicator === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`;
-  }, [activeIndicator]);
-
-  const unit = useMemo(() => {
-    // Temperature is always °C, never K.
-    return getIndicatorMeta(activeIndicator)?.unit || '';
-  }, [activeIndicator]);
-
-  const slideData = useMemo(() => {
-    if (!activePoint) return null;
-
-    const currDate = new Date(activePoint.period_start);
-    const validDate = !isNaN(currDate.getTime());
-    const currYear = validDate ? currDate.getFullYear() : 0;
-    const currMonth = validDate ? currDate.getMonth() : 0;
-    const monthShort = validDate ? currDate.toLocaleString('en-US', { month: 'short' }) : 'Month';
-
-    // Slide 1: Year over Year points
-    const yoyP0 = activePoint;
-    const yoyP1 =
-      grain === 'weekly'
-        ? findYearAgoWeek(timeline, activePoint)
-        : findSameMonthPoint(timeline, currYear - 1, currMonth);
-
-    const yoyV0 = getPointValue(yoyP0, activeIndicator);
-    const yoyV1 = yoyP1 ? getPointValue(yoyP1, activeIndicator) : undefined;
-
-    const yoyPct0 = yoyV1 !== undefined ? pctChange(yoyV0, yoyV1) : null;
-
-    const yoyData = {
-      title:
-        grain === 'weekly'
-          ? 'Current vs Same Week of Previous Year (%)'
-          : 'Current vs Same Month of Previous Year (%)',
-      primary: {
-        delta: formatDelta(yoyPct0, activeIndicator),
-        afterLabel: formatCardPeriod(activePoint.period_start, grain),
-        afterVal: yoyV0,
-        beforeLabel: yoyP1
-          ? formatCardPeriod(yoyP1.period_start, grain)
-          : `${monthShort} ${currYear - 1}`,
-        beforeVal: yoyV1,
-      },
-      comp1: null,
-      comp2: null,
-    };
-
-    // Slide 0: Month over Month points
-    const selIndex = timeline?.findIndex((p) => p.period_start === activePoint.period_start) ?? -1;
-    const momP0 = activePoint;
-    const momP1 = selIndex > 0 ? timeline![selIndex - 1] : undefined;
-    const momP2 = selIndex > 1 ? timeline![selIndex - 2] : undefined;
-    const momP3 = selIndex > 2 ? timeline![selIndex - 3] : undefined;
-
-    const momV0 = getPointValue(momP0, activeIndicator);
-    const momV1 = momP1 ? getPointValue(momP1, activeIndicator) : undefined;
-    const momV2 = momP2 ? getPointValue(momP2, activeIndicator) : undefined;
-    const momV3 = momP3 ? getPointValue(momP3, activeIndicator) : undefined;
-
-    const momPct0 = momV1 !== undefined ? pctChange(momV0, momV1) : null;
-    const momPct1 = momV1 !== undefined && momV2 !== undefined ? pctChange(momV1, momV2) : null;
-    const momPct2 = momV2 !== undefined && momV3 !== undefined ? pctChange(momV2, momV3) : null;
-
-    const momData = {
-      title: 'Current vs Previous Month (%)',
-      primary: {
-        delta: formatDelta(momPct0, activeIndicator),
-        afterLabel: formatCardPeriod(momP0.period_start, grain),
-        afterVal: momV0,
-        beforeLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Previous Period',
-        beforeVal: momV1,
-      },
-      comp1: {
-        label: formatMoMLabel(momP1, momP2, grain),
-        delta: formatDelta(momPct1, activeIndicator),
-        afterLabel: momP1 ? formatCardPeriod(momP1.period_start, grain) : 'Period A',
-        afterVal: momV1,
-        beforeLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
-        beforeVal: momV2,
-      },
-      comp2: {
-        label: formatMoMLabel(momP2, momP3, grain),
-        delta: formatDelta(momPct2, activeIndicator),
-        afterLabel: momP2 ? formatCardPeriod(momP2.period_start, grain) : 'Period B',
-        afterVal: momV2,
-        beforeLabel: momP3 ? formatCardPeriod(momP3.period_start, grain) : 'Period C',
-        beforeVal: momV3,
-      },
-    };
-
-    return { momData, yoyData };
-  }, [activePoint, timeline, activeIndicator, grain]);
+  const slides = useMemo(() => {
+    if (!activePoint) return [];
+    return indicators.flatMap((indicator) => {
+      const { momData, yoyData } = buildIndicatorSlides(activePoint, timeline, indicator, grain);
+      return [
+        { indicator, isYoY: false, ...momData },
+        { indicator, isYoY: true, ...yoyData },
+      ];
+    });
+  }, [activePoint, timeline, indicators, grain]);
 
   if (loading) {
     return (
@@ -433,7 +442,7 @@ export function DetailsCard({
     );
   }
 
-  if (!activePoint || !slideData) {
+  if (!activePoint) {
     return (
       <Card
         variant="outlined"
@@ -455,8 +464,13 @@ export function DetailsCard({
     );
   }
 
-  const currentSlide = activeSlide === 0 ? slideData.momData : slideData.yoyData;
-  const isYoY = activeSlide === 1;
+  const slideIndex = activeSlide % slides.length;
+  const currentSlide = slides[slideIndex];
+  const isYoY = currentSlide.isYoY;
+  // Temperature is always °C, never K.
+  const unit = getIndicatorMeta(currentSlide.indicator)?.unit || '';
+  const goPrev = () => setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  const goNext = () => setActiveSlide((prev) => (prev + 1) % slides.length);
 
   return (
     <Card
@@ -478,14 +492,14 @@ export function DetailsCard({
     >
       <Box
         className="nav-arrow-left"
-        onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+        onClick={goPrev}
         role="button"
         tabIndex={0}
         aria-label="Previous slide"
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+            goPrev();
           }
         }}
         sx={{
@@ -512,14 +526,14 @@ export function DetailsCard({
 
       <Box
         className="nav-arrow-right"
-        onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+        onClick={goNext}
         role="button"
         tabIndex={0}
         aria-label="Next slide"
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+            goNext();
           }
         }}
         sx={{
@@ -547,7 +561,7 @@ export function DetailsCard({
       <CardContent sx={{ px: 3, pt: 1, pb: 1, '&:last-child': { pb: 1 } }}>
         <Box sx={{ mb: 1 }}>
           <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-            {indicatorTitle}
+            {getIndicatorTitle(currentSlide.indicator)}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {locationName} · {formatCardPeriod(activePoint.period_start, grain)}
@@ -578,7 +592,7 @@ export function DetailsCard({
                     beforeLabel={currentSlide.primary.beforeLabel}
                     beforeVal={currentSlide.primary.beforeVal}
                     unit={unit}
-                    indicatorKey={activeIndicator}
+                    indicatorKey={currentSlide.indicator}
                   />
                 }
               >
@@ -613,7 +627,7 @@ export function DetailsCard({
                         beforeLabel={currentSlide.comp1.beforeLabel}
                         beforeVal={currentSlide.comp1.beforeVal}
                         unit={unit}
-                        indicatorKey={activeIndicator}
+                        indicatorKey={currentSlide.indicator}
                       />
                     ) : ''
                   }
@@ -658,7 +672,7 @@ export function DetailsCard({
                         beforeLabel={currentSlide.comp2.beforeLabel}
                         beforeVal={currentSlide.comp2.beforeVal}
                         unit={unit}
-                        indicatorKey={activeIndicator}
+                        indicatorKey={currentSlide.indicator}
                       />
                     ) : ''
                   }
@@ -695,38 +709,25 @@ export function DetailsCard({
         </Box>
 
         <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1 }}>
-          <Box
-            component="button"
-            type="button"
-            onClick={() => setActiveSlide(0)}
-            aria-label="Slide 1 Month over Month"
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              border: 'none',
-              cursor: 'pointer',
-              p: 0,
-              backgroundColor: activeSlide === 0 ? theme.palette.primary.main : theme.palette.grey[300],
-              transition: 'background-color 0.2s',
-            }}
-          />
-          <Box
-            component="button"
-            type="button"
-            onClick={() => setActiveSlide(1)}
-            aria-label="Slide 2 Year over Year"
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              border: 'none',
-              cursor: 'pointer',
-              p: 0,
-              backgroundColor: activeSlide === 1 ? theme.palette.primary.main : theme.palette.grey[300],
-              transition: 'background-color 0.2s',
-            }}
-          />
+          {slides.map((slide, i) => (
+            <Box
+              key={`${slide.indicator}-${slide.isYoY ? 'yoy' : 'mom'}`}
+              component="button"
+              type="button"
+              onClick={() => setActiveSlide(i)}
+              aria-label={`Slide ${i + 1} ${slide.isYoY ? 'Year over Year' : 'Month over Month'}`}
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                border: 'none',
+                cursor: 'pointer',
+                p: 0,
+                backgroundColor: slideIndex === i ? theme.palette.primary.main : theme.palette.grey[300],
+                transition: 'background-color 0.2s',
+              }}
+            />
+          ))}
         </Stack>
       </CardContent>
     </Card>

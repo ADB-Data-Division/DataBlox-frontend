@@ -728,7 +728,7 @@ export function PageContent() {
               <DetailsCard
                 selectedPoint={selectedPoint}
                 timeline={timelineData}
-                activeIndicator={selectedIndicators[0]}
+                indicators={selectedIndicators}
                 locationName={locationLabel}
                 grain={grain}
                 loading={loading}
