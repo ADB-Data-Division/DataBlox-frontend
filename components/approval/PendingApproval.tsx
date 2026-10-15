@@ -19,8 +19,20 @@ export function PendingApproval({
       <Card variant="outlined" sx={{ width: 420, textAlign: "center" }}>
         <CardContent sx={{ p: 4 }}>
           {status === "pending" && <Typography variant="h5">Access pending approval</Typography>}
-          {status === "declined" && <Typography variant="h5">Access not granted</Typography>}
+          {status === "declined" && <Typography variant="h5">Access wasn&apos;t approved</Typography>}
           {status === "approved" && <Typography variant="h5">You are approved</Typography>}
+          {status === "pending" && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Thanks for signing up. An admin needs to approve your account before you can
+              explore the data.
+            </Typography>
+          )}
+          {status === "declined" && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              An admin decided not to grant access to this account. Contact the team if you
+              think this is a mistake.
+            </Typography>
+          )}
           {email && (
             <Box sx={{ my: 2 }}>
               <Chip label={email} />
