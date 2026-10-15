@@ -12,18 +12,22 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import UploadIcon from "@mui/icons-material/Upload";
 import PreviewIcon from "@mui/icons-material/Preview";
-import { fetchVmStatus } from "@/services/coastalAdminService";
+import PeopleIcon from "@mui/icons-material/People";
+import { fetchUsers, fetchVmStatus } from "@/services/coastalAdminService";
+import { pendingTotal } from "./users/users-helpers";
 import { formatBytes } from "./upload/components/upload-helpers";
 
 const NAV = [
   { label: "Dashboard", href: "/coastal/admin", icon: <DashboardIcon fontSize="small" /> },
   { label: "Upload portal", href: "/coastal/admin/upload", icon: <UploadIcon fontSize="small" /> },
   { label: "Preview", href: "/coastal/admin/preview", icon: <PreviewIcon fontSize="small" /> },
+  { label: "Users", href: "/coastal/admin/users", icon: <PeopleIcon fontSize="small" /> },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [vmPanel, setVmPanel] = useState<{ used: number; total: number } | null>(null);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     fetchVmStatus()
@@ -31,6 +35,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         setVmPanel({ used: status.disk_used_bytes, total: status.disk_total_bytes })
       )
       .catch(() => setVmPanel(null));
+    fetchUsers()
+      .then((result) => setPending(pendingTotal(result.users)))
+      .catch(() => setPending(0));
   }, []);
 
   return (
@@ -64,6 +71,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 >
                   {item.icon}
                   <Typography variant="body2">{item.label}</Typography>
+                  {item.href === "/coastal/admin/users" && pending > 0 && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        ml: "auto",
+                        backgroundColor: "#F59E0B",
+                        color: "#111",
+                        fontWeight: 800,
+                        px: 1,
+                        borderRadius: 999,
+                      }}
+                    >
+                      {pending}
+                    </Typography>
+                  )}
                 </Stack>
               </Link>
             );
