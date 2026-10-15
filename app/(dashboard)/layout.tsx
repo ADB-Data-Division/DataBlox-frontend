@@ -4,6 +4,7 @@ import { DashboardLayout, ToolbarActions } from '@toolpad/core/DashboardLayout';
 import { Box, useTheme } from '@mui/material';
 import { ConnectivityProvider } from '../contexts/ConnectivityContext';
 import { LocationProvider } from '../contexts';
+import { ApprovalGate } from '@/components/approval/ApprovalGate';
 
 
 const NoToolbarActions = () => {
@@ -36,7 +37,7 @@ export default function Layout(props: { children: React.ReactNode }) {
             color: isDarkMode ? 'text.primary' : undefined,
           }}
         >
-          {props.children}
+          <ApprovalGate>{props.children}</ApprovalGate>
         </Box>
       </LocationProvider>
     </ConnectivityProvider>
