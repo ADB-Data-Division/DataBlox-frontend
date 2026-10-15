@@ -6,6 +6,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { gateStateFromWhoami } from "@/components/approval/gate-helpers";
 import { GateView, PendingApproval } from "@/components/approval/PendingApproval";
+import { visibleNavLinks } from "@/app/(dashboard)/components/Header";
 
 jest.mock("next-auth/react", () => ({
   signOut: jest.fn(),
@@ -66,6 +67,21 @@ describe("GateView", () => {
     expect(html).toMatch(/kenji@example.jp/);
     expect(html).toMatch(/Check again/);
     expect(html).not.toMatch(/zzz-gate-child/);
+  });
+});
+
+describe("visibleNavLinks", () => {
+  const links = [
+    { label: "Indicators", href: "/coastal/indicators" },
+    { label: "Admin dashboard", href: "/coastal/admin", exact: true, adminOnly: true },
+  ];
+
+  it("hides_admin_links_for_non_admins", () => {
+    expect(visibleNavLinks(links, false)).toEqual([links[0]]);
+  });
+
+  it("shows_admin_links_for_admins", () => {
+    expect(visibleNavLinks(links, true)).toEqual(links);
   });
 });
 
