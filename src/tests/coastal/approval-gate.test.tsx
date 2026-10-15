@@ -91,6 +91,7 @@ describe("PendingApproval", () => {
       <PendingApproval email="kenji@example.jp" status="pending" onRecheck={noop} />
     );
     expect(html).toMatch(/Access pending approval/);
+    expect(html).toMatch(/Thanks for signing up/);
     expect(html).toMatch(/kenji@example.jp/);
     expect(html).toMatch(/Sign out/);
     expect(html).toMatch(/Check again/);
@@ -100,7 +101,8 @@ describe("PendingApproval", () => {
     const html = renderToStaticMarkup(
       <PendingApproval email="spam@example.com" status="declined" onRecheck={noop} />
     );
-    expect(html).toMatch(/Access not granted/);
+    expect(html).toMatch(/Access wasn/);
+    expect(html).toMatch(/Contact the team/);
     expect(html).not.toMatch(/Check again/);
   });
 
