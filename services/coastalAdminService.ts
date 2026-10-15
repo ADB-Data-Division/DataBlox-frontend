@@ -126,7 +126,13 @@ async function adminFetch<T>(
   return response.json() as Promise<T>;
 }
 
-export async function checkAllowed(token?: string): Promise<{ allowed: boolean; email: string | null }> {
+export async function checkAllowed(token?: string): Promise<{
+  allowed: boolean;
+  email: string | null;
+  approved?: boolean;
+  status?: string | null;
+  enforced?: boolean;
+}> {
   return adminFetch("/whoami", {}, token);
 }
 
@@ -304,4 +310,67 @@ export async function setCountryEnabled(
     },
     token
   );
+}
+
+export interface ApprovalUser {
+  key: string;
+  sub: string | null;
+  email: string | null;
+  email_verified: boolean | null;
+  name: string | null;
+  picture: string | null;
+  provider: string | null;
+  status: "pending" | "approved" | "declined";
+  invited: boolean;
+  first_seen: string | null;
+  last_seen: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  admin: boolean;
+}
+
+export type UserDecision = "approve" | "decline" | "reset" | "cancel_invite";
+
+export interface DecisionResult {
+  updated: string[];
+  skipped: { key: string; reason: string }[];
+}
+
+export async function fetchUsers(token?: string): Promise<{ enforced: boolean; users: ApprovalUser[] }> {
+  return adminFetch("/users", {}, token);
+}
+
+export async function preapproveEmails(
+  emails: string[],
+  token?: string
+): Promise<{ added: string[]; skipped: { key: string; reason: string }[] }> {
+  return adminFetch(
+    "/users/preapprove",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails }),
+    },
+    token
+  );
+}
+
+export async function decideUsers(
+  keys: string[],
+  action: UserDecision,
+  token?: string
+): Promise<DecisionResult> {
+  return adminFetch(
+    "/users/decision",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keys, action }),
+    },
+    token
+  );
+}
+
+export async function approveVerified(token?: string): Promise<DecisionResult> {
+  return adminFetch("/users/approve-verified", { method: "POST" }, token);
 }
