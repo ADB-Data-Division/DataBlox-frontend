@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ConnectivityStatus } from './ConnectivityStatus';
 import Image from 'next/image';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, LockSimple } from '@phosphor-icons/react/dist/ssr';
+import { checkAllowed } from '@/services/coastalAdminService';
 
 interface NavSubLink {
   label: string;
@@ -14,6 +15,10 @@ interface NavSubLink {
   preserveParams?: boolean;
   exact?: boolean;
   adminOnly?: boolean;
+}
+
+export function visibleNavLinks(links: NavSubLink[], showAdmin: boolean): NavSubLink[] {
+  return links.filter((link) => showAdmin || !link.adminOnly);
 }
 
 interface NavCategory {
@@ -55,6 +60,7 @@ interface NavCategoryItemProps {
   locationsParam: string | null;
   hasCoastalCountry: boolean;
   coastalParamsString: string;
+  showAdmin: boolean;
 }
 
 function NavCategoryItem({
@@ -63,6 +69,7 @@ function NavCategoryItem({
   locationsParam,
   hasCoastalCountry,
   coastalParamsString,
+  showAdmin,
 }: NavCategoryItemProps) {
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -95,7 +102,7 @@ function NavCategoryItem({
   if (!category.title) {
     return (
       <Box>
-        {category.links.map((link) => (
+        {visibleNavLinks(category.links, showAdmin).map((link) => (
           <Link key={link.href} href={link.href} style={{ textDecoration: 'none' }}>
             <Typography
               variant="body1"
@@ -228,9 +235,9 @@ function NavCategoryItem({
         )}
 
         {/* Navigation Links */}
-        {category.links.map((link, index) => {
+        {visibleNavLinks(category.links, showAdmin).map((link, index, visible) => {
           const isActive = pathname === link.href;
-          const startsAdminGroup = link.adminOnly && !category.links[index - 1]?.adminOnly;
+          const startsAdminGroup = link.adminOnly && !visible[index - 1]?.adminOnly;
 
           // Preserve location params for migration/tourism, or coastal params when active search exists.
           // Admin links are exact and never rewritten.
@@ -313,6 +320,15 @@ function NavCategoryItem({
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Admin links stay visible until the allowlist says otherwise, so
+  // admins never see nav flicker. The server blocks non-admins anyway.
+  const [showAdmin, setShowAdmin] = useState(true);
+
+  useEffect(() => {
+    checkAllowed()
+      .then((result) => setShowAdmin(result.allowed))
+      .catch(() => setShowAdmin(true));
+  }, []);
 
   // Get current location params
   const locationsParam = useMemo(() => searchParams.get('locations'), [searchParams]);
@@ -392,6 +408,7 @@ export function Header() {
             locationsParam={locationsParam}
             hasCoastalCountry={hasCoastalCountry}
             coastalParamsString={coastalParamsString}
+            showAdmin={showAdmin}
           />
         ))}
       </Stack>
