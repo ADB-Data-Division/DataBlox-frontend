@@ -89,3 +89,41 @@ Ensure these environment variables are configured:
 - `AUTH0_ISSUER`: Auth0 domain/issuer URL
 - `AUTH_SECRET`: NextAuth.js secret key
 - `NEXT_PUBLIC_BACKEND_URL`: Backend API base URL
+
+## User Approval Gate
+
+Every dashboard page is wrapped in `ApprovalGate`
+(`components/approval/ApprovalGate.tsx`, wired in
+`app/(dashboard)/layout.tsx`). It calls `checkAllowed()` once:
+
+- While loading it shows a spinner.
+- When the backend reports `approved: false` with `status` pending or
+  declined, it renders `PendingApproval`
+  (`components/approval/PendingApproval.tsx`): heading, email chip,
+  Sign out (`signOut` from `next-auth/react`), Check again (re-runs the
+  call), and an Open DataBlox button once approved.
+- When `whoami` itself fails, the gate fails open and renders the page.
+  The backend is the only enforcer.
+- A missing `approved` field counts as approved, so the new frontend
+  works against an old backend. Decision logic lives in
+  `components/approval/gate-helpers.ts` (`gateStateFromWhoami`).
+
+Backend 403 detail codes on data calls: `approval_required`
+(pending) and `access_declined` (declined).
+
+## Coastal Admin Users Page
+
+`/coastal/admin/users` (`app/(dashboard)/coastal/admin/users/`) lists
+every login identity the backend has seen, behind the existing admin
+denial gate (`checkAllowed` then `AccessDenied`). Tabs Pending,
+Approved, and Declined show match counts; the search box filters by
+name or email in the browser while the nav badge keeps the unfiltered
+pending total. The Pre-approve box accepts several emails separated by
+commas, spaces, or new lines. The Pending tab has an Approve all
+verified button for seeding. Approve is disabled with an
+"Email not verified" title until the address is verified. Admin rows
+show an Admin chip and no actions; invite rows offer Cancel. Every
+action toasts with Undo (Undo calls `reset`, or re-preapproves the
+email after a cancelled invite). Typed calls live in
+`services/coastalAdminService.ts` (`fetchUsers`, `preapproveEmails`,
+`decideUsers`, `approveVerified`).
