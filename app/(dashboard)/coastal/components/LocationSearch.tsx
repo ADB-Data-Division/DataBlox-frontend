@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Autocomplete,
@@ -44,14 +44,16 @@ type SearchOption =
 
 interface LocationSearchProps {
   countryIso: string;
+  initialAoiIds?: string[];
   onSubmit?: (locations: CoastalLocation[]) => void;
 }
 
-export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
+export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: LocationSearchProps) {
   const { locations, provinces, loading, error, refetch } = useCoastalLocations(countryIso);
   const [selected, setSelected] = useState<CoastalLocation[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [recents, setRecents] = useState<CoastalRecentSearchEntry[]>([]);
+  const restoredScope = useRef<string | null>(null);
 
   useEffect(() => {
     setSelected([]);
@@ -71,6 +73,13 @@ export function LocationSearch({ countryIso, onSubmit }: LocationSearchProps) {
     }));
     return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
   }, [provinces, locations, countryIso]);
+
+  const initialScopeKey = `${countryIso.toUpperCase()}|${initialAoiIds.join(',')}`;
+  useEffect(() => {
+    if (loading || restoredScope.current === initialScopeKey) return;
+    setSelected(mapAoiIdsToLocations(initialAoiIds, allLocations));
+    restoredScope.current = initialScopeKey;
+  }, [allLocations, initialAoiIds, initialScopeKey, loading]);
 
   const options = useMemo<SearchOption[]>(() => {
     if (query.length === 0) {

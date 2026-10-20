@@ -11,6 +11,9 @@ import { fetchHexCellTimeSeries } from '@/services/coastalService';
 import type { HexCellTimeSeriesPoint } from '@/types/coastal';
 import {
   NO_DATA_LABEL,
+  aggregateIndicatorValues,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
   getIndicatorMeta,
   isZeroFillIndicator,
 } from '../indicators';
@@ -26,6 +29,8 @@ export interface HexCellDetailModalProps {
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
   onLoadingChange?: (loading: boolean) => void;
+  /** Live policy from GET /coastal/indicators, with static fallback. */
+  indicatorAggregations?: Record<string, string>;
 }
 
 const MAX_VISIBLE_HEX_CHIPS = 3;
@@ -34,10 +39,8 @@ const MAX_VISIBLE_HEX_CHIPS = 3;
 // selecting/clearing a hex does not shift the choropleth map below.
 const HEX_DETAIL_CARD_HEIGHT = 380;
 
-// Aggregation across selected hexes follows the registry null policy:
-// `zero_fill` indicators sum (missing means a real 0); every other
-// indicator averages the non-null readings and stays null when all are
-// missing, so the chart renders a gap, never a fake 0.
+// Aggregation across selected hexes uses each indicator's registry reducer;
+// null-policy indicators skip gaps, while zero_fill nulls contribute a real 0.
 function readHexValue(point: HexCellTimeSeriesPoint, field: string): number | null | undefined {
   if (point.values && point.values[field] !== undefined) {
     return point.values[field];
@@ -45,18 +48,16 @@ function readHexValue(point: HexCellTimeSeriesPoint, field: string): number | nu
   return (point as unknown as Record<string, number | null | undefined>)[field];
 }
 
-export function aggregatePoint(points: HexCellTimeSeriesPoint[], field: string): number | null {
-  const values = points
-    .map((p) => readHexValue(p, field))
-    .filter((v): v is number => v !== null && v !== undefined && !Number.isNaN(Number(v)));
-  if (values.length === 0) return isZeroFillIndicator(field) ? 0 : null;
-  const sum = values.reduce((acc: number, v: number) => acc + Number(v), 0);
-  if (isZeroFillIndicator(field)) return sum;
-  const meta = getIndicatorMeta(field);
-  if (meta?.agg === 'max') return Math.max(...values);
-  if (meta?.agg === 'min') return Math.min(...values);
-  if (meta?.agg === 'sum') return sum;
-  return sum / values.length;
+export function aggregatePoint(
+  points: HexCellTimeSeriesPoint[],
+  field: string,
+  aggregation?: string,
+): number | null {
+  return aggregateIndicatorValues(
+    points.map((point) => readHexValue(point, field)),
+    aggregation ?? getIndicatorMeta(field)?.agg,
+    isZeroFillIndicator(field),
+  );
 }
 
 interface HexIndicatorConfig {
@@ -222,6 +223,7 @@ export default function HexCellDetailModal({
   expanded,
   onExpandedChange,
   onLoadingChange,
+  indicatorAggregations,
 }: HexCellDetailModalProps) {
   const [realPoints, setRealPoints] = useState<HexCellTimeSeriesPoint[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -273,8 +275,13 @@ export default function HexCellDetailModal({
           }
           const values: Record<string, number | null> = { ...(base.values || {}) };
           for (const field of fields) {
-            (base as unknown as Record<string, number | null>)[field] = aggregatePoint(pointsAtIndex, field);
-            values[field] = aggregatePoint(pointsAtIndex, field);
+            const aggregate = aggregatePoint(
+              pointsAtIndex,
+              field,
+              getIndicatorAggregation(field, indicatorAggregations),
+            );
+            (base as unknown as Record<string, number | null>)[field] = aggregate;
+            values[field] = aggregate;
           }
           base.values = values;
           combined.push(base);
@@ -291,7 +298,7 @@ export default function HexCellDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [cellIds, country, dateRange.start, dateRange.end, grain]);
+  }, [cellIds, country, dateRange.start, dateRange.end, grain, indicatorAggregations]);
 
   useEffect(() => {
     onLoadingChange?.(loading);
@@ -370,6 +377,10 @@ export default function HexCellDetailModal({
   const primaryConfig = configForHex(primaryId);
 
   const secondaryConfig = secondaryId ? configForHex(secondaryId) : null;
+  const aggregationSuffix = (id: string) =>
+    cellIds.length > 1
+      ? ` · ${formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))}`
+      : '';
 
   const seriesHasData = (id: string): boolean =>
     (timeSeries.seriesById[id] || []).some((v) => v !== null && v !== undefined);
@@ -389,7 +400,9 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'leftAxis',
       color: primaryConfig.color,
-      label: seriesHasData(primaryId) ? primaryConfig.label : `${primaryConfig.label} (${NO_DATA_LABEL})`,
+      label: seriesHasData(primaryId)
+        ? `${primaryConfig.label}${aggregationSuffix(primaryId)}`
+        : `${primaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -418,7 +431,9 @@ export default function HexCellDetailModal({
       data: dataArray,
       yAxisId: 'rightAxis',
       color: secondaryConfig.color,
-      label: seriesHasData(secondaryId) ? secondaryConfig.label : `${secondaryConfig.label} (${NO_DATA_LABEL})`,
+      label: seriesHasData(secondaryId)
+        ? `${secondaryConfig.label}${aggregationSuffix(secondaryId)}`
+        : `${secondaryConfig.label} (${NO_DATA_LABEL})`,
       showMark: showMarks,
       connectNulls: false,
       valueFormatter: (v: number | null) =>
@@ -477,6 +492,7 @@ export default function HexCellDetailModal({
               </Box>
               <Typography variant="body2" color="text.secondary">
                 {locationName} · {dateSubtitle}
+                {cellIds.length > 1 ? ` · ${cellIds.length} selected H3 cells` : ''}
               </Typography>
             </Box>
 

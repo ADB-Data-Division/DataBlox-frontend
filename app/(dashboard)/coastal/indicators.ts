@@ -1,13 +1,15 @@
 /**
- * Coastal indicators static registry.
+ * Coastal indicator presentation registry with an offline metadata fallback.
  *
- * Mirrors the backend metadata contract from GET /coastal/indicators
+ * Runtime aggregation policy comes from GET /coastal/indicators. The `agg`
+ * values below are only used when the live metadata endpoint is unavailable;
+ * colors, formatting, and other presentation choices remain frontend-owned.
+ * The registry mirrors the backend metadata contract
  * (see plans/2026-09-26-coastal-all-abt-indicators-plan.md, sections 2 and 3).
  * Each entry carries `id, label, group, unit, agg, supports_map,
  * supports_timeline, null_policy`, plus frontend-only presentation fields
  * (color, map scale, delta colors, formatting).
  *
- * Backend may not be done yet: this file is written against the contract and
  * `src/tests/coastal/all-indicators.test.ts` compares these ids against a
  * fixture of the backend response to catch drift.
  *
@@ -52,6 +54,9 @@ export interface CoastalIndicatorPresentation {
 
 export type CoastalIndicatorEntry = CoastalIndicatorMetadata &
   CoastalIndicatorPresentation;
+
+export type CoastalIndicatorAggregation = 'avg' | 'sum' | 'max' | 'min';
+export type CoastalIndicatorAggregationMap = Record<string, string>;
 
 const CHLOR_UP = '#ef4444';
 const CHLOR_DOWN = '#2563eb';
@@ -169,6 +174,52 @@ const BY_ID: Record<string, CoastalIndicatorEntry> = Object.fromEntries(
 
 export function getIndicatorMeta(id: string): CoastalIndicatorEntry | undefined {
   return BY_ID[id];
+}
+
+/** Normalize registry values from both the backend (AVG) and legacy UI (average). */
+export function normalizeIndicatorAggregation(value?: string): CoastalIndicatorAggregation {
+  const normalized = value?.toLowerCase().trim();
+  if (normalized === 'sum' || normalized === 'max' || normalized === 'min') {
+    return normalized;
+  }
+  return 'avg';
+}
+
+/** Prefer live backend policy, using the local registry as an offline fallback. */
+export function getIndicatorAggregation(
+  id: string,
+  aggregations?: CoastalIndicatorAggregationMap,
+): CoastalIndicatorAggregation {
+  return normalizeIndicatorAggregation(aggregations?.[id] ?? getIndicatorMeta(id)?.agg);
+}
+
+export function formatIndicatorAggregation(value?: string): string {
+  const aggregation = normalizeIndicatorAggregation(value);
+  if (aggregation === 'sum') return 'Total';
+  if (aggregation === 'max') return 'Maximum';
+  if (aggregation === 'min') return 'Minimum';
+  return 'Average';
+}
+
+/** Apply a registry reducer while respecting zero_fill versus null semantics. */
+export function aggregateIndicatorValues(
+  values: Array<number | null | undefined>,
+  aggregation: string | undefined,
+  zeroFill: boolean,
+): number | null {
+  const numericValues = values.flatMap((value) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return zeroFill ? [0] : [];
+    }
+    return [Number(value)];
+  });
+
+  if (numericValues.length === 0) return zeroFill ? 0 : null;
+  const normalized = normalizeIndicatorAggregation(aggregation);
+  if (normalized === 'sum') return numericValues.reduce((sum, value) => sum + value, 0);
+  if (normalized === 'max') return Math.max(...numericValues);
+  if (normalized === 'min') return Math.min(...numericValues);
+  return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
 }
 
 export function isZeroFillIndicator(id: string): boolean {

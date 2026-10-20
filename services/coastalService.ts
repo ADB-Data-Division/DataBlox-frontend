@@ -149,7 +149,6 @@ export async function fetchIndicatorTimeline(
       end_date: params.end_date,
       grain: params.grain || "monthly",
       indicators: indicatorsParam,
-      agg_func: params.agg_func || "average",
     },
     params.engine
   );
@@ -385,6 +384,7 @@ export async function fetchVesselTimeline(
       end_date: params.end_date,
       grain: params.grain || "monthly",
       metric: params.metric || "vessel_count",
+      agg_func: params.agg_func || "sum",
     },
     params.engine
   );

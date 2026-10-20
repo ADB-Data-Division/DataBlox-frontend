@@ -3,7 +3,14 @@
 import React, { useMemo } from "react";
 import { LineChart } from "@mui/x-charts";
 import { Box, Paper, Typography, CircularProgress } from "@mui/material";
-import { VesselTimelinePoint } from "@/types/coastal";
+import type { CoastalVesselAggregation, VesselTimelinePoint } from "@/types/coastal";
+import {
+  buildVesselTypeSeries,
+  categorySeriesKey,
+  getVesselCategoryValue,
+  getVesselTimelineTypeGroups,
+  subtypeSeriesKey,
+} from "./vessel-timeline-model";
 
 export interface VesselTimelineChartProps {
   data?: VesselTimelinePoint[];
@@ -11,13 +18,10 @@ export interface VesselTimelineChartProps {
   locationName?: string;
   selectedPeriod?: string | null;
   onSelectPeriod?: (periodStart: string) => void;
-  visibleSeries?: {
-    trade: boolean;
-    harbor: boolean;
-    recreation: boolean;
-    miscellaneous: boolean;
-  };
+  visibleSeries?: Record<string, boolean>;
+  visibleSubtypes?: Record<string, boolean>;
   metric?: string;
+  aggregation?: CoastalVesselAggregation;
 }
 
 interface DatasetItem {
@@ -26,14 +30,12 @@ interface DatasetItem {
   period_end: string;
   date: Date;
   label: string;
-  trade: number;
-  harbor: number;
-  recreation: number;
-  miscellaneous: number;
-  cargo: number;
-  tanker: number;
   total_vessels: number;
   duration: number;
+  metric_value: number;
+  metric_label: string;
+  metric_unit: string;
+  h3_cell_count: number;
   [key: string]: string | number | Date | null | undefined;
 }
 
@@ -41,16 +43,21 @@ function CustomAxisTooltip({
   dataIndex,
   locationName,
   dataset,
+  timeline,
 }: {
   dataIndex?: null | number;
   locationName?: string;
   dataset: DatasetItem[];
+  timeline: VesselTimelinePoint[];
 }) {
   if (dataIndex === null || dataIndex === undefined) {
     return null;
   }
   const item = dataset[dataIndex];
-  if (!item) return null;
+  const point = timeline[dataIndex];
+  if (!item || !point) return null;
+  const categories = point.categories || {};
+  const subTypes = point.sub_types || {};
 
   return (
     <Paper sx={{ p: 1.5, minWidth: 200, boxShadow: 3, borderRadius: 1.5 }}>
@@ -61,48 +68,29 @@ function CustomAxisTooltip({
         Period: {item.label}
       </Typography>
       <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: "divider" }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, color: "#6366f1" }}>
-          Trade: {item.trade.toLocaleString()} vessels
-        </Typography>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          display="block"
-          sx={{ pl: 1 }}
-        >
-          Cargo: {item.cargo.toLocaleString()} vessels
-        </Typography>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          display="block"
-          sx={{ pl: 1 }}
-        >
-          Tanker: {item.tanker.toLocaleString()} vessels
-        </Typography>
+        {Object.keys(categories).length > 0 ? Object.entries(categories).map(([category, value]) => (
+          <Box key={category} sx={{ mb: 0.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {category}: {value.toLocaleString()} vessels
+            </Typography>
+            {Object.entries(subTypes[category] || {}).map(([subtype, count]) => (
+              <Typography key={`${category}:${subtype}`} variant="caption" color="text.secondary" display="block" sx={{ pl: 1 }}>
+                {subtype}: {count.toLocaleString()} vessels
+              </Typography>
+            ))}
+          </Box>
+        )) : (
+          <>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {item.metric_label}: {item.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })} {item.metric_unit}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block">
+              H3 cells included: {item.h3_cell_count.toLocaleString()}
+            </Typography>
+          </>
+        )}
 
-        <Typography
-          variant="body2"
-          sx={{ fontWeight: 700, color: "#ef4444", mt: 0.5 }}
-        >
-          Harbor: {item.harbor.toLocaleString()} vessels
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{ fontWeight: 700, color: "#f59e0b", mt: 0.5 }}
-        >
-          Recreation: {item.recreation.toLocaleString()} vessels
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{ fontWeight: 700, color: "#9ca3af", mt: 0.5 }}
-        >
-          Miscellaneous: {item.miscellaneous.toLocaleString()} vessels
-        </Typography>
-
-        <Box
+        {Object.keys(categories).length > 0 && <Box
           sx={{
             mt: 1,
             pt: 0.5,
@@ -118,7 +106,7 @@ function CustomAxisTooltip({
           <Typography variant="caption" sx={{ fontWeight: 700 }}>
             {item.total_vessels.toLocaleString()} vessels
           </Typography>
-        </Box>
+        </Box>}
       </Box>
     </Paper>
   );
@@ -130,15 +118,13 @@ export default function VesselTimelineChart({
   locationName = "Location",
   selectedPeriod,
   onSelectPeriod,
-  visibleSeries = {
-    trade: true,
-    harbor: true,
-    recreation: true,
-    miscellaneous: true,
-  },
+  visibleSeries = {},
+  visibleSubtypes = {},
   metric = "Vessel Count",
+  aggregation = "average",
 }: VesselTimelineChartProps) {
-  const isDuration = metric === "Port Call Duration";
+  const typeGroups = useMemo(() => getVesselTimelineTypeGroups(data), [data]);
+  const showTypeBreakdown = metric === "Vessel Count" && aggregation === "sum" && typeGroups.length > 0;
 
   const dataset: DatasetItem[] = useMemo(() => {
     return (data || []).map((pt, idx) => {
@@ -146,70 +132,51 @@ export default function VesselTimelineChart({
       const label = isNaN(dt.getTime())
         ? pt.period_start
         : dt.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      const metricValue = pt.metric_value ?? (
+        metric === "Vessel Count"
+          ? aggregation === "average" ? pt.average_vessels_per_cell : pt.total_vessels
+          : metric === "Port Call Duration"
+            ? aggregation === "average" ? pt.average_duration_hours_per_cell : pt.total_presence_hours
+            : metric === "Presence Hours"
+              ? aggregation === "average" ? pt.average_presence_hours_per_cell : pt.total_presence_hours
+              : aggregation === "average" ? pt.average_stationary_hours_per_cell : pt.total_stationary_hours
+      ) ?? 0;
+      const metricLabel = metric === "Vessel Count"
+        ? aggregation === "average" ? "Average vessels per H3 cell" : "Vessels"
+        : metric === "Port Call Duration"
+          ? aggregation === "average" ? "Average duration per occupied H3 cell" : "Total vessel presence hours"
+          : metric === "Presence Hours"
+            ? aggregation === "average" ? "Average presence hours per H3 cell" : "Total presence hours"
+            : aggregation === "average" ? "Average stationary hours per H3 cell" : "Total stationary hours";
+      const metricUnit = metric === "Vessel Count" ? "vessels" : "hours";
       return {
         id: idx,
         period_start: pt.period_start,
         period_end: pt.period_end,
         date: isNaN(dt.getTime()) ? new Date() : dt,
         label,
-        trade: isDuration
-          ? Number(pt.average_duration_hours || 0)
-          : pt.trade ?? 0,
-        harbor: isDuration
-          ? Number(pt.average_duration_hours || 0)
-          : pt.harbor ?? 0,
-        recreation: isDuration
-          ? Number(pt.average_duration_hours || 0)
-          : pt.recreation ?? 0,
-        miscellaneous: isDuration
-          ? Number(pt.average_duration_hours || 0)
-          : pt.miscellaneous ?? 0,
-        cargo: pt.cargo ?? 0,
-        tanker: pt.tanker ?? 0,
         total_vessels: pt.total_vessels ?? 0,
-        duration: Number(pt.average_duration_hours || 0),
+        duration: Number(pt.average_duration_hours_per_cell ?? pt.average_duration_hours ?? 0),
+        metric_value: Number(metricValue),
+        metric_label: metricLabel,
+        metric_unit: metricUnit,
+        h3_cell_count: pt.h3_cell_count ?? 0,
+        ...Object.fromEntries(typeGroups.map(({ category }) => [
+          categorySeriesKey(category), getVesselCategoryValue(pt, category),
+        ])),
+        ...Object.fromEntries(typeGroups.flatMap(({ category, subtypes }) => subtypes.map((subtype) => [
+          subtypeSeriesKey(category, subtype), Number(pt.sub_types?.[category]?.[subtype] ?? 0),
+        ]))),
       };
     });
-  }, [data, isDuration]);
+  }, [aggregation, data, metric, typeGroups]);
 
   const series = useMemo(() => {
-    const list = [];
     const showMark = dataset.length <= 36;
-
-    if (visibleSeries.trade) {
-      list.push({
-        dataKey: "trade",
-        label: "Trade",
-        color: "#6366f1",
-        showMark,
-      });
-    }
-    if (visibleSeries.harbor) {
-      list.push({
-        dataKey: "harbor",
-        label: "Harbor",
-        color: "#ef4444",
-        showMark,
-      });
-    }
-    if (visibleSeries.recreation) {
-      list.push({
-        dataKey: "recreation",
-        label: "Recreation",
-        color: "#f59e0b",
-        showMark,
-      });
-    }
-    if (visibleSeries.miscellaneous) {
-      list.push({
-        dataKey: "miscellaneous",
-        label: "Miscellaneous",
-        color: "#9ca3af",
-        showMark,
-      });
-    }
-    return list;
-  }, [visibleSeries, dataset.length]);
+    return !showTypeBreakdown
+      ? [{ dataKey: "metric_value", label: dataset[0]?.metric_label || metric, color: "#0f766e", showMark }]
+      : buildVesselTypeSeries(typeGroups, visibleSeries, visibleSubtypes, showMark);
+  }, [dataset, metric, showTypeBreakdown, typeGroups, visibleSeries, visibleSubtypes]);
 
   if (loading) {
     return (
@@ -273,6 +240,7 @@ export default function VesselTimelineChart({
               {...props}
               locationName={locationName}
               dataset={dataset}
+              timeline={data}
             />
           ),
         }}

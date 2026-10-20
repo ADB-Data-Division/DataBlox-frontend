@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -12,9 +12,11 @@ import {
 } from '@mui/material';
 import { fetchCoastalCountries } from '@/services/coastalService';
 import type { CoastalCountry } from '@/types/coastal';
+import { findCoastalCountry } from '../search-query';
 
 interface CountrySelectorProps {
   selectedIso?: string | null;
+  initialIso?: string | null;
   onSelect: (country: CoastalCountry) => void;
 }
 
@@ -116,10 +118,11 @@ export function FlagBadge({ iso }: { iso: string }) {
   );
 }
 
-export default function CountrySelector({ selectedIso, onSelect }: CountrySelectorProps) {
+export default function CountrySelector({ selectedIso, initialIso, onSelect }: CountrySelectorProps) {
   const theme = useTheme();
   const [countries, setCountries] = useState<CoastalCountry[]>([]);
   const [status, setStatus] = useState<SelectorStatus>('loading');
+  const appliedInitialIso = useRef<string | null>(null);
 
   const runFetch = useCallback(
     () =>
@@ -150,6 +153,16 @@ export default function CountrySelector({ selectedIso, onSelect }: CountrySelect
       ),
     [countries]
   );
+
+  useEffect(() => {
+    const requestedIso = initialIso?.trim().toUpperCase();
+    if (!requestedIso || sortedCountries.length === 0 || appliedInitialIso.current === requestedIso) {
+      return;
+    }
+    appliedInitialIso.current = requestedIso;
+    const country = findCoastalCountry(sortedCountries, requestedIso);
+    if (country) onSelect(country);
+  }, [initialIso, onSelect, sortedCountries]);
 
   const cardSx = (isSelected: boolean) => ({
     width: '100%',

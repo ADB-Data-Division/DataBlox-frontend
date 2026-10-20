@@ -17,6 +17,8 @@ import type { IndicatorSummaryCard, IndicatorTimelinePoint, IndicatorTimelineSum
 import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
 import {
   NO_DATA_LABEL,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
   getIndicatorMeta,
 } from '../indicators';
 
@@ -28,6 +30,7 @@ export interface SummaryCardsProps {
   timeline?: IndicatorTimelinePoint[];
   grain?: string;
   loading?: boolean;
+  indicatorAggregations?: Record<string, string>;
 }
 
 interface IndicatorConfig {
@@ -39,7 +42,10 @@ interface IndicatorConfig {
   zeroPeakReason: string;
 }
 
-function configFor(indicatorKey: string): IndicatorConfig {
+function configFor(
+  indicatorKey: string,
+  indicatorAggregations?: Record<string, string>,
+): IndicatorConfig {
   const meta = getIndicatorMeta(indicatorKey);
   if (!meta) {
     return {
@@ -51,7 +57,7 @@ function configFor(indicatorKey: string): IndicatorConfig {
       zeroPeakReason: 'No data was recorded in this time range',
     };
   }
-  const isCount = meta.agg === 'sum';
+  const isCount = getIndicatorAggregation(indicatorKey, indicatorAggregations) === 'sum';
   return {
     icon: meta.icon,
     label: meta.group === 'Vessels' && indicatorKey === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`.replace(' Levels Levels', ' Levels'),
@@ -502,6 +508,7 @@ function SingleSummaryCard({
   timeline,
   grain,
   loading,
+  indicatorAggregations,
 }: {
   indicatorKey: string;
   summaryCard?: IndicatorSummaryCard;
@@ -510,11 +517,13 @@ function SingleSummaryCard({
   timeline?: IndicatorTimelinePoint[];
   grain?: string;
   loading?: boolean;
+  indicatorAggregations?: Record<string, string>;
 }) {
   const theme = useTheme();
   const [activeSlide, setActiveSlide] = useState<number>(0);
-  const cfg = configFor(indicatorKey);
+  const cfg = configFor(indicatorKey, indicatorAggregations);
   const meta = getIndicatorMeta(indicatorKey);
+  const usesSum = getIndicatorAggregation(indicatorKey, indicatorAggregations) === 'sum';
 
   const grainLabel = grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
   const dynamicPeakLabel = cfg.peakLabel.replace('Monthly', grainLabel);
@@ -540,7 +549,7 @@ function SingleSummaryCard({
 
   const numericCumulative = summaryCard?.cumulative !== undefined
     ? summaryCard.cumulative
-    : isVessel || meta?.agg === 'sum'
+    : isVessel || usesSum
     ? stats.total
     : undefined;
 
@@ -550,7 +559,7 @@ function SingleSummaryCard({
     ? numericCumulative !== undefined
       ? Math.round(numericCumulative).toLocaleString()
       : undefined
-    : meta?.agg === 'sum'
+    : usesSum
     ? stats.total !== undefined
       ? formatNum(stats.total)
       : undefined
@@ -673,6 +682,9 @@ function SingleSummaryCard({
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {locationName} · {dateRange.start} to {dateRange.end}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              Per period across H3 cells: {formatIndicatorAggregation(getIndicatorAggregation(indicatorKey, indicatorAggregations))}
             </Typography>
           </Box>
         </Stack>
@@ -811,6 +823,7 @@ export function SummaryCards({
   timeline,
   grain,
   loading,
+  indicatorAggregations,
 }: SummaryCardsProps) {
   if (!indicators || indicators.length === 0) {
     return null;
@@ -839,6 +852,7 @@ export function SummaryCards({
               timeline={timeline}
               grain={grain}
               loading={loading}
+              indicatorAggregations={indicatorAggregations}
             />
           </Box>
         );
