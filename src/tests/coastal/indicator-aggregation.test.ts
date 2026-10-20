@@ -1,7 +1,9 @@
 import {
   aggregateIndicatorValues,
+  formatCoastalIndicatorValue,
   formatIndicatorAggregation,
   getIndicatorAggregation,
+  getIndicatorTimelineAggregation,
   normalizeIndicatorAggregation,
 } from '@/app/(dashboard)/coastal/indicators';
 
@@ -19,6 +21,18 @@ describe('coastal indicator aggregation metadata', () => {
   it('prefers the backend aggregation map over the static presentation fallback', () => {
     expect(getIndicatorAggregation('chlor_a', { chlor_a: 'MAX' })).toBe('max');
     expect(getIndicatorAggregation('tc_wind')).toBe('max');
+  });
+
+  it('keeps map clustering on totals while vessel timeline policy uses the H3 average', () => {
+    expect(getIndicatorAggregation('vessels')).toBe('sum');
+    expect(getIndicatorTimelineAggregation('vessels')).toBe('avg');
+    expect(getIndicatorTimelineAggregation('vessels', { vessels: 'AVG' })).toBe('avg');
+    expect(getIndicatorTimelineAggregation('vessels', { vessels: 'SUM' })).toBe('sum');
+  });
+
+  it('shows fractional vessel averages in timeline values while map counts remain whole', () => {
+    expect(formatCoastalIndicatorValue('vessels', 1.56, { vessels: 'AVG' })).toBe('1.56');
+    expect(formatCoastalIndicatorValue('vessels', 1.56, { vessels: 'SUM' })).toBe('2');
   });
 
   it.each([

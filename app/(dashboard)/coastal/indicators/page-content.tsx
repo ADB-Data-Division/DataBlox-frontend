@@ -29,7 +29,7 @@ import {
   fetchSpatialSeries,
 } from '@/services/coastalService';
 import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng, buildIndicatorExportHeaders, buildIndicatorExportRows } from '@/src/utils/coastalExport';
-import { getIndicatorMeta } from '../indicators';
+import { COASTAL_INDICATORS, getIndicatorMeta } from '../indicators';
 import { buildSpatialIndicatorParam } from './spatial-indicator-ids';
 import type {
   CoastalGrain,
@@ -188,9 +188,27 @@ export function PageContent() {
   const currentSliceKeyRef = useRef<string | null>(null);
   const sliceInFlightRef = useRef<Set<string>>(new Set());
 
-  const indicatorAggregations = useMemo(
-    () => Object.fromEntries(indicatorMetadata.map(({ id, agg }) => [id, agg])),
+  const backendMetadataById = useMemo(
+    () => new Map(indicatorMetadata.map((metadata) => [metadata.id, metadata])),
     [indicatorMetadata],
+  );
+  const mapIndicatorAggregations = useMemo(
+    () => Object.fromEntries(COASTAL_INDICATORS.map(({ id, agg }) => [
+      id,
+      backendMetadataById.get(id)?.agg ?? agg,
+    ])),
+    [backendMetadataById],
+  );
+  const timelineIndicatorAggregations = useMemo(
+    () => Object.fromEntries(COASTAL_INDICATORS.map(({ id, agg, timeline_agg }) => [
+      id,
+      data?.aggregation_by_indicator?.[id]
+        ?? backendMetadataById.get(id)?.timeline_agg
+        ?? backendMetadataById.get(id)?.agg
+        ?? timeline_agg
+        ?? agg,
+    ])),
+    [backendMetadataById, data?.aggregation_by_indicator],
   );
 
   useEffect(() => {
@@ -739,7 +757,7 @@ export function PageContent() {
                 timeline={timelineData}
                 grain={grain}
                 loading={loading}
-                indicatorAggregations={indicatorAggregations}
+                indicatorAggregations={timelineIndicatorAggregations}
               />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -750,7 +768,7 @@ export function PageContent() {
                 locationName={locationLabel}
                 grain={grain}
                 loading={loading}
-                indicatorAggregations={indicatorAggregations}
+                indicatorAggregations={timelineIndicatorAggregations}
               />
             </Box>
           </Stack>
@@ -767,7 +785,7 @@ export function PageContent() {
                 selectedPeriod={selectedPoint?.period_start || null}
                 onSelectPoint={(pt) => setSelectedPoint(pt)}
                 loading={loading}
-                indicatorAggregations={indicatorAggregations}
+                indicatorAggregations={timelineIndicatorAggregations}
               />
             </Box>
             {/* On desktop the sidebar is pinned to the chart height and its list scrolls. */}
@@ -776,7 +794,7 @@ export function PageContent() {
                 <IndicatorSidebar
                   selectedIndicators={selectedIndicators}
                   onToggleIndicator={handleToggleIndicator}
-                  indicatorAggregations={indicatorAggregations}
+                  indicatorAggregations={timelineIndicatorAggregations}
                   mode="timeline"
                 />
               </Box>
@@ -929,7 +947,7 @@ export function PageContent() {
                             indicators={selectedIndicators}
                             height={mapHeight}
                             clustersEnabled={clustersEnabled}
-                            indicatorAggregations={indicatorAggregations}
+                            indicatorAggregations={mapIndicatorAggregations}
                           />
                         </Box>
                       </Box>
@@ -965,7 +983,7 @@ export function PageContent() {
                 expanded={hexExpanded}
                 onExpandedChange={setHexExpanded}
                 onLoadingChange={setHexChartLoading}
-                indicatorAggregations={indicatorAggregations}
+                indicatorAggregations={timelineIndicatorAggregations}
               />
             </Box>
 
@@ -981,7 +999,8 @@ export function PageContent() {
                 <IndicatorSidebar
                   selectedIndicators={selectedIndicators}
                   onToggleIndicator={handleToggleIndicator}
-                  indicatorAggregations={indicatorAggregations}
+                  indicatorAggregations={timelineIndicatorAggregations}
+                  mapIndicatorAggregations={mapIndicatorAggregations}
                   mode="map"
                   activeChoroplethIndicator={activeChoroplethIndicator}
                   onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}

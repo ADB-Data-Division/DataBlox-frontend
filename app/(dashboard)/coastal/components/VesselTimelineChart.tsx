@@ -9,6 +9,7 @@ import {
   categorySeriesKey,
   getVesselCategoryValue,
   getVesselTimelineTypeGroups,
+  shouldShowVesselTypeSeries,
   subtypeSeriesKey,
 } from "./vessel-timeline-model";
 
@@ -44,11 +45,15 @@ function CustomAxisTooltip({
   locationName,
   dataset,
   timeline,
+  metric,
+  aggregation,
 }: {
   dataIndex?: null | number;
   locationName?: string;
   dataset: DatasetItem[];
   timeline: VesselTimelinePoint[];
+  metric: string;
+  aggregation: CoastalVesselAggregation;
 }) {
   if (dataIndex === null || dataIndex === undefined) {
     return null;
@@ -90,6 +95,12 @@ function CustomAxisTooltip({
           </>
         )}
 
+        {Object.keys(categories).length > 0 && metric === 'Vessel Count' && aggregation === 'average' && (
+          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+            Average across H3 cells: {item.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })} vessels per cell
+          </Typography>
+        )}
+
         {Object.keys(categories).length > 0 && <Box
           sx={{
             mt: 1,
@@ -124,7 +135,7 @@ export default function VesselTimelineChart({
   aggregation = "average",
 }: VesselTimelineChartProps) {
   const typeGroups = useMemo(() => getVesselTimelineTypeGroups(data), [data]);
-  const showTypeBreakdown = metric === "Vessel Count" && aggregation === "sum" && typeGroups.length > 0;
+  const showTypeBreakdown = shouldShowVesselTypeSeries(metric, typeGroups);
 
   const dataset: DatasetItem[] = useMemo(() => {
     return (data || []).map((pt, idx) => {
@@ -241,6 +252,8 @@ export default function VesselTimelineChart({
               locationName={locationName}
               dataset={dataset}
               timeline={data}
+              metric={metric}
+              aggregation={aggregation}
             />
           ),
         }}

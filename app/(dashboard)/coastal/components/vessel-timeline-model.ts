@@ -1,4 +1,8 @@
-import type { VesselTimelinePoint } from '@/types/coastal';
+import type {
+  CoastalVesselAggregation,
+  CoastalVesselMetric,
+  VesselTimelinePoint,
+} from '@/types/coastal';
 
 export interface VesselTypeGroup {
   category: string;
@@ -20,6 +24,49 @@ export interface VesselTimelineExportColumn {
 export interface VesselTimelineExportData {
   headers: VesselTimelineExportColumn[];
   rows: Record<string, unknown>[];
+}
+
+/** Type and subtype source data is only available as period totals. */
+export function getVesselTypeTimelineAggregation(
+  metric: CoastalVesselMetric,
+  aggregation: CoastalVesselAggregation,
+): CoastalVesselAggregation | null {
+  return metric === 'vessel_count' && aggregation === 'average' ? 'sum' : null;
+}
+
+export function shouldShowVesselTypeSeries(
+  metric: string,
+  groups: VesselTypeGroup[],
+): boolean {
+  return metric === 'Vessel Count' && groups.length > 0;
+}
+
+/** Keep the selected backend metric values while attaching available type totals. */
+export function mergeVesselTimelineTypeData(
+  metricTimeline: VesselTimelinePoint[],
+  typeTimeline: VesselTimelinePoint[],
+): VesselTimelinePoint[] {
+  const typePointsByPeriod = new Map(
+    typeTimeline.map((point) => [point.period_start.slice(0, 10), point]),
+  );
+
+  return metricTimeline.map((point) => {
+    const typePoint = typePointsByPeriod.get(point.period_start.slice(0, 10));
+    if (!typePoint) return point;
+
+    return {
+      ...point,
+      trade: typePoint.trade,
+      harbor: typePoint.harbor,
+      recreation: typePoint.recreation,
+      miscellaneous: typePoint.miscellaneous,
+      cargo: typePoint.cargo,
+      tanker: typePoint.tanker,
+      categories: typePoint.categories,
+      sub_types: typePoint.sub_types,
+      category_breakdown_available: typePoint.category_breakdown_available,
+    };
+  });
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -117,6 +164,7 @@ export function buildVesselTimelineExportData(
   groups: VesselTypeGroup[],
   metricLabel: string,
   includeTypeBreakdown: boolean,
+  typeBreakdownLabelSuffix = '',
 ): VesselTimelineExportData {
   const headers: VesselTimelineExportColumn[] = [
     { key: 'period_start', label: 'Period Start' },
@@ -129,12 +177,12 @@ export function buildVesselTimelineExportData(
     for (const { category, subtypes } of groups) {
       headers.push({
         key: categorySeriesKey(category),
-        label: `${category} Vessels`,
+        label: `${category} Vessels${typeBreakdownLabelSuffix}`,
       });
       for (const subtype of subtypes) {
         headers.push({
           key: subtypeSeriesKey(category, subtype),
-          label: `${subtype} (${category}) Vessels`,
+          label: `${subtype} (${category}) Vessels${typeBreakdownLabelSuffix}`,
         });
       }
     }

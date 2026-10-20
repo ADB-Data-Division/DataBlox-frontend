@@ -15,9 +15,10 @@ import {
 import type { IndicatorTimelinePoint } from '@/types/coastal';
 import {
   COASTAL_INDICATORS,
+  formatCoastalIndicatorValue,
   getIndicatorMeta,
   formatIndicatorAggregation,
-  getIndicatorAggregation,
+  getIndicatorTimelineAggregation,
   isZeroFillIndicator,
 } from '../indicators';
 
@@ -97,12 +98,12 @@ export function getPointValue(point: IndicatorTimelinePoint, indicatorKey: strin
 }
 
 /** Format a chart value with the registry decimals, or "No data" for gaps. */
-export function formatIndicatorValue(indicatorKey: string, value: number): string {
-  if (isNaN(value)) return 'No data';
-  const meta = getIndicatorMeta(indicatorKey);
-  if (!meta) return String(value);
-  if (meta.integer) return Math.round(value).toLocaleString();
-  return value.toFixed(meta.decimals);
+export function formatIndicatorValue(
+  indicatorKey: string,
+  value: number,
+  indicatorAggregations?: Record<string, string>,
+): string {
+  return formatCoastalIndicatorValue(indicatorKey, value, indicatorAggregations);
 }
 
 export function formatPeriodLabel(isoString: string, grain?: string): string {
@@ -532,7 +533,7 @@ export function IndicatorTimelineChart({
                     key={id}
                     size="small"
                     variant="outlined"
-                    label={`${getIndicatorMeta(id)?.shortLabel || id} · ${formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))}`}
+                    label={`${getIndicatorMeta(id)?.shortLabel || id} · ${formatIndicatorAggregation(getIndicatorTimelineAggregation(id, indicatorAggregations))}`}
                   />
                 ))}
               </Stack>
@@ -614,7 +615,7 @@ export function IndicatorTimelineChart({
                 {indicators.map((indKey) => {
                   const cfg = INDICATORS_CONFIG[indKey] || { label: indKey, unit: '', color: '#3B82F6' };
                   const val = getPointValue(hoverPoint, indKey);
-                  const formattedVal = formatIndicatorValue(indKey, val);
+                  const formattedVal = formatIndicatorValue(indKey, val, indicatorAggregations);
                   return (
                     <Stack
                       key={indKey}
@@ -624,7 +625,7 @@ export function IndicatorTimelineChart({
                       sx={{ mb: 0.5 }}
                     >
                       <Typography variant="caption" sx={{ color: cfg.color, fontWeight: 600 }}>
-                        {cfg.label} ({formatIndicatorAggregation(getIndicatorAggregation(indKey, indicatorAggregations))}):
+                        {cfg.label} ({formatIndicatorAggregation(getIndicatorTimelineAggregation(indKey, indicatorAggregations))}):
                       </Typography>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: cfg.color }}>
                         {formattedVal === 'No data' ? formattedVal : `${formattedVal} ${cfg.unit}`}

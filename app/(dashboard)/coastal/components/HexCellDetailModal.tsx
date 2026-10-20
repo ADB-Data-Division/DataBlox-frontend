@@ -179,8 +179,15 @@ function isPlottableValue(value: unknown): value is number {
 
 // Keep axis ticks compact (counts as integers, SST to 1 decimal,
 // concentration to 2) instead of MUI's default 6-decimal formatting.
-function formatAxisTick(indicatorId: string, value: number): string {
+function formatAxisTick(
+  indicatorId: string,
+  value: number,
+  indicatorAggregations?: Record<string, string>,
+): string {
   if (!isPlottableValue(value)) return '';
+  if (indicatorId === 'vessels' && getIndicatorAggregation(indicatorId, indicatorAggregations) === 'avg') {
+    return value.toFixed(2);
+  }
   if (indicatorId === 'vessels' || indicatorId === 'duration') return String(Math.round(value));
   if (indicatorId === 'sst') return value.toFixed(1);
   return value.toFixed(2);
@@ -408,13 +415,13 @@ export default function HexCellDetailModal({
       valueFormatter: (v: number | null) =>
         v === null || v === undefined || Number.isNaN(v)
           ? 'N/A'
-          : `${formatAxisTick(primaryId, v)} ${primaryConfig.unit}`,
+          : `${formatAxisTick(primaryId, v, indicatorAggregations)} ${primaryConfig.unit}`,
     });
     const leftWhole = hasWholeTicks(dataArray, primaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'leftAxis',
       valueFormatter: (value: number) =>
-        leftWhole ? String(Math.round(value)) : formatAxisTick(primaryId, value),
+        leftWhole ? String(Math.round(value)) : formatAxisTick(primaryId, value, indicatorAggregations),
       // Tick labels end ~14px out and run ~35px wide. The axis title is
       // rendered as HTML in the margin (see below) instead of MUI's
       // rotated label, which centers at a fixed offset that collides
@@ -439,14 +446,14 @@ export default function HexCellDetailModal({
       valueFormatter: (v: number | null) =>
         v === null || v === undefined || Number.isNaN(v)
           ? 'N/A'
-          : `${formatAxisTick(secondaryId as string, v)} ${secondaryConfig.unit}`,
+          : `${formatAxisTick(secondaryId as string, v, indicatorAggregations)} ${secondaryConfig.unit}`,
     });
     const rightWhole = hasWholeTicks(dataArray, secondaryConfig.defaultRange);
     yAxisConfig.push({
       id: 'rightAxis',
       position: 'right' as const,
       valueFormatter: (value: number) =>
-        rightWhole ? String(Math.round(value)) : formatAxisTick(secondaryId as string, value),
+        rightWhole ? String(Math.round(value)) : formatAxisTick(secondaryId as string, value, indicatorAggregations),
       // Same title/tick collision as the left axis, mirrored.
       slotProps: { axisTickLabel: { dx: 6 } },
       ...axisBounds(dataArray, secondaryConfig.defaultRange),
