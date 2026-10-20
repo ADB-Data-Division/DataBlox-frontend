@@ -12,6 +12,7 @@ import {
   isZeroFillIndicator,
 } from '../indicators';
 import type { SpatialStatus } from '../spatial-status';
+import { shouldShowVesselCountLabels, VESSEL_LABEL_MIN_ZOOM } from './vessel-count-labels';
 
 export interface CoastalChoroplethMapProps {
   country: string;
@@ -62,7 +63,6 @@ const NATIVE_H3_RES = 7;
 // Single cluster mode (no intermediate hex levels): below this Leaflet zoom
 // the hexes are replaced by magnitude circles grouped at CLUSTER_PARENT_RES.
 const CLUSTER_ZOOM_THRESHOLD = 9;
-const VESSEL_LABEL_MIN_ZOOM = 8;
 const CLUSTER_PARENT_RES = 4;
 
 const HEX_SVG_ATTRS = 'width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
@@ -1229,7 +1229,7 @@ function CoastalChoroplethMapClient({
     }
 
     const labelZoom = mapZoom ?? CLUSTER_ZOOM_THRESHOLD;
-    if (overlayVessels && !showClusters && labelZoom >= VESSEL_LABEL_MIN_ZOOM) {
+    if (overlayVessels && !showClusters && shouldShowVesselCountLabels(labelZoom)) {
       const vesselCells = gridCells.filter((c) => c.vessels !== undefined && c.vessels > 0);
       const vesselLabelSize = getVesselLabelSize(labelZoom);
       layers.push(
@@ -1364,7 +1364,7 @@ function CoastalChoroplethMapClient({
       layerGroup.addLayer(polygon);
 
       // Display vessel count numbers inside hexagons when enabled
-      if (overlayVessels && labelZoom >= VESSEL_LABEL_MIN_ZOOM) {
+      if (overlayVessels && shouldShowVesselCountLabels(labelZoom)) {
         const labelSize = getVesselLabelSize(labelZoom);
         const vesselLabelIcon = L.divIcon({
           className: 'vessel-label-icon',

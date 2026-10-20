@@ -8,6 +8,7 @@ import CountrySelector, { FlagBadge } from './components/CountrySelector';
 import { LocationSearch } from './components/LocationSearch';
 import type { CoastalCountry } from '@/types/coastal';
 import { resolveCoastalLocations } from './data/provinces';
+import { buildCoastalSearchParams, readCoastalSearchRouteState } from './search-query';
 
 function resolveIso(country: CoastalCountry | null): string {
   return country ? country.iso || country.country_iso || '' : '';
@@ -16,7 +17,8 @@ function resolveIso(country: CoastalCountry | null): string {
 function CoastalPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const targetParam = searchParams.get('target');
+  const routeState = readCoastalSearchRouteState(new URLSearchParams(searchParams.toString()));
+  const { target: targetParam, countryIso: initialCountryIso, aoiIds: initialAoiIds } = routeState;
 
   const [selectedCountry, setSelectedCountry] = useState<CoastalCountry | null>(null);
   const [dashboardTarget, setDashboardTarget] = useState<'indicators' | 'vessels'>(
@@ -67,7 +69,11 @@ function CoastalPageContent() {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
             Select a Country
           </Typography>
-          <CountrySelector selectedIso={iso || null} onSelect={setSelectedCountry} />
+          <CountrySelector
+            selectedIso={iso || initialCountryIso}
+            initialIso={initialCountryIso}
+            onSelect={setSelectedCountry}
+          />
         </Box>
         <Paper
           variant="outlined"
@@ -90,12 +96,12 @@ function CoastalPageContent() {
               </Stack>
               <LocationSearch
                 countryIso={iso}
+                initialAoiIds={initialAoiIds}
                 onSubmit={(locations) => {
                   const { aoiIds, names } = resolveCoastalLocations(locations, iso);
-                  const params = new URLSearchParams();
-                  params.set('country', iso);
-                  params.set('aois', aoiIds.join(','));
-                  params.set('names', names.join(','));
+                  const params = buildCoastalSearchParams(
+                    new URLSearchParams(searchParams.toString()), iso, aoiIds, names, dashboardTarget
+                  );
                   const targetRoute = dashboardTarget === 'vessels' ? '/coastal/vessels' : '/coastal/indicators';
                   router.push(`${targetRoute}?${params.toString()}`);
                 }}
@@ -104,8 +110,9 @@ function CoastalPageContent() {
                 variant="outlined"
                 endIcon={<ArrowForward />}
                 onClick={() => {
-                  const params = new URLSearchParams();
-                  params.set('country', iso);
+                  const params = buildCoastalSearchParams(
+                    new URLSearchParams(searchParams.toString()), iso, [], [], dashboardTarget
+                  );
                   const targetRoute = dashboardTarget === 'vessels' ? '/coastal/vessels' : '/coastal/indicators';
                   router.push(`${targetRoute}?${params.toString()}`);
                 }}

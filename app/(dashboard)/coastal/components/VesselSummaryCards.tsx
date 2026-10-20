@@ -15,6 +15,8 @@ import {
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { VesselTimelinePoint, VesselTimelineResponse } from '@/types/coastal';
+import type { CoastalVesselAggregation } from '@/types/coastal';
+import { vesselCategoryColor } from './vessel-timeline-model';
 
 export interface VesselSummaryCardsProps {
   summary?: VesselTimelineResponse['summary'];
@@ -23,6 +25,7 @@ export interface VesselSummaryCardsProps {
   dateRange: { start: string; end: string };
   timeline?: VesselTimelinePoint[];
   grain?: string;
+  aggregation?: CoastalVesselAggregation;
   loading?: boolean;
   selectedPeriod?: string | null;
   onSelectPeriod?: (period: string | null) => void;
@@ -330,12 +333,14 @@ function PeriodDeltaTooltip({
   baselineLabel,
   baselineVal,
   pct,
+  unit,
 }: {
   currentLabel: string;
   currentVal: number;
   baselineLabel: string;
   baselineVal: number;
   pct: number | null;
+  unit: string;
 }) {
   return (
     <Box sx={{ p: 0.75, maxWidth: 300, color: '#f8fafc' }}>
@@ -366,7 +371,7 @@ function PeriodDeltaTooltip({
             Baseline ({baselineLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {baselineVal.toLocaleString()} vessels
+            {baselineVal.toLocaleString()} {unit}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between" spacing={1.5}>
@@ -374,7 +379,7 @@ function PeriodDeltaTooltip({
             Current ({currentLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {currentVal.toLocaleString()} vessels
+            {currentVal.toLocaleString()} {unit}
           </Typography>
         </Stack>
       </Stack>
@@ -416,6 +421,7 @@ export function VesselSummaryCards({
   dateRange,
   timeline = [],
   grain = 'monthly',
+  aggregation = 'sum',
   loading = false,
   selectedPeriod,
   onSelectPeriod,
@@ -424,10 +430,16 @@ export function VesselSummaryCards({
   const [slide1, setSlide1] = useState<number>(0);
   const [slide2, setSlide2] = useState<number>(0);
 
-  const isDuration = metric === 'Port Call Duration';
+  const isVesselCount = metric === 'Vessel Count';
   const grainLabel =
     grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
   const count = timeline.length;
+  const metricUnit = isVesselCount ? 'vessels' : 'hours';
+  const metricValues = timeline.map((point) => Number(point.metric_value ?? 0));
+  const metricTotal = metricValues.reduce((total, value) => total + value, 0);
+  const metricAverage = metricValues.length > 0 ? metricTotal / metricValues.length : 0;
+  const metricPeak = Math.max(0, ...metricValues);
+  const metricPeakPeriod = timeline[metricValues.indexOf(metricPeak)]?.period_start || '-';
 
   interface Card1Slide {
     title: string;
@@ -440,39 +452,22 @@ export function VesselSummaryCards({
 
   // Build Card 1 Slides
   const card1Slides: Card1Slide[] = useMemo(() => {
-    if (isDuration) {
+    if (aggregation === 'average' || !isVesselCount) {
+      const value = aggregation === 'average' ? metricAverage : metricTotal;
       return [
         {
-          title: 'Trade: Average Duration',
-          value: `${summary?.category_durations?.['Trade']?.average_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Trade']?.average_duration_hours ?? 0,
-          color: '#6366f1',
-          unit: 'hrs',
-        },
-        {
-          title: 'Harbor: Average Duration',
-          value: `${summary?.category_durations?.['Harbor']?.average_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Harbor']?.average_duration_hours ?? 0,
-          color: '#ef4444',
-          unit: 'hrs',
-        },
-        {
-          title: 'Recreation: Average Duration',
-          value: `${summary?.category_durations?.['Recreation']?.average_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Recreation']?.average_duration_hours ?? 0,
-          color: '#f59e0b',
-          unit: 'hrs',
-        },
-        {
-          title: 'Miscellaneous: Average Duration',
-          value: `${summary?.category_durations?.['Miscellaneous']?.average_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Miscellaneous']?.average_duration_hours ?? 0,
-          color: '#9ca3af',
-          unit: 'hrs',
+          title: aggregation === 'average'
+            ? `Mean of period ${metric.toLowerCase()} averages`
+            : `Total ${metric.toLowerCase()} across periods`,
+          value: `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${metricUnit}`,
+          numericVal: value,
+          color: '#0f766e',
+          unit: metricUnit,
         },
       ];
     }
 
+    const categoryTotals = Object.entries(summary?.category_totals || {});
     return [
       {
         title: 'Top Vessel Type (Entire Time Range)',
@@ -494,115 +489,41 @@ export function VesselSummaryCards({
         color: '#6366f1',
         unit: 'vessels',
       },
-      {
-        title: 'Trade (Entire Time Range)',
-        value: 'Trade',
-        count: `${(summary?.category_totals?.['Trade'] ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_totals?.['Trade'] ?? 0,
-        color: '#6366f1',
+      ...categoryTotals.map(([category, total]) => ({
+        title: `${category} (Entire Time Range)`,
+        value: category,
+        count: `${Number(total).toLocaleString()} vessels`,
+        numericVal: Number(total),
+        color: vesselCategoryColor(category),
         unit: 'vessels',
-      },
-      {
-        title: 'Harbor (Entire Time Range)',
-        value: 'Harbor',
-        count: `${(summary?.category_totals?.['Harbor'] ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_totals?.['Harbor'] ?? 0,
-        color: '#ef4444',
-        unit: 'vessels',
-      },
-      {
-        title: 'Recreation (Entire Time Range)',
-        value: 'Recreation',
-        count: `${(summary?.category_totals?.['Recreation'] ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_totals?.['Recreation'] ?? 0,
-        color: '#f59e0b',
-        unit: 'vessels',
-      },
-      {
-        title: 'Miscellaneous (Entire Time Range)',
-        value: 'Miscellaneous',
-        count: `${(summary?.category_totals?.['Miscellaneous'] ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_totals?.['Miscellaneous'] ?? 0,
-        color: '#9ca3af',
-        unit: 'vessels',
-      },
+      })),
     ];
-  }, [summary, isDuration]);
+  }, [aggregation, isVesselCount, metric, metricAverage, metricTotal, metricUnit, summary]);
 
   // Build Card 2 Slides
   const card2Slides = useMemo(() => {
-    if (isDuration) {
+    if (aggregation === 'average' || !isVesselCount) {
       return [
         {
-          title: `Trade: Peak Duration (${grainLabel})`,
-          value: `${summary?.category_durations?.['Trade']?.peak_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Trade']?.peak_duration_hours ?? 0,
-          observed: summary?.category_durations?.['Trade']?.peak_period || '-',
-          color: '#6366f1',
-          unit: 'hrs',
-        },
-        {
-          title: `Harbor: Peak Duration (${grainLabel})`,
-          value: `${summary?.category_durations?.['Harbor']?.peak_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Harbor']?.peak_duration_hours ?? 0,
-          observed: summary?.category_durations?.['Harbor']?.peak_period || '-',
-          color: '#ef4444',
-          unit: 'hrs',
-        },
-        {
-          title: `Recreation: Peak Duration (${grainLabel})`,
-          value: `${summary?.category_durations?.['Recreation']?.peak_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Recreation']?.peak_duration_hours ?? 0,
-          observed: summary?.category_durations?.['Recreation']?.peak_period || '-',
-          color: '#f59e0b',
-          unit: 'hrs',
-        },
-        {
-          title: `Miscellaneous: Peak Duration (${grainLabel})`,
-          value: `${summary?.category_durations?.['Miscellaneous']?.peak_duration_hours ?? 0} hrs`,
-          numericVal: summary?.category_durations?.['Miscellaneous']?.peak_duration_hours ?? 0,
-          observed: summary?.category_durations?.['Miscellaneous']?.peak_period || '-',
-          color: '#9ca3af',
-          unit: 'hrs',
+          title: `Peak ${metric.toLowerCase()} value (${grainLabel})`,
+          value: `${metricPeak.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${metricUnit}`,
+          numericVal: metricPeak,
+          observed: metricPeakPeriod,
+          color: '#0f766e',
+          unit: metricUnit,
         },
       ];
     }
 
-    return [
-      {
-        title: `Trade: Peak Vessel Count (${grainLabel})`,
-        value: `${(summary?.category_peaks?.['Trade']?.peak_count ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_peaks?.['Trade']?.peak_count ?? 0,
-        observed: summary?.category_peaks?.['Trade']?.peak_period || '-',
-        color: '#6366f1',
-        unit: 'vessels',
-      },
-      {
-        title: `Harbor: Peak Vessel Count (${grainLabel})`,
-        value: `${(summary?.category_peaks?.['Harbor']?.peak_count ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_peaks?.['Harbor']?.peak_count ?? 0,
-        observed: summary?.category_peaks?.['Harbor']?.peak_period || '-',
-        color: '#ef4444',
-        unit: 'vessels',
-      },
-      {
-        title: `Recreation: Peak Vessel Count (${grainLabel})`,
-        value: `${(summary?.category_peaks?.['Recreation']?.peak_count ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_peaks?.['Recreation']?.peak_count ?? 0,
-        observed: summary?.category_peaks?.['Recreation']?.peak_period || '-',
-        color: '#f59e0b',
-        unit: 'vessels',
-      },
-      {
-        title: `Miscellaneous: Peak Vessel Count (${grainLabel})`,
-        value: `${(summary?.category_peaks?.['Miscellaneous']?.peak_count ?? 0).toLocaleString()} vessels`,
-        numericVal: summary?.category_peaks?.['Miscellaneous']?.peak_count ?? 0,
-        observed: summary?.category_peaks?.['Miscellaneous']?.peak_period || '-',
-        color: '#9ca3af',
-        unit: 'vessels',
-      },
-    ];
-  }, [summary, isDuration, grainLabel]);
+    return Object.entries(summary?.category_peaks || {}).map(([category, peak]) => ({
+      title: `${category}: Peak Vessel Count (${grainLabel})`,
+      value: `${Number(peak.peak_count ?? peak.peak_vessels ?? 0).toLocaleString()} vessels`,
+      numericVal: Number(peak.peak_count ?? peak.peak_vessels ?? 0),
+      observed: String(peak.peak_period || '-'),
+      color: vesselCategoryColor(category),
+      unit: 'vessels',
+    }));
+  }, [aggregation, grainLabel, isVesselCount, metric, metricPeak, metricPeakPeriod, metricUnit, summary]);
 
   // Card 3 Selected Details Computation
   const selectedDetails = useMemo(() => {
@@ -628,24 +549,27 @@ export function VesselSummaryCards({
       return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     };
 
+    const currentMetricValue = Number(cur.metric_value ?? cur.total_vessels);
+    const previousMetricValue = prev ? Number(prev.metric_value ?? prev.total_vessels) : 0;
+    const previousYearMetricValue = prevYear ? Number(prevYear.metric_value ?? prevYear.total_vessels) : 0;
     const prevPct =
-      prev && prev.total_vessels > 0
-        ? ((cur.total_vessels - prev.total_vessels) / prev.total_vessels) * 100
+      prev && previousMetricValue > 0
+        ? ((currentMetricValue - previousMetricValue) / previousMetricValue) * 100
         : null;
 
     const prevYearPct =
-      prevYear && prevYear.total_vessels > 0
-        ? ((cur.total_vessels - prevYear.total_vessels) / prevYear.total_vessels) * 100
+      prevYear && previousYearMetricValue > 0
+        ? ((currentMetricValue - previousYearMetricValue) / previousYearMetricValue) * 100
         : null;
 
     return {
       period: formatP(cur.period_start),
-      totalVessels: cur.total_vessels,
+      totalVessels: currentMetricValue,
       prevLabel: prev ? formatP(prev.period_start) : null,
-      prevTotal: prev?.total_vessels ?? 0,
+      prevTotal: previousMetricValue,
       prevPct,
       prevYearLabel: prevYear ? formatP(prevYear.period_start) : null,
-      prevYearTotal: prevYear?.total_vessels ?? 0,
+      prevYearTotal: previousYearMetricValue,
       prevYearPct,
     };
   }, [selectedPeriod, timeline]);
@@ -754,7 +678,7 @@ export function VesselSummaryCards({
           <Box sx={{ minHeight: 70, display: 'flex', alignItems: 'center' }}>
             <Tooltip
               title={
-                isDuration ? (
+                aggregation === 'average' ? (
                   <AverageMetricTooltip
                     unit={activeCard1.unit}
                     average={activeCard1.numericVal}
@@ -1011,7 +935,7 @@ export function VesselSummaryCards({
           <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                Selected: {selectedDetails.period} ({selectedDetails.totalVessels.toLocaleString()} vessels)
+                Selected: {selectedDetails.period} ({selectedDetails.totalVessels.toLocaleString(undefined, { maximumFractionDigits: 2 })} {metricUnit})
               </Typography>
               <Button
                 size="small"
@@ -1036,6 +960,7 @@ export function VesselSummaryCards({
                         baselineLabel={selectedDetails.prevLabel || 'Previous'}
                         baselineVal={selectedDetails.prevTotal}
                         pct={selectedDetails.prevPct}
+                        unit={metricUnit}
                       />
                     }
                     arrow
@@ -1060,7 +985,7 @@ export function VesselSummaryCards({
                 )}
                 {selectedDetails.prevLabel && (
                   <Typography variant="caption" color="text.secondary" display="block">
-                    vs {selectedDetails.prevLabel} ({selectedDetails.prevTotal.toLocaleString()})
+                    vs {selectedDetails.prevLabel} ({selectedDetails.prevTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {metricUnit})
                   </Typography>
                 )}
               </Box>
@@ -1079,6 +1004,7 @@ export function VesselSummaryCards({
                         baselineLabel={selectedDetails.prevYearLabel || 'Previous Year'}
                         baselineVal={selectedDetails.prevYearTotal}
                         pct={selectedDetails.prevYearPct}
+                        unit={metricUnit}
                       />
                     }
                     arrow
@@ -1103,7 +1029,7 @@ export function VesselSummaryCards({
                 )}
                 {selectedDetails.prevYearLabel && (
                   <Typography variant="caption" color="text.secondary" display="block">
-                    vs {selectedDetails.prevYearLabel} ({selectedDetails.prevYearTotal.toLocaleString()})
+                    vs {selectedDetails.prevYearLabel} ({selectedDetails.prevYearTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {metricUnit})
                   </Typography>
                 )}
               </Box>

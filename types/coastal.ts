@@ -61,13 +61,15 @@ export interface CoastalIndicatorMetadata {
   null_policy: CoastalNullPolicy;
 }
 
-export type CoastalAggFunc = "average" | "maximum" | "mean" | "max";
+export type CoastalAggFunc = "average" | "maximum" | "mean" | "max" | "sum";
 
 export type CoastalVesselMetric =
   | "vessel_count"
   | "duration"
   | "presence_hours"
   | "stationary_hours";
+
+export type CoastalVesselAggregation = "average" | "sum";
 
 export interface Coordinates {
   lat: number;
@@ -293,6 +295,8 @@ export interface VesselTimelinePoint {
   period_start: string;
   period_end: string;
   total_vessels: number;
+  metric_value?: number;
+  h3_cell_count?: number;
   unique_vessels?: number;
   trade?: number;
   harbor?: number;
@@ -301,12 +305,16 @@ export interface VesselTimelinePoint {
   cargo?: number;
   tanker?: number;
   categories?: Record<string, number>;
-  sub_types?: Record<string, number>;
+  sub_types?: Record<string, Record<string, number>>;
   total_presence_hours: number;
   total_stationary_hours: number;
   stationary_hours?: number;
   transit_hours?: number;
   average_stationary_hours_per_cell?: number;
+  average_vessels_per_cell?: number;
+  average_presence_hours_per_cell?: number;
+  average_duration_hours_per_cell?: number;
+  category_breakdown_available?: boolean;
   average_duration_hours?: number;
 }
 
@@ -318,6 +326,9 @@ export interface VesselTimelineResponse {
   end_date?: string;
   grain: CoastalGrain;
   metric: CoastalVesselMetric;
+  agg_func?: CoastalVesselAggregation;
+  category_breakdown_available?: boolean;
+  category_breakdown_note?: string;
   summary?: {
     total_periods?: number;
     cumulative_vessels?: number;
@@ -404,6 +415,7 @@ export interface VesselTimelineParams {
   end_date?: string;
   grain?: CoastalGrain;
   metric?: CoastalVesselMetric;
+  agg_func?: CoastalVesselAggregation;
   engine?: "duckdb" | "postgres";
 }
 

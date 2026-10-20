@@ -6,6 +6,7 @@ import {
   Box,
   Card,
   CardContent,
+  Alert,
   Typography,
   Chip,
   Button,
@@ -40,6 +41,11 @@ import VesselDistributionCharts from '../components/VesselDistributionCharts';
 import VesselSummaryCards from '../components/VesselSummaryCards';
 import { exportToCsv, exportToExcel, exportGraphAsPng, exportChartWithContextAsPng, exportLeafletMapAsPng } from '@/src/utils/coastalExport';
 import { VesselSpatialMap } from '../components/VesselSpatialMap';
+import {
+  getVesselTimelineTypeGroups,
+  subtypeVisibilityKey,
+  vesselCategoryColor,
+} from '../components/vessel-timeline-model';
 import HexCellDetailModal from '../components/HexCellDetailModal';
 import TemporalScrubber from '../components/TemporalScrubber';
 import { TimeRangeSelector } from '../components/TimeRangeSelector';
@@ -54,6 +60,8 @@ import {
   fetchSpatialSeries,
 } from '@/services/coastalService';
 import type { VesselTimelineResponse } from '@/types/coastal';
+import type { CoastalVesselAggregation, CoastalVesselMetric } from '@/types/coastal';
+import { buildVesselTimelineExportData } from '../components/vessel-timeline-model';
 import {
   buildSeriesInFlightKey,
   buildSpatialSliceCacheKey,
@@ -66,19 +74,29 @@ import {
   type SpatialStatus,
 } from '../spatial-status';
 
-const VESSEL_CATEGORY_COLORS: Record<string, string> = {
-  trade: '#6366f1',
-  harbor: '#ef4444',
-  recreation: '#f59e0b',
-  miscellaneous: '#9ca3af',
-};
-
-const VESSEL_LEGEND_ITEMS = [
-  { label: 'Trade', color: VESSEL_CATEGORY_COLORS.trade },
-  { label: 'Harbor', color: VESSEL_CATEGORY_COLORS.harbor },
-  { label: 'Recreation', color: VESSEL_CATEGORY_COLORS.recreation },
-  { label: 'Miscellaneous', color: VESSEL_CATEGORY_COLORS.miscellaneous },
+const VESSEL_METRICS: Array<{ value: CoastalVesselMetric; label: string }> = [
+  { value: 'vessel_count', label: 'Vessel Count' },
+  { value: 'duration', label: 'Port Call Duration' },
+  { value: 'presence_hours', label: 'Presence Hours' },
+  { value: 'stationary_hours', label: 'Stationary Hours' },
 ];
+
+function aggregatedMetricLabel(metric: CoastalVesselMetric, aggregation: CoastalVesselAggregation): string {
+  if (metric === 'vessel_count') {
+    return aggregation === 'average' ? 'Average vessels per H3 cell' : 'Vessel counts by type';
+  }
+  if (metric === 'duration') {
+    return aggregation === 'average'
+      ? 'Average duration per occupied H3 cell'
+      : 'Total vessel presence hours';
+  }
+  if (metric === 'presence_hours') {
+    return aggregation === 'average' ? 'Average presence hours per H3 cell' : 'Total presence hours';
+  }
+  return aggregation === 'average'
+    ? 'Average stationary hours per H3 cell'
+    : 'Total stationary hours';
+}
 
 const VESSEL_MAP_GRID_SX = {
   display: 'grid',
@@ -99,6 +117,16 @@ export function PageContent() {
   const start_date = searchParams.get('start_date') || '2019-01-01';
   const end_date = searchParams.get('end_date') || '2025-12-31';
   const grainParam = (searchParams.get('grain') as any) || 'monthly';
+  const metricParam = searchParams.get('metric') as CoastalVesselMetric | null;
+  const metric = VESSEL_METRICS.find((item) => item.value === metricParam)?.label || 'Vessel Count';
+  const metricValue = VESSEL_METRICS.find((item) => item.label === metric)?.value || 'vessel_count';
+  const aggFunc: CoastalVesselAggregation = searchParams.get('agg_func') === 'sum' ? 'sum' : 'average';
+
+  const updateVesselQuery = (key: 'metric' | 'agg_func', value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(key, value);
+    router.replace(`?${params.toString()}`);
+  };
 
   useEffect(() => {
     if (!rawCountry) {
@@ -109,8 +137,7 @@ export function PageContent() {
   const [grain, setGrain] = useState<'weekly' | 'monthly' | 'annually'>(grainParam);
   // 2 = Choropleth Map, the landing tab (same as the indicators page).
   const [activeTab, setActiveTab] = useState<number>(2);
-  const [metric, setMetric] = useState<string>('Vessel Count');
-  const [expanded, setExpanded] = useState<string | false>('trade');
+  const [expanded, setExpanded] = useState<string | false>('Trade');
   const [scrubberIndex, setScrubberIndex] = useState<number>(0);
   const [selectedHexCells, setSelectedHexCells] = useState<string[]>([]);
   const [hexExpanded, setHexExpanded] = useState<boolean>(false);
@@ -125,25 +152,8 @@ export function PageContent() {
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
 
   // Visible Categories State
-  const [visibleSeries, setVisibleSeries] = useState({
-    trade: true,
-    harbor: true,
-    recreation: true,
-    miscellaneous: true,
-  });
-
-  const [visibleSubtypes, setVisibleSubtypes] = useState({
-    cargo: true,
-    tanker: true,
-    tug: true,
-    dredge: true,
-    passenger: true,
-    pleasure_craft: true,
-    high_speed: true,
-    fishing: true,
-    sailing: true,
-    others: true,
-  });
+  const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({});
+  const [visibleSubtypes, setVisibleSubtypes] = useState<Record<string, boolean>>({});
 
   // Spatial Choropleth Map State
   const sliceCacheRef = React.useRef<Map<string, Record<string, any>>>(new Map());
@@ -208,6 +218,7 @@ export function PageContent() {
   const timelineData = useMemo(() => {
     return timelineResponse?.timeline || timelineResponse?.series || [];
   }, [timelineResponse]);
+  const vesselTypeGroups = useMemo(() => getVesselTimelineTypeGroups(timelineData), [timelineData]);
 
   const summary = timelineResponse?.summary;
 
@@ -292,18 +303,12 @@ export function PageContent() {
     })
       .then((res) => {
         if (!isCurrent) return;
-        const colors: Record<string, string> = {
-          Trade: VESSEL_CATEGORY_COLORS.trade,
-          Recreation: VESSEL_CATEGORY_COLORS.recreation,
-          Harbor: VESSEL_CATEGORY_COLORS.harbor,
-          Miscellaneous: VESSEL_CATEGORY_COLORS.miscellaneous,
-        };
         const total = res.total_records || res.total_vessels || 0;
         const parentCategories = (res.pie_chart || []).map((item: any) => ({
           id: (item.category || item.name || '').toLowerCase(),
           label: item.category || item.name,
           value: item.count || item.value || 0,
-          color: colors[item.category || item.name] || '#3b82f6',
+          color: vesselCategoryColor(item.category || item.name || ''),
         }));
         const subCategories: Array<{ id: string; parentId: string; label: string; value: number }> = [];
         if (res.drilldown) {
@@ -341,15 +346,14 @@ export function PageContent() {
     let isCurrent = true;
     setTimelineLoading(true);
 
-    const metricParam = metric === 'Port Call Duration' ? 'duration' : 'vessel_count';
-
     fetchVesselTimeline({
       country,
       aoi_id,
       start_date,
       end_date,
       grain,
-      metric: metricParam,
+      metric: metricValue,
+      agg_func: aggFunc,
     })
       .then((res) => {
         if (!isCurrent) return;
@@ -366,7 +370,7 @@ export function PageContent() {
     return () => {
       isCurrent = false;
     };
-  }, [country, aoi_id, start_date, end_date, grain, metric]);
+  }, [country, aoi_id, start_date, end_date, grain, metricValue, aggFunc]);
 
   // Pre-fetch batch spatial series across all periods for instant scrubbing.
   // NOTE: intentionally NOT dependent on the scrubber index. Scrub ticks are
@@ -555,36 +559,24 @@ export function PageContent() {
 
   const handleExportCsv = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.csv`;
-    const exportHeaders = [
-      { key: 'period_start', label: 'Period Start' },
-      { key: 'period_end', label: 'Period End' },
-      { key: 'trade', label: 'Trade Vessels' },
-      { key: 'cargo', label: 'Cargo Vessels' },
-      { key: 'tanker', label: 'Tanker Vessels' },
-      { key: 'harbor', label: 'Harbor Vessels' },
-      { key: 'recreation', label: 'Recreation Vessels' },
-      { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
-      { key: 'total_vessels', label: 'Total Vessels' },
-      { key: 'average_duration_hours', label: 'Average Duration (Hours)' },
-    ];
-    exportToCsv(filename, timelineData as Record<string, any>[], exportHeaders);
+    const { headers, rows } = buildVesselTimelineExportData(
+      timelineData,
+      vesselTypeGroups,
+      aggregatedMetricLabel(metricValue, aggFunc),
+      aggFunc === 'sum' && metricValue === 'vessel_count',
+    );
+    exportToCsv(filename, rows, headers);
   };
 
   const handleExportExcel = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.xls`;
-    const exportHeaders = [
-      { key: 'period_start', label: 'Period Start' },
-      { key: 'period_end', label: 'Period End' },
-      { key: 'trade', label: 'Trade Vessels' },
-      { key: 'cargo', label: 'Cargo Vessels' },
-      { key: 'tanker', label: 'Tanker Vessels' },
-      { key: 'harbor', label: 'Harbor Vessels' },
-      { key: 'recreation', label: 'Recreation Vessels' },
-      { key: 'miscellaneous', label: 'Miscellaneous Vessels' },
-      { key: 'total_vessels', label: 'Total Vessels' },
-      { key: 'average_duration_hours', label: 'Average Duration (Hours)' },
-    ];
-    exportToExcel(filename, 'Vessels', timelineData as Record<string, any>[], exportHeaders);
+    const { headers, rows } = buildVesselTimelineExportData(
+      timelineData,
+      vesselTypeGroups,
+      aggregatedMetricLabel(metricValue, aggFunc),
+      aggFunc === 'sum' && metricValue === 'vessel_count',
+    );
+    exportToExcel(filename, 'Vessels', rows, headers);
   };
 
   const handleExportMap = () => {
@@ -592,7 +584,7 @@ export function PageContent() {
     exportLeafletMapAsPng('coastal-vessels-map-container', filename);
   };
 
-  const timelineTitle = `${metric} By Type (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
+  const timelineTitle = `${aggregatedMetricLabel(metricValue, aggFunc)} (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
 
   const handleExportGraph = () => {
     if (activeTab === 2) {
@@ -613,7 +605,9 @@ export function PageContent() {
     exportChartWithContextAsPng('coastal-vessels-chart-container', filename, {
       title: timelineTitle,
       subtitle: `${start_date} to ${end_date}`,
-      legend: VESSEL_LEGEND_ITEMS,
+      legend: aggFunc === 'sum' && metricValue === 'vessel_count'
+        ? vesselTypeGroups.map(({ category }) => ({ label: category, color: vesselCategoryColor(category) }))
+        : [{ label: aggregatedMetricLabel(metricValue, aggFunc), color: '#0f766e' }],
     });
   };
 
@@ -746,6 +740,7 @@ export function PageContent() {
             dateRange={{ start: start_date, end: end_date }}
             timeline={timelineData}
             grain={grain}
+            aggregation={aggFunc}
             loading={timelineLoading}
             selectedPeriod={selectedPeriod}
             onSelectPeriod={(p) => setSelectedPeriod(p)}
@@ -769,7 +764,9 @@ export function PageContent() {
                     selectedPeriod={selectedPeriod}
                     onSelectPeriod={(p) => setSelectedPeriod(p)}
                     visibleSeries={visibleSeries}
+                    visibleSubtypes={visibleSubtypes}
                     metric={metric}
+                    aggregation={aggFunc}
                   />
                 </Box>
               </CardContent>
@@ -783,12 +780,14 @@ export function PageContent() {
                     Legend
                   </Typography>
                   <Stack spacing={1}>
-                    {VESSEL_LEGEND_ITEMS.map((item) => (
-                      <Stack key={item.label} direction="row" spacing={1.5} alignItems="center">
-                        <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: item.color }} />
-                        <Typography variant="body2">{item.label}</Typography>
-                      </Stack>
-                    ))}
+                    {aggFunc === 'sum' && metricValue === 'vessel_count'
+                      ? vesselTypeGroups.map(({ category }) => (
+                          <Stack key={category} direction="row" spacing={1.5} alignItems="center">
+                            <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: vesselCategoryColor(category) }} />
+                            <Typography variant="body2">{category}</Typography>
+                          </Stack>
+                        ))
+                      : <Typography variant="body2">{aggregatedMetricLabel(metricValue, aggFunc)}</Typography>}
                   </Stack>
                 </CardContent>
               </Card>
@@ -799,216 +798,100 @@ export function PageContent() {
                     Vessel Types
                   </Typography>
 
-                  <Accordion expanded={expanded === 'trade'} onChange={handleAccordionChange('trade')} disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={visibleSeries.trade}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setVisibleSeries((v) => ({ ...v, trade: e.target.checked }));
-                            }}
-                            size="small"
-                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
+                  {aggFunc === 'sum' && metricValue === 'vessel_count' ? (
+                    <>
+                      {timelineResponse?.category_breakdown_note && (
+                        <Alert severity="info" sx={{ mb: 1.5 }}>
+                          {timelineResponse.category_breakdown_note}
+                        </Alert>
+                      )}
+                      {vesselTypeGroups.map(({ category, subtypes }) => {
+                    const color = vesselCategoryColor(category);
+                    return (
+                      <Accordion
+                        key={category}
+                        expanded={expanded === category}
+                        onChange={handleAccordionChange(category)}
+                        disableGutters
+                        elevation={0}
+                      >
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={visibleSeries[category] !== false}
+                                onChange={(event) => {
+                                  event.stopPropagation();
+                                  setVisibleSeries((current) => ({ ...current, [category]: event.target.checked }));
+                                }}
+                                size="small"
+                                sx={{ '&.Mui-checked': { color } }}
+                              />
+                            }
+                            label={<Typography variant="body2" sx={{ fontWeight: 600 }}>{category}</Typography>}
+                            onClick={(event) => event.stopPropagation()}
                           />
-                        }
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Trade</Typography>}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.cargo}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, cargo: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Cargo</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.tanker}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tanker: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.trade } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Tanker</Typography>}
-                        />
-                      </FormGroup>
-                    </AccordionDetails>
-                  </Accordion>
+                        </AccordionSummary>
+                        {subtypes.length > 0 && (
+                          <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
+                            <FormGroup>
+                              {subtypes.map((subtype) => {
+                                const key = subtypeVisibilityKey(category, subtype);
+                                return (
+                                  <FormControlLabel
+                                    key={key}
+                                    control={
+                                      <Checkbox
+                                        checked={visibleSubtypes[key] !== false}
+                                        onChange={(event) => setVisibleSubtypes((current) => ({ ...current, [key]: event.target.checked }))}
+                                        size="small"
+                                        sx={{ '&.Mui-checked': { color } }}
+                                      />
+                                    }
+                                    label={<Typography variant="caption">{subtype}</Typography>}
+                                  />
+                                );
+                              })}
+                            </FormGroup>
+                          </AccordionDetails>
+                        )}
+                      </Accordion>
+                    );
+                      })}
+                    </>
+                  ) : (
+                    <Alert severity="info" sx={{ mb: 1.5 }}>
+                      {aggFunc === 'average' && metricValue === 'vessel_count'
+                        ? 'Average is calculated across all returned H3 cells for each period, including zero-count cells. Per-cell vessel type and subtype values are not available.'
+                        : 'Vessel type and subtype breakdowns are available for summed vessel counts only.'}
+                    </Alert>
+                  )}
 
-                  <Accordion expanded={expanded === 'harbor'} onChange={handleAccordionChange('harbor')} disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={visibleSeries.harbor}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setVisibleSeries((v) => ({ ...v, harbor: e.target.checked }));
-                            }}
-                            size="small"
-                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
-                          />
-                        }
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Harbor</Typography>}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.tug}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, tug: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Tug & Tow</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.dredge}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, dredge: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.harbor } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Dredger</Typography>}
-                        />
-                      </FormGroup>
-                    </AccordionDetails>
-                  </Accordion>
-
-                  <Accordion expanded={expanded === 'recreation'} onChange={handleAccordionChange('recreation')} disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={visibleSeries.recreation}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setVisibleSeries((v) => ({ ...v, recreation: e.target.checked }));
-                            }}
-                            size="small"
-                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
-                          />
-                        }
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Recreation</Typography>}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.passenger}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, passenger: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Passenger</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.pleasure_craft}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, pleasure_craft: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Pleasure Craft</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.high_speed}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, high_speed: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.recreation } }}
-                            />
-                          }
-                          label={<Typography variant="caption">High-Speed Craft</Typography>}
-                        />
-                      </FormGroup>
-                    </AccordionDetails>
-                  </Accordion>
-
-                  <Accordion expanded={expanded === 'miscellaneous'} onChange={handleAccordionChange('miscellaneous')} disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={visibleSeries.miscellaneous}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              setVisibleSeries((v) => ({ ...v, miscellaneous: e.target.checked }));
-                            }}
-                            size="small"
-                            sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
-                          />
-                        }
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Miscellaneous</Typography>}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ pt: 0, pb: 1, pl: 3 }}>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.fishing}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, fishing: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Fishing</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.sailing}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, sailing: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Sailing</Typography>}
-                        />
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={visibleSubtypes.others}
-                              onChange={(e) => setVisibleSubtypes((s) => ({ ...s, others: e.target.checked }))}
-                              size="small"
-                              sx={{ '&.Mui-checked': { color: VESSEL_CATEGORY_COLORS.miscellaneous } }}
-                            />
-                          }
-                          label={<Typography variant="caption">Others</Typography>}
-                        />
-                      </FormGroup>
-                    </AccordionDetails>
-                  </Accordion>
-
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Metric
+                  </Typography>
                   <FormControl fullWidth size="small" sx={{ mt: 2 }}>
-                    <Select value={metric} onChange={(e) => setMetric(e.target.value)}>
-                      <MenuItem value="Vessel Count">Vessel Count</MenuItem>
-                      <MenuItem value="Port Call Duration">Port Call Duration</MenuItem>
+                    <Select
+                      value={metricValue}
+                      onChange={(event) => updateVesselQuery('metric', event.target.value)}
+                      aria-label="Vessel metric"
+                    >
+                      {VESSEL_METRICS.map((item) => (
+                        <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, mt: 1.5 }}>
+                    Aggregation
+                  </Typography>
+                  <FormControl fullWidth size="small">
+                    <Select
+                      value={aggFunc}
+                      onChange={(event) => updateVesselQuery('agg_func', event.target.value)}
+                      aria-label="Vessel aggregation"
+                    >
+                      <MenuItem value="average">Average</MenuItem>
+                      <MenuItem value="sum">Sum</MenuItem>
                     </Select>
                   </FormControl>
                 </CardContent>
