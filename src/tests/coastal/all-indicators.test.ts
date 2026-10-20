@@ -44,7 +44,7 @@ const BACKEND_FIXTURE = [
   { id: 'surface_runoff', label: 'Surface Runoff', group: 'Weather', unit: 'm', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'null' },
   { id: 'subsurface_runoff', label: 'Sub-surface Runoff', group: 'Weather', unit: 'm', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'null' },
   { id: 'solar_radiation', label: 'Surface Solar Radiation', group: 'Weather', unit: 'J/m²', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'null' },
-  { id: 'vessels', label: 'Vessel Count', group: 'Vessels', unit: 'vessels', agg: 'sum', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
+  { id: 'vessels', label: 'Vessel Count', group: 'Vessels', unit: 'vessels', agg: 'sum', timeline_agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
   { id: 'presence_hours', label: 'Vessel Presence Hours', group: 'Vessels', unit: 'hours', agg: 'sum', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
   { id: 'stationary_vessels', label: 'Stationary Vessel Count', group: 'Vessels', unit: 'vessels', agg: 'sum', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
   { id: 'duration', label: 'Vessel Port Call Duration', group: 'Vessels', unit: 'hours', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
@@ -79,6 +79,9 @@ describe('Coastal all-indicator registry (F7)', () => {
       expect(meta?.group).toBe(entry.group);
       expect(meta?.unit).toBe(entry.unit);
       expect(meta?.agg).toBe(entry.agg);
+      expect(meta?.timeline_agg).toBe(
+        'timeline_agg' in entry ? entry.timeline_agg : undefined,
+      );
       expect(meta?.null_policy).toBe(entry.null_policy);
       expect(meta?.supports_map).toBe(true);
       expect(meta?.supports_timeline).toBe(true);

@@ -64,6 +64,7 @@ export interface CoastalIndicatorMetadata {
   group: string;
   unit: string;
   agg: CoastalIndicatorAgg;
+  timeline_agg?: CoastalIndicatorAgg;
   supports_map: boolean;
   supports_timeline: boolean;
   null_policy: CoastalNullPolicy;

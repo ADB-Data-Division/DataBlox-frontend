@@ -127,7 +127,7 @@ export const COASTAL_INDICATORS: CoastalIndicatorEntry[] = [
   ),
   // Vessels (zero_fill: the pipeline writes 0 for "no activity")
   entry(
-    { id: 'vessels', label: 'Vessel Count', group: 'Vessels', unit: 'vessels', agg: 'sum', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
+    { id: 'vessels', label: 'Vessel Count', group: 'Vessels', unit: 'vessels', agg: 'sum', timeline_agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'zero_fill' },
     { color: '#8B5CF6', mapColors: ['#fee2e2', '#f87171', '#991b1b'], mapDomain: [0, 50], deltaUpColor: OTHER_UP, deltaDownColor: OTHER_DOWN, decimals: 0, integer: true, shortLabel: 'Vessel Count', icon: '🚢' },
   ),
   entry(
@@ -193,12 +193,39 @@ export function getIndicatorAggregation(
   return normalizeIndicatorAggregation(aggregations?.[id] ?? getIndicatorMeta(id)?.agg);
 }
 
+/** Timeline aggregation may differ from the map's far-zoom reducer. */
+export function getIndicatorTimelineAggregation(
+  id: string,
+  aggregations?: CoastalIndicatorAggregationMap,
+): CoastalIndicatorAggregation {
+  const meta = getIndicatorMeta(id);
+  return normalizeIndicatorAggregation(
+    aggregations?.[id] ?? meta?.timeline_agg ?? meta?.agg,
+  );
+}
+
 export function formatIndicatorAggregation(value?: string): string {
   const aggregation = normalizeIndicatorAggregation(value);
   if (aggregation === 'sum') return 'Total';
   if (aggregation === 'max') return 'Maximum';
   if (aggregation === 'min') return 'Minimum';
   return 'Average';
+}
+
+/** Preserve fractional H3 vessel means while keeping map counts integer-formatted. */
+export function formatCoastalIndicatorValue(
+  id: string,
+  value: number,
+  aggregations?: CoastalIndicatorAggregationMap,
+): string {
+  if (!Number.isFinite(value)) return NO_DATA_LABEL;
+  const meta = getIndicatorMeta(id);
+  if (!meta) return String(value);
+  if (id === 'vessels' && getIndicatorTimelineAggregation(id, aggregations) === 'avg') {
+    return value.toFixed(2);
+  }
+  if (meta.integer) return Math.round(value).toLocaleString();
+  return value.toFixed(meta.decimals);
 }
 
 /** Apply a registry reducer while respecting zero_fill versus null semantics. */
@@ -245,12 +272,13 @@ export const COASTAL_INDICATOR_GROUPS: Array<{ group: string; ids: string[] }> =
 /** Backend metadata shape for GET /coastal/indicators (contract section 3). */
 export function toBackendMetadata(): CoastalIndicatorMetadata[] {
   return COASTAL_INDICATORS.map(
-    ({ id, label, group, unit, agg, supports_map, supports_timeline, null_policy }): CoastalIndicatorMetadata => ({
+    ({ id, label, group, unit, agg, timeline_agg, supports_map, supports_timeline, null_policy }): CoastalIndicatorMetadata => ({
       id,
       label,
       group,
       unit,
       agg,
+      timeline_agg,
       supports_map,
       supports_timeline,
       null_policy,

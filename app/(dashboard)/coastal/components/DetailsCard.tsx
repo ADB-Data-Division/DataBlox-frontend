@@ -18,8 +18,9 @@ import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
 import { isoWeekNumber } from './HexCellDetailModal';
 import {
   NO_DATA_LABEL,
+  formatCoastalIndicatorValue,
   formatIndicatorAggregation,
-  getIndicatorAggregation,
+  getIndicatorTimelineAggregation,
   getIndicatorMeta,
 } from '../indicators';
 
@@ -74,9 +75,17 @@ export function formatDelta(pct: number | null, indicatorKey?: string): { text: 
   return { text: `↓ -${Math.abs(Math.round(pct))}%`, color: meta?.deltaDownColor || '#16a34a' };
 }
 
-function formatVal(val: number | undefined, unit: string, indicatorKey?: string): string {
+function formatVal(
+  val: number | undefined,
+  unit: string,
+  indicatorKey?: string,
+  indicatorAggregations?: Record<string, string>,
+): string {
   if (val === undefined || isNaN(val)) return NO_DATA_LABEL;
   const meta = indicatorKey ? getIndicatorMeta(indicatorKey) : undefined;
+  if (indicatorKey === 'vessels' && getIndicatorTimelineAggregation(indicatorKey, indicatorAggregations) === 'avg') {
+    return `${formatCoastalIndicatorValue(indicatorKey, val, indicatorAggregations)} ${unit}`;
+  }
   if (unit === 'vessels' || unit === 'count' || meta?.integer) {
     return `${Math.round(val).toLocaleString()} ${unit}`;
   }
@@ -137,6 +146,7 @@ function MetricTooltip({
   beforeVal,
   unit,
   indicatorKey,
+  indicatorAggregations,
 }: {
   isYoY: boolean;
   afterLabel: string;
@@ -145,6 +155,7 @@ function MetricTooltip({
   beforeVal?: number;
   unit: string;
   indicatorKey?: string;
+  indicatorAggregations?: Record<string, string>;
 }) {
   const hasValues =
     afterVal !== undefined &&
@@ -153,8 +164,11 @@ function MetricTooltip({
     !isNaN(beforeVal);
   const meta = indicatorKey ? getIndicatorMeta(indicatorKey) : undefined;
   const isCount = unit === 'vessels' || unit === 'count' || meta?.integer;
+  const isAverageVesselCount = indicatorKey === 'vessels'
+    && getIndicatorTimelineAggregation(indicatorKey, indicatorAggregations) === 'avg';
   const formatNum = (v?: number) => {
     if (v === undefined || isNaN(v)) return NO_DATA_LABEL;
+    if (isAverageVesselCount) return v.toFixed(2);
     return isCount ? Math.round(v).toLocaleString() : v.toFixed(meta?.decimals ?? 2);
   };
 
@@ -206,7 +220,7 @@ function MetricTooltip({
             After ({afterLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {formatVal(afterVal, unit, indicatorKey)}
+            {formatVal(afterVal, unit, indicatorKey, indicatorAggregations)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between" spacing={1.5}>
@@ -214,7 +228,7 @@ function MetricTooltip({
             Before ({beforeLabel}):
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '11px', color: '#ffffff' }}>
-            {formatVal(beforeVal, unit, indicatorKey)}
+            {formatVal(beforeVal, unit, indicatorKey, indicatorAggregations)}
           </Typography>
         </Stack>
       </Stack>
@@ -574,7 +588,7 @@ export function DetailsCard({
             {locationName} · {formatCardPeriod(activePoint.period_start, grain)}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            Across H3 cells: {formatIndicatorAggregation(getIndicatorAggregation(currentSlide.indicator, indicatorAggregations))}
+            Across H3 cells: {formatIndicatorAggregation(getIndicatorTimelineAggregation(currentSlide.indicator, indicatorAggregations))}
           </Typography>
         </Box>
 
@@ -603,6 +617,7 @@ export function DetailsCard({
                     beforeVal={currentSlide.primary.beforeVal}
                     unit={unit}
                     indicatorKey={currentSlide.indicator}
+                    indicatorAggregations={indicatorAggregations}
                   />
                 }
               >
@@ -638,6 +653,7 @@ export function DetailsCard({
                         beforeVal={currentSlide.comp1.beforeVal}
                         unit={unit}
                         indicatorKey={currentSlide.indicator}
+                        indicatorAggregations={indicatorAggregations}
                       />
                     ) : ''
                   }
@@ -683,6 +699,7 @@ export function DetailsCard({
                         beforeVal={currentSlide.comp2.beforeVal}
                         unit={unit}
                         indicatorKey={currentSlide.indicator}
+                        indicatorAggregations={indicatorAggregations}
                       />
                     ) : ''
                   }

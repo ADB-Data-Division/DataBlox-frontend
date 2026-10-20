@@ -18,7 +18,8 @@ import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
 import {
   NO_DATA_LABEL,
   formatIndicatorAggregation,
-  getIndicatorAggregation,
+  formatCoastalIndicatorValue,
+  getIndicatorTimelineAggregation,
   getIndicatorMeta,
 } from '../indicators';
 
@@ -57,14 +58,14 @@ function configFor(
       zeroPeakReason: 'No data was recorded in this time range',
     };
   }
-  const isCount = getIndicatorAggregation(indicatorKey, indicatorAggregations) === 'sum';
+  const isCount = getIndicatorTimelineAggregation(indicatorKey, indicatorAggregations) === 'sum';
   return {
     icon: meta.icon,
     label: meta.group === 'Vessels' && indicatorKey === 'vessels' ? 'Vessel Count' : `${meta.label} Levels`.replace(' Levels Levels', ' Levels'),
     unit: meta.unit,
     totalLabel:
       indicatorKey === 'vessels'
-        ? 'Total Vessels (Entire Time Range)'
+        ? isCount ? 'Total Vessels (Entire Time Range)' : 'Average Vessel Count (Entire Time Range)'
         : isCount
         ? `Total ${meta.shortLabel} (Entire Time Range)`
         : `Average ${meta.shortLabel} (Entire Time Range)`,
@@ -523,7 +524,7 @@ function SingleSummaryCard({
   const [activeSlide, setActiveSlide] = useState<number>(0);
   const cfg = configFor(indicatorKey, indicatorAggregations);
   const meta = getIndicatorMeta(indicatorKey);
-  const usesSum = getIndicatorAggregation(indicatorKey, indicatorAggregations) === 'sum';
+  const usesSum = getIndicatorTimelineAggregation(indicatorKey, indicatorAggregations) === 'sum';
 
   const grainLabel = grain === 'weekly' ? 'Weekly' : grain === 'annually' ? 'Annual' : 'Monthly';
   const dynamicPeakLabel = cfg.peakLabel.replace('Monthly', grainLabel);
@@ -533,8 +534,7 @@ function SingleSummaryCard({
   const count = stats.count;
 
   const formatNum = (v: number): string => {
-    if (meta?.integer || isVessel) return Math.round(v).toLocaleString();
-    return v.toFixed(meta?.decimals ?? 2);
+    return formatCoastalIndicatorValue(indicatorKey, v, indicatorAggregations);
   };
 
   const rawSummaryAverage =
@@ -547,21 +547,15 @@ function SingleSummaryCard({
   // null-aware (nulls are skipped, never zeroed).
   const numericAverage = stats.average ?? rawSummaryAverage;
 
-  const numericCumulative = summaryCard?.cumulative !== undefined
-    ? summaryCard.cumulative
-    : isVessel || usesSum
-    ? stats.total
+  const numericCumulative = usesSum
+    ? summaryCard?.cumulative ?? stats.total
     : undefined;
 
   const totalVal = stats.allNull && numericCumulative === undefined && numericAverage === undefined
     ? undefined
-    : isVessel
-    ? numericCumulative !== undefined
-      ? Math.round(numericCumulative).toLocaleString()
-      : undefined
     : usesSum
-    ? stats.total !== undefined
-      ? formatNum(stats.total)
+    ? numericCumulative !== undefined
+      ? formatNum(numericCumulative)
       : undefined
     : numericAverage !== undefined
     ? formatNum(numericAverage)
@@ -684,7 +678,7 @@ function SingleSummaryCard({
               {locationName} · {dateRange.start} to {dateRange.end}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              Per period across H3 cells: {formatIndicatorAggregation(getIndicatorAggregation(indicatorKey, indicatorAggregations))}
+              Per period across H3 cells: {formatIndicatorAggregation(getIndicatorTimelineAggregation(indicatorKey, indicatorAggregations))}
             </Typography>
           </Box>
         </Stack>
@@ -693,7 +687,7 @@ function SingleSummaryCard({
           {activeSlide === 0 ? (
             <Tooltip
               title={
-                isVessel ? (
+                isVessel && usesSum ? (
                   <CumulativeMetricTooltip
                     unit={cfg.unit}
                     total={numericCumulative}

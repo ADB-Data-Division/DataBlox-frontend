@@ -61,7 +61,12 @@ import {
 } from '@/services/coastalService';
 import type { VesselTimelineResponse } from '@/types/coastal';
 import type { CoastalVesselAggregation, CoastalVesselMetric } from '@/types/coastal';
-import { buildVesselTimelineExportData } from '../components/vessel-timeline-model';
+import {
+  buildVesselTimelineExportData,
+  getVesselTypeTimelineAggregation,
+  mergeVesselTimelineTypeData,
+  shouldShowVesselTypeSeries,
+} from '../components/vessel-timeline-model';
 import {
   buildSeriesInFlightKey,
   buildSpatialSliceCacheKey,
@@ -149,6 +154,7 @@ export function PageContent() {
   // Vessel Timeline State
   const [timelineLoading, setTimelineLoading] = useState<boolean>(false);
   const [timelineResponse, setTimelineResponse] = useState<VesselTimelineResponse | null>(null);
+  const [typeTimelineResponse, setTypeTimelineResponse] = useState<VesselTimelineResponse | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
 
   // Visible Categories State
@@ -218,7 +224,20 @@ export function PageContent() {
   const timelineData = useMemo(() => {
     return timelineResponse?.timeline || timelineResponse?.series || [];
   }, [timelineResponse]);
-  const vesselTypeGroups = useMemo(() => getVesselTimelineTypeGroups(timelineData), [timelineData]);
+  const typeTimelineData = useMemo(() => {
+    return typeTimelineResponse?.timeline || typeTimelineResponse?.series || [];
+  }, [typeTimelineResponse]);
+  const chartTimelineData = useMemo(
+    () => metricValue === 'vessel_count'
+      ? mergeVesselTimelineTypeData(timelineData, typeTimelineData)
+      : timelineData,
+    [metricValue, timelineData, typeTimelineData],
+  );
+  const vesselTypeGroups = useMemo(
+    () => getVesselTimelineTypeGroups(chartTimelineData),
+    [chartTimelineData],
+  );
+  const showVesselTypeSeries = shouldShowVesselTypeSeries(metric, vesselTypeGroups);
 
   const summary = timelineResponse?.summary;
 
@@ -345,23 +364,39 @@ export function PageContent() {
     if (!country) return;
     let isCurrent = true;
     setTimelineLoading(true);
+    setTypeTimelineResponse(null);
 
-    fetchVesselTimeline({
+    const requestTimeline = (aggregation: CoastalVesselAggregation) => fetchVesselTimeline({
       country,
       aoi_id,
       start_date,
       end_date,
       grain,
       metric: metricValue,
-      agg_func: aggFunc,
-    })
-      .then((res) => {
+      agg_func: aggregation,
+    });
+    const typeAggregation = getVesselTypeTimelineAggregation(metricValue, aggFunc);
+    const typeTimelineRequest = typeAggregation
+      ? requestTimeline(typeAggregation).catch((err) => {
+        console.error('Failed to load vessel type totals:', err);
+        return null;
+      })
+      : Promise.resolve(null);
+
+    Promise.all([requestTimeline(aggFunc), typeTimelineRequest])
+      .then(([res, typeRes]) => {
         if (!isCurrent) return;
         setTimelineResponse(res);
+        setTypeTimelineResponse(
+          typeRes ?? (metricValue === 'vessel_count' ? res : null),
+        );
       })
       .catch((err) => {
         console.error('Failed to load vessel timeline:', err);
-        if (isCurrent) setTimelineResponse(null);
+        if (isCurrent) {
+          setTimelineResponse(null);
+          setTypeTimelineResponse(null);
+        }
       })
       .finally(() => {
         if (isCurrent) setTimelineLoading(false);
@@ -560,10 +595,11 @@ export function PageContent() {
   const handleExportCsv = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.csv`;
     const { headers, rows } = buildVesselTimelineExportData(
-      timelineData,
+      chartTimelineData,
       vesselTypeGroups,
       aggregatedMetricLabel(metricValue, aggFunc),
-      aggFunc === 'sum' && metricValue === 'vessel_count',
+      showVesselTypeSeries,
+      aggFunc === 'average' && showVesselTypeSeries ? ' (estimated period total)' : '',
     );
     exportToCsv(filename, rows, headers);
   };
@@ -571,10 +607,11 @@ export function PageContent() {
   const handleExportExcel = () => {
     const filename = `coastal_vessels_${country}_${start_date}_${end_date}.xls`;
     const { headers, rows } = buildVesselTimelineExportData(
-      timelineData,
+      chartTimelineData,
       vesselTypeGroups,
       aggregatedMetricLabel(metricValue, aggFunc),
-      aggFunc === 'sum' && metricValue === 'vessel_count',
+      showVesselTypeSeries,
+      aggFunc === 'average' && showVesselTypeSeries ? ' (estimated period total)' : '',
     );
     exportToExcel(filename, 'Vessels', rows, headers);
   };
@@ -584,7 +621,9 @@ export function PageContent() {
     exportLeafletMapAsPng('coastal-vessels-map-container', filename);
   };
 
-  const timelineTitle = `${aggregatedMetricLabel(metricValue, aggFunc)} (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
+  const timelineTitle = `${showVesselTypeSeries
+    ? aggFunc === 'average' ? 'Vessel counts by type (estimated period totals)' : 'Vessel counts by type'
+    : aggregatedMetricLabel(metricValue, aggFunc)} (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
 
   const handleExportGraph = () => {
     if (activeTab === 2) {
@@ -605,7 +644,7 @@ export function PageContent() {
     exportChartWithContextAsPng('coastal-vessels-chart-container', filename, {
       title: timelineTitle,
       subtitle: `${start_date} to ${end_date}`,
-      legend: aggFunc === 'sum' && metricValue === 'vessel_count'
+      legend: showVesselTypeSeries
         ? vesselTypeGroups.map(({ category }) => ({ label: category, color: vesselCategoryColor(category) }))
         : [{ label: aggregatedMetricLabel(metricValue, aggFunc), color: '#0f766e' }],
     });
@@ -756,9 +795,14 @@ export function PageContent() {
                 <Typography variant="caption" color="text.secondary">
                   {start_date} to {end_date}
                 </Typography>
+                {aggFunc === 'average' && showVesselTypeSeries && (
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Type lines show estimated period totals because source types are not assigned to H3 cells. The H3 average appears in the summary and chart tooltip.
+                  </Typography>
+                )}
                 <Box id="coastal-vessels-chart-container" sx={{ height: 400, mt: 2 }}>
                   <VesselTimelineChart
-                    data={timelineData}
+                    data={chartTimelineData}
                     loading={timelineLoading}
                     locationName={locationLabel}
                     selectedPeriod={selectedPeriod}
@@ -780,7 +824,7 @@ export function PageContent() {
                     Legend
                   </Typography>
                   <Stack spacing={1}>
-                    {aggFunc === 'sum' && metricValue === 'vessel_count'
+                    {showVesselTypeSeries
                       ? vesselTypeGroups.map(({ category }) => (
                           <Stack key={category} direction="row" spacing={1.5} alignItems="center">
                             <Box sx={{ width: 14, height: 3, borderRadius: 1, bgcolor: vesselCategoryColor(category) }} />
@@ -798,11 +842,11 @@ export function PageContent() {
                     Vessel Types
                   </Typography>
 
-                  {aggFunc === 'sum' && metricValue === 'vessel_count' ? (
+                  {showVesselTypeSeries ? (
                     <>
-                      {timelineResponse?.category_breakdown_note && (
+                      {typeTimelineResponse?.category_breakdown_note && (
                         <Alert severity="info" sx={{ mb: 1.5 }}>
-                          {timelineResponse.category_breakdown_note}
+                          {typeTimelineResponse.category_breakdown_note}{aggFunc === 'average' ? ' The selected H3 average is shown in the summary and chart tooltip.' : ''}
                         </Alert>
                       )}
                       {vesselTypeGroups.map(({ category, subtypes }) => {
@@ -861,9 +905,9 @@ export function PageContent() {
                     </>
                   ) : (
                     <Alert severity="info" sx={{ mb: 1.5 }}>
-                      {aggFunc === 'average' && metricValue === 'vessel_count'
-                        ? 'Average is calculated across all returned H3 cells for each period, including zero-count cells. Per-cell vessel type and subtype values are not available.'
-                        : 'Vessel type and subtype breakdowns are available for summed vessel counts only.'}
+                      {metricValue === 'vessel_count'
+                        ? 'No period totals by vessel type are available for this selection.'
+                        : 'Vessel type and subtype breakdowns are available for vessel counts only.'}
                     </Alert>
                   )}
 

@@ -28,6 +28,7 @@ import {
   NO_DATA_LABEL,
   formatIndicatorAggregation,
   getIndicatorAggregation,
+  getIndicatorTimelineAggregation,
   getIndicatorMeta,
 } from '../indicators';
 
@@ -35,6 +36,7 @@ export interface IndicatorSidebarProps {
   selectedIndicators: string[];
   onToggleIndicator: (indicatorId: string) => void;
   indicatorAggregations?: Record<string, string>;
+  mapIndicatorAggregations?: Record<string, string>;
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
   onChangeChoroplethIndicator?: (ind: string) => void;
@@ -79,6 +81,7 @@ export function IndicatorSidebar({
   selectedIndicators,
   onToggleIndicator,
   indicatorAggregations,
+  mapIndicatorAggregations,
   mode = 'timeline',
   activeChoroplethIndicator = 'chlor_a',
   onChangeChoroplethIndicator,
@@ -225,7 +228,7 @@ export function IndicatorSidebar({
                     <Chip
                       size="small"
                       variant="outlined"
-                      label={formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))}
+                      label={formatIndicatorAggregation(getIndicatorTimelineAggregation(id, indicatorAggregations))}
                       sx={{ flexShrink: 0 }}
                     />
                   </Stack>
@@ -256,7 +259,7 @@ export function IndicatorSidebar({
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                 {getIndicatorMeta(activeChoroplethIndicator)?.shortLabel || activeChoroplethIndicator}:{' '}
-                {formatIndicatorAggregation(getIndicatorAggregation(activeChoroplethIndicator, indicatorAggregations))} across grouped H3 cells at far zoom.
+                {formatIndicatorAggregation(getIndicatorAggregation(activeChoroplethIndicator, mapIndicatorAggregations ?? indicatorAggregations))} across grouped H3 cells at far zoom.
               </Typography>
               <Box sx={{ pt: 2 }}>
                 <FormControlLabel

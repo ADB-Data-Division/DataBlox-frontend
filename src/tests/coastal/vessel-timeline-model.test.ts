@@ -4,6 +4,9 @@ import {
   buildVesselTypeSeries,
   categorySeriesKey,
   getVesselTimelineTypeGroups,
+  getVesselTypeTimelineAggregation,
+  mergeVesselTimelineTypeData,
+  shouldShowVesselTypeSeries,
   subtypeSeriesKey,
   subtypeVisibilityKey,
 } from '@/app/(dashboard)/coastal/components/vessel-timeline-model';
@@ -23,6 +26,23 @@ const timeline: VesselTimelinePoint[] = [
 ];
 
 describe('vessel timeline type model', () => {
+  it('keeps multi-series vessel trends visible when the selected H3 aggregation is average', () => {
+    const groups = getVesselTimelineTypeGroups(timeline);
+
+    expect(shouldShowVesselTypeSeries('Vessel Count', groups)).toBe(true);
+    expect(getVesselTypeTimelineAggregation('vessel_count', 'average')).toBe('sum');
+  });
+
+  it('keeps the selected average while joining period-total type series from the backend', () => {
+    const averageTimeline = [{ ...timeline[0], metric_value: 1.5 }];
+    const typeTotals = [{ ...timeline[0], metric_value: 8 }];
+    const merged = mergeVesselTimelineTypeData(averageTimeline, typeTotals);
+
+    expect(merged[0].metric_value).toBe(1.5);
+    expect(merged[0].categories).toEqual(typeTotals[0].categories);
+    expect(merged[0].sub_types).toEqual(typeTotals[0].sub_types);
+  });
+
   it('builds groups from API parent and nested subtype labels', () => {
     expect(getVesselTimelineTypeGroups(timeline)).toEqual([
       { category: 'Trade', subtypes: ['Cargo', 'Tanker'] },
