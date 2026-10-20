@@ -8,6 +8,8 @@ import { cellToParent, cellToLatLng, isValidCell } from 'h3-js';
 import { fetchSpatialGrid } from '@/services/coastalService';
 import {
   NO_DATA_COLOR,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
   getIndicatorMeta,
   isZeroFillIndicator,
 } from '../indicators';
@@ -34,6 +36,8 @@ export interface CoastalChoroplethMapProps {
   // When false, far-zoom magnitude circles are disabled and the raw hexes
   // render at every zoom. Defaults to true (current behavior).
   clustersEnabled?: boolean;
+  /** Live policy from GET /coastal/indicators, with static fallback. */
+  indicatorAggregations?: Record<string, string>;
 }
 
 interface HexCellData {
@@ -382,6 +386,7 @@ function CoastalChoroplethMapClient({
   indicators,
   height = 420,
   clustersEnabled = true,
+  indicatorAggregations,
 }: CoastalChoroplethMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
@@ -419,9 +424,8 @@ function CoastalChoroplethMapClient({
   const activeMeta = useMemo(() => getIndicatorMeta(activeIndicator), [activeIndicator]);
   const activeTooltipLabel = activeMeta?.shortLabel || activeIndicator;
   const activeTooltipAgg = useMemo(() => {
-    const agg = activeMeta?.agg || 'average';
-    return agg === 'sum' ? 'Total' : agg === 'max' ? 'Max' : agg === 'min' ? 'Min' : 'Avg.';
-  }, [activeMeta]);
+    return formatIndicatorAggregation(getIndicatorAggregation(activeIndicator, indicatorAggregations));
+  }, [activeIndicator, indicatorAggregations]);
 
   /** Tooltip rows: selected map indicators, falling back to the active one. */
   const tooltipIndicatorIds = useMemo(() => {
@@ -643,7 +647,7 @@ function CoastalChoroplethMapClient({
         maxLng: number;
       }
     >();
-    const activeAgg = getIndicatorMeta(activeIndicator)?.agg || 'average';
+    const activeAgg = getIndicatorAggregation(activeIndicator, indicatorAggregations);
     try {
       for (const cell of gridCells) {
         if (!isValidCell(cell.id)) throw new Error(`Invalid H3 index: ${cell.id}`);
@@ -816,7 +820,7 @@ function CoastalChoroplethMapClient({
       });
     }
     return points;
-  }, [gridCells, mapZoom, activeIndicator]);
+  }, [gridCells, mapZoom, activeIndicator, indicatorAggregations]);
 
   // Clusters containing a selected hex keep the highlight while zoomed out.
   const selectedClusterIds = useMemo(() => {
@@ -1347,7 +1351,7 @@ function CoastalChoroplethMapClient({
           <div style="color: #64748b;">Resolution: ${NATIVE_H3_RES}</div>
           <div style="color: #64748b;">Area: 4.5 km²</div>
           ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
-          <div>${activeTooltipLabel} (${activeTooltipAgg}): <strong>${formatIndicatorTooltip(activeIndicator, getCellIndicatorValue(cell, activeIndicator))}</strong></div>
+          <div>${activeTooltipLabel}: <strong>${formatIndicatorTooltip(activeIndicator, getCellIndicatorValue(cell, activeIndicator))}</strong></div>
         </div>
       `;
 
@@ -1590,7 +1594,9 @@ function CoastalChoroplethMapClient({
             const meta = getIndicatorMeta(id);
             return (
               <Box key={id}>
-                {meta ? `${meta.shortLabel} (${activeTooltipAgg}): ` : `${id}: `}
+                {meta
+                  ? `${meta.shortLabel}${hoveredCell.isCluster ? ` (${formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))})` : ''}: `
+                  : `${id}: `}
                 <strong>{formatIndicatorTooltip(id, getCellIndicatorValue(hoveredCell, id))}</strong>
               </Box>
             );

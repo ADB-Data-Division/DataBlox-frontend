@@ -70,7 +70,6 @@ export default function PageContent() {
           end_date: end,
           grain: "monthly",
           indicators: ["chlor_a"],
-          agg_func: "average",
         }),
         end
           ? fetchSpatialSlice({

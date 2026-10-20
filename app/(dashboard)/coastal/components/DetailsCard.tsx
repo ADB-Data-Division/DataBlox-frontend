@@ -16,7 +16,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { IndicatorTimelinePoint } from '@/types/coastal';
 import { getPointValue, formatPeriodLabel } from './IndicatorTimelineChart';
 import { isoWeekNumber } from './HexCellDetailModal';
-import { NO_DATA_LABEL, getIndicatorMeta } from '../indicators';
+import {
+  NO_DATA_LABEL,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
+  getIndicatorMeta,
+} from '../indicators';
 
 export interface DetailsCardProps {
   selectedPoint?: IndicatorTimelinePoint | null;
@@ -25,6 +30,7 @@ export interface DetailsCardProps {
   locationName: string;
   grain: string;
   loading?: boolean;
+  indicatorAggregations?: Record<string, string>;
 }
 
 /**
@@ -400,6 +406,7 @@ export function DetailsCard({
   locationName,
   grain,
   loading = false,
+  indicatorAggregations,
 }: DetailsCardProps) {
   const theme = useTheme();
   const [activeSlide, setActiveSlide] = useState<number>(0);
@@ -565,6 +572,9 @@ export function DetailsCard({
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {locationName} · {formatCardPeriod(activePoint.period_start, grain)}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            Across H3 cells: {formatIndicatorAggregation(getIndicatorAggregation(currentSlide.indicator, indicatorAggregations))}
           </Typography>
         </Box>
 

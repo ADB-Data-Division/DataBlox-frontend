@@ -22,19 +22,19 @@ import {
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { IndicatorPickerDialog } from './IndicatorPickerDialog';
-import type { CoastalAggFunc } from '@/types/coastal';
 import {
   COASTAL_INDICATORS,
   NO_DATA_COLOR,
   NO_DATA_LABEL,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
   getIndicatorMeta,
 } from '../indicators';
 
 export interface IndicatorSidebarProps {
   selectedIndicators: string[];
   onToggleIndicator: (indicatorId: string) => void;
-  aggFunc: CoastalAggFunc | string;
-  onChangeAggFunc: (agg: CoastalAggFunc) => void;
+  indicatorAggregations?: Record<string, string>;
   mode?: 'timeline' | 'map';
   activeChoroplethIndicator?: string;
   onChangeChoroplethIndicator?: (ind: string) => void;
@@ -78,8 +78,7 @@ function ChoroplethColorbar({ indicatorId, dimmed }: { indicatorId: string; dimm
 export function IndicatorSidebar({
   selectedIndicators,
   onToggleIndicator,
-  aggFunc,
-  onChangeAggFunc,
+  indicatorAggregations,
   mode = 'timeline',
   activeChoroplethIndicator = 'chlor_a',
   onChangeChoroplethIndicator,
@@ -93,18 +92,6 @@ export function IndicatorSidebar({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const maxCount = 2;
-
-  const aggregationSelect = (
-    <FormControl fullWidth size="small">
-      <Select
-        value={aggFunc}
-        onChange={(e) => onChangeAggFunc(e.target.value as CoastalAggFunc)}
-      >
-        <MenuItem value="average">Average</MenuItem>
-        <MenuItem value="maximum">Maximum</MenuItem>
-      </Select>
-    </FormControl>
-  );
 
   // Map-mode legend: one colorbar per selected map-capable indicator, with a
   // switcher when more than one is selected. Temperature is always °C.
@@ -224,9 +211,26 @@ export function IndicatorSidebar({
           {mode === 'timeline' && (
             <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                Aggregation
+                Across H3 cells
               </Typography>
-              {aggregationSelect}
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Each indicator follows its data definition for every period.
+              </Typography>
+              <Stack spacing={0.75}>
+                {selectedIndicators.map((id) => (
+                  <Stack key={id} direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                    <Typography variant="caption" sx={{ minWidth: 0 }} noWrap>
+                      {getIndicatorMeta(id)?.shortLabel || id}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      label={formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))}
+                      sx={{ flexShrink: 0 }}
+                    />
+                  </Stack>
+                ))}
+              </Stack>
             </Box>
           )}
         </CardContent>
@@ -248,9 +252,12 @@ export function IndicatorSidebar({
             <DialogTitle sx={{ fontWeight: 700 }}>Settings</DialogTitle>
             <DialogContent>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, mt: 0.5 }}>
-                Aggregation
+                Cluster values
               </Typography>
-              {aggregationSelect}
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {getIndicatorMeta(activeChoroplethIndicator)?.shortLabel || activeChoroplethIndicator}:{' '}
+                {formatIndicatorAggregation(getIndicatorAggregation(activeChoroplethIndicator, indicatorAggregations))} across grouped H3 cells at far zoom.
+              </Typography>
               <Box sx={{ pt: 2 }}>
                 <FormControlLabel
                   control={

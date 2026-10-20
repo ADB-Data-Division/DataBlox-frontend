@@ -6,6 +6,7 @@ import {
   Box,
   Card,
   CardContent,
+  Chip,
   Skeleton,
   Stack,
   Typography,
@@ -15,6 +16,8 @@ import type { IndicatorTimelinePoint } from '@/types/coastal';
 import {
   COASTAL_INDICATORS,
   getIndicatorMeta,
+  formatIndicatorAggregation,
+  getIndicatorAggregation,
   isZeroFillIndicator,
 } from '../indicators';
 
@@ -27,6 +30,8 @@ export interface IndicatorTimelineChartProps {
   selectedPeriod?: string | null;
   onSelectPoint: (point: IndicatorTimelinePoint) => void;
   loading?: boolean;
+  /** Live policy from GET /coastal/indicators, with static fallback. */
+  indicatorAggregations?: Record<string, string>;
 }
 
 /**
@@ -134,6 +139,7 @@ export function IndicatorTimelineChart({
   selectedPeriod,
   onSelectPoint,
   loading = false,
+  indicatorAggregations,
 }: IndicatorTimelineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<SVGSVGElement>(null);
@@ -516,6 +522,21 @@ export function IndicatorTimelineChart({
             <Typography variant="caption" color="text.secondary">
               {dateRange.start} to {dateRange.end}
             </Typography>
+            {indicators.length > 0 && (
+              <Stack direction="row" spacing={0.75} useFlexGap sx={{ mt: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
+                  Across H3 cells:
+                </Typography>
+                {indicators.slice(0, 2).map((id) => (
+                  <Chip
+                    key={id}
+                    size="small"
+                    variant="outlined"
+                    label={`${getIndicatorMeta(id)?.shortLabel || id} · ${formatIndicatorAggregation(getIndicatorAggregation(id, indicatorAggregations))}`}
+                  />
+                ))}
+              </Stack>
+            )}
 
             {coverageAnnotationHover && (
               <Box
@@ -603,7 +624,7 @@ export function IndicatorTimelineChart({
                       sx={{ mb: 0.5 }}
                     >
                       <Typography variant="caption" sx={{ color: cfg.color, fontWeight: 600 }}>
-                        {cfg.label}:
+                        {cfg.label} ({formatIndicatorAggregation(getIndicatorAggregation(indKey, indicatorAggregations))}):
                       </Typography>
                       <Typography variant="caption" sx={{ fontWeight: 700, color: cfg.color }}>
                         {formattedVal === 'No data' ? formattedVal : `${formattedVal} ${cfg.unit}`}

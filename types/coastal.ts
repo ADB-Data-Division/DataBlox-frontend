@@ -43,7 +43,15 @@ export type CoastalIndicatorGroup =
 
 export type CoastalNullPolicy = "zero_fill" | "null";
 
-export type CoastalIndicatorAgg = "average" | "sum" | "max" | "min";
+export type CoastalIndicatorAgg =
+  | "AVG"
+  | "SUM"
+  | "MAX"
+  | "MIN"
+  | "average"
+  | "sum"
+  | "max"
+  | "min";
 
 /**
  * Backend metadata contract for GET /coastal/indicators (plan section 3).
@@ -55,7 +63,7 @@ export interface CoastalIndicatorMetadata {
   label: string;
   group: string;
   unit: string;
-  agg: string;
+  agg: CoastalIndicatorAgg;
   supports_map: boolean;
   supports_timeline: boolean;
   null_policy: CoastalNullPolicy;
@@ -200,6 +208,7 @@ export interface IndicatorTimelineResponse {
   end_date?: string;
   grain: CoastalGrain;
   aggregation?: string;
+  aggregation_by_indicator?: Record<string, CoastalIndicatorAgg>;
   summary?: IndicatorTimelineSummary;
   summary_cards?: Record<string, unknown> | null;
   timeline?: IndicatorTimelinePoint[];
@@ -384,6 +393,7 @@ export interface CoastalTimelineParams {
   end_date?: string;
   grain?: CoastalGrain;
   indicators?: string | string[];
+  /** Deprecated compatibility parameter; timeline aggregation comes from registry metadata. */
   agg_func?: CoastalAggFunc;
   engine?: "duckdb" | "postgres";
 }

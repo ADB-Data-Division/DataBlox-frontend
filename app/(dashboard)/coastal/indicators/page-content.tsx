@@ -23,6 +23,7 @@ import { ViewModeTab } from '../components/ViewModeTab';
 import { DownloadDataCard } from '../components/DownloadDataCard';
 import {
   fetchIndicatorTimeline,
+  fetchCoastalIndicators,
   fetchSpatialGrid,
   fetchSpatialSlice,
   fetchSpatialSeries,
@@ -31,8 +32,8 @@ import { exportToCsv, exportToExcel, exportGraphAsPng, exportLeafletMapAsPng, bu
 import { getIndicatorMeta } from '../indicators';
 import { buildSpatialIndicatorParam } from './spatial-indicator-ids';
 import type {
-  CoastalAggFunc,
   CoastalGrain,
+  CoastalIndicatorMetadata,
   IndicatorTimelinePoint,
   IndicatorTimelineResponse,
 } from '@/types/coastal';
@@ -163,9 +164,9 @@ export function PageContent() {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['chlor_a']);
+  const [indicatorMetadata, setIndicatorMetadata] = useState<CoastalIndicatorMetadata[]>([]);
   const [activeChoroplethIndicator, setActiveChoroplethIndicator] = useState<string>('chlor_a');
   const [compareEnabled, setCompareEnabled] = useState<boolean>(false);
-  const [aggFunc, setAggFunc] = useState<CoastalAggFunc>('average');
   const [clustersEnabled, setClustersEnabled] = useState<boolean>(false);
   const [grain, setGrain] = useState<CoastalGrain>(grainParam);
   const [selectedPoint, setSelectedPoint] = useState<IndicatorTimelinePoint | null>(null);
@@ -186,6 +187,23 @@ export function PageContent() {
   const paintedScopeRef = useRef<string | null>(null);
   const currentSliceKeyRef = useRef<string | null>(null);
   const sliceInFlightRef = useRef<Set<string>>(new Set());
+
+  const indicatorAggregations = useMemo(
+    () => Object.fromEntries(indicatorMetadata.map(({ id, agg }) => [id, agg])),
+    [indicatorMetadata],
+  );
+
+  useEffect(() => {
+    let isCurrent = true;
+    fetchCoastalIndicators().then((metadata) => {
+      if (isCurrent) setIndicatorMetadata(metadata);
+    }).catch(() => {
+      if (isCurrent) setIndicatorMetadata([]);
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Handle escape key and body overflow for fullscreen mode
   useEffect(() => {
@@ -252,7 +270,6 @@ export function PageContent() {
         end_date,
         grain,
         indicators: selectedIndicators,
-        agg_func: aggFunc,
       });
       setData(response);
     } catch (err) {
@@ -262,7 +279,7 @@ export function PageContent() {
     } finally {
       setLoading(false);
     }
-  }, [country, aoi_id, start_date, end_date, grain, selectedIndicators, aggFunc]);
+  }, [country, aoi_id, start_date, end_date, grain, selectedIndicators]);
 
   useEffect(() => {
     loadData();
@@ -722,6 +739,7 @@ export function PageContent() {
                 timeline={timelineData}
                 grain={grain}
                 loading={loading}
+                indicatorAggregations={indicatorAggregations}
               />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -732,6 +750,7 @@ export function PageContent() {
                 locationName={locationLabel}
                 grain={grain}
                 loading={loading}
+                indicatorAggregations={indicatorAggregations}
               />
             </Box>
           </Stack>
@@ -748,6 +767,7 @@ export function PageContent() {
                 selectedPeriod={selectedPoint?.period_start || null}
                 onSelectPoint={(pt) => setSelectedPoint(pt)}
                 loading={loading}
+                indicatorAggregations={indicatorAggregations}
               />
             </Box>
             {/* On desktop the sidebar is pinned to the chart height and its list scrolls. */}
@@ -756,8 +776,7 @@ export function PageContent() {
                 <IndicatorSidebar
                   selectedIndicators={selectedIndicators}
                   onToggleIndicator={handleToggleIndicator}
-                  aggFunc={aggFunc}
-                  onChangeAggFunc={(agg) => setAggFunc(agg)}
+                  indicatorAggregations={indicatorAggregations}
                   mode="timeline"
                 />
               </Box>
@@ -831,9 +850,9 @@ export function PageContent() {
                             .map((id) => getIndicatorMeta(id)?.shortLabel || id);
                           const parts: string[] = [];
                           if (hasVessels) parts.push('Vessel Count');
-                          parts.push(...envLabels.map((label) => `Average ${label}`));
+                          parts.push(...envLabels);
                           if (parts.length === 0 && activeMeta) {
-                            parts.push(`Average ${activeMeta.shortLabel}`);
+                            parts.push(activeMeta.shortLabel);
                           }
                           return `${parts.join(' & ')} (${grainLabel}) - ${locationLabel}`;
                         })()}
@@ -910,6 +929,7 @@ export function PageContent() {
                             indicators={selectedIndicators}
                             height={mapHeight}
                             clustersEnabled={clustersEnabled}
+                            indicatorAggregations={indicatorAggregations}
                           />
                         </Box>
                       </Box>
@@ -945,6 +965,7 @@ export function PageContent() {
                 expanded={hexExpanded}
                 onExpandedChange={setHexExpanded}
                 onLoadingChange={setHexChartLoading}
+                indicatorAggregations={indicatorAggregations}
               />
             </Box>
 
@@ -960,8 +981,7 @@ export function PageContent() {
                 <IndicatorSidebar
                   selectedIndicators={selectedIndicators}
                   onToggleIndicator={handleToggleIndicator}
-                  aggFunc={aggFunc}
-                  onChangeAggFunc={(agg) => setAggFunc(agg)}
+                  indicatorAggregations={indicatorAggregations}
                   mode="map"
                   activeChoroplethIndicator={activeChoroplethIndicator}
                   onChangeChoroplethIndicator={(ind) => setActiveChoroplethIndicator(ind)}
