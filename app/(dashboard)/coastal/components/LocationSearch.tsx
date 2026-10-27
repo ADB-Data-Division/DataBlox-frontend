@@ -23,6 +23,7 @@ import {
 } from '@phosphor-icons/react/dist/ssr';
 import { getCommandKey } from '@/src/utils/search';
 import { CoastalLocation } from '@/types/coastal';
+import { fetchNearbyCoastalProvinces } from '@/services/coastalService';
 import {
   CoastalRecentSearchEntry,
   buildRecentSearchEntry,
@@ -42,6 +43,12 @@ type SearchOption =
   | { kind: 'recent'; entry: CoastalRecentSearchEntry }
   | { kind: 'clear-recents' };
 
+interface NearbyProvinceResult {
+  countryIso: string;
+  provinceName: string;
+  names: string[];
+}
+
 interface LocationSearchProps {
   countryIso: string;
   initialAoiIds?: string[];
@@ -53,12 +60,20 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
   const [selected, setSelected] = useState<CoastalLocation[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [recents, setRecents] = useState<CoastalRecentSearchEntry[]>([]);
+  const [nearbyProvinceResult, setNearbyProvinceResult] = useState<NearbyProvinceResult | null>(null);
+  const [nearbySource, setNearbySource] = useState<{
+    countryIso: string;
+    aoiId: string;
+  } | null>(null);
+  const [nearbySuggestionsConsumed, setNearbySuggestionsConsumed] = useState(false);
   const restoredScope = useRef<string | null>(null);
 
   useEffect(() => {
     setSelected([]);
     setInputValue('');
     setRecents(loadCoastalRecentSearches(countryIso));
+    setNearbySource(null);
+    setNearbySuggestionsConsumed(false);
   }, [countryIso]);
 
   const query = inputValue.trim().toLowerCase();
@@ -73,6 +88,64 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     }));
     return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
   }, [provinces, locations, countryIso]);
+
+  useEffect(() => {
+    const selectedProvince =
+      selected.length === 1 &&
+      selected[0].type === 'province' &&
+      selected[0].aoi_id === nearbySource?.aoiId
+        ? selected[0]
+        : null;
+    if (
+      nearbySuggestionsConsumed ||
+      !nearbySource ||
+      nearbySource.countryIso !== countryIso.toUpperCase() ||
+      !selectedProvince
+    ) {
+      return;
+    }
+
+    let active = true;
+    void fetchNearbyCoastalProvinces(nearbySource.countryIso, selectedProvince.name)
+      .then((response) => {
+        if (active) {
+          setNearbyProvinceResult({
+            countryIso: nearbySource.countryIso,
+            provinceName: selectedProvince.name,
+            names: response.suggestions,
+          });
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [countryIso, nearbySource, nearbySuggestionsConsumed, selected]);
+
+  const nearbySuggestions = useMemo(() => {
+    const selectedProvince =
+      selected.length === 1 &&
+      selected[0].type === 'province' &&
+      selected[0].aoi_id === nearbySource?.aoiId
+        ? selected[0]
+        : null;
+    if (
+      nearbySuggestionsConsumed ||
+      !nearbySource ||
+      nearbySource.countryIso !== countryIso.toUpperCase() ||
+      !selectedProvince ||
+      nearbyProvinceResult?.countryIso !== nearbySource.countryIso ||
+      nearbyProvinceResult?.provinceName !== selectedProvince.name
+    ) {
+      return [];
+    }
+    return nearbyProvinceResult.names.filter(
+      (name) =>
+        allLocations.some((location) => location.type === 'province' && location.name === name) &&
+        !selected.some((location) => location.type === 'province' && location.name === name)
+    );
+  }, [allLocations, countryIso, nearbyProvinceResult, nearbySource, nearbySuggestionsConsumed, selected]);
 
   const initialScopeKey = `${countryIso.toUpperCase()}|${initialAoiIds.join(',')}`;
   useEffect(() => {
@@ -103,17 +176,33 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     }
     if (option.kind === 'location') {
       const aoiId = option.location.aoi_id;
-      setSelected((current) =>
-        current.some((item) => item.aoi_id === aoiId)
-          ? current.filter((item) => item.aoi_id !== aoiId)
-          : [...current, option.location]
-      );
+      const isSelected = selected.some((item) => item.aoi_id === aoiId);
+      if (isSelected) {
+        setSelected((current) => current.filter((item) => item.aoi_id !== aoiId));
+        if (aoiId === nearbySource?.aoiId) {
+          setNearbySuggestionsConsumed(true);
+        }
+      } else {
+        setSelected((current) => [...current, option.location]);
+        if (
+          selected.length === 0 &&
+          option.location.type === 'province' &&
+          !nearbySource &&
+          !nearbySuggestionsConsumed
+        ) {
+          setNearbySource({ countryIso: countryIso.toUpperCase(), aoiId });
+        } else if (nearbySource) {
+          setNearbySuggestionsConsumed(true);
+        }
+      }
       setInputValue('');
       return;
     }
     if (option.kind === 'recent') {
       setSelected(mapAoiIdsToLocations(option.entry.aoi_ids, allLocations));
       setInputValue('');
+      setNearbySource(null);
+      setNearbySuggestionsConsumed(true);
       return;
     }
     clearCoastalRecentSearches(countryIso);
@@ -130,10 +219,31 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     saveCoastalRecentSearches(countryIso, nextRecents);
     onSubmit?.(selected);
     setInputValue('');
+    setNearbySuggestionsConsumed(true);
   };
 
   const handleRemoveChip = (aoiId: string) => {
     setSelected((current) => current.filter((item) => item.aoi_id !== aoiId));
+    if (aoiId === nearbySource?.aoiId) {
+      setNearbySuggestionsConsumed(true);
+    }
+  };
+
+  const handleAddNearbyProvince = (provinceName: string) => {
+    const province = allLocations.find(
+      (location) => location.type === 'province' && location.name === provinceName
+    );
+    if (!province) {
+      setNearbySuggestionsConsumed(true);
+      return;
+    }
+
+    setSelected((current) =>
+      current.some((location) => location.aoi_id === province.aoi_id)
+        ? current
+        : [...current, province]
+    );
+    setNearbySuggestionsConsumed(true);
   };
 
   return (
@@ -357,6 +467,41 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
         Press Enter to select. {getCommandKey()}+/ for help.
       </Typography>
+
+      {nearbySuggestions.length > 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 0.75,
+            mt: 1.25,
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'text.secondary', mr: 0.25 }}>
+            Nearby provinces
+          </Typography>
+          {nearbySuggestions.map((name) => (
+            <Chip
+              key={name}
+              aria-label={`Add nearby province ${name}`}
+              icon={<MapPinIcon size={14} />}
+              label={name}
+              size="small"
+              variant="outlined"
+              clickable
+              onClick={() => handleAddNearbyProvince(name)}
+              sx={{
+                borderRadius: '9px',
+                fontWeight: 600,
+                color: 'primary.main',
+                borderColor: 'primary.light',
+                '&:hover': { bgcolor: 'action.hover' },
+              }}
+            />
+          ))}
+        </Box>
+      )}
     </Box>
   );
 }
