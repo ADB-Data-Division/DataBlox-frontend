@@ -23,7 +23,7 @@ import {
 } from '@phosphor-icons/react/dist/ssr';
 import { getCommandKey } from '@/src/utils/search';
 import { CoastalLocation } from '@/types/coastal';
-import nearbyProvinceSuggestions from '../data/nearby-provinces.json';
+import { fetchNearbyProvinceSuggestions } from '../data/nearbyProvinceSuggestions';
 import {
   CoastalRecentSearchEntry,
   buildRecentSearchEntry,
@@ -37,8 +37,6 @@ import {
   upsertRecentSearch,
   useCoastalLocations,
 } from '../hooks/useCoastalLocations';
-
-const nearbyProvinceLookup = nearbyProvinceSuggestions as Record<string, Record<string, string[]>>;
 
 type SearchOption =
   | { kind: 'location'; location: CoastalLocation }
@@ -60,14 +58,22 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     countryIso: string;
     aoiId: string;
   } | null>(null);
+  const [loadedNearbyProvinceSuggestions, setLoadedNearbyProvinceSuggestions] = useState<{
+    countryIso: string;
+    sourceAoiId: string;
+    names: string[];
+  } | null>(null);
   const [nearbySuggestionsConsumed, setNearbySuggestionsConsumed] = useState(false);
   const restoredScope = useRef<string | null>(null);
+  const nearbyRequestId = useRef(0);
 
   useEffect(() => {
+    nearbyRequestId.current += 1;
     setSelected([]);
     setInputValue('');
     setRecents(loadCoastalRecentSearches(countryIso));
     setNearbySource(null);
+    setLoadedNearbyProvinceSuggestions(null);
     setNearbySuggestionsConsumed(false);
   }, [countryIso]);
 
@@ -89,6 +95,9 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
       nearbySuggestionsConsumed ||
       !nearbySource ||
       nearbySource.countryIso !== countryIso.toUpperCase() ||
+      !loadedNearbyProvinceSuggestions ||
+      loadedNearbyProvinceSuggestions.countryIso !== countryIso.toUpperCase() ||
+      loadedNearbyProvinceSuggestions.sourceAoiId !== nearbySource.aoiId ||
       selected.length !== 1 ||
       selected[0].aoi_id !== nearbySource.aoiId ||
       selected[0].type !== 'province'
@@ -96,13 +105,19 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
       return [];
     }
 
-    const names = nearbyProvinceLookup[countryIso.toUpperCase()]?.[selected[0].name] ?? [];
-    return names.filter(
+    return loadedNearbyProvinceSuggestions.names.filter(
       (name) =>
         allLocations.some((location) => location.type === 'province' && location.name === name) &&
         !selected.some((location) => location.type === 'province' && location.name === name)
     );
-  }, [allLocations, countryIso, nearbySource, nearbySuggestionsConsumed, selected]);
+  }, [
+    allLocations,
+    countryIso,
+    loadedNearbyProvinceSuggestions,
+    nearbySource,
+    nearbySuggestionsConsumed,
+    selected,
+  ]);
 
   const initialScopeKey = `${countryIso.toUpperCase()}|${initialAoiIds.join(',')}`;
   useEffect(() => {
@@ -147,7 +162,23 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
           !nearbySource &&
           !nearbySuggestionsConsumed
         ) {
-          setNearbySource({ countryIso: countryIso.toUpperCase(), aoiId });
+          const selectedCountryIso = countryIso.toUpperCase();
+          const requestId = nearbyRequestId.current + 1;
+          nearbyRequestId.current = requestId;
+          setNearbySource({ countryIso: selectedCountryIso, aoiId });
+          void fetchNearbyProvinceSuggestions(selectedCountryIso, option.location.name)
+            .then((names) => {
+              if (nearbyRequestId.current === requestId) {
+                setLoadedNearbyProvinceSuggestions({
+                  countryIso: selectedCountryIso,
+                  sourceAoiId: aoiId,
+                  names,
+                });
+              }
+            })
+            .catch(() => {
+              // Nearby suggestions are optional; the location search remains usable on failure.
+            });
         } else if (nearbySource) {
           setNearbySuggestionsConsumed(true);
         }

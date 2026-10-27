@@ -21,10 +21,7 @@ const hexesPath = process.argv[3]
 const countriesPath = process.argv[4]
   ? path.resolve(process.argv[4])
   : path.join(backendDataDir, 'countries.json');
-const outputPath = path.join(
-  frontendRoot,
-  'app/(dashboard)/coastal/data/nearby-provinces.json'
-);
+const outputDir = path.join(frontendRoot, 'public/data/coastal/nearby-provinces');
 
 const EARTH_RADIUS_KM = 6371.0088;
 const toRadians = (degrees) => (degrees * Math.PI) / 180;
@@ -72,6 +69,15 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function provinceSlug(name) {
+  return name
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 function readProvinceHexes() {
   const readerPath = path.join(scriptDir, 'read-coastal-province-hexes.py');
   const python = spawnSync(
@@ -97,7 +103,7 @@ const enabledCountries = Object.entries(countryMetadata)
   .filter(([, metadata]) => metadata.enabled !== false)
   .map(([countryIso]) => countryIso.toUpperCase())
   .sort();
-const lookup = {};
+const generatedAssets = new Map();
 
 if (enabledCountries.length === 0) {
   throw new Error(`No enabled Coastal countries found in ${countriesPath}`);
@@ -116,6 +122,9 @@ for (const countryIso of enabledCountries) {
   const countryProvincePoints = new Map(
     country.provinces.map((province) => [province.name, []])
   );
+  if (countryProvincePoints.size !== country.provinces.length) {
+    throw new Error(`${countryIso} has duplicate province names in ${hierarchyPath}`);
+  }
 
   for (const [provinceName, cells] of Object.entries(provinceHexMap)) {
     const points = countryProvincePoints.get(provinceName);
@@ -140,29 +149,74 @@ for (const countryIso of enabledCountries) {
     provinceCenters.set(provinceName, getSphericalCentroid(points));
   }
 
-  lookup[countryIso] = Object.fromEntries(
-    [...provinceCenters.entries()]
-      .sort(([first], [second]) => first.localeCompare(second))
-      .map(([provinceName, center]) => [
-        provinceName,
-        [...provinceCenters.entries()]
-          .filter(([otherName]) => otherName !== provinceName)
-          .map(([otherName, otherCenter]) => ({
-            name: otherName,
-            distance: distanceKm(center, otherCenter),
-          }))
-          .sort(
-            (first, second) =>
-              first.distance - second.distance || first.name.localeCompare(second.name)
-          )
-          .slice(0, 3)
-          .map(({ name }) => name),
-      ])
+  const slugOwners = new Map();
+  for (const provinceName of provinceCenters.keys()) {
+    const slug = provinceSlug(provinceName);
+    if (!slug) {
+      throw new Error(`${countryIso}/${provinceName} cannot be represented as a province asset name`);
+    }
+    const slugOwner = slugOwners.get(slug);
+    if (slugOwner) {
+      throw new Error(
+        `${countryIso} has province slug collision: ${slugOwner} and ${provinceName} both map to ${slug}`
+      );
+    }
+    slugOwners.set(slug, provinceName);
+  }
+
+  for (const [provinceName, center] of provinceCenters) {
+    const nearbyNames = [...provinceCenters.entries()]
+      .filter(([otherName]) => otherName !== provinceName)
+      .map(([otherName, otherCenter]) => ({
+        name: otherName,
+        distance: distanceKm(center, otherCenter),
+      }))
+      .sort(
+        (first, second) =>
+          first.distance - second.distance || first.name.localeCompare(second.name)
+      )
+      .slice(0, 3)
+      .map(({ name }) => name);
+
+    generatedAssets.set(
+      path.join(countryIso, `${provinceSlug(provinceName)}.json`),
+      nearbyNames
+    );
+  }
+}
+
+fs.mkdirSync(outputDir, { recursive: true });
+for (const entry of fs.readdirSync(outputDir, { withFileTypes: true })) {
+  const entryPath = path.join(outputDir, entry.name);
+  if (entry.isDirectory() && /^[A-Z]{3}$/.test(entry.name)) {
+    for (const file of fs.readdirSync(entryPath, { withFileTypes: true })) {
+      const relativePath = path.join(entry.name, file.name);
+      if (
+        file.isFile() &&
+        file.name.endsWith('.json') &&
+        !generatedAssets.has(relativePath)
+      ) {
+        fs.unlinkSync(path.join(entryPath, file.name));
+      }
+    }
+    if (fs.readdirSync(entryPath).length === 0) {
+      fs.rmdirSync(entryPath);
+    }
+  } else if (entry.isFile() && /^[A-Z]{3}\.json$/.test(entry.name)) {
+    // Remove province lookup files from the earlier per-country format.
+    fs.unlinkSync(entryPath);
+  }
+}
+
+for (const [relativePath, nearbyNames] of generatedAssets) {
+  const assetPath = path.join(outputDir, relativePath);
+  fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+  fs.writeFileSync(
+    assetPath,
+    `${JSON.stringify(nearbyNames)}\n`
   );
 }
 
-fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, `${JSON.stringify(lookup, null, 2)}\n`);
 console.log(
-  `Generated nearby province lookup for ${enabledCountries.length} Coastal countries: ${outputPath}`
+  `Generated ${generatedAssets.size} province-specific nearby lookups for ${enabledCountries.length} Coastal countries: ${outputDir}`
 );
