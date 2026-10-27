@@ -7,6 +7,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
+    "generate:coastal-nearby": "node scripts/generate-coastal-nearby.mjs",
     "build-image": "docker build -t ghcr.io/darrensapalo/capacity-building-visualization:latest .",
     "push-image": "docker push ghcr.io/darrensapalo/capacity-building-visualization:latest",
     "docker-login": "./docker-login.sh",

@@ -1,0 +1,810 @@
+{
+  "BGD": {
+    "Barishal": [
+      "Chattogram",
+      "Khulna",
+      "Dhaka"
+    ],
+    "Chattogram": [
+      "Barishal",
+      "Khulna",
+      "Dhaka"
+    ],
+    "Dhaka": [
+      "Barishal",
+      "Rajshahi",
+      "Khulna"
+    ],
+    "Khulna": [
+      "Barishal",
+      "Dhaka",
+      "Chattogram"
+    ],
+    "Mymensingh": [
+      "Sylhet",
+      "Dhaka",
+      "Rangpur"
+    ],
+    "Rajshahi": [
+      "Dhaka",
+      "Rangpur",
+      "Mymensingh"
+    ],
+    "Rangpur": [
+      "Rajshahi",
+      "Mymensingh",
+      "Sylhet"
+    ],
+    "Sylhet": [
+      "Mymensingh",
+      "Dhaka",
+      "Rangpur"
+    ]
+  },
+  "IDN": {
+    "Aceh": [
+      "Sumatera Utara",
+      "Sumatera Barat",
+      "Riau"
+    ],
+    "Bali": [
+      "Nusa Tenggara Barat",
+      "Jawa Timur",
+      "Daerah Istimewa Yogyakarta"
+    ],
+    "Banten": [
+      "Dki Jakarta",
+      "Lampung",
+      "Jawa Barat"
+    ],
+    "Bengkulu": [
+      "Sumatera Selatan",
+      "Lampung",
+      "Jambi"
+    ],
+    "Daerah Istimewa Yogyakarta": [
+      "Jawa Tengah",
+      "Jawa Timur",
+      "Jawa Barat"
+    ],
+    "Dki Jakarta": [
+      "Banten",
+      "Lampung",
+      "Jawa Barat"
+    ],
+    "Gorontalo": [
+      "Sulawesi Tengah",
+      "Sulawesi Utara",
+      "Sulawesi Barat"
+    ],
+    "Jambi": [
+      "Sumatera Selatan",
+      "Riau",
+      "Kepulauan Bangka Belitung"
+    ],
+    "Jawa Barat": [
+      "Dki Jakarta",
+      "Banten",
+      "Lampung"
+    ],
+    "Jawa Tengah": [
+      "Daerah Istimewa Yogyakarta",
+      "Jawa Barat",
+      "Jawa Timur"
+    ],
+    "Jawa Timur": [
+      "Bali",
+      "Daerah Istimewa Yogyakarta",
+      "Jawa Tengah"
+    ],
+    "Kalimantan Barat": [
+      "Kepulauan Bangka Belitung",
+      "Kalimantan Tengah",
+      "Kepulauan Riau"
+    ],
+    "Kalimantan Selatan": [
+      "Kalimantan Tengah",
+      "Kalimantan Timur",
+      "Sulawesi Barat"
+    ],
+    "Kalimantan Tengah": [
+      "Kalimantan Selatan",
+      "Kalimantan Barat",
+      "Jawa Timur"
+    ],
+    "Kalimantan Timur": [
+      "Sulawesi Barat",
+      "Kalimantan Selatan",
+      "Kalimantan Utara"
+    ],
+    "Kalimantan Utara": [
+      "Kalimantan Timur",
+      "Sulawesi Barat",
+      "Gorontalo"
+    ],
+    "Kepulauan Bangka Belitung": [
+      "Sumatera Selatan",
+      "Jambi",
+      "Lampung"
+    ],
+    "Kepulauan Riau": [
+      "Riau",
+      "Jambi",
+      "Kepulauan Bangka Belitung"
+    ],
+    "Lampung": [
+      "Banten",
+      "Dki Jakarta",
+      "Jawa Barat"
+    ],
+    "Maluku": [
+      "Papua Barat",
+      "Maluku Utara",
+      "Sulawesi Tenggara"
+    ],
+    "Maluku Utara": [
+      "Sulawesi Utara",
+      "Papua Barat",
+      "Gorontalo"
+    ],
+    "Nusa Tenggara Barat": [
+      "Bali",
+      "Jawa Timur",
+      "Sulawesi Selatan"
+    ],
+    "Nusa Tenggara Timur": [
+      "Sulawesi Selatan",
+      "Sulawesi Tenggara",
+      "Nusa Tenggara Barat"
+    ],
+    "Papua": [
+      "Papua Barat",
+      "Maluku",
+      "Maluku Utara"
+    ],
+    "Papua Barat": [
+      "Maluku Utara",
+      "Maluku",
+      "Papua"
+    ],
+    "Riau": [
+      "Jambi",
+      "Kepulauan Riau",
+      "Sumatera Barat"
+    ],
+    "Sulawesi Barat": [
+      "Kalimantan Timur",
+      "Sulawesi Tengah",
+      "Kalimantan Selatan"
+    ],
+    "Sulawesi Selatan": [
+      "Sulawesi Tenggara",
+      "Sulawesi Barat",
+      "Nusa Tenggara Timur"
+    ],
+    "Sulawesi Tengah": [
+      "Gorontalo",
+      "Sulawesi Barat",
+      "Sulawesi Tenggara"
+    ],
+    "Sulawesi Tenggara": [
+      "Sulawesi Selatan",
+      "Sulawesi Tengah",
+      "Nusa Tenggara Timur"
+    ],
+    "Sulawesi Utara": [
+      "Maluku Utara",
+      "Gorontalo",
+      "Sulawesi Tengah"
+    ],
+    "Sumatera Barat": [
+      "Jambi",
+      "Sumatera Utara",
+      "Riau"
+    ],
+    "Sumatera Selatan": [
+      "Kepulauan Bangka Belitung",
+      "Jambi",
+      "Lampung"
+    ],
+    "Sumatera Utara": [
+      "Aceh",
+      "Sumatera Barat",
+      "Riau"
+    ]
+  },
+  "PHL": {
+    "Agusan del Norte": [
+      "Agusan del Sur",
+      "Camiguin",
+      "Surigao del Sur"
+    ],
+    "Agusan del Sur": [
+      "Agusan del Norte",
+      "Misamis Oriental",
+      "Camiguin"
+    ],
+    "Aklan": [
+      "Antique",
+      "Romblon",
+      "Capiz"
+    ],
+    "Albay": [
+      "Sorsogon",
+      "Camarines Sur",
+      "Catanduanes"
+    ],
+    "Antique": [
+      "Aklan",
+      "Romblon",
+      "Capiz"
+    ],
+    "Aurora": [
+      "Pampanga",
+      "Metropolitan Manila Second District",
+      "Rizal"
+    ],
+    "Basilan": [
+      "City of Isabela (not a province)",
+      "Zamboanga del Sur",
+      "Zamboanga Sibugay"
+    ],
+    "Bataan": [
+      "Bulacan",
+      "Cavite",
+      "Metropolitan Manila First District"
+    ],
+    "Batanes": [
+      "Cagayan",
+      "Ilocos Norte",
+      "Ilocos Sur"
+    ],
+    "Batangas": [
+      "Metropolitan Manila Fourth District",
+      "Cavite",
+      "Metropolitan Manila First District"
+    ],
+    "Biliran": [
+      "Samar (Western Samar)",
+      "Masbate",
+      "Leyte"
+    ],
+    "Bohol": [
+      "Cebu",
+      "Southern Leyte",
+      "Leyte"
+    ],
+    "Bulacan": [
+      "Metropolitan Manila Third District",
+      "Cavite",
+      "Metropolitan Manila First District"
+    ],
+    "Cagayan": [
+      "Ilocos Norte",
+      "Isabela",
+      "Ilocos Sur"
+    ],
+    "Camarines Norte": [
+      "Camarines Sur",
+      "Quezon",
+      "Marinduque"
+    ],
+    "Camarines Sur": [
+      "Catanduanes",
+      "Albay",
+      "Camarines Norte"
+    ],
+    "Camiguin": [
+      "Misamis Oriental",
+      "Agusan del Norte",
+      "Bohol"
+    ],
+    "Capiz": [
+      "Aklan",
+      "Iloilo",
+      "Negros Occidental"
+    ],
+    "Catanduanes": [
+      "Camarines Sur",
+      "Albay",
+      "Sorsogon"
+    ],
+    "Cavite": [
+      "Metropolitan Manila First District",
+      "Metropolitan Manila Third District",
+      "Bulacan"
+    ],
+    "Cebu": [
+      "Leyte",
+      "Bohol",
+      "Biliran"
+    ],
+    "City of Isabela (not a province)": [
+      "Basilan",
+      "Zamboanga del Sur",
+      "Zamboanga Sibugay"
+    ],
+    "Davao de Oro (Compostela Valley)": [
+      "Davao del Sur",
+      "Davao del Norte",
+      "Davao Occidental"
+    ],
+    "Davao del Norte": [
+      "Davao de Oro (Compostela Valley)",
+      "Davao del Sur",
+      "Davao Occidental"
+    ],
+    "Davao del Sur": [
+      "Davao de Oro (Compostela Valley)",
+      "Davao del Norte",
+      "Davao Occidental"
+    ],
+    "Davao Occidental": [
+      "Davao de Oro (Compostela Valley)",
+      "Davao del Sur",
+      "Davao del Norte"
+    ],
+    "Davao Oriental": [
+      "Davao Occidental",
+      "Davao de Oro (Compostela Valley)",
+      "Davao del Sur"
+    ],
+    "Dinagat Islands": [
+      "Surigao del Norte",
+      "Surigao del Sur",
+      "Southern Leyte"
+    ],
+    "Eastern Samar": [
+      "Samar (Western Samar)",
+      "Leyte",
+      "Biliran"
+    ],
+    "Guimaras": [
+      "Negros Occidental",
+      "Iloilo",
+      "Capiz"
+    ],
+    "Ilocos Norte": [
+      "Ilocos Sur",
+      "Cagayan",
+      "La Union"
+    ],
+    "Ilocos Sur": [
+      "Ilocos Norte",
+      "La Union",
+      "Cagayan"
+    ],
+    "Iloilo": [
+      "Negros Occidental",
+      "Guimaras",
+      "Capiz"
+    ],
+    "Isabela": [
+      "Cagayan",
+      "Ilocos Sur",
+      "Ilocos Norte"
+    ],
+    "La Union": [
+      "Pangasinan",
+      "Zambales",
+      "Ilocos Sur"
+    ],
+    "Laguna": [
+      "Rizal",
+      "Metropolitan Manila Second District",
+      "Metropolitan Manila Fourth District"
+    ],
+    "Lanao del Norte": [
+      "Misamis Occidental",
+      "Zamboanga del Norte",
+      "Lanao del Sur"
+    ],
+    "Lanao del Sur": [
+      "Maguindanao del Norte",
+      "Lanao del Norte",
+      "Misamis Occidental"
+    ],
+    "Leyte": [
+      "Biliran",
+      "Cebu",
+      "Samar (Western Samar)"
+    ],
+    "Maguindanao del Norte": [
+      "Lanao del Sur",
+      "Lanao del Norte",
+      "Misamis Occidental"
+    ],
+    "Marinduque": [
+      "Quezon",
+      "Oriental Mindoro",
+      "Romblon"
+    ],
+    "Masbate": [
+      "Samar (Western Samar)",
+      "Biliran",
+      "Northern Samar"
+    ],
+    "Metropolitan Manila First District": [
+      "Cavite",
+      "Metropolitan Manila Third District",
+      "Bulacan"
+    ],
+    "Metropolitan Manila Fourth District": [
+      "Metropolitan Manila Third District",
+      "Bulacan",
+      "Cavite"
+    ],
+    "Metropolitan Manila Second District": [
+      "Rizal",
+      "Laguna",
+      "Metropolitan Manila Fourth District"
+    ],
+    "Metropolitan Manila Third District": [
+      "Bulacan",
+      "Cavite",
+      "Metropolitan Manila First District"
+    ],
+    "Misamis Occidental": [
+      "Lanao del Norte",
+      "Zamboanga del Norte",
+      "Siquijor"
+    ],
+    "Misamis Oriental": [
+      "Camiguin",
+      "Agusan del Norte",
+      "Lanao del Norte"
+    ],
+    "Negros Occidental": [
+      "Iloilo",
+      "Guimaras",
+      "Capiz"
+    ],
+    "Negros Oriental": [
+      "Siquijor",
+      "Zamboanga del Norte",
+      "Misamis Occidental"
+    ],
+    "Northern Samar": [
+      "Sorsogon",
+      "Masbate",
+      "Samar (Western Samar)"
+    ],
+    "Occidental Mindoro": [
+      "Oriental Mindoro",
+      "Batangas",
+      "Marinduque"
+    ],
+    "Oriental Mindoro": [
+      "Occidental Mindoro",
+      "Batangas",
+      "Marinduque"
+    ],
+    "Palawan": [
+      "Antique",
+      "Occidental Mindoro",
+      "Oriental Mindoro"
+    ],
+    "Pampanga": [
+      "Bataan",
+      "Bulacan",
+      "Metropolitan Manila Third District"
+    ],
+    "Pangasinan": [
+      "La Union",
+      "Zambales",
+      "Pampanga"
+    ],
+    "Quezon": [
+      "Marinduque",
+      "Laguna",
+      "Rizal"
+    ],
+    "Rizal": [
+      "Metropolitan Manila Second District",
+      "Laguna",
+      "Metropolitan Manila Fourth District"
+    ],
+    "Romblon": [
+      "Aklan",
+      "Antique",
+      "Marinduque"
+    ],
+    "Samar (Western Samar)": [
+      "Biliran",
+      "Masbate",
+      "Leyte"
+    ],
+    "Sarangani": [
+      "South Cotabato",
+      "Davao Occidental",
+      "Davao de Oro (Compostela Valley)"
+    ],
+    "Siquijor": [
+      "Negros Oriental",
+      "Zamboanga del Norte",
+      "Misamis Occidental"
+    ],
+    "Sorsogon": [
+      "Albay",
+      "Northern Samar",
+      "Camarines Sur"
+    ],
+    "South Cotabato": [
+      "Sarangani",
+      "Davao Occidental",
+      "Davao de Oro (Compostela Valley)"
+    ],
+    "Southern Leyte": [
+      "Bohol",
+      "Surigao del Norte",
+      "Dinagat Islands"
+    ],
+    "Sulu": [
+      "Tawi-Tawi",
+      "Basilan",
+      "City of Isabela (not a province)"
+    ],
+    "Surigao del Norte": [
+      "Dinagat Islands",
+      "Surigao del Sur",
+      "Southern Leyte"
+    ],
+    "Surigao del Sur": [
+      "Surigao del Norte",
+      "Dinagat Islands",
+      "Agusan del Norte"
+    ],
+    "Tawi-Tawi": [
+      "Sulu",
+      "Basilan",
+      "City of Isabela (not a province)"
+    ],
+    "Zambales": [
+      "Pampanga",
+      "Bataan",
+      "Pangasinan"
+    ],
+    "Zamboanga del Norte": [
+      "Misamis Occidental",
+      "Lanao del Norte",
+      "Siquijor"
+    ],
+    "Zamboanga del Sur": [
+      "Zamboanga Sibugay",
+      "City of Isabela (not a province)",
+      "Basilan"
+    ],
+    "Zamboanga Sibugay": [
+      "Zamboanga del Sur",
+      "Zamboanga del Norte",
+      "City of Isabela (not a province)"
+    ]
+  },
+  "THA": {
+    "Ang Thong": [
+      "Sing Buri",
+      "Phra Nakhon Si Ayutthaya",
+      "Chai Nat"
+    ],
+    "Bangkok": [
+      "Pathum Thani",
+      "Nonthaburi",
+      "Samut Prakan"
+    ],
+    "Bueng Kan": [
+      "Nong Khai",
+      "Kalasin",
+      "Udon Thani"
+    ],
+    "Chachoengsao": [
+      "Samut Prakan",
+      "Nonthaburi",
+      "Pathum Thani"
+    ],
+    "Chai Nat": [
+      "Uthai Thani",
+      "Sing Buri",
+      "Ang Thong"
+    ],
+    "Chanthaburi": [
+      "Trat",
+      "Rayong",
+      "Chon Buri"
+    ],
+    "Chiang Mai": [
+      "Chiang Rai",
+      "Phayao",
+      "Nan"
+    ],
+    "Chiang Rai": [
+      "Chiang Mai",
+      "Phayao",
+      "Nan"
+    ],
+    "Chon Buri": [
+      "Rayong",
+      "Chachoengsao",
+      "Samut Prakan"
+    ],
+    "Chumphon": [
+      "Prachuap Khiri Khan",
+      "Ranong",
+      "Surat Thani"
+    ],
+    "Kalasin": [
+      "Udon Thani",
+      "Mukdahan",
+      "Nakhon Phanom"
+    ],
+    "Kanchanaburi": [
+      "Chai Nat",
+      "Uthai Thani",
+      "Sing Buri"
+    ],
+    "Krabi": [
+      "Phuket",
+      "Trang",
+      "Phangnga"
+    ],
+    "Loei": [
+      "Nong Khai",
+      "Nan",
+      "Uttaradit"
+    ],
+    "Mukdahan": [
+      "Nakhon Phanom",
+      "Kalasin",
+      "Udon Thani"
+    ],
+    "Nakhon Phanom": [
+      "Mukdahan",
+      "Kalasin",
+      "Udon Thani"
+    ],
+    "Nakhon Si Thammarat": [
+      "Surat Thani",
+      "Chumphon",
+      "Ranong"
+    ],
+    "Nan": [
+      "Uttaradit",
+      "Loei",
+      "Phayao"
+    ],
+    "Narathiwat": [
+      "Pattani",
+      "Songkhla",
+      "Satun"
+    ],
+    "Nong Khai": [
+      "Loei",
+      "Bueng Kan",
+      "Kalasin"
+    ],
+    "Nonthaburi": [
+      "Pathum Thani",
+      "Bangkok",
+      "Samut Prakan"
+    ],
+    "Pathum Thani": [
+      "Nonthaburi",
+      "Bangkok",
+      "Samut Prakan"
+    ],
+    "Pattani": [
+      "Songkhla",
+      "Narathiwat",
+      "Satun"
+    ],
+    "Phangnga": [
+      "Phuket",
+      "Krabi",
+      "Trang"
+    ],
+    "Phayao": [
+      "Chiang Mai",
+      "Chiang Rai",
+      "Nan"
+    ],
+    "Phetchaburi": [
+      "Ratchaburi",
+      "Samut Songkhram",
+      "Samut Sakhon"
+    ],
+    "Phra Nakhon Si Ayutthaya": [
+      "Ang Thong",
+      "Sing Buri",
+      "Bangkok"
+    ],
+    "Phuket": [
+      "Krabi",
+      "Trang",
+      "Phangnga"
+    ],
+    "Prachuap Khiri Khan": [
+      "Chumphon",
+      "Surat Thani",
+      "Ranong"
+    ],
+    "Ranong": [
+      "Chumphon",
+      "Surat Thani",
+      "Nakhon Si Thammarat"
+    ],
+    "Ratchaburi": [
+      "Samut Songkhram",
+      "Samut Sakhon",
+      "Phetchaburi"
+    ],
+    "Rayong": [
+      "Chon Buri",
+      "Chachoengsao",
+      "Samut Prakan"
+    ],
+    "Samut Prakan": [
+      "Nonthaburi",
+      "Pathum Thani",
+      "Bangkok"
+    ],
+    "Samut Sakhon": [
+      "Ratchaburi",
+      "Samut Songkhram",
+      "Phetchaburi"
+    ],
+    "Samut Songkhram": [
+      "Ratchaburi",
+      "Samut Sakhon",
+      "Phetchaburi"
+    ],
+    "Satun": [
+      "Songkhla",
+      "Trang",
+      "Krabi"
+    ],
+    "Sing Buri": [
+      "Ang Thong",
+      "Phra Nakhon Si Ayutthaya",
+      "Chai Nat"
+    ],
+    "Songkhla": [
+      "Pattani",
+      "Satun",
+      "Narathiwat"
+    ],
+    "Surat Thani": [
+      "Nakhon Si Thammarat",
+      "Chumphon",
+      "Ranong"
+    ],
+    "Tak": [
+      "Chai Nat",
+      "Uthai Thani",
+      "Kanchanaburi"
+    ],
+    "Trang": [
+      "Krabi",
+      "Phuket",
+      "Phangnga"
+    ],
+    "Trat": [
+      "Chanthaburi",
+      "Rayong",
+      "Chon Buri"
+    ],
+    "Udon Thani": [
+      "Kalasin",
+      "Mukdahan",
+      "Nakhon Phanom"
+    ],
+    "Uthai Thani": [
+      "Chai Nat",
+      "Sing Buri",
+      "Ang Thong"
+    ],
+    "Uttaradit": [
+      "Nan",
+      "Loei",
+      "Phayao"
+    ]
+  }
+}
