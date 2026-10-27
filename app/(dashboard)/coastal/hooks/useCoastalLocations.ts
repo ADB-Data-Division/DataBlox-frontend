@@ -206,7 +206,7 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
   const [provinces, setProvinces] = useState<CoastalProvince[]>(() =>
     getProvincesByCountry(countryIso)
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(Boolean(countryIso));
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState<number>(0);
 
@@ -240,6 +240,9 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
           provResult.value.length > 0
         ) {
           setProvinces(provResult.value);
+        }
+        if (locResult.status === 'rejected' && provResult.status === 'rejected') {
+          setError('Could not load locations.');
         }
         setLoading(false);
       })

@@ -61,11 +61,7 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
   const [inputValue, setInputValue] = useState('');
   const [recents, setRecents] = useState<CoastalRecentSearchEntry[]>([]);
   const [nearbyProvinceResult, setNearbyProvinceResult] = useState<NearbyProvinceResult | null>(null);
-  const [nearbySource, setNearbySource] = useState<{
-    countryIso: string;
-    aoiId: string;
-  } | null>(null);
-  const [nearbySuggestionsConsumed, setNearbySuggestionsConsumed] = useState(false);
+  const [nearbySource, setNearbySource] = useState<CoastalLocation | null>(null);
   const restoredScope = useRef<string | null>(null);
 
   useEffect(() => {
@@ -73,7 +69,7 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     setInputValue('');
     setRecents(loadCoastalRecentSearches(countryIso));
     setNearbySource(null);
-    setNearbySuggestionsConsumed(false);
+    setNearbyProvinceResult(null);
   }, [countryIso]);
 
   const query = inputValue.trim().toLowerCase();
@@ -89,54 +85,33 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     return [...pseudoProvinces, ...locations.map(l => ({ ...l, type: 'port' }))];
   }, [provinces, locations, countryIso]);
 
+  // Fetch once per source province; later chip edits must not refetch or hide the row.
   useEffect(() => {
-    const selectedProvince =
-      selected.length === 1 &&
-      selected[0].type === 'province' &&
-      selected[0].aoi_id === nearbySource?.aoiId
-        ? selected[0]
-        : null;
-    if (
-      nearbySuggestionsConsumed ||
-      !nearbySource ||
-      nearbySource.countryIso !== countryIso.toUpperCase() ||
-      !selectedProvince
-    ) {
-      return;
-    }
-
+    if (!nearbySource) return;
+    const sourceCountry = countryIso.toUpperCase();
     let active = true;
-    void fetchNearbyCoastalProvinces(nearbySource.countryIso, selectedProvince.name)
+    fetchNearbyCoastalProvinces(sourceCountry, nearbySource.name)
       .then((response) => {
         if (active) {
           setNearbyProvinceResult({
-            countryIso: nearbySource.countryIso,
-            provinceName: selectedProvince.name,
+            countryIso: sourceCountry,
+            provinceName: nearbySource.name,
             names: response.suggestions,
           });
         }
       })
       .catch(() => undefined);
-
     return () => {
       active = false;
     };
-  }, [countryIso, nearbySource, nearbySuggestionsConsumed, selected]);
+  }, [countryIso, nearbySource]);
 
   const nearbySuggestions = useMemo(() => {
-    const selectedProvince =
-      selected.length === 1 &&
-      selected[0].type === 'province' &&
-      selected[0].aoi_id === nearbySource?.aoiId
-        ? selected[0]
-        : null;
     if (
-      nearbySuggestionsConsumed ||
       !nearbySource ||
-      nearbySource.countryIso !== countryIso.toUpperCase() ||
-      !selectedProvince ||
-      nearbyProvinceResult?.countryIso !== nearbySource.countryIso ||
-      nearbyProvinceResult?.provinceName !== selectedProvince.name
+      !selected.some((location) => location.aoi_id === nearbySource.aoi_id) ||
+      nearbyProvinceResult?.countryIso !== countryIso.toUpperCase() ||
+      nearbyProvinceResult.provinceName !== nearbySource.name
     ) {
       return [];
     }
@@ -145,7 +120,7 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
         allLocations.some((location) => location.type === 'province' && location.name === name) &&
         !selected.some((location) => location.type === 'province' && location.name === name)
     );
-  }, [allLocations, countryIso, nearbyProvinceResult, nearbySource, nearbySuggestionsConsumed, selected]);
+  }, [allLocations, countryIso, nearbyProvinceResult, nearbySource, selected]);
 
   const initialScopeKey = `${countryIso.toUpperCase()}|${initialAoiIds.join(',')}`;
   useEffect(() => {
@@ -179,20 +154,10 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
       const isSelected = selected.some((item) => item.aoi_id === aoiId);
       if (isSelected) {
         setSelected((current) => current.filter((item) => item.aoi_id !== aoiId));
-        if (aoiId === nearbySource?.aoiId) {
-          setNearbySuggestionsConsumed(true);
-        }
       } else {
         setSelected((current) => [...current, option.location]);
-        if (
-          selected.length === 0 &&
-          option.location.type === 'province' &&
-          !nearbySource &&
-          !nearbySuggestionsConsumed
-        ) {
-          setNearbySource({ countryIso: countryIso.toUpperCase(), aoiId });
-        } else if (nearbySource) {
-          setNearbySuggestionsConsumed(true);
+        if (selected.length === 0 && option.location.type === 'province') {
+          setNearbySource(option.location);
         }
       }
       setInputValue('');
@@ -202,7 +167,6 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
       setSelected(mapAoiIdsToLocations(option.entry.aoi_ids, allLocations));
       setInputValue('');
       setNearbySource(null);
-      setNearbySuggestionsConsumed(true);
       return;
     }
     clearCoastalRecentSearches(countryIso);
@@ -219,31 +183,22 @@ export function LocationSearch({ countryIso, initialAoiIds = [], onSubmit }: Loc
     saveCoastalRecentSearches(countryIso, nextRecents);
     onSubmit?.(selected);
     setInputValue('');
-    setNearbySuggestionsConsumed(true);
   };
 
   const handleRemoveChip = (aoiId: string) => {
     setSelected((current) => current.filter((item) => item.aoi_id !== aoiId));
-    if (aoiId === nearbySource?.aoiId) {
-      setNearbySuggestionsConsumed(true);
-    }
   };
 
   const handleAddNearbyProvince = (provinceName: string) => {
     const province = allLocations.find(
       (location) => location.type === 'province' && location.name === provinceName
     );
-    if (!province) {
-      setNearbySuggestionsConsumed(true);
-      return;
-    }
-
+    if (!province) return;
     setSelected((current) =>
       current.some((location) => location.aoi_id === province.aoi_id)
         ? current
         : [...current, province]
     );
-    setNearbySuggestionsConsumed(true);
   };
 
   return (
