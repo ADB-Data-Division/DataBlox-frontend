@@ -1,19 +1,26 @@
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cellToLatLng, isValidCell } from 'h3-js';
 
-// Nearby ranking uses each province's Coastal AOIs and their H3 cell centers.
-// The resulting spherical centroids approximate coastal grid coverage; they
-// do not measure exact distances between province boundaries.
+// Use the backend's province-assigned H3 sidecar so every enabled Coastal
+// country can be ranked from its actual province grid coverage.
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(scriptDir, '..');
+const backendDataDir = path.resolve(
+  frontendRoot,
+  '../DataBlox-backend/app/api/v1/endpoints/coastal/data'
+);
 const hierarchyPath = process.argv[2]
   ? path.resolve(process.argv[2])
-  : path.resolve(
-      frontendRoot,
-      '../DataBlox-backend/app/api/v1/endpoints/coastal/data/provinces_hierarchy.json'
-    );
-const gridDir = path.join(frontendRoot, 'public/data/coastal/grids');
+  : path.join(backendDataDir, 'provinces_hierarchy.json');
+const hexesPath = process.argv[3]
+  ? path.resolve(process.argv[3])
+  : path.join(backendDataDir, 'provinces_hexes.parquet');
+const countriesPath = process.argv[4]
+  ? path.resolve(process.argv[4])
+  : path.join(backendDataDir, 'countries.json');
 const outputPath = path.join(
   frontendRoot,
   'app/(dashboard)/coastal/data/nearby-provinces.json'
@@ -65,65 +72,80 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-const hierarchy = readJson(hierarchyPath);
-const lookup = {};
-const gridFiles = fs
-  .readdirSync(gridDir)
-  .filter((fileName) => fileName.endsWith('.json'))
-  .sort();
+function readProvinceHexes() {
+  const readerPath = path.join(scriptDir, 'read-coastal-province-hexes.py');
+  const python = spawnSync(
+    process.env.PYTHON ?? 'python3',
+    [readerPath, hexesPath],
+    { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }
+  );
 
-if (gridFiles.length === 0) {
-  throw new Error(`No Coastal grid files found in ${gridDir}`);
+  if (python.error || python.status !== 0) {
+    const detail = python.error?.message ?? python.stderr.trim();
+    throw new Error(
+      `Could not read ${hexesPath}. Ensure Python has the backend DuckDB dependency installed. ${detail}`
+    );
+  }
+
+  return JSON.parse(python.stdout);
 }
 
-for (const fileName of gridFiles) {
-  const countryIso = path.basename(fileName, '.json').toUpperCase();
+const hierarchy = readJson(hierarchyPath);
+const countryMetadata = readJson(countriesPath);
+const provinceHexes = readProvinceHexes();
+const enabledCountries = Object.entries(countryMetadata)
+  .filter(([, metadata]) => metadata.enabled !== false)
+  .map(([countryIso]) => countryIso.toUpperCase())
+  .sort();
+const lookup = {};
+
+if (enabledCountries.length === 0) {
+  throw new Error(`No enabled Coastal countries found in ${countriesPath}`);
+}
+
+for (const countryIso of enabledCountries) {
   const country = hierarchy[countryIso];
+  const provinceHexMap = provinceHexes[countryIso];
   if (!country || !Array.isArray(country.provinces)) {
     throw new Error(`Missing province hierarchy for ${countryIso} in ${hierarchyPath}`);
   }
+  if (!provinceHexMap) {
+    throw new Error(`Missing province-assigned H3 cells for ${countryIso} in ${hexesPath}`);
+  }
 
-  const grid = readJson(path.join(gridDir, fileName));
-  const countryProvincePoints = new Map();
+  const countryProvincePoints = new Map(
+    country.provinces.map((province) => [province.name, []])
+  );
 
-  for (const province of country.provinces) {
-    const pointsByCell = new Map();
-
-    for (const aoiId of province.aois ?? []) {
-      const cells = grid[aoiId];
-      if (!Array.isArray(cells)) {
-        throw new Error(`${countryIso}/${province.name} references missing AOI ${aoiId}`);
-      }
-
-      for (const cell of cells) {
-        if (
-          Number.isFinite(cell.lat) &&
-          Number.isFinite(cell.lng) &&
-          cell.lat >= -90 &&
-          cell.lat <= 90 &&
-          cell.lng >= -180 &&
-          cell.lng <= 180
-        ) {
-          const cellKey =
-            typeof cell.id === 'string' ? cell.id : `${cell.lat.toFixed(6)}:${cell.lng.toFixed(6)}`;
-          pointsByCell.set(cellKey, { lat: cell.lat, lng: cell.lng });
-        }
-      }
+  for (const [provinceName, cells] of Object.entries(provinceHexMap)) {
+    const points = countryProvincePoints.get(provinceName);
+    if (!points) {
+      throw new Error(`${countryIso}/${provinceName} is missing from the province hierarchy`);
     }
 
-    const points = [...pointsByCell.values()];
+    for (const cell of cells) {
+      if (!isValidCell(cell)) {
+        throw new Error(`${countryIso}/${provinceName} has invalid H3 cell ${cell}`);
+      }
+      const [lat, lng] = cellToLatLng(cell);
+      points.push({ lat, lng });
+    }
+  }
+
+  const provinceCenters = new Map();
+  for (const [provinceName, points] of countryProvincePoints) {
     if (points.length === 0) {
-      throw new Error(`${countryIso}/${province.name} has no usable Coastal grid centers`);
+      throw new Error(`${countryIso}/${provinceName} has no province-assigned Coastal H3 cells`);
     }
-    countryProvincePoints.set(province.name, getSphericalCentroid(points));
+    provinceCenters.set(provinceName, getSphericalCentroid(points));
   }
 
   lookup[countryIso] = Object.fromEntries(
-    [...countryProvincePoints.entries()]
+    [...provinceCenters.entries()]
       .sort(([first], [second]) => first.localeCompare(second))
       .map(([provinceName, center]) => [
         provinceName,
-        [...countryProvincePoints.entries()]
+        [...provinceCenters.entries()]
           .filter(([otherName]) => otherName !== provinceName)
           .map(([otherName, otherCenter]) => ({
             name: otherName,
@@ -141,4 +163,6 @@ for (const fileName of gridFiles) {
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${JSON.stringify(lookup, null, 2)}\n`);
-console.log(`Generated nearby province lookup for ${gridFiles.length} Coastal countries: ${outputPath}`);
+console.log(
+  `Generated nearby province lookup for ${enabledCountries.length} Coastal countries: ${outputPath}`
+);

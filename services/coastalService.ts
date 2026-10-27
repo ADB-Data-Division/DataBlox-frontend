@@ -97,7 +97,7 @@ async function fetchCoastalApi<T>(
 }
 
 /**
- * 1. Fetch metadata for all supported coastal countries (THA, IDN, PHL, BGD).
+ * 1. Fetch metadata for all enabled Coastal countries.
  */
 export async function fetchCoastalCountries(
   engine?: "duckdb" | "postgres"
