@@ -43,6 +43,15 @@ describe('vessel timeline type model', () => {
     expect(merged[0].sub_types).toEqual(typeTotals[0].sub_types);
   });
 
+  it('scales type counts to shares of the H3 average so lines sum to the headline value', () => {
+    const merged = mergeVesselTimelineTypeData([{ ...timeline[0], metric_value: 1.6 }], timeline, true);
+
+    expect(merged[0].categories?.Trade).toBeCloseTo(1);
+    expect(merged[0].categories?.Research).toBeCloseTo(0.6);
+    expect(merged[0].sub_types?.Trade.Cargo).toBeCloseTo(0.6);
+    expect(Object.values(merged[0].categories || {}).reduce((a, b) => a + b, 0)).toBeCloseTo(1.6);
+  });
+
   it('builds groups from API parent and nested subtype labels', () => {
     expect(getVesselTimelineTypeGroups(timeline)).toEqual([
       { category: 'Trade', subtypes: ['Cargo', 'Tanker'] },

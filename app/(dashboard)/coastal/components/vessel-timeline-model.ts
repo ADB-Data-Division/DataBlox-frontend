@@ -10,6 +10,7 @@ export interface VesselTypeGroup {
 }
 
 export interface VesselTimelineSeries {
+  id?: string;
   dataKey: string;
   label: string;
   color: string;
@@ -41,10 +42,22 @@ export function shouldShowVesselTypeSeries(
   return metric === 'Vessel Count' && groups.length > 0;
 }
 
-/** Keep the selected backend metric values while attaching available type totals. */
+function scaleCounts(counts: Record<string, number> | undefined, factor: number) {
+  return Object.fromEntries(
+    Object.entries(counts || {}).map(([key, value]) => [key, value * factor]),
+  );
+}
+
+/**
+ * Keep the selected backend metric values while attaching available type totals.
+ * With `scaleToMetric`, type counts become shares of the metric value (the H3
+ * average), so the type lines sum to the headline number. The split assumes the
+ * type mix is the same in every cell.
+ */
 export function mergeVesselTimelineTypeData(
   metricTimeline: VesselTimelinePoint[],
   typeTimeline: VesselTimelinePoint[],
+  scaleToMetric = false,
 ): VesselTimelinePoint[] {
   const typePointsByPeriod = new Map(
     typeTimeline.map((point) => [point.period_start.slice(0, 10), point]),
@@ -54,16 +67,29 @@ export function mergeVesselTimelineTypeData(
     const typePoint = typePointsByPeriod.get(point.period_start.slice(0, 10));
     if (!typePoint) return point;
 
+    let factor = 1;
+    if (scaleToMetric) {
+      const typeTotal = Object.values(typePoint.categories || {}).reduce((sum, v) => sum + v, 0);
+      factor = typeTotal > 0 ? Number(point.metric_value ?? point.average_vessels_per_cell ?? 0) / typeTotal : 0;
+    }
+    const scale = (value: number | undefined) => (value === undefined ? value : value * factor);
+
     return {
       ...point,
-      trade: typePoint.trade,
-      harbor: typePoint.harbor,
-      recreation: typePoint.recreation,
-      miscellaneous: typePoint.miscellaneous,
-      cargo: typePoint.cargo,
-      tanker: typePoint.tanker,
-      categories: typePoint.categories,
-      sub_types: typePoint.sub_types,
+      trade: scale(typePoint.trade),
+      harbor: scale(typePoint.harbor),
+      recreation: scale(typePoint.recreation),
+      miscellaneous: scale(typePoint.miscellaneous),
+      cargo: scale(typePoint.cargo),
+      tanker: scale(typePoint.tanker),
+      categories: scaleToMetric ? scaleCounts(typePoint.categories, factor) : typePoint.categories,
+      sub_types: scaleToMetric
+        ? Object.fromEntries(
+          Object.entries(typePoint.sub_types || {}).map(([category, subtypes]) => [
+            category, scaleCounts(subtypes, factor),
+          ]),
+        )
+        : typePoint.sub_types,
       category_breakdown_available: typePoint.category_breakdown_available,
     };
   });
@@ -149,6 +175,7 @@ export function buildVesselTypeSeries(
       const visibilityKey = subtypeVisibilityKey(category, subtype);
       if (visibleSubtypes[visibilityKey] === false) continue;
       series.push({
+        id: `sub-${series.length}-${category}-${subtype}`.replace(/[^\w-]/g, '_'),
         dataKey: subtypeSeriesKey(category, subtype),
         label: `${subtype} · ${category}`,
         color,

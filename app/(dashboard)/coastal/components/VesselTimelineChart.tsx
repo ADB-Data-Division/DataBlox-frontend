@@ -63,6 +63,8 @@ function CustomAxisTooltip({
   if (!item || !point) return null;
   const categories = point.categories || {};
   const subTypes = point.sub_types || {};
+  const isAverageCount = metric === 'Vessel Count' && aggregation === 'average';
+  const unit = isAverageCount ? 'vessels per cell' : 'vessels';
 
   return (
     <Paper sx={{ p: 1.5, minWidth: 200, boxShadow: 3, borderRadius: 1.5 }}>
@@ -76,11 +78,11 @@ function CustomAxisTooltip({
         {Object.keys(categories).length > 0 ? Object.entries(categories).map(([category, value]) => (
           <Box key={category} sx={{ mb: 0.5 }}>
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              {category}: {value.toLocaleString()} vessels
+              {category}: {value.toLocaleString()} {unit}
             </Typography>
             {Object.entries(subTypes[category] || {}).map(([subtype, count]) => (
               <Typography key={`${category}:${subtype}`} variant="caption" color="text.secondary" display="block" sx={{ pl: 1 }}>
-                {subtype}: {count.toLocaleString()} vessels
+                {subtype}: {count.toLocaleString()} {unit}
               </Typography>
             ))}
           </Box>
@@ -95,12 +97,6 @@ function CustomAxisTooltip({
           </>
         )}
 
-        {Object.keys(categories).length > 0 && metric === 'Vessel Count' && aggregation === 'average' && (
-          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-            Average across H3 cells: {item.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })} vessels per cell
-          </Typography>
-        )}
-
         {Object.keys(categories).length > 0 && <Box
           sx={{
             mt: 1,
@@ -112,12 +108,19 @@ function CustomAxisTooltip({
           }}
         >
           <Typography variant="caption" sx={{ fontWeight: 700 }}>
-            Total:
+            {isAverageCount ? "Average per H3 cell:" : "Total:"}
           </Typography>
           <Typography variant="caption" sx={{ fontWeight: 700 }}>
-            {item.total_vessels.toLocaleString()} vessels
+            {isAverageCount
+              ? item.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+              : item.total_vessels.toLocaleString()} {unit}
           </Typography>
         </Box>}
+        {isAverageCount && Object.keys(categories).length > 0 && (
+          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+            A vessel crossing cells counts in each.
+          </Typography>
+        )}
       </Box>
     </Paper>
   );
@@ -244,6 +247,7 @@ export default function VesselTimelineChart({
           },
         ]}
         series={series}
+        sx={{ '& [class*="MuiLineElement-series-sub-"]': { strokeDasharray: '6 4' } }}
         margin={{ left: 60, right: 40, top: 20, bottom: 30 }}
         slots={{
           axisContent: (props: any) => (

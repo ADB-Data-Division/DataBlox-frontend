@@ -457,7 +457,7 @@ export function VesselSummaryCards({
       return [
         {
           title: aggregation === 'average'
-            ? `Mean of period ${metric.toLowerCase()} averages`
+            ? isVesselCount ? 'Average vessels per H3 cell' : `Mean of period ${metric.toLowerCase()} averages`
             : `Total ${metric.toLowerCase()} across periods`,
           value: `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${metricUnit}`,
           numericVal: value,
@@ -505,7 +505,9 @@ export function VesselSummaryCards({
     if (aggregation === 'average' || !isVesselCount) {
       return [
         {
-          title: `Peak ${metric.toLowerCase()} value (${grainLabel})`,
+          title: aggregation === 'average' && isVesselCount
+            ? `Peak ${grainLabel.toLowerCase()} average`
+            : `Peak ${metric.toLowerCase()} value (${grainLabel})`,
           value: `${metricPeak.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${metricUnit}`,
           numericVal: metricPeak,
           observed: metricPeakPeriod,

@@ -229,9 +229,9 @@ export function PageContent() {
   }, [typeTimelineResponse]);
   const chartTimelineData = useMemo(
     () => metricValue === 'vessel_count'
-      ? mergeVesselTimelineTypeData(timelineData, typeTimelineData)
+      ? mergeVesselTimelineTypeData(timelineData, typeTimelineData, aggFunc === 'average')
       : timelineData,
-    [metricValue, timelineData, typeTimelineData],
+    [aggFunc, metricValue, timelineData, typeTimelineData],
   );
   const vesselTypeGroups = useMemo(
     () => getVesselTimelineTypeGroups(chartTimelineData),
@@ -599,7 +599,7 @@ export function PageContent() {
       vesselTypeGroups,
       aggregatedMetricLabel(metricValue, aggFunc),
       showVesselTypeSeries,
-      aggFunc === 'average' && showVesselTypeSeries ? ' (estimated period total)' : '',
+      aggFunc === 'average' && showVesselTypeSeries ? ' (avg per H3 cell)' : '',
     );
     exportToCsv(filename, rows, headers);
   };
@@ -611,7 +611,7 @@ export function PageContent() {
       vesselTypeGroups,
       aggregatedMetricLabel(metricValue, aggFunc),
       showVesselTypeSeries,
-      aggFunc === 'average' && showVesselTypeSeries ? ' (estimated period total)' : '',
+      aggFunc === 'average' && showVesselTypeSeries ? ' (avg per H3 cell)' : '',
     );
     exportToExcel(filename, 'Vessels', rows, headers);
   };
@@ -622,7 +622,7 @@ export function PageContent() {
   };
 
   const timelineTitle = `${showVesselTypeSeries
-    ? aggFunc === 'average' ? 'Vessel counts by type (estimated period totals)' : 'Vessel counts by type'
+    ? aggFunc === 'average' ? 'Average vessels per H3 cell by type' : 'Vessel counts by type'
     : aggregatedMetricLabel(metricValue, aggFunc)} (${grain.charAt(0).toUpperCase() + grain.slice(1)}) : ${locationLabel}`;
 
   const handleExportGraph = () => {
@@ -795,11 +795,16 @@ export function PageContent() {
                 <Typography variant="caption" color="text.secondary">
                   {start_date} to {end_date}
                 </Typography>
-                {aggFunc === 'average' && showVesselTypeSeries && (
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Type lines show estimated period totals because source types are not assigned to H3 cells. The H3 average appears in the summary and chart tooltip.
+                <Stack direction="row" spacing={0.75} useFlexGap sx={{ mt: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Across H3 cells:
                   </Typography>
-                )}
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`${VESSEL_METRICS.find((item) => item.value === metricValue)?.label ?? 'Vessels'} · ${aggFunc === 'average' ? 'Average' : 'Total'}`}
+                  />
+                </Stack>
                 <Box id="coastal-vessels-chart-container" sx={{ height: 400, mt: 2 }}>
                   <VesselTimelineChart
                     data={chartTimelineData}
@@ -844,11 +849,9 @@ export function PageContent() {
 
                   {showVesselTypeSeries ? (
                     <>
-                      {typeTimelineResponse?.category_breakdown_note && (
-                        <Alert severity="info" sx={{ mb: 1.5 }}>
-                          {typeTimelineResponse.category_breakdown_note}{aggFunc === 'average' ? ' The selected H3 average is shown in the summary and chart tooltip.' : ''}
-                        </Alert>
-                      )}
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                        {aggFunc === 'average' ? 'Split by province-wide type share' : 'Estimated from province-wide type share'}
+                      </Typography>
                       {vesselTypeGroups.map(({ category, subtypes }) => {
                     const color = vesselCategoryColor(category);
                     return (
