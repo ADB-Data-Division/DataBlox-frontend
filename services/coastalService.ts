@@ -8,6 +8,7 @@ import type {
   CoastalIndicatorMetadata,
   CoastalLocation,
   CoastalProvince,
+  NearbyCoastalProvincesResponse,
   IndicatorTimelineResponse,
   GeoJSONFeature,
   GeoJSONFeatureCollection,
@@ -31,6 +32,7 @@ const API_BASE_URL =
 
 // In-memory cache for static GeoJSON polygons to eliminate repeated network fetches
 const _gridCache = new Map<string, GeoJSONFeatureCollection>();
+const _nearbyProvinceCache = new Map<string, Promise<NearbyCoastalProvincesResponse>>();
 
 /**
  * Helper to resolve the client access token from the active session.
@@ -123,6 +125,41 @@ export async function fetchCoastalProvinces(
   engine?: "duckdb" | "postgres"
 ): Promise<CoastalProvince[]> {
   return fetchCoastalApi<CoastalProvince[]>("/provinces", { country }, engine);
+}
+
+/** Fetch three nearby provinces for one selected coastal province. */
+export async function fetchNearbyCoastalProvinces(
+  country: string,
+  province: string,
+  engine?: "duckdb" | "postgres"
+): Promise<NearbyCoastalProvincesResponse> {
+  const countryIso = country.trim().toUpperCase();
+  const provinceName = province.trim();
+  const cacheKey = `${countryIso}|${provinceName.toLowerCase()}|${engine ?? "default"}`;
+  const cached = _nearbyProvinceCache.get(cacheKey);
+  if (cached) return cached;
+
+  const request = fetchCoastalApi<NearbyCoastalProvincesResponse>(
+    "/provinces/nearby",
+    { country: countryIso, province: provinceName },
+    engine
+  ).then((response) => {
+    if (
+      response.country_iso !== countryIso ||
+      response.province?.toLowerCase() !== provinceName.toLowerCase() ||
+      !Array.isArray(response.suggestions) ||
+      response.suggestions.some((name) => typeof name !== "string")
+    ) {
+      throw new Error("Invalid nearby-province response.");
+    }
+    return { ...response, suggestions: response.suggestions.slice(0, 3) };
+  }).catch((error: unknown) => {
+    _nearbyProvinceCache.delete(cacheKey);
+    throw error;
+  });
+
+  _nearbyProvinceCache.set(cacheKey, request);
+  return request;
 }
 
 

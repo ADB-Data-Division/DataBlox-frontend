@@ -123,6 +123,12 @@ export interface CoastalProvince {
   total_hexagons?: number;
 }
 
+export interface NearbyCoastalProvincesResponse {
+  country_iso: string;
+  province: string;
+  suggestions: string[];
+}
+
 export interface CoastalLocation {
   id?: string | null;
   aoi_id: string;

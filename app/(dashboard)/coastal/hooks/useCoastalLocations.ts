@@ -223,9 +223,7 @@ export function useCoastalLocations(countryIso: string): UseCoastalLocationsResu
     setError(null);
 
     const staticProvs = getProvincesByCountry(countryIso);
-    if (staticProvs.length > 0) {
-      setProvinces(staticProvs);
-    }
+    setProvinces(staticProvs);
 
     Promise.allSettled([
       fetchCoastalLocations(countryIso),
