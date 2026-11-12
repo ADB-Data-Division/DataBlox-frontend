@@ -46,6 +46,12 @@ export function formatBytes(bytes?: number): string {
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
+/** First dropped file. A busy slot takes no drops. */
+export function droppedFile(files: FileList | null | undefined, disabled: boolean): File | undefined {
+  if (disabled) return undefined;
+  return files?.[0];
+}
+
 /** Publish button gating: readiness from the server plus the checkbox. */
 export function canPublish(
   readiness: boolean,

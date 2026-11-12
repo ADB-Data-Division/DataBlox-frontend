@@ -6,9 +6,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   canPublish,
+  droppedFile,
   showsCountryPicker,
   slotsForMode,
 } from "@/app/(dashboard)/coastal/admin/upload/components/upload-helpers";
+import { FileSlot } from "@/app/(dashboard)/coastal/admin/upload/components/FileSlot";
 import { PublishBar } from "@/app/(dashboard)/coastal/admin/upload/components/PublishBar";
 import { AccessDenied } from "@/app/(dashboard)/coastal/admin/upload/components/AccessDenied";
 
@@ -61,6 +63,31 @@ describe("PublishBar", () => {
       <PublishBar {...baseProps} readiness={false} />
     );
     expect(notReady).toMatch(/disabled/);
+  });
+});
+
+describe("droppedFile", () => {
+  it("takes the first dropped file unless the slot is busy", () => {
+    const file = { name: "monthly.parquet" } as File;
+    expect(droppedFile([file] as unknown as FileList, false)).toBe(file);
+    expect(droppedFile([file] as unknown as FileList, true)).toBeUndefined();
+    expect(droppedFile(null, false)).toBeUndefined();
+  });
+});
+
+describe("FileSlot", () => {
+  it("shows a drop area next to the file button", () => {
+    const html = renderToStaticMarkup(
+      <FileSlot
+        label="Monthly report"
+        required
+        inputId="file-monthly"
+        status="idle"
+        onSelect={() => {}}
+      />
+    );
+    expect(html).toMatch(/Drop file here/);
+    expect(html).toMatch(/Choose file/);
   });
 });
 

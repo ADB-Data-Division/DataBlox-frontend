@@ -68,6 +68,17 @@ export default function PageContent() {
   const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Stops the browser opening a file dropped outside a slot.
+    const block = (event: DragEvent) => event.preventDefault();
+    window.addEventListener("dragover", block);
+    window.addEventListener("drop", block);
+    return () => {
+      window.removeEventListener("dragover", block);
+      window.removeEventListener("drop", block);
+    };
+  }, []);
+
+  useEffect(() => {
     checkAllowed()
       .then((result) => {
         setGateEmail(result.email);

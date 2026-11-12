@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { formatBytes } from "./upload-helpers";
+import { droppedFile, formatBytes } from "./upload-helpers";
 
 export type FileSlotStatus = "idle" | "selected" | "uploading" | "done" | "error";
 
@@ -41,12 +41,33 @@ export function FileSlot({
   disabled,
   onSelect,
 }: FileSlotProps) {
+  const [dragging, setDragging] = useState(false);
   const progress =
     sizeBytes && uploadedBytes !== undefined
       ? Math.min(100, (uploadedBytes / Math.max(1, sizeBytes)) * 100)
       : 0;
   return (
-    <Card variant="outlined">
+    <Card
+      variant="outlined"
+      onDragOver={(event) => {
+        if (disabled) return;
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setDragging(false);
+        }
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        const file = droppedFile(event.dataTransfer.files, Boolean(disabled));
+        if (file) {
+          onSelect(file);
+        }
+      }}
+    >
       <CardContent>
         <Stack spacing={1.5}>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -84,25 +105,40 @@ export function FileSlot({
               {error}
             </Typography>
           )}
-          <Box>
-            <input
-              id={inputId}
-              type="file"
-              hidden
-              disabled={disabled}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) {
-                  onSelect(file);
-                }
-              }}
-            />
-            <label htmlFor={inputId}>
-              <Button variant="outlined" component="span" disabled={disabled}>
-                Choose file
-              </Button>
-            </label>
-          </Box>
+          <Stack
+            alignItems="center"
+            spacing={1}
+            sx={{
+              py: 2,
+              border: 1,
+              borderStyle: "dashed",
+              borderColor: dragging ? "primary.main" : "divider",
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Drop file here
+            </Typography>
+            <Box>
+              <input
+                id={inputId}
+                type="file"
+                hidden
+                disabled={disabled}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    onSelect(file);
+                  }
+                }}
+              />
+              <label htmlFor={inputId}>
+                <Button variant="outlined" component="span" disabled={disabled}>
+                  Choose file
+                </Button>
+              </label>
+            </Box>
+          </Stack>
         </Stack>
       </CardContent>
     </Card>
