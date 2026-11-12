@@ -7,6 +7,7 @@ import coastalReducer, {
   setAggFunc,
   resetFilters,
 } from '@/app/store/features/coastalSlice';
+import { COASTAL_DATA_END_DATE } from '@/types/coastal';
 
 describe('Coastal Redux State Slice', () => {
   const initialState = {
@@ -14,7 +15,7 @@ describe('Coastal Redux State Slice', () => {
     aois: [],
     dateRange: {
       start_date: '2019-01-01',
-      end_date: '2025-12-31',
+      end_date: COASTAL_DATA_END_DATE,
     },
     grain: 'monthly' as const,
     indicators: ['chlor_a', 'vessels'],

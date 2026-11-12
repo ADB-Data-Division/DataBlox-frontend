@@ -5,6 +5,9 @@
 
 export type CoastalGrain = "monthly" | "weekly" | "annually";
 
+// shortcut: one fixed end date for every page and the picker, bump it after each publish
+export const COASTAL_DATA_END_DATE = "2026-08-31";
+
 export type CoastalIndicator =
   | "chlor_a"
   | "spm"

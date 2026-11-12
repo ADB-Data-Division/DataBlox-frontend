@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import type { CoastalAggFunc, CoastalGrain } from '@/types/coastal';
+import { COASTAL_DATA_END_DATE } from '@/types/coastal';
 import { isKnownIndicatorId } from '../indicators';
 
 export interface CoastalUrlParams {
@@ -26,7 +27,7 @@ export function useCoastalUrlParams() {
     const aoisParam = searchParams.get('aois');
     const aois = aoisParam ? aoisParam.split(',').filter(Boolean) : [];
     const start_date = searchParams.get('start_date') || '2019-01-01';
-    const end_date = searchParams.get('end_date') || '2025-12-31';
+    const end_date = searchParams.get('end_date') || COASTAL_DATA_END_DATE;
     const grain = (searchParams.get('grain') as CoastalGrain) || 'monthly';
     const indicatorsParam = searchParams.get('indicators');
     const parsed = indicatorsParam
