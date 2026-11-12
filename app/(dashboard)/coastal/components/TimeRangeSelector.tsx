@@ -11,6 +11,7 @@ import {
   FormControl,
 } from '@mui/material';
 import { AggLevelSelect, type CoastalGrain } from './AggLevelSelect';
+import { COASTAL_DATA_END_DATE } from '@/types/coastal';
 
 export type { CoastalGrain };
 
@@ -35,7 +36,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   endDate,
   grain,
   minDate = '2019-01-01',
-  maxDate = '2025-12-31',
+  maxDate = COASTAL_DATA_END_DATE,
   onRangeChange,
   onGrainChange,
   mapView = false,

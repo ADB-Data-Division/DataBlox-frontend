@@ -23,6 +23,7 @@ import type {
   VesselTimelineParams,
   VesselDistributionParams,
 } from "../types/coastal";
+import { COASTAL_DATA_END_DATE } from "../types/coastal";
 import { parseScope } from "../src/utils/coastalScope";
 
 const API_BASE_URL =
@@ -465,7 +466,7 @@ export async function fetchHexCellTimeSeries(
       country: params.country,
       cell_id: params.cell_id,
       start_date: params.start_date || "2019-01-01",
-      end_date: params.end_date || "2025-12-31",
+      end_date: params.end_date || COASTAL_DATA_END_DATE,
       grain: params.grain || "monthly",
     },
     params.engine

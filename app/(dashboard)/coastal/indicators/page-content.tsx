@@ -37,6 +37,7 @@ import type {
   IndicatorTimelinePoint,
   IndicatorTimelineResponse,
 } from '@/types/coastal';
+import { COASTAL_DATA_END_DATE } from '@/types/coastal';
 import { SummaryCards } from '../components/SummaryCards';
 import { DetailsCard } from '../components/DetailsCard';
 import { IndicatorTimelineChart, formatPeriodLabel } from '../components/IndicatorTimelineChart';
@@ -147,7 +148,7 @@ export function PageContent() {
   const aoi_id = searchParams.get('aois') || undefined;
   const rawNames = searchParams.get('names');
   const start_date = searchParams.get('start_date') || '2019-01-01';
-  const end_date = searchParams.get('end_date') || '2025-12-31';
+  const end_date = searchParams.get('end_date') || COASTAL_DATA_END_DATE;
   const grainParam = (searchParams.get('grain') as CoastalGrain) || 'monthly';
   const initialView = resolveInitialView(searchParams.get('view'));
 
