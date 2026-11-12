@@ -5,7 +5,7 @@
 
 export type UploadMode = "replace" | "new";
 
-export type SlotKey = "monthly" | "weekly" | "vessel" | "grid" | "adm";
+export type SlotKey = "monthly" | "weekly" | "vessel" | "grid" | "adm" | "study_area";
 
 export interface SlotSpec {
   key: SlotKey;
@@ -19,15 +19,19 @@ const ALL_SLOTS: SlotSpec[] = [
   { key: "vessel", label: "Vessel activity", required: false },
   { key: "grid", label: "Map areas", required: false },
   { key: "adm", label: "Region boundaries", required: false },
+  { key: "study_area", label: "Study areas", required: false },
 ];
+
+/** Slots a new country must upload. Study areas stay optional. */
+const NEW_COUNTRY_SLOTS: SlotKey[] = ["monthly", "weekly", "vessel", "grid", "adm"];
 
 /**
  * File slots for a mode. Replace needs both ABT grains, everything else
- * optional. New country needs all five kinds.
+ * optional. New country needs the five base kinds.
  */
 export function slotsForMode(mode: UploadMode): SlotSpec[] {
   if (mode === "new") {
-    return ALL_SLOTS.map((slot) => ({ ...slot, required: true }));
+    return ALL_SLOTS.map((slot) => ({ ...slot, required: NEW_COUNTRY_SLOTS.includes(slot.key) }));
   }
   return ALL_SLOTS;
 }

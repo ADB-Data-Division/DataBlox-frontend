@@ -15,10 +15,11 @@ import { PublishBar } from "@/app/(dashboard)/coastal/admin/upload/components/Pu
 import { AccessDenied } from "@/app/(dashboard)/coastal/admin/upload/components/AccessDenied";
 
 describe("slotsForMode", () => {
-  it("requires all five slots for a new country", () => {
+  it("requires the five base slots for a new country and keeps study areas optional", () => {
     const slots = slotsForMode("new");
-    expect(slots).toHaveLength(5);
-    expect(slots.every((slot) => slot.required)).toBe(true);
+    expect(slots).toHaveLength(6);
+    const required = slots.filter((slot) => slot.required).map((slot) => slot.key);
+    expect(required).toEqual(["monthly", "weekly", "vessel", "grid", "adm"]);
   });
 
   it("requires only the ABT grains for replace", () => {
