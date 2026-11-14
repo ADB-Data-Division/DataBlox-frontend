@@ -20,12 +20,12 @@ describe('Coastal Spatial Grid & Color Scales', () => {
 
   describe('Color scale functions', () => {
     it('maps Chlorophyll-a values accurately', () => {
-      expect(getChlorophyllColor(0).toLowerCase()).toBe('#22c55e');
-      expect(getChlorophyllColor(10).toLowerCase()).toBe('#eab308');
-      expect(getChlorophyllColor(20).toLowerCase()).toBe('#ef4444');
+      expect(getChlorophyllColor(0).toLowerCase()).toBe('#f7fcf5');
+      expect(getChlorophyllColor(10).toLowerCase()).toBe('#74c476');
+      expect(getChlorophyllColor(20).toLowerCase()).toBe('#00441b');
       // Clamping checks
-      expect(getChlorophyllColor(-5).toLowerCase()).toBe('#22c55e');
-      expect(getChlorophyllColor(25).toLowerCase()).toBe('#ef4444');
+      expect(getChlorophyllColor(-5).toLowerCase()).toBe('#f7fcf5');
+      expect(getChlorophyllColor(25).toLowerCase()).toBe('#00441b');
     });
 
     it('maps SST values accurately in Celsius (never Kelvin)', () => {
@@ -45,9 +45,9 @@ describe('Coastal Spatial Grid & Color Scales', () => {
     it('maps Chlorophyll-a and SST values to valid RGBA tuples', () => {
       const chlorRgba = getChlorophyllColorRgba(10);
       expect(chlorRgba).toHaveLength(4);
-      expect(chlorRgba[0]).toBe(234);
-      expect(chlorRgba[1]).toBe(179);
-      expect(chlorRgba[2]).toBe(8);
+      expect(chlorRgba[0]).toBe(116);
+      expect(chlorRgba[1]).toBe(196);
+      expect(chlorRgba[2]).toBe(118);
       expect(chlorRgba[3]).toBe(215);
 
       const sstRgba = getSSTColorRgba(25);
@@ -58,7 +58,7 @@ describe('Coastal Spatial Grid & Color Scales', () => {
       expect(sstRgba[3]).toBe(215);
 
       const cellChlor = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 25, vessels: 0, values: {} }, true, false);
-      expect(cellChlor).toEqual([34, 197, 94, 215]);
+      expect(cellChlor).toEqual([247, 252, 245, 215]);
 
       const cellSst = getCellColorRgba({ id: 'test', lat: 0, lng: 0, chlor_a: 0, sst: 35, vessels: 0, values: {} }, false, true);
       expect(cellSst).toEqual([185, 28, 28, 215]);

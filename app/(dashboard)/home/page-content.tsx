@@ -278,11 +278,11 @@ export default function PageContent() {
       {/* ── Hero ── */}
       <Stack alignItems="center" spacing={1.5} sx={{ mb: { xs: 5, md: 7 } }}>
         <Image
-          src="/images/adb-jfpr-japan.webp"
-          alt="ADB-JFPR Japan"
-          width={774}
-          height={198}
-          style={{ maxWidth: '220px', height: 'auto' }}
+          src="/images/adb-logo.png"
+          alt="ADB"
+          width={152}
+          height={152}
+          style={{ height: '64px', width: 'auto' }}
           priority
         />
 
@@ -298,20 +298,7 @@ export default function PageContent() {
             textAlign: 'center',
           }}
         >
-          Datablo
-          <Box
-            component="span"
-            sx={{
-              backgroundColor: '#0077BE',
-              color: '#ffffff',
-              padding: '0px 4px',
-              borderRadius: '6px',
-              marginLeft: '2px',
-              display: 'inline-block',
-            }}
-          >
-            x
-          </Box>
+          Data Division Dashboard
         </Typography>
       </Stack>
 
