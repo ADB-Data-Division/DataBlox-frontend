@@ -77,23 +77,9 @@ export const NAVIGATION: Navigation = [
 ];
 
 const BRANDING = {
-  title: 'Datablox',
+  title: 'Data Division Dashboard',
   logo: (
-    <div className={asap.className} style={{ 
-      fontSize: '24px', 
-      fontWeight: '900',
-      color: '#000000',
-      margin: '3px',
-      letterSpacing: '-0.5px'
-    }}>
-      Datablo<span style={{
-        backgroundColor: '#0077BE',
-        color: '#ffffff',
-        padding: '2px 4px',
-        borderRadius: '4px',
-        marginLeft: '1px'
-      }}>x</span>
-    </div>
+    <Image src="/images/adb-logo.png" alt="ADB" width={152} height={152} style={{ height: '40px', width: 'auto' }} />
   )
 };
 
