@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import PageContent from './page-content';
 
 export const metadata: Metadata = {
-  title: 'Overtourism Analysis - Datablox',
+  title: 'Overtourism Analysis - Data Division Dashboard',
   description: 'Analyze overtourism metrics including Irritation Index and Environmental Stress across Thai provinces.'
 };
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import PageContent from './page-content';
 
 export const metadata: Metadata = {
-  title: 'Sankey Diagram - Datablox',
+  title: 'Sankey Diagram - Data Division Dashboard',
   description: 'Interactive sankey-style migration flow visualization using chord diagrams'
 };
 

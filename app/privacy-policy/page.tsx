@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
             1. Information We Collect
           </Typography>
           <Typography variant="body1" >
-            We collect limited information to improve your experience with Datablox:
+            We collect limited information to improve your experience with Data Division Dashboard:
           </Typography>
           <Box component="ul" sx={{ ml: 2, mb: 2 }}>
             <Typography component="li" variant="body1" sx={{ mb: 1 }}>
