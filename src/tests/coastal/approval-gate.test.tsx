@@ -111,6 +111,6 @@ describe("PendingApproval", () => {
       <PendingApproval email="ada@example.com" status="approved" onRecheck={noop} />
     );
     expect(html).toMatch(/You are approved/);
-    expect(html).toMatch(/Open DataBlox/);
+    expect(html).toMatch(/Open Data Division Dashboard/);
   });
 });

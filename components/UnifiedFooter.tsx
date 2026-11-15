@@ -103,7 +103,7 @@ export default function UnifiedFooter({ userTypeContext }: UnifiedFooterProps) {
         >
           Privacy Policy
         </a>
-        <span>© 2025 Datablox. All rights reserved.</span>
+        <span>© 2025 Data Division Dashboard. All rights reserved.</span>
       </div>
       
       {userTypeContext && (

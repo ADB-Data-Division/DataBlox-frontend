@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import PageContent from './page-content';
 
 export const metadata: Metadata = {
-  title: 'Coastal Indicators Analysis | DataBlox',
+  title: 'Coastal Indicators Analysis | Data Division Dashboard',
 };
 
 export default function CoastalIndicatorsPage() {

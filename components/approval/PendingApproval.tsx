@@ -41,7 +41,7 @@ export function PendingApproval({
           <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 2 }}>
             {status === "approved" ? (
               <Button variant="contained" href="/coastal">
-                Open DataBlox
+                Open Data Division Dashboard
               </Button>
             ) : (
               <>

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import PageContent from './page-content';
 
 export const metadata: Metadata = {
-  title: 'Coastal Admin Dashboard | DataBlox',
+  title: 'Coastal Admin Dashboard | Data Division Dashboard',
 };
 
 export default function CoastalAdminDashboardPage() {

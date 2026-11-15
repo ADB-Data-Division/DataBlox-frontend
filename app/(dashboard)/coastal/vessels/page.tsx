@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import PageContent from "./page-content";
 
 export const metadata = {
-  title: "Maritime Vessel Types Analysis | DataBlox",
+  title: "Maritime Vessel Types Analysis | Data Division Dashboard",
 };
 
 export default function VesselsPage() {

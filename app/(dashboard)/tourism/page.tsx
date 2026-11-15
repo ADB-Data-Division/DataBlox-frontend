@@ -4,7 +4,7 @@ import PageContent from './page-content';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Tourism Analysis - Datablox',
+  title: 'Tourism Analysis - Data Division Dashboard',
   description: 'Interactive tourism migration analysis with bar charts and time series filtering'
 };
 

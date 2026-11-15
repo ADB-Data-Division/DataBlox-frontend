@@ -101,7 +101,7 @@ Every dashboard page is wrapped in `ApprovalGate`
   declined, it renders `PendingApproval`
   (`components/approval/PendingApproval.tsx`): heading, email chip,
   Sign out (`signOut` from `next-auth/react`), Check again (re-runs the
-  call), and an Open DataBlox button once approved.
+  call), and an Open Data Division Dashboard button once approved.
 - When `whoami` itself fails, the gate fails open and renders the page.
   The backend is the only enforcer.
 - A missing `approved` field counts as approved, so the new frontend

@@ -4,8 +4,8 @@ import PageContent from './page-content';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Migration Flows - Datablox',
-  description: 'Datablox is a platform for analyzing migration data'
+  title: 'Migration Flows - Data Division Dashboard',
+  description: 'Data Division Dashboard is a platform for analyzing migration data'
 };
 
 
