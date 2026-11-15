@@ -346,10 +346,10 @@ export function Header() {
         <Link href="/home" style={{ textDecoration: 'none' }}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <Image
-              src="/images/adb-jfpr-japan.webp"
-              alt="ADB-JFPR Japan"
-              width={774}
-              height={198}
+              src="/images/adb-logo.png"
+              alt="ADB"
+              width={152}
+              height={152}
               style={{
                 maxWidth: '200px',
                 maxHeight: '48px',
@@ -371,20 +371,7 @@ export function Header() {
                 cursor: 'pointer',
               }}
             >
-              Datablo
-              <Box
-                component="span"
-                sx={{
-                  backgroundColor: '#0077BE',
-                  color: '#ffffff',
-                  padding: '0px 2px',
-                  borderRadius: '4px',
-                  marginLeft: '1px',
-                  display: 'inline-block',
-                }}
-              >
-                x
-              </Box>
+              Data Division Dashboard
             </Typography>
           </Stack>
         </Link>

@@ -78,7 +78,7 @@ export const COASTAL_INDICATORS: CoastalIndicatorEntry[] = [
   // Ocean color
   entry(
     { id: 'chlor_a', label: 'Chlorophyll-a', group: 'Ocean color', unit: 'mg/m³', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'null' },
-    { color: '#10B981', mapColors: ['#22c55e', '#eab308', '#ef4444'], mapDomain: [0, 20], deltaUpColor: CHLOR_UP, deltaDownColor: CHLOR_DOWN, decimals: 2, shortLabel: 'Chlorophyll-a', icon: '🟢' },
+    { color: '#10B981', mapColors: ['#f7fcf5', '#74c476', '#00441b'], mapDomain: [0, 20], deltaUpColor: CHLOR_UP, deltaDownColor: CHLOR_DOWN, decimals: 2, shortLabel: 'Chlorophyll-a', icon: '🟢' },
   ),
   entry(
     { id: 'spm', label: 'Suspended Particulate Matter', group: 'Ocean color', unit: 'g/m³', agg: 'average', supports_map: true, supports_timeline: true, null_policy: 'null' },
