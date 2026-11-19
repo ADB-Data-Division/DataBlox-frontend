@@ -61,9 +61,6 @@ interface HexCellData {
   memberIds?: string[];
 }
 
-// Native resolution of the grid payload.
-const NATIVE_H3_RES = 7;
-
 // Single cluster mode (no intermediate hex levels): below this Leaflet zoom
 // the hexes are replaced by magnitude circles grouped at CLUSTER_PARENT_RES.
 const CLUSTER_ZOOM_THRESHOLD = 9;
@@ -1348,8 +1345,6 @@ function CoastalChoroplethMapClient({
       const tooltipContent = `
         <div style="font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif; font-size: 12px; line-height: 1.45; color: #1e293b; padding: 4px;">
           <div style="font-weight: 700; margin-bottom: 2px;">Hex: ${cell.id}</div>
-          <div style="color: #64748b;">Resolution: ${NATIVE_H3_RES}</div>
-          <div style="color: #64748b;">Area: 4.5 km²</div>
           ${overlayVessels ? `<div>Total Vessels: <strong>${cell.vessels}</strong></div>` : ''}
           <div>${activeTooltipLabel}: <strong>${formatIndicatorTooltip(activeIndicator, getCellIndicatorValue(cell, activeIndicator))}</strong></div>
         </div>
@@ -1579,13 +1574,8 @@ function CoastalChoroplethMapClient({
           <Box sx={{ fontWeight: 700, mb: 0.25 }}>
             {hoveredCell.isCluster ? `${hoveredCell.childCount} hexes` : `Hex: ${hoveredCell.id}`}
           </Box>
-          {hoveredCell.isCluster ? (
+          {hoveredCell.isCluster && (
             <Box sx={{ color: '#64748b' }}>Click to zoom in</Box>
-          ) : (
-            <>
-              <Box sx={{ color: '#64748b' }}>Resolution: {NATIVE_H3_RES}</Box>
-              <Box sx={{ color: '#64748b' }}>Area: 4.5 km²</Box>
-            </>
           )}
           {(overlayVessels || activeIndicator === 'vessels') && (
             <Box>Total Vessels: <strong>{hoveredCell.vessels} vessels</strong></Box>
